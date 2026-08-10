@@ -29,17 +29,9 @@ def connect_db_ctpe():
     engine = create_engine(DB_URL)
     return engine
 
-#checa dados em ctpe
-def executar_consulta(client, query):
-    """
-    Executa uma consulta no BigQuery e salva o resultado em um arquivo Parquet.
+#carrega variáveis de ambiente
+load_dotenv()
 
-    Args:
-        client (google.cloud.bigquery.client.Client): O cliente BigQuery.
-        query (str): A string da consulta SQL a ser executada.
-    """
-    df = client.query(query).to_dataframe()
-    return df
 
 
 # %% [markdown]
@@ -51,8 +43,19 @@ def executar_consulta(client, query):
 # %%
 ## Cadúnico
 # carrega dados cadunico em df
+
+engine = connect_db_ctpe()
+query = text('SELECT * FROM ctpe.bronze_cadunico WHERE ativo=True')
+df = pd.read_sql('SELECT * FROM ctpe.bronze_cadunico WHERE ativo=True', engine)
+df.head()
+
+
 # calcula indicadores 1 infancia
 # exporta resultados
+
+# %%
+#quantitativos cadunico
+
 
 # %% [markdown]
 # ### DataSus
