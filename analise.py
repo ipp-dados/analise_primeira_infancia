@@ -1,5 +1,6 @@
 # %%
 import pandas as pd
+import sqlalchemy
 
 
 # %% [markdown]
@@ -33,6 +34,6 @@ import pandas as pd
 
 
 # %% [markdown]
-# 
+#
 
 

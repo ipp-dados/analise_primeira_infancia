@@ -11,3 +11,10 @@
 <p>Dados extraídos do banco local para data_frames por script extracao_cadunico.py</p>
 <p>Dados salvos em pasta dados_locais carregados para data_frames no notebook</p>
 <p>Gráficos e visualizações salvos em pasta visualizacoes</p>
+
+## Usando Jupytext
+<li> Installe 'jupytext' em seu ambiente (está em requirements.txt)</li>
+<li>rode 'jupytext --to notebook analise.py' para criar seu arquivo .ipynb ou atualiza-lo a partir do arquivo .py</li>
+<li>realize as alterações no notebook localmente</li>>
+<li>rode 'jupytext --sync analise.py' para sincronizar as alterações do notebook analise.ipynb no arquivo py</li>
+</li>dê commit nas alterações do arquivo .py</li>
