@@ -23,7 +23,7 @@ def connect_db_ctpe():
     "user": os.getenv('user'),
     "password_db": os.getenv('password_db'),
     "host": os.getenv('host'),
-    "port": 5432
+    "port": os.getenv('port')
     }
     DB_URL = f"postgresql+psycopg://{parameters['user']}:{parameters['password_db']}@{parameters['host']}:{parameters['port']}/{parameters['db_name']}?client_encoding=utf8"
     engine = create_engine(DB_URL)
@@ -45,8 +45,7 @@ load_dotenv()
 # carrega dados cadunico em df
 
 engine = connect_db_ctpe()
-query = text('SELECT * FROM ctpe.bronze_cadunico WHERE ativo=True')
-df = pd.read_sql('SELECT * FROM ctpe.bronze_cadunico WHERE ativo=True', engine)
+df = pd.read_sql("SELECT * FROM silver_cadunico_geral WHERE grupo_idade='0-6'", engine)
 df.head()
 
 
