@@ -45,15 +45,29 @@ load_dotenv()
 # carrega dados cadunico em df
 
 engine = connect_db_ctpe()
-df = pd.read_sql("SELECT * FROM silver_cadunico_geral WHERE grupo_idade='0-6'", engine)
-df.head()
+df_original = pd.read_sql("SELECT * FROM silver_cadunico_geral WHERE grupo_idade='0-6'", engine)
+df =  df_original.copy()
+df_original
 
 
 # calcula indicadores 1 infancia
 # exporta resultados
 
 # %%
-#quantitativos cadunico
+df_original['id_familia'].nunique()
+df_original['grupo_renda_pct'].isna().sum()
+
+# %%
+#quantitativos por grupo de renda pct
+df_renda = df.groupby(by='grupo_renda_pct').agg({'id_pessoa':'count','id_familia':'nunique'})
+df_renda.loc['Total'] = df_renda.sum()
+custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
+df_renda.reindex(custom_order).head(10)
+
+# %%
+#quantitativos por idade
+df_idade = df.groupby(by='idade').agg({'id_pessoa':'count','id_familia':'nunique'})
+df_idade.head(10)
 
 
 # %% [markdown]
