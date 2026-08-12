@@ -20,3 +20,11 @@
 <li>rode 'jupytext --sync analise.py' para sincronizar as alterações do notebook analise.ipynb no arquivo py</li>
 <li>dê commit nas alterações do arquivo .py</li>
 </ol>
+
+---
+
+## Update Table
+
+| Version | Date       | Description         |
+| :------ | :--------- | :------------------ |
+| 1.0.0   | 2024-08-12 | Initial repository setup |
