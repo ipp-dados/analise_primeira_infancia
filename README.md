@@ -14,7 +14,7 @@
 
 ## Usando Jupytext
 <ol>
-<li>Installe 'jupytext' em seu ambiente (está em requirements.txt)</li>
+<li>Instale 'jupytext' em seu ambiente (está em requirements.txt)</li>
 <li>rode 'jupytext --to notebook analise.py' para criar seu arquivo .ipynb ou atualiza-lo a partir do arquivo .py</li>
 <li>realize as alterações no notebook localmente</li>
 <li>rode 'jupytext --sync analise.py' para sincronizar as alterações do notebook analise.ipynb no arquivo py</li>
