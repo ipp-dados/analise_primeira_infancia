@@ -30,7 +30,7 @@ def connect_db_ctpe():
     engine = create_engine(DB_URL)
     return engine
 
-def limpa_dados_sisvan_sobrepeso(colunas, dataset):
+def limpa_dados_sisvan(colunas, dataset):
     path = Path(f"dados_locais\\{dataset}\\")
     arquivos = [f.name for f in path.iterdir() if f.is_file() and f.name != 'example_file']
     
@@ -53,8 +53,9 @@ def limpa_dados_sisvan_sobrepeso(colunas, dataset):
     df_final.reset_index(inplace=True, drop=True)
     df_final.to_csv(f"dados_locais\\tratados\\{dataset}.csv")
 
-def calcula_percentual_datasus(df):
-    pass
+def limpa_dados_datasus(df):
+    df = df.melt(id_vars=['Bairro Residencia'])
+    return df
 
 def grafico_barra(df):
     pass
@@ -66,8 +67,8 @@ def grafico_serie_temporal(df):
 load_dotenv()
 
 # %%
-limpa_dados_sisvan_sobrepeso(colunas=['magreza_acentuada','magreza','eutrofia','risco sobrepeso','sobrepeso','obesidade','total'], dataset='sobrepeso')
-limpa_dados_sisvan_sobrepeso(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','peso_elevado','total'], dataset='desnutrição')
+limpa_dados_sisvan(colunas=['magreza_acentuada','magreza','eutrofia','risco sobrepeso','sobrepeso','obesidade','total'], dataset='sobrepeso')
+limpa_dados_sisvan(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','peso_elevado','total'], dataset='desnutrição')
 
 # %% [markdown]
 # ## Carregamento dos Dados
@@ -109,7 +110,10 @@ df_idade.head(10)
 # %%
 #Nascidos vivos
 df_vivos = pd.read_csv(r"dados_locais\nascidos_vivos_bairros_2006_a_2025.csv")
-df_vivos.head()
+df_vivos = limpa_dados_datasus(df_vivos)
+df_total = df_vivos[df_vivos['variable']=='Total']
+df_vivos['Percentual'] = (df_vivos['value']/df_total['value'])*100
+df_vivos.tail()
 # le arquivos CSV do datasus
 # calcula indicadores primeira infancia
 # exporta resultados
@@ -117,6 +121,7 @@ df_vivos.head()
 # %%
 #Nascidos abaixo do peso
 df_baixo_peso = pd.read_csv(r"dados_locais\nascidos_vivos_baixo_peso_ao_nascer_bairros_2006_a_2025.csv")
+df_baixo_peso = limpa_dados_datasus(df_baixo_peso)
 df_baixo_peso.head()
 
 # %% [markdown]
