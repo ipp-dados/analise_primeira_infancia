@@ -2,3 +2,5 @@
 *pycache*
 *csv
 *.ipynb
+*.zip
+*.xlsx
