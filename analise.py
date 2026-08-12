@@ -32,7 +32,7 @@ def connect_db_ctpe():
 
 def limpa_dados_sisvan_sobrepeso(colunas, dataset):
     path = Path(f"dados_locais\\{dataset}\\")
-    arquivos = [f.name for f in path.iterdir() if f.is_file() and f != 'example_file']
+    arquivos = [f.name for f in path.iterdir() if f.is_file() and f.name != 'example_file']
     
     colunas_ajustadas = ['ano']
     for i in colunas:
