@@ -140,6 +140,12 @@ df_original
 # %%
 df = df.rename(columns={'id_pessoa':'Crianças','id_familia':'Famílias','grupo_renda_pct':'faixa de renda'})
 
+# %% [markdown]
+# <p>LEMBRAR DE PUIXAR</p>
+# ### Crianças 0 a 4 cadunico
+# #### Pegar 0 a 4
+# #### Pegar 2022
+
 # %%
 #quantitativos por grupo de renda pct
 df_renda = df.groupby(by='faixa de renda').agg({'Crianças':'count','Famílias':'nunique'})
@@ -221,7 +227,7 @@ serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titul
 
 # %%
 df_desnutricao = pd.read_csv(r"dados_locais\tratados\desnutrição.csv", index_col=0)
-df_desnutricao.head()
+df_desnutricao.tail()
 
 # %%
 df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo_percentual'].apply(convert_numeric_safe)
@@ -237,7 +243,7 @@ df_sobrepeso.head()
 df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
-serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual Crianças 0-6 com sobrepeso')
+serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual Crianças 0-6 com sobrepeso + PESO ACIMA + OBESIDADE')
 
 # %%
 serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual Crianças 0-6 com obesidade')
