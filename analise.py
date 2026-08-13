@@ -1,3 +1,6 @@
+# %% [markdown]
+# ## Pacotes e Funcões Auxiliares
+
 # %%
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
@@ -7,9 +10,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
-
-# %% [markdown]
-# ## Funcões Auxiliares
 
 # %%
 #conecta ao banco CTPE
@@ -104,6 +104,25 @@ limpa_dados_sisvan(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','pes
 df_censo = pd.read_csv("dados_locais\\pop_censo_2022_datario.csv", encoding='Latin-1', sep=';')
 df_censo.head()
 
+# %%
+df_censo['Total'] = df_censo[['0 a 4 anos', '5 a 9 anos',
+       '10 a 14 anos', '15 a 19 anos', '20 a 24 anos', '25 a 29 anos',
+       '30 a 39 anos', '40 a 49 anos', '50 a 59 anos', '60 a 69 anos',
+       '70 anos ou mais']].sum(axis=1)
+
+# %%
+print(f'Crianças de 0 a 4 anos em 2022: {df_censo['0 a 4 anos'].sum()}')
+print(f'Crianças de 5 a 9 anos em 2022: {df_censo['5 a 9 anos'].sum()}')
+
+# %%
+df_censo['Percentual 0 a 4'] = (df_censo['0 a 4 anos']/df_censo['Total'])*100
+
+# %%
+df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='0 a 4 anos',ascending=False)
+
+# %%
+df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
+
 # %% [markdown]
 # ### Cadúnico
 
@@ -149,7 +168,7 @@ grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: F
 grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças 0-6 por idade')
 
 # %% [markdown]
-# ### DataSus
+# ### DataSus - tabnet
 
 # %%
 #Nascidos vivos
@@ -194,7 +213,7 @@ df_baixo_ano.head(25)
 serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titulo='Nascidos com baixo peso por ano')
 
 # %% [markdown]
-# ### SISVAN
+# ### DataSus - SISVAN
 
 # %%
 df_desnutricao = pd.read_csv(r"dados_locais\tratados\desnutrição.csv", index_col=0)
@@ -205,9 +224,6 @@ df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo
 df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
 serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Crianças 0-6 com baixo peso')
-
-# %% [markdown]
-#
 
 # %%
 df_sobrepeso = pd.read_csv(r"dados_locais\tratados\sobrepeso.csv", index_col=0)
@@ -224,6 +240,19 @@ serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo
 
 # %% [markdown]
 # ### Análises por bairros
+
+# %%
+# Censo 2022
+# Tabnet
+# Cadunico
+
+# %% [markdown]
+# ### Série Histórica Censo
+
+# %%
+
+# %% [markdown]
+# ### Dados datasus faltantes
 
 # %%
 
