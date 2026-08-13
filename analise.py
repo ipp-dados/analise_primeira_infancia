@@ -102,7 +102,7 @@ limpa_dados_sisvan(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','pes
 # %%
 ## dados censo
 df_censo = pd.read_csv("dados_locais\\pop_censo_2022_datario.csv", encoding='Latin-1', sep=';')
-
+df_censo.head()
 
 # %% [markdown]
 # ### Cadúnico
@@ -127,12 +127,12 @@ df_renda.head(10)
 
 # %%
 grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Famílias',
-              titulo='CADÚNICO: Famílias por faixa de renda per capita',
+              titulo='CADÚNICO: Famílias c/crianças 0-6 por faixa de renda per capita',
               formato='png')
 
 # %%
 grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Crianças',
-              titulo='CADÚNICO: Crianças por faixa de renda per capita',
+              titulo='CADÚNICO: Crianças 0-6 por faixa de renda per capita',
               formato='svg')
 
 # %%
@@ -143,10 +143,10 @@ df_idade.head(10)
 
 
 # %%
-grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: Famílias por idade')
+grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: Famílias c/ crianças 0-6 por idade')
 
 # %%
-grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças por idade')
+grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças 0-6 por idade')
 
 # %% [markdown]
 # ### DataSus
@@ -204,7 +204,7 @@ df_desnutricao.head()
 df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
-serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Crianças com baixo peso')
+serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Crianças 0-6 com baixo peso')
 
 # %% [markdown]
 #
@@ -217,7 +217,7 @@ df_sobrepeso.head()
 df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
-serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Crianças com sobrepeso')
+serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Crianças 0-6 com sobrepeso')
 
 # %% [markdown]
 # ## Entregaveis Dia 19
