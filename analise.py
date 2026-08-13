@@ -69,6 +69,7 @@ def serie_temporal(df,tempo,valor,titulo, formato='png'):
     sns.lineplot(x=tempo,y=valor,data=df)
     plt.xlabel(tempo,fontsize=12)
     plt.ylabel(valor,fontsize=12)
+    plt.title(titulo,fontsize=14)
     plt.savefig(f"visualizacoes/{valor}_{tempo}.{formato}")
     plt.title(titulo)
 
@@ -116,9 +117,10 @@ print(f'Crianças de 5 a 9 anos em 2022: {df_censo['5 a 9 anos'].sum()}')
 
 # %%
 df_censo['Percentual 0 a 4'] = (df_censo['0 a 4 anos']/df_censo['Total'])*100
+df_censo['Percentual 5 a 9'] = (df_censo['5 a 9 anos']/df_censo['Total'])*100
 
 # %%
-df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='0 a 4 anos',ascending=False)
+df_censo[['bairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 9']].sort_values(by='0 a 4 anos',ascending=False).to_csv('Tabelas_finais\\censo_por_bairro.csv')
 
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
@@ -153,6 +155,7 @@ df_renda.loc['Total'] = df_renda.sum()
 custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 df_renda = df_renda.reindex(custom_order)
 df_renda.head(10)
+df_renda.to_csv('Tabelas_finais\\cadunico_por_faixa_etaria_2026.csv')
 
 # %%
 grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Famílias',
@@ -162,12 +165,13 @@ grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Famílias',
 # %%
 grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Crianças',
               titulo='CADÚNICO: Crianças 0-6 por faixa de renda per capita',
-              formato='svg')
+              formato='png')
 
 # %%
 #quantitativos por idade
 df #fazer one hot da coluna sexo
 df_idade = df.groupby(by='idade').agg({'Crianças':'count','Famílias':'nunique'})#,'sexo_m':'sum','sexo_f':'sum'})
+df_idade.to_csv('Tabelas_finais\\cadunico_por_idade_2026.csv')
 df_idade.head(10)
 
 
@@ -201,6 +205,7 @@ df_vivos_por_ano.drop(index='Total',inplace=True)
 df_vivos_por_ano.reset_index(inplace=True)
 df_vivos_por_ano.rename({'variable':'ano','value':'Nascidos vivos'},axis=1, inplace=True)
 df_vivos_por_ano.head(25)
+df_vivos_por_ano.to_csv('Tabelas_finais\\nascidos_vivos_por_ano.csv')
 
 # %%
 serie_temporal(df_vivos_por_ano,tempo='ano',valor='Nascidos vivos', titulo='Nascidos vivos por ano')
@@ -217,6 +222,7 @@ df_baixo_ano.drop(index='Total',inplace=True)
 df_baixo_ano.reset_index(inplace=True)
 df_baixo_ano.rename({'variable':'ano','value':'Nascidos abaixo peso'},axis=1, inplace=True)
 df_baixo_ano['percentual abaixo do peso'] = (df_baixo_ano['Nascidos abaixo peso']/df_vivos_por_ano['Nascidos vivos'])*100
+df_baixo_ano.to_csv('Tabelas_finais\\nascidos_abaixo_peso_por_ano.csv')
 df_baixo_ano.head(25)
 
 # %%
@@ -233,6 +239,7 @@ df_desnutricao.tail()
 df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
+df_desnutricao.to_csv('Tabelas_finais\\sisvan_desnutricao_por_ano.csv')
 serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual Crianças 0-6 com baixo peso')
 
 # %%
@@ -243,7 +250,8 @@ df_sobrepeso.head()
 df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
-serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual Crianças 0-6 com sobrepeso + PESO ACIMA + OBESIDADE')
+df_sobrepeso.to_csv('Tabelas_finais\\sisvan_sobrepeso_por_ano.csv')
+serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual Crianças 0-6 com sobrepeso i.e. PESO ACIMA + OBESIDADE')
 
 # %%
 serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual Crianças 0-6 com obesidade')
