@@ -32,6 +32,10 @@ def connect_db_ctpe():
     engine = create_engine(DB_URL)
     return engine
 
+def convert_numeric_safe(s):
+    s_cleaned = s.strip().replace('%','')
+    return float(s_cleaned)
+
 def limpa_dados_sisvan(colunas, dataset):
     path = Path(f"dados_locais\\{dataset}\\")
     arquivos = [f.name for f in path.iterdir() if f.is_file() and f.name != 'example_file']
@@ -53,6 +57,7 @@ def limpa_dados_sisvan(colunas, dataset):
         df_infos['ano'] = arquivo[-9:-5]
         df_final = pd.concat([df_final,df_infos])
     df_final.reset_index(inplace=True, drop=True)
+    
     df_final.to_csv(f"dados_locais\\tratados\\{dataset}.csv")
 
 def limpa_dados_datasus(df):
@@ -96,9 +101,8 @@ limpa_dados_sisvan(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','pes
 
 # %%
 ## dados censo
-# le arquivos CSV do censo
-# calcula indicadores primeira infancia
-# exporta resultados
+df_censo = pd.read_csv("dados_locais\\pop_censo_2022_datario.csv", encoding='Latin-1', sep=';')
+
 
 # %% [markdown]
 # ### Cadúnico
@@ -183,7 +187,7 @@ df_baixo_ano = df_baixo_peso.loc[:,['variable','value']].groupby(by='variable').
 df_baixo_ano.drop(index='Total',inplace=True)
 df_baixo_ano.reset_index(inplace=True)
 df_baixo_ano.rename({'variable':'ano','value':'Nascidos abaixo peso'},axis=1, inplace=True)
-df_baixo_ano['percentual abaixo do peso'] = (df_baixo_ano['Nascidos abaixo peso']/df_vivos_por_ano['Nascidos vivos'])
+df_baixo_ano['percentual abaixo do peso'] = (df_baixo_ano['Nascidos abaixo peso']/df_vivos_por_ano['Nascidos vivos'])*100
 df_baixo_ano.head(25)
 
 # %%
@@ -197,12 +201,23 @@ df_desnutricao = pd.read_csv(r"dados_locais\tratados\desnutrição.csv", index_c
 df_desnutricao.head()
 
 # %%
+df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo_percentual'].apply(convert_numeric_safe)
+df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
+df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
+serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Crianças com baixo peso')
+
+# %% [markdown]
+#
 
 # %%
 df_sobrepeso = pd.read_csv(r"dados_locais\tratados\sobrepeso.csv", index_col=0)
 df_sobrepeso.head()
 
 # %%
+df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].apply(convert_numeric_safe)
+df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
+df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
+serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Crianças com sobrepeso')
 
 # %% [markdown]
 # ## Entregaveis Dia 19
