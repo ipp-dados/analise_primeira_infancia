@@ -123,6 +123,10 @@ df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='0 a 4 anos'
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
 
+# %%
+# para bairros 'muito grandes' (+100.000 pessoas)
+df_censo.loc[df_censo['Total'] > 100000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
+
 # %% [markdown]
 # ### Cadúnico
 
@@ -210,7 +214,7 @@ df_baixo_ano['percentual abaixo do peso'] = (df_baixo_ano['Nascidos abaixo peso'
 df_baixo_ano.head(25)
 
 # %%
-serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titulo='Nascidos com baixo peso por ano')
+serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titulo='Percentual Nascidos com baixo peso por ano')
 
 # %% [markdown]
 # ### DataSus - SISVAN
@@ -223,7 +227,7 @@ df_desnutricao.head()
 df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
-serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Crianças 0-6 com baixo peso')
+serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual Crianças 0-6 com baixo peso')
 
 # %%
 df_sobrepeso = pd.read_csv(r"dados_locais\tratados\sobrepeso.csv", index_col=0)
@@ -233,7 +237,10 @@ df_sobrepeso.head()
 df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
-serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Crianças 0-6 com sobrepeso')
+serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual Crianças 0-6 com sobrepeso')
+
+# %%
+serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual Crianças 0-6 com obesidade')
 
 # %% [markdown]
 # ## Entregaveis Dia 19
