@@ -52,4 +52,5 @@ O script `analise.py` realiza as seguintes operações:
 
 | Version | Date       | Description         |
 | :------ | :--------- | :------------------ |
-| 1.0.0   | 2024-08-12 | Initial repository setup |
+| 0.1.0   | 2024-08-12 | Versão inicial com extração e tratamento dos dados|
+| 0.2.0   | 2024-13-12 | Primeiro Entregável - visualizações por município |
