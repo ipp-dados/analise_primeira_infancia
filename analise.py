@@ -302,7 +302,7 @@ df_vivos.tail()
 # %%
 df_vivos_sem_total = df_vivos[df_vivos['Bairro Residencia']!='Total']
 df_vivos_sem_total[['codigo','bairro']] = df_vivos_sem_total['Bairro Residencia'].str.split(' ', n=1,expand=True)
-df_vivos_sem_total[df_vivos_sem_total['variable']=='2025'].to_csv('mapa_bairros_nascidos_vivos_bruto.csv')
+df_vivos_sem_total[df_vivos_sem_total['variable']=='2025'].to_excel('mapa_bairros_nascidos_vivos_bruto.xlsx')
 
 # %%
 #df_total = df_vivos[df_vivos['variable']=='Total']
@@ -335,7 +335,7 @@ df_vivos.rename({'variable':'ano','value':'Nascidos vivos'},axis=1, inplace=True
 df_baixo_peso['percentual abaixo do peso'] = (df_baixo_peso['Nascidos abaixo peso']/df_vivos['Nascidos vivos'])*100
 df_baixo_peso_sem_total = df_baixo_peso[df_baixo_peso['Bairro Residencia']!='Total']
 df_baixo_peso_sem_total[['codigo','bairro']] = df_baixo_peso_sem_total['Bairro Residencia'].str.split(' ', n=1,expand=True)
-df_baixo_peso_sem_total[df_baixo_peso_sem_total['ano']=='2025'].to_csv('mapa_bairros_nascidos_abaixo_peso.csv')
+df_baixo_peso_sem_total[df_baixo_peso_sem_total['ano']=='2025'].to_excel('mapa_bairros_nascidos_abaixo_peso.xlsx')
 df_baixo_peso_sem_total[df_baixo_peso_sem_total['ano']=='2025']
 
 # %%
