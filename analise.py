@@ -124,13 +124,75 @@ df_censo[['bairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 
 
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
+df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('tabela_mapa_0_4_absoluto.xlsx')
+#mapa por total de 0 a 4 anos
 
 # %%
 # para bairros 'muito grandes' (+100.000 pessoas)
-df_censo.loc[df_censo['Total'] > 100000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
+df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
+df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('tabela_mapa_grandes_0_4_percentual.xlsx')
+#mapa por percentual dos bairros grandes
+
+# %% [markdown]
+# #### Serie temporal censo
+
+# %%
+df_2000 = pd.read_csv('dados_locais\\tabela 2974_2000.csv', sep=';')
+df_2010 = pd.read_csv('dados_locais\\tabela 2974_2010.csv', sep=';')
+df_2022 = pd.read_csv('dados_locais\\tabela 2974_2022.csv', sep=';')
+
+def total_e_percentual_ano(df):
+    df['0 a 4 anos'] = df['Sexo feminino, 0 a 4 anos'] + df['Sexo masculino, 0 a 4 anos']
+    df['Total'] = df.iloc[:,9:].sum(axis=1)
+    df['Percentual 0 a 4 anos'] = (df['0 a 4 anos']/df['Total'])
+    return df[['bairro','0 a 4 anos','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']]
+
+df_serie_censo = pd.DataFrame(columns=['bairro','ano','0 a 4 anos','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos'])
+for i in [[df_2000,'2000'],[df_2010,'2010'],[df_2022,'2022']]:
+    df = total_e_percentual_ano(i[0])
+    df['ano'] = i[1]
+    df_serie_censo = pd.concat([df_serie_censo,df])
+
+df_serie_censo[['ano','0 a 4 anos', 'Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']].groupby(by='ano').sum()
+
+# %%
+plt.figure(figsize=(12, 6))
+sns.lineplot(data=df_serie_censo, x='ano', y='0 a 4 anos', label='Total 0 a 4 anos', marker='o')
+sns.lineplot(data=df_serie_censo, x='ano', y='Sexo feminino, 0 a 4 anos', label='Sexo Feminino', marker='o')
+sns.lineplot(data=df_serie_censo, x='ano', y='Sexo masculino, 0 a 4 anos', label='Sexo Masculino', marker='o')
+#sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o')
+
+# Customize the plot
+plt.title('Série Temporal: Crianças 0 a 4 anos', fontsize=16)
+plt.xlabel('Ano', fontsize=12)
+plt.ylabel('Valores', fontsize=12)
+plt.legend(title='Indicadores', fontsize=10)
+plt.grid(True)
+plt.tight_layout()
+
+# Show the plot
+plt.show()
+
+# %%
+plt.figure(figsize=(12, 6))
+sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o')
+
+# Customize the plot
+plt.title('Série Temporal: Crianças 0 a 4 anos', fontsize=16)
+plt.xlabel('Ano', fontsize=12)
+plt.ylabel('Valores', fontsize=12)
+plt.legend(title='Indicadores', fontsize=10)
+plt.grid(True)
+plt.tight_layout()
+
+# Show the plot
+plt.show()
 
 # %% [markdown]
 # ### Cadúnico
+
+# %% [markdown]
+# #### Recorte 0-6 anos
 
 # %%
 #Banco CTPE
@@ -142,11 +204,12 @@ df_original
 # %%
 df = df.rename(columns={'id_pessoa':'Crianças','id_familia':'Famílias','grupo_renda_pct':'faixa de renda'})
 
-# %% [markdown]
-# <p>LEMBRAR DE PUIXAR</p>
-# ### Crianças 0 a 4 cadunico
-# #### Pegar 0 a 4
-# #### Pegar 2022
+# %%
+df_bairro = pd.read_csv('dados_locais\\lista_bairros.csv', dtype={'cep': str})
+df['cep'] = df['cep'].astype(str)
+
+# 2. Faz o JOIN (Merge) trazendo apenas a coluna 'bairros' baseada no 'cep'
+df = df.merge(df_bairro[['cep', 'bairro']], on='cep', how='left')
 
 # %%
 #quantitativos por grupo de renda pct
@@ -180,6 +243,39 @@ grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: F
 
 # %%
 grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças 0-6 por idade')
+
+# %% [markdown]
+# #### Análise por bairros
+
+# %%
+#quantitativos por grupo de renda pct
+df_bairro = df.groupby(by=['bairro']).agg({'Crianças':'count','Famílias':'nunique'})
+df_bairro.loc['Total'] = df_bairro.sum()
+#custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
+#df_bairro = df_bairro.reindex(custom_order)
+df_bairro.to_csv('Tabelas_finais\\cadunico_por_bairro_2026.csv')
+
+# %%
+df_bairro.sort_values(by='Crianças', ascending=False).head(10)
+# ADICIONAR NOTA SOBRE IDENTIFICACAO DE BAIRROS
+
+# %%
+df_bairro.sort_values(by='Primeira Inf. Cadúnico', ascending=True).head(10)
+
+# %%
+#quantitativos por grupo de renda pct
+df_ate_4 = df[df['idade']<5].copy()
+df_bairro_ate_4 = df_ate_4.groupby(by=['bairro']).agg({'Crianças':'count','Famílias':'nunique'})
+df_bairro_ate_4.loc['Total'] = df_bairro_ate_4.sum()
+#custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
+#df_bairro = df_bairro.reindex(custom_order)
+df_bairro_ate_4.to_csv('Tabelas_finais\\cadunico_por_bairro_2026.csv')
+df_bairro_ate_4 = df_bairro_ate_4.merge(df_censo[['bairro','0 a 4 anos']], on='bairro', how='right')
+df_bairro_ate_4['Primeira Inf. Cadúnico'] = df_bairro_ate_4['Crianças']/df_bairro_ate_4['0 a 4 anos']
+df_bairro_ate_4.sort_values(by='Crianças', ascending=False).head(10)
+
+# %%
+df_bairro[df_bairro['bairro']=='Complexo do Alemão']
 
 # %% [markdown]
 # ### DataSus - tabnet
