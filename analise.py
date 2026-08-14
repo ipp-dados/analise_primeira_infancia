@@ -128,10 +128,16 @@ df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 
 #mapa por total de 0 a 4 anos
 
 # %%
+df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).head(10)
+
+# %%
 # para bairros 'muito grandes' (+100.000 pessoas)
 df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
 df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('tabela_mapa_grandes_0_4_percentual.xlsx')
 #mapa por percentual dos bairros grandes
+
+# %%
+df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).head(20)
 
 # %% [markdown]
 # #### Serie temporal censo
@@ -157,9 +163,9 @@ df_serie_censo[['ano','0 a 4 anos', 'Percentual 0 a 4 anos','Sexo feminino, 0 a 
 
 # %%
 plt.figure(figsize=(12, 6))
-sns.lineplot(data=df_serie_censo, x='ano', y='0 a 4 anos', label='Total 0 a 4 anos', marker='o')
-sns.lineplot(data=df_serie_censo, x='ano', y='Sexo feminino, 0 a 4 anos', label='Sexo Feminino', marker='o')
-sns.lineplot(data=df_serie_censo, x='ano', y='Sexo masculino, 0 a 4 anos', label='Sexo Masculino', marker='o')
+sns.lineplot(data=df_serie_censo, x='ano', y='0 a 4 anos', label='Total 0 a 4 anos', marker='o', errorbar=None)
+sns.lineplot(data=df_serie_censo, x='ano', y='Sexo feminino, 0 a 4 anos', label='Sexo Feminino', marker='o', errorbar=None)
+sns.lineplot(data=df_serie_censo, x='ano', y='Sexo masculino, 0 a 4 anos', label='Sexo Masculino', marker='o', errorbar=None)
 #sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o')
 
 # Customize the plot
@@ -175,7 +181,7 @@ plt.show()
 
 # %%
 plt.figure(figsize=(12, 6))
-sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o')
+sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o', errorbar=None)
 
 # Customize the plot
 plt.title('Série Temporal: Crianças 0 a 4 anos', fontsize=16)
@@ -290,8 +296,13 @@ df_bairro[df_bairro['bairro']=='Complexo do Alemão']
 #Nascidos vivos
 df_vivos = pd.read_csv(r"dados_locais\nascidos_vivos_bairros_2006_a_2025.csv")
 df_vivos = limpa_dados_datasus(df_vivos)
-df_vivos.head()
+df_vivos.tail()
 
+
+# %%
+df_vivos_sem_total = df_vivos[df_vivos['Bairro Residencia']!='Total']
+df_vivos_sem_total[['codigo','bairro']] = df_vivos_sem_total['Bairro Residencia'].str.split(' ', n=1,expand=True)
+df_vivos_sem_total[df_vivos_sem_total['variable']=='2025'].to_csv('mapa_bairros_nascidos_vivos_bruto.csv')
 
 # %%
 #df_total = df_vivos[df_vivos['variable']=='Total']
@@ -317,6 +328,15 @@ serie_temporal(df_vivos_por_ano,tempo='ano',valor='Nascidos vivos', titulo='Nasc
 df_baixo_peso = pd.read_csv(r"dados_locais\nascidos_vivos_baixo_peso_ao_nascer_bairros_2006_a_2025.csv")
 df_baixo_peso = limpa_dados_datasus(df_baixo_peso)
 df_baixo_peso.head()
+
+# %%
+df_baixo_peso.rename({'variable':'ano','value':'Nascidos abaixo peso'},axis=1, inplace=True)
+df_vivos.rename({'variable':'ano','value':'Nascidos vivos'},axis=1, inplace=True)
+df_baixo_peso['percentual abaixo do peso'] = (df_baixo_peso['Nascidos abaixo peso']/df_vivos['Nascidos vivos'])*100
+df_baixo_peso_sem_total = df_baixo_peso[df_baixo_peso['Bairro Residencia']!='Total']
+df_baixo_peso_sem_total[['codigo','bairro']] = df_baixo_peso_sem_total['Bairro Residencia'].str.split(' ', n=1,expand=True)
+df_baixo_peso_sem_total[df_baixo_peso_sem_total['ano']=='2025'].to_csv('mapa_bairros_nascidos_abaixo_peso.csv')
+df_baixo_peso_sem_total[df_baixo_peso_sem_total['ano']=='2025']
 
 # %%
 df_baixo_ano = df_baixo_peso.loc[:,['variable','value']].groupby(by='variable').sum()
