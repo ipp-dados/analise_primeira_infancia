@@ -211,6 +211,9 @@ df['cep'] = df['cep'].astype(str)
 # 2. Faz o JOIN (Merge) trazendo apenas a coluna 'bairros' baseada no 'cep'
 df = df.merge(df_bairro[['cep', 'bairro']], on='cep', how='left')
 
+# %% [markdown]
+# #### Análise por renda
+
 # %%
 #quantitativos por grupo de renda pct
 df_renda = df.groupby(by='faixa de renda').agg({'Crianças':'count','Famílias':'nunique'})
@@ -229,6 +232,9 @@ grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Famílias',
 grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Crianças',
               titulo='CADÚNICO: Crianças 0-6 por faixa de renda per capita',
               formato='png')
+
+# %% [markdown]
+# #### Análise por idade
 
 # %%
 #quantitativos por idade
