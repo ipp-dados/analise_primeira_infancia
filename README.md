@@ -24,9 +24,14 @@ O script `analise.py` realiza as seguintes operações:
 6.  **Análise do DATASUS (Tabnet)**:
     *   **Nascidos Vivos**: Processa dados de nascidos vivos por ano, gerando uma série temporal e salvando em `Tabelas_finais/nascidos_vivos_por_ano.csv`.
     *   **Baixo Peso ao Nascer**: Analisa o percentual de nascidos com baixo peso por ano, gerando uma série temporal e salvando em `Tabelas_finais/nascidos_abaixo_peso_por_ano.csv`.
+    *   **Mortalidade Neonatal**: Analisa a mortalidade neonatal precoce (0-6 dias) e tardia (7-27 dias), calculando as taxas por ano e gerando séries temporais.
+    *   **Mortalidade na Gravidez e Puerpério**: Processa e visualiza o número de óbitos durante a gravidez e o puerpério por ano.
 7.  **Análise do DATASUS (SISVAN)**:
     *   **Desnutrição**: Processa dados de desnutrição (peso muito baixo e baixo) por ano, gerando séries temporais e salvando em `Tabelas_finais/sisvan_desnutricao_por_ano.csv`.
     *   **Sobrepeso e Obesidade**: Processa dados de sobrepeso e obesidade por ano, gerando séries temporais e salvando em `Tabelas_finais/sisvan_sobrepeso_por_ano.csv`.
+8.  **Análise de Dados de Educação (PNAD, Censo Escolar)**:
+    *   **Frequência Escolar**: Analisa e visualiza a taxa de frequência escolar por idade com base nos dados da PNAD.
+    *   **Matrículas**: Analisa a série histórica do número de matrículas de crianças de 0 a 6 anos com base no Censo Escolar.
 
 ## Como Executar
 1.  **Clone o repositório:**
@@ -61,3 +66,4 @@ O script `analise.py` realiza as seguintes operações:
 | 0.1.0   | 2024-08-12 | Versão inicial com extração e tratamento dos dados|
 | 0.2.0   | 2024-13-12 | Primeiro Entregável - visualizações por município |
 | 0.3.0   | 2026-08-14 | Análise e visualização abrangente dos dados do Censo, CadÚnico, DATASUS e SISVAN |
+| 0.4.0   | 2026-08-17 | Inclusão de análises de mortalidade (neonatal, gravidez, puerpério) e educação (frequência, matrículas). |
