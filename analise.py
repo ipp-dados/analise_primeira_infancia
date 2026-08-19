@@ -86,6 +86,9 @@ def grafico_barra(df,categoria,valor,titulo, formato='png'):
 #carrega variáveis de ambiente
 load_dotenv()
 
+# %% [markdown]
+# #### Limpesa de dados prévia
+
 # %%
 limpa_dados_sisvan(colunas=['magreza_acentuada','magreza','eutrofia','risco sobrepeso','sobrepeso','obesidade','total'], dataset='sobrepeso')
 limpa_dados_sisvan(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','peso_elevado','total'], dataset='desnutrição')
@@ -123,7 +126,7 @@ df_censo['Percentual 0 a 4'] = (df_censo['0 a 4 anos']/df_censo['Total'])*100
 df_censo['Percentual 5 a 9'] = (df_censo['5 a 9 anos']/df_censo['Total'])*100
 
 # %%
-df_censo[['bairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 9']].sort_values(by='0 a 4 anos',ascending=False).to_csv('Tabelas_finais\\censo_por_bairro.csv')
+df_censo[['bairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 9']].sort_values(by='0 a 4 anos',ascending=False).to_csv('tabelas_finais\\censo_por_bairro.csv')
 
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
@@ -198,6 +201,9 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
+# ##### PUXAR CENSO 2022 por IDADE e RAÇA para a cidade toda 0 a 6
+
+# %% [markdown]
 # ### Cadúnico
 
 # %% [markdown]
@@ -229,8 +235,10 @@ df_renda = df.groupby(by='faixa de renda').agg({'Crianças':'count','Famílias':
 df_renda.loc['Total'] = df_renda.sum()
 custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 df_renda = df_renda.reindex(custom_order)
-df_renda.head(10)
 df_renda.to_csv('Tabelas_finais\\cadunico_por_faixa_etaria_2026.csv')
+
+# %%
+df_renda.head(10)
 
 # %%
 grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Famílias',
@@ -292,6 +300,7 @@ df_bairro_ate_4.sort_values(by='Crianças', ascending=False).head(10)
 # %%
 df_bairro[df_bairro['bairro']=='Complexo do Alemão']
 
+
 # %% [markdown]
 # ### DataSus - tabnet
 
@@ -299,29 +308,33 @@ df_bairro[df_bairro['bairro']=='Complexo do Alemão']
 # #### Nascidos Vivos
 
 # %%
+def limpeza_tabnet_bairros(df,categoria):
+    df.columns = ['bairro','ano',categoria]
+    df = df[df['bairro']!='Total']
+    df = df[df['ano']!='Total']
+    df[['codigo','bairro']] = df.loc[df['bairro']!='EM BRANCO','bairro'].str.split(' ', n=1,expand=True)
+    return df
+
+
+# %%
 #Nascidos vivos
 df_vivos = pd.read_csv("dados_locais\\nascidos_vivos\\nascidos_vivos_bairros_2006_a_2025.csv")
 df_vivos = limpa_dados_datasus(df_vivos)
-df_vivos.columns = ['bairro','ano','nascidos vivos']
+df_vivos = limpeza_tabnet_bairros(df_vivos,categoria='nascidos vivos')
 df_vivos.head()
 
 
 # %%
 #extracao para mapas
-df_vivos_sem_total = df_vivos[df_vivos['bairro']!='Total']
-df_vivos_sem_total[['codigo','bairro']] = df_vivos_sem_total['bairro'].str.split(' ', n=1,expand=True)
-df_vivos_sem_total[df_vivos_sem_total['ano']=='2025'].to_excel('mapa_bairros_nascidos_vivos_bruto.xlsx')
+df_vivos[df_vivos['ano']=='2025'].to_excel('tabelas_finais\\mapa_bairros_nascidos_vivos_bruto.xlsx')
 
 # %%
-#df_vivos['Percentual'] = (df_vivos['value']/df_total['value'])*100
-
-# %%
+#agrupamento por ano
 df_vivos_por_ano = df_vivos.loc[:,['ano','nascidos vivos']].groupby(by='ano').sum()
-df_vivos_por_ano.drop(index='Total',inplace=True)
 df_vivos_por_ano.reset_index(inplace=True)
 df_vivos_por_ano.rename({'variable':'ano','value':'nascidos vivos'},axis=1, inplace=True)
 print(df_vivos_por_ano.head(25))
-df_vivos_por_ano.to_csv('Tabelas_finais\\nascidos_vivos_por_ano.csv')
+df_vivos_por_ano.to_csv('tabelas_finais\\nascidos_vivos_por_ano.csv')
 
 # %%
 serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nascidos vivos por ano')
@@ -333,20 +346,16 @@ serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nasc
 #Nascidos abaixo do peso
 df_baixo_peso = pd.read_csv("dados_locais\\nascidos_vivos\\nascidos_vivos_baixo_peso_ao_nascer_bairros_2006_a_2025.csv")
 df_baixo_peso = limpa_dados_datasus(df_baixo_peso)
-df_baixo_peso.columns = ['bairro','ano','nascidos abaixo peso']
+df_baixo_peso = limpeza_tabnet_bairros(df_baixo_peso,categoria='nascidos abaixo peso')
 df_baixo_peso.head()
 
 # %%
 df_baixo_peso['percentual abaixo do peso'] = (df_baixo_peso['nascidos abaixo peso']/df_vivos['nascidos vivos'])*100
-df_baixo_peso_sem_total = df_baixo_peso[df_baixo_peso['bairro']!='Total']
-df_baixo_peso_sem_total[['codigo','bairro']] = df_baixo_peso_sem_total['bairro'].str.split(' ', n=1,expand=True)
-df_baixo_peso_sem_total[df_baixo_peso_sem_total['ano']=='2025'].to_excel('mapa_bairros_nascidos_abaixo_peso.xlsx')
+df_baixo_peso[df_baixo_peso['ano']=='2025'].to_excel('tabelas_finais\\mapa_bairros_nascidos_abaixo_peso.xlsx')
 
 # %%
 df_baixo_ano = df_baixo_peso.loc[:,['ano','nascidos abaixo peso']].groupby(by='ano').sum()
-df_baixo_ano.drop(index='Total',inplace=True)
 df_baixo_ano.reset_index(inplace=True)
-df_baixo_ano.rename({'variable':'ano','value':'nascidos abaixo peso'},axis=1, inplace=True)
 df_baixo_ano['percentual abaixo do peso'] = (df_baixo_ano['nascidos abaixo peso']/df_vivos_por_ano['nascidos vivos'])*100
 df_baixo_ano.to_csv('Tabelas_finais\\nascidos_abaixo_peso_por_ano.csv')
 df_baixo_ano.head(25)
@@ -403,32 +412,30 @@ serie_temporal(df_neonatal_precoce_por_ano,'ano','taxa','Taxa de óbitos precoce
 # %%
 df_obitos_gravidez = pd.read_csv('dados_locais\\mortalidade\\obitos_gravidez_bairro_2006_2025.csv')
 df_obitos_gravidez = limpa_dados_datasus(df_obitos_gravidez)
-df_obitos_gravidez.columns = ['bairro', 'ano', 'óbitos-gravidez']
+df_obitos_gravidez = limpeza_tabnet_bairros(df_obitos_gravidez,categoria='óbitos-gravidez')
 df_obitos_gravidez.head()
 
 # %%
 #por ano
-df_obitos_gravidez = df_obitos_gravidez[['ano','óbitos-gravidez']].groupby(by='ano').sum()
-df_obitos_gravidez.drop(index='Total', inplace=True)
-df_obitos_gravidez
+df_obitos_gravidez_anual = df_obitos_gravidez[['ano','óbitos-gravidez']].groupby(by='ano').sum()
+df_obitos_gravidez_anual
 
 # %%
-serie_temporal(df_obitos_gravidez,'ano','óbitos-gravidez','Óbitos durante gravidez por ano')
+serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durante gravidez por ano')
 
 # %%
 df_obitos_puerperio = pd.read_csv('dados_locais\\mortalidade\\obitos_puerperio_bairro_2006_2025.csv')
 df_obitos_puerperio = limpa_dados_datasus(df_obitos_puerperio)
-df_obitos_puerperio.columns = ['bairro', 'ano', 'óbitos-puerpério']
+df_obitos_puerperio = limpeza_tabnet_bairros(df_obitos_puerperio,categoria='óbitos-puerpério')
 df_obitos_puerperio.head()
 
 # %%
 #por ano
-df_obitos_puerperio = df_obitos_puerperio[['ano','óbitos-puerpério']].groupby(by='ano').sum()
-df_obitos_puerperio.drop(index='Total', inplace=True)
-df_obitos_puerperio
+df_obitos_puerperio_anual = df_obitos_puerperio[['ano','óbitos-puerpério']].groupby(by='ano').sum()
+df_obitos_puerperio_anual
 
 # %%
-serie_temporal(df_obitos_puerperio,'ano','óbitos-puerpério','Óbitos durante puerpério por ano')
+serie_temporal(df_obitos_puerperio_anual,'ano','óbitos-puerpério','Óbitos durante puerpério por ano')
 
 # %% [markdown]
 # #### Mortalidade Neonatal
@@ -439,19 +446,18 @@ serie_temporal(df_obitos_puerperio,'ano','óbitos-puerpério','Óbitos durante p
 # %%
 df_neonatal_precoce = pd.read_csv('dados_locais//mortalidade//obitos_0_6_dias_bairro_2006_2025.csv', sep=';')
 df_neonatal_precoce = limpa_dados_datasus(df_neonatal_precoce)
-df_neonatal_precoce.columns = ['bairro', 'ano', 'obitos precoces']
-df_neonatal_precoce = df_neonatal_precoce.merge(df_vivos, on=['bairro','ano'])
-df_neonatal_precoce['taxa'] = (df_neonatal_precoce['obitos precoces']/df_neonatal_precoce['nascidos vivos'])*1000
+df_neonatal_precoce = limpeza_tabnet_bairros(df_neonatal_precoce,categoria='obitos precoces')
+df_neonatal_precoce = df_neonatal_precoce.merge(df_vivos, on=['bairro','ano','codigo'])
+df_neonatal_precoce['taxa_mortalidade_precoce'] = (df_neonatal_precoce['obitos precoces']/df_neonatal_precoce['nascidos vivos'])*1000
 df_neonatal_precoce.head()
 
 # %%
-df_neonatal_precoce_por_ano = df_neonatal_precoce[['ano','obitos precoces','nascidos vivos']].groupby(by='ano').sum()
-df_neonatal_precoce_por_ano.drop(index='Total', inplace=True)
-df_neonatal_precoce_por_ano['taxa'] = (df_neonatal_precoce_por_ano['obitos precoces']/df_neonatal_precoce_por_ano['nascidos vivos'])*1000
-df_neonatal_precoce_por_ano
+df_neonatal_precoce_anual = df_neonatal_precoce[['ano','obitos precoces','nascidos vivos']].groupby(by='ano').sum()
+df_neonatal_precoce_anual['taxa_mortalidade_precoce'] = (df_neonatal_precoce_anual['obitos precoces']/df_neonatal_precoce_anual['nascidos vivos'])*1000
+df_neonatal_precoce_anual
 
 # %%
-serie_temporal(df_neonatal_precoce_por_ano,'ano','taxa','Taxa de óbitos precoces por ano')
+serie_temporal(df_neonatal_precoce_por_ano,'ano','taxa_mortalidade_precoce','Taxa de óbitos precoces por ano')
 
 # %% [markdown]
 # ##### Tardia (7 a 27 dias)
@@ -459,19 +465,18 @@ serie_temporal(df_neonatal_precoce_por_ano,'ano','taxa','Taxa de óbitos precoce
 # %%
 df_neonatal_tardia = pd.read_csv('dados_locais//mortalidade//obitos_7_27_dias_bairro_2006_2025.csv', sep=';')
 df_neonatal_tardia = limpa_dados_datasus(df_neonatal_tardia)
-df_neonatal_tardia.columns = ['bairro', 'ano', 'obitos_tardios']
-df_neonatal_tardia = df_neonatal_tardia.merge(df_vivos, on=['bairro','ano'])
-df_neonatal_tardia['taxa'] = (df_neonatal_tardia['obitos_tardios']/df_neonatal_tardia['nascidos vivos'])*1000
+df_neonatal_tardia = limpeza_tabnet_bairros(df_neonatal_tardia,'obitos_tardios')
+df_neonatal_tardia = df_neonatal_tardia.merge(df_vivos, on=['bairro','ano','codigo'])
+df_neonatal_tardia['taxa_obitos_tardios'] = (df_neonatal_tardia['obitos_tardios']/df_neonatal_tardia['nascidos vivos'])*1000
 df_neonatal_tardia.head()
 
 # %%
-df_neonatal_tardia_por_ano = df_neonatal_tardia[['ano','obitos_tardios','nascidos vivos']].groupby(by='ano').sum()
-df_neonatal_tardia_por_ano.drop(index='Total', inplace=True)
-df_neonatal_tardia_por_ano['taxa'] = (df_neonatal_tardia_por_ano['obitos_tardios']/df_neonatal_tardia_por_ano['nascidos vivos'])*1000
-df_neonatal_tardia_por_ano
+df_neonatal_tardia_anual = df_neonatal_tardia[['ano','obitos_tardios','nascidos vivos']].groupby(by='ano').sum()
+df_neonatal_tardia_anual['taxa_obitos_tardios'] = (df_neonatal_tardia_anual['obitos_tardios']/df_neonatal_tardia_anual['nascidos vivos'])*1000
+df_neonatal_tardia_anual
 
 # %%
-serie_temporal(df_neonatal_tardia_por_ano,'ano','taxa','Taxa de óbitos tardios por ano')
+serie_temporal(df_neonatal_tardia_anual,'ano','taxa_obitos_tardios','Taxa de óbitos tardios por ano')
 
 # %% [markdown]
 # ### DataSus - SISVAN
@@ -529,6 +534,26 @@ df_freq_escolar
 
 # %%
 serie_temporal(df_freq_escolar,'ano','matriculas','Matrículas de 0 a 6 anos por ano')
+
+# %% [markdown]
+# #### Juncao de tabelas por bairro
+
+# %%
+lista_dfs = [df_vivos,df_baixo_peso,
+             df_obitos_gravidez,df_obitos_puerperio,
+             df_neonatal_precoce,df_neonatal_tardia]
+df_final = lista_dfs[0].copy()
+for i in lista_dfs[1:]:
+    df_final = df_final.merge(i,on=['codigo','bairro','ano'],how='outer')
+#df_final = df_final[df_final['ano']!='Total']
+df_final.drop(columns=['nascidos vivos_x','nascidos vivos_y'],inplace=True)
+df_final.to_excel('dados_datasus_por_bairro.xlsx')
+df_final.head()
+#pensar testes
+
+
+# %% [markdown]
+# #### Juncao de tabelas municipio
 
 # %% [markdown]
 # ## Análise / Relatório
