@@ -8,30 +8,27 @@
 <i>OBS: listagem dos dados da versão MVP e do relatório final disponíveis no Google Drive.</i>
 
 ## Estrutura do Projeto
-*   `analise.py`: Script principal (e notebook) que contém toda a lógica de extração, tratamento, análise e visualização dos dados.
+*   `analise.py`: Script principal (sincronizável com Jupytext) que contém extração, limpeza, análise e geração de visualizações; organizado como notebook (células e markdown).
 *   `requirements.txt`: Lista de dependências Python do projeto.
-*   `dados_locais/`: Diretório para armazenar os arquivos de dados brutos (CSVs, Excel).
-*   `dados_locais/tratados`: Subdiretório onde os dados limpos são salvos.
-*   `visualizacoes/`: Diretório onde os gráficos gerados pela análise são salvos.
+*   `dados_locais/`: Diretório para os dados brutos. Subpastas por fonte (ex.: `nascidos_vivos/`, `mortalidade/`, `sisvan/`, `cadunico/`).
+*   `dados_locais/tratados/`: Saída intermediária de datasets limpos.
+*   `tabelas_finais/`: Pasta de saída padronizada (CSV/Excel) para tabelas e agregados gerados pelo pipeline.
+*   `visualizacoes/`: Diretório para gráficos e imagens exportadas.
+*   `notebooks/`: Notebook(s) .ipynb sincronizados com `analise.py` via Jupytext (opcional).
+*   `.env.example`: Exemplo de variáveis de ambiente necessárias (ex.: credenciais DB).
+*   `scripts/`: Utilitários e conversores auxiliares (se presentes).
 
 ## Fluxo de Análise (`analise.py`)
-O script `analise.py` realiza as seguintes operações:
-1.  **Carregamento de Pacotes e Funções**: Importa as bibliotecas necessárias e define funções auxiliares para conexão com banco de dados, limpeza de dados SISVAN e DATASUS, e geração de gráficos (séries temporais e barras).
-2.  **Limpeza de Dados SISVAN**: Processa os dados brutos do SISVAN sobre sobrepeso e desnutrição, limpando-os e salvando-os na pasta `dados_locais/tratados`. Gera arquivos CSV na pasta `tabelas_finais` e visualizações de séries temporais.
-3.  **Análise do Censo 2022**: Carrega e analisa os dados demográficos do Censo 2022 para a população de 0 a 9 anos por bairro. Calcula totais e percentuais, salvando os resultados em `tabelas_finais/censo_por_bairro.csv` e arquivos Excel para visualização em mapas.
-4.  **Série Temporal do Censo (2000, 2010, 2022)**: Integra dados de diferentes anos do Censo para analisar a evolução da população de 0 a 4 anos.
-5.  **Análise do CadÚnico**: Conecta-se ao banco de dados do CTPE, extrai dados de crianças de 0 a 6 anos no CadÚnico. Realiza análises por faixa de renda, idade e bairro, gerando gráficos de barras e salvando tabelas em `tabelas_finais/cadunico_por_faixa_etaria_2026.csv`, `tabelas_finais/cadunico_por_idade_2026.csv` e `tabelas_finais/cadunico_por_bairro_2026.csv`. Calcula o indicador "Primeira Inf. Cadúnico" por bairro.
-6.  **Análise do DATASUS (Tabnet)**:
-    *   **Nascidos Vivos**: Processa dados de nascidos vivos por ano, gerando uma série temporal e salvando em `tabelas_finais/nascidos_vivos_por_ano.csv`.
-    *   **Baixo Peso ao Nascer**: Analisa o percentual de nascidos com baixo peso por ano, gerando uma série temporal e salvando em `tabelas_finais/nascidos_abaixo_peso_por_ano.csv`.
-    *   **Mortalidade Neonatal**: Analisa a mortalidade neonatal precoce (0-6 dias) e tardia (7-27 dias), calculando as taxas por ano e gerando séries temporais.
-    *   **Mortalidade na Gravidez e Puerpério**: Processa e visualiza o número de óbitos durante a gravidez e o puerpério por ano.
-7.  **Análise do DATASUS (SISVAN)**:
-    *   **Desnutrição**: Processa dados de desnutrição (peso muito baixo e baixo) por ano, gerando séries temporais e salvando em `tabelas_finais/sisvan_desnutricao_por_ano.csv`.
-    *   **Sobrepeso e Obesidade**: Processa dados de sobrepeso e obesidade por ano, gerando séries temporais e salvando em `tabelas_finais/sisvan_sobrepeso_por_ano.csv`.
-8.  **Análise de Dados de Educação (PNAD, Censo Escolar)**:
-    *   **Frequência Escolar**: Analisa e visualiza a taxa de frequência escolar por idade com base nos dados da PNAD.
-    *   **Matrículas**: Analisa a série histórica do número de matrículas de crianças de 0 a 6 anos com base no Censo Escolar.
+O script `analise.py` realiza as seguintes operações, em ordem prática:
+1.  Carregamento de pacotes e leitura de configurações (.env). Define helpers reutilizáveis (limpeza, agregação, gráficos, conexão CTPE).
+2.  Limpeza SISVAN: processamento de arquivos SISVAN (sobrepeso, desnutrição) e salvamento de saídas intermediárias em `dados_locais/tratados/` e finais em `tabelas_finais/`.
+3.  Censo: leitura dos microdados do Censo (2022 e outros anos), cálculo de totais e percentuais por bairro/idade e export para `tabelas_finais/censo_por_bairro.csv`.
+4.  CadÚnico: extração via CTPE, análise por faixa de renda, idade e bairro, com export em `tabelas_finais/` (ex.: `cadunico_por_faixa_etaria_2026.csv`).
+5.  DATASUS (Tabnet) — padrão comum: os arquivos Tabnet são normalizados pela função `limpeza_tabnet_bairros(df, categoria)`, que extrai `codigo` e `bairro`, remove linhas 'Total' e harmoniza nomes de colunas.
+6.  Para cada tema do DATASUS (nascidos vivos, baixo peso, mortalidade precoce/tardia, óbitos gravidez/puerpério) são geradas séries temporais e agregações anuais. Nas junções entre tabelas, a chave `codigo` (quando disponível) e `bairro`+`ano` são utilizadas para evitar ambiguidades.
+7.  Padronização: nomes de saída e colunas agregadas seguem o padrão `*_anual` e campos de taxa usam nomes descritivos (ex.: `taxa_mortalidade_precoce`). Saídas finais CSV/Excel são escritas em `tabelas_finais/`.
+8.  Junção final: múltiplas tabelas DATASUS por bairro são unidas (merge outer) em `dados_datasus_por_bairro.xlsx` para facilitar análises espaciais e export para mapas.
+9.  Visualizações: geração de séries temporais, gráficos de barras e mapas (quando aplicável) em `visualizacoes/`.
 
 ## Como Executar
 1.  **Clone o repositório:**
