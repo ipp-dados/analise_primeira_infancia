@@ -1,11 +1,11 @@
 .env
 *pycache*
-*csv
 *.ipynb
 *.zip
-*.xlsx
 *.html
 *.png
 *.svg
 *.vscode
-!*/vacinacao/*.csv
+/tabelas_finais/*
+/mapas/*
+/visualizacoes/*
