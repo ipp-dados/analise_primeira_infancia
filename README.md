@@ -67,6 +67,14 @@ Notable code changes (2026-08-17..2026-08-19):
 
 These changes improve consistency of column names, make merges more robust by using 'codigo', and standardize output paths.
 
+Notable code changes (2026-08-25):
+- Mortalidade infantil por raça/cor: óbitos até 1 ano por bairro e município, com percentual em relação aos nascidos vivos por raça/cor da mãe.
+- Óbitos por causas evitáveis: recortes por raça/cor e por grupo/subgrupo CID-10 (total e nos recortes 0-6, 7-27 e 28-364 dias), com comparativo de subgrupos entre faixas etárias em 2025.
+- Mortalidade Neonatal: novas taxas pós-neonatal e total (0-364 dias), derivadas por subtração numa grade bairro x ano com zeros explícitos.
+- Cobertura Vacinal EPI: série histórica por imunobiológico e comparativo entre 2016/2019/2022/2025 (novos dados em `dados_locais/vacinacao/`).
+- Correção dos caminhos de nascidos_vivos/baixo_peso que apontavam para pasta inexistente, quebrando as taxas Precoce/Tardia e a junção final.
+- Exportação para `tabelas_finais/` de todas as tabelas usadas em gráficos, e revisão do markdown do notebook com notas sobre limitações dos dados (ex.: causas evitáveis por raça não filtra apenas o grupo evitável).
+
 ---
 
 ## Update Table
@@ -78,3 +86,4 @@ These changes improve consistency of column names, make merges more robust by us
 | 0.3.0   | 2026-08-14 | Análise e visualização abrangente dos dados do Censo, CadÚnico, DATASUS e SISVAN |
 | 0.4.0   | 2026-08-17 | Inclusão de análises de mortalidade (neonatal, gravidez, puerpério) e educação (frequência, matrículas). |
 | 0.4.1   | 2026-08-19 | Normalização das importações Tabnet (função limpeza_tabnet_bairros), padronização do diretório de saída para `tabelas_finais`, inclusão da chave 'codigo' nas junções, renomeação de variáveis agregadas para '*_anual' e campos de taxa mais descritivos, e junção/exportação final dos dados DataSUS por bairro. |
+| 0.5.0   | 2026-08-25 | Mortalidade infantil por raça/cor, óbitos por causas evitáveis (CID-10, por faixa etária), novas taxas de mortalidade neonatal (pós-neonatal e total), cobertura vacinal EPI (série histórica e comparativo entre anos), correção de caminhos de nascidos_vivos/baixo_peso e exportação padronizada para `tabelas_finais/`. |
