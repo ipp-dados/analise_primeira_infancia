@@ -1,5 +1,18 @@
 # %% [markdown]
-# ## Pacotes e Funções Auxiliares
+# # 🏛️ Análise Primeira Infância Carioca
+#
+# Notebook de extração, limpeza e visualização dos indicadores de primeira infância
+# (0 a 6 anos) do município do Rio de Janeiro: Censo, CadÚnico, DataSus/Tabnet
+# (nascidos vivos, mortalidade, causas evitáveis, cobertura vacinal) e educação
+# (PNAD/Censo Escolar).
+
+# %% [markdown]
+# ---
+# ## 📦 Pacotes e Funções Auxiliares
+#
+# Imports, conexão com o banco e todas as funções de limpeza/wrangling e de
+# visualização reutilizadas ao longo do notebook. Ficam centralizadas aqui para que
+# as seções de análise abaixo apenas *chamem* essas funções, sem redefini-las.
 
 # %%
 from dotenv import load_dotenv
@@ -10,6 +23,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
+# %% [markdown]
+# ### 🔌 Conexão e utilitários gerais
 
 # %%
 #conecta ao banco CTPE
@@ -36,10 +51,14 @@ def convert_numeric_safe(s):
     s_cleaned = s.strip().replace('%','')
     return float(s_cleaned)
 
+# %% [markdown]
+# ### 🧹 Limpeza e wrangling de dados
+
+# %%
 def limpa_dados_sisvan(colunas, dataset):
     path = Path(f"dados_locais\\{dataset}\\")
-    arquivos = [f.name for f in path.iterdir() if f.is_file() and f.name != 'example_file']
-    
+    arquivos = [f.name for f in path.iterdir() if f.is_file() and not f.name.startswith('.') and f.name != 'example_file']
+
     colunas_ajustadas = ['ano']
     for i in colunas:
         if i != 'total':
@@ -57,30 +76,118 @@ def limpa_dados_sisvan(colunas, dataset):
         df_infos['ano'] = arquivo[-9:-5]
         df_final = pd.concat([df_final,df_infos])
     df_final.reset_index(inplace=True, drop=True)
-    
+
     df_final.to_csv(f"dados_locais\\tratados\\{dataset}.csv")
 
 def limpa_dados_datasus(df):
     df = df.melt(id_vars=['Bairro Residencia'])
     return df
 
-def serie_temporal(df,tempo,valor,titulo, formato='png'):
+def limpeza_tabnet_bairros(df,categoria):
+    """Padroniza um export do Tabnet: extrai 'codigo' e 'bairro', remove linhas 'Total'."""
+    df.columns = ['bairro','ano',categoria]
+    df = df[df['bairro']!='Total']
+    df = df[df['ano']!='Total']
+    df[['codigo','bairro']] = df.loc[df['bairro']!='EM BRANCO','bairro'].str.split(' ', n=1,expand=True)
+    return df
+
+def carrega_raca_bairro(caminho, categoria, anos_validos, sep=';'):
+    """Lê um export do Tabnet por bairro e reindexa numa grade bairro x ano completa,
+    preenchendo com 0 os anos sem linha no arquivo original (evita contagens incompletas
+    em somas/subtrações posteriores)."""
+    df = pd.read_csv(caminho, sep=sep)
+    df = limpa_dados_datasus(df)
+    df = limpeza_tabnet_bairros(df, categoria=categoria)
+    df = df.dropna(subset=['codigo', 'bairro'])
+    df['ano'] = df['ano'].astype(int)
+    grade = df[['codigo', 'bairro']].drop_duplicates().merge(pd.DataFrame({'ano': anos_validos}), how='cross')
+    df = grade.merge(df[['codigo', 'bairro', 'ano', categoria]], on=['codigo', 'bairro', 'ano'], how='left')
+    df[categoria] = df[categoria].fillna(0)
+    df['ano'] = df['ano'].astype(str)
+    return df
+
+def carrega_causas_evitaveis_raca(caminho, categoria):
+    """Lê um export Tabnet de causas evitáveis por raça/cor (nível município), em formato largo
+    (ano nas colunas), e retorna em formato longo (raca, ano, categoria)."""
+    df = pd.read_csv(caminho, sep=';', encoding='latin-1')
+    df = df.rename(columns={df.columns[0]: 'raca'})
+    df['raca'] = df['raca'].str.strip()
+    df = df[df['raca'].isin(['Branca','Preta','Amarela','Parda','Indígena','Ignorado'])]
+    df = df.drop(columns=['Total'])
+    df = df.melt(id_vars=['raca'], var_name='ano', value_name=categoria)
+    df[categoria] = df[categoria].replace('-', 0).astype(float)
+    mapa_raca = {'Branca':'branca','Preta':'preta','Amarela':'amarela','Parda':'parda',
+                 'Indígena':'indigena','Ignorado':'nao_informado'}
+    df['raca'] = df['raca'].map(mapa_raca)
+    return df
+
+def carrega_causas_evitaveis_categoria(caminho, padrao):
+    """Lê um export Tabnet 'segundo causas' (hierarquia grupo/subgrupo/causa, nível município)
+    e filtra as linhas cujo rótulo bate com `padrao` (grupo ou subgrupo)."""
+    df = pd.read_csv(caminho, sep=';', encoding='latin-1')
+    df = df.rename(columns={df.columns[0]: 'causa'})
+    df = df[df['causa'].notna()]
+    df = df[df['causa'].str.match(padrao)]
+    df = df.drop(columns=['Total'])
+    df = df.melt(id_vars=['causa'], var_name='ano', value_name='obitos')
+    df['obitos'] = df['obitos'].replace('-', 0).astype(float)
+    df['ano'] = df['ano'].astype(int)
+    return df
+
+def combina_faixas_causa(padrao, arquivos_por_faixa):
+    """Aplica `carrega_causas_evitaveis_categoria` a cada faixa etária em `arquivos_por_faixa`
+    e soma o resultado por causa/ano (usado para obter o total 0-364 dias)."""
+    df_total = None
+    for caminho in arquivos_por_faixa.values():
+        df_faixa = carrega_causas_evitaveis_categoria(caminho, padrao)
+        df_total = df_faixa if df_total is None else pd.concat([df_total, df_faixa])
+    return df_total.groupby(['causa','ano'], as_index=False)['obitos'].sum()
+
+def total_e_percentual_ano(df):
+    """Agrega um Censo (Tabela 2974/IBGE) por bairro em total e percentual de 0 a 4 anos."""
+    df['0 a 4 anos'] = df['Sexo feminino, 0 a 4 anos'] + df['Sexo masculino, 0 a 4 anos']
+    df['Total'] = df.iloc[:,9:].sum(axis=1)
+    df['Percentual 0 a 4 anos'] = (df['0 a 4 anos']/df['Total'])
+    return df[['bairro','0 a 4 anos','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']]
+
+def carrega_cobertura_vacinal(caminho):
+    """Lê um export do EPI/SVS-Rio de cobertura vacinal por imunobiológico e ano."""
+    df = pd.read_csv(caminho, sep=';')
+    df['ano_num'] = pd.to_numeric(df['ANO'], errors='coerce')
+    df = df[df['ano_num'].notna()]
+    df['ano'] = df['ano_num'].astype(int)
+    df['cobertura'] = df['COBERTURA'].str.replace('%','',regex=False).str.replace(',','.',regex=False).astype(float)
+    return df[['ano','IMUNO','cobertura']].rename(columns={'IMUNO':'imunobiologico'})
+
+# %% [markdown]
+# ### 📈 Funções de visualização
+#
+# Todas salvam o gráfico em `visualizacoes/` como PNG. A exportação adicional em SVG fica
+# disponível, mas comentada, em cada função — descomente a linha `# plt.savefig(...svg...)`
+# quando precisar de um formato vetorial.
+
+# %%
+def serie_temporal(df,tempo,valor,titulo,nome_arquivo=None, formato='png'):
+    nome_arquivo = nome_arquivo or f"{valor}_{tempo}"
     plt.figure(figsize=(12,6))
     sns.lineplot(x=tempo,y=valor,data=df)
     plt.xlabel(tempo,fontsize=12)
     plt.ylabel(valor,fontsize=12)
     plt.title(titulo,fontsize=14)
-    plt.savefig(f"visualizacoes/{valor}_{tempo}.{formato}")
-    plt.title(titulo)
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}")
+    # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
+    plt.show()
 
-def grafico_barra(df,categoria,valor,titulo, formato='png'):
+def grafico_barra(df,categoria,valor,titulo,nome_arquivo=None, formato='png'):
+    nome_arquivo = nome_arquivo or f"{valor}_{categoria}"
     plt.figure(figsize=(10,6))
     sns.barplot(x=categoria,y=valor,data=df,palette='pastel',hue=categoria)
     plt.xlabel(categoria,fontsize=12)
     plt.ylabel(valor, fontsize=12)
     plt.title(titulo,fontsize=14)
     plt.tight_layout()
-    plt.savefig(f"visualizacoes/{valor}_{categoria}.{formato}")
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}")
+    # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
 def grafico_barra_agrupado(df,categoria,valor,agrupador,titulo,nome_arquivo,ylabel=None,legend_title=None,ordem_categoria=None,ordem_agrupador=None,rotacao_x=30,figsize=(12,7),formato='png'):
@@ -93,6 +200,7 @@ def grafico_barra_agrupado(df,categoria,valor,agrupador,titulo,nome_arquivo,ylab
     plt.legend(title=legend_title or agrupador, fontsize=9)
     plt.tight_layout()
     plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}")
+    # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
 def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',legend_title='Cor/Raça',figsize=(12,6),formato='png'):
@@ -106,27 +214,37 @@ def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',
     plt.grid(True,alpha=0.3)
     plt.tight_layout()
     plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}")
+    # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
+# %% [markdown]
+# ### ⚙️ Setup
+
+# %%
 #carrega variáveis de ambiente
 load_dotenv()
 
+#garante que as pastas de saída padrão existam (inclusive a subpasta de tabelas por bairro)
+for pasta in ["tabelas_finais", "visualizacoes", "mapas/tabelas_bairros", "dados_locais/tratados"]:
+    Path(pasta).mkdir(parents=True, exist_ok=True)
+
 # %% [markdown]
-# #### Limpeza de dados prévia
+# ### 🧼 Limpeza de dados prévia
 
 # %%
 limpa_dados_sisvan(colunas=['magreza_acentuada','magreza','eutrofia','risco sobrepeso','sobrepeso','obesidade','total'], dataset='sobrepeso')
 limpa_dados_sisvan(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','peso_elevado','total'], dataset='desnutrição')
 
 # %% [markdown]
-# ## Visualização dos Dados (entregáveis dia 12 & 19)
+# ---
+# ## 🧭 Visualização dos Dados (entregáveis dia 12 & 19)
 
 # %% [markdown]
 # <p>Para acesso aos dados brutos via Drive: https://drive.google.com/drive/folders/1xOwf72QfaDuJAHuA-Vngl6t5_kzSfGYX?usp=sharing</p>
 # <p>OBS: acesso restrito, solicitar a leonardo.aucar@prefeitura.rio</p>
 
 # %% [markdown]
-# ### Censo 2022(10/00)
+# ### 🏘️ Censo 2022(10/00)
 
 # %% [markdown]
 # Dados do Censo IBGE 2022 (agregados DataRio), população por bairro e faixa etária.
@@ -158,8 +276,8 @@ df_censo[['bairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 
 
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
-df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('tabela_mapa_0_4_absoluto.xlsx')
 #mapa por total de 0 a 4 anos
+df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('mapas/tabelas_bairros/tabela_mapa_0_4_absoluto.xlsx')
 
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).head(10)
@@ -167,8 +285,8 @@ df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 
 # %%
 # para bairros 'muito grandes' (+100.000 pessoas)
 df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
-df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('tabela_mapa_grandes_0_4_percentual.xlsx')
 #mapa por percentual dos bairros grandes
+df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('mapas/tabelas_bairros/tabela_mapa_grandes_0_4_percentual.xlsx')
 
 # %%
 df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).head(20)
@@ -183,12 +301,6 @@ df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4'
 df_2000 = pd.read_csv('dados_locais\\censo\\tabela 2974_2000.csv', sep=';')
 df_2010 = pd.read_csv('dados_locais\\censo\\tabela 2974_2010.csv', sep=';')
 df_2022 = pd.read_csv('dados_locais\\censo\\tabela 2974_2022.csv', sep=';')
-
-def total_e_percentual_ano(df):
-    df['0 a 4 anos'] = df['Sexo feminino, 0 a 4 anos'] + df['Sexo masculino, 0 a 4 anos']
-    df['Total'] = df.iloc[:,9:].sum(axis=1)
-    df['Percentual 0 a 4 anos'] = (df['0 a 4 anos']/df['Total'])
-    return df[['bairro','0 a 4 anos','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']]
 
 df_serie_censo = pd.DataFrame(columns=['bairro','ano','0 a 4 anos','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos'])
 for i in [[df_2000,'2000'],[df_2010,'2010'],[df_2022,'2022']]:
@@ -236,7 +348,7 @@ plt.show()
 # ##### Pendente: Censo 2022 por idade e raça/cor (0 a 6 anos, cidade toda)
 
 # %% [markdown]
-# ### Cadúnico
+# ### 🗂️ Cadúnico
 
 # %% [markdown]
 # Fonte: CadÚnico via banco CTPE (`silver_cadunico_geral`), recorte de crianças 0-6 anos.
@@ -272,7 +384,7 @@ df_renda = df.groupby(by='faixa de renda').agg({'Crianças':'count','Famílias':
 df_renda.loc['Total'] = df_renda.sum()
 custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 df_renda = df_renda.reindex(custom_order)
-df_renda.to_csv('Tabelas_finais\\cadunico_por_faixa_etaria_2026.csv')
+df_renda.to_csv('tabelas_finais\\cadunico_por_faixa_etaria_2026.csv')
 
 # %%
 df_renda.head(10)
@@ -280,12 +392,12 @@ df_renda.head(10)
 # %%
 grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Famílias',
               titulo='CADÚNICO: Famílias c/crianças 0-6 por faixa de renda per capita',
-              formato='png')
+              nome_arquivo='cadunico_familias_por_faixa_renda')
 
 # %%
 grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Crianças',
               titulo='CADÚNICO: Crianças 0-6 por faixa de renda per capita',
-              formato='png')
+              nome_arquivo='cadunico_criancas_por_faixa_renda')
 
 # %% [markdown]
 # #### Análise por idade
@@ -294,15 +406,17 @@ grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Crianças',
 #quantitativos por idade
 df #fazer one hot da coluna sexo
 df_idade = df.groupby(by='idade').agg({'Crianças':'count','Famílias':'nunique'})#,'sexo_m':'sum','sexo_f':'sum'})
-df_idade.to_csv('Tabelas_finais\\cadunico_por_idade_2026.csv')
+df_idade.to_csv('tabelas_finais\\cadunico_por_idade_2026.csv')
 df_idade.head(10)
 
 
 # %%
-grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: Famílias c/ crianças 0-6 por idade')
+grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: Famílias c/ crianças 0-6 por idade',
+              nome_arquivo='cadunico_familias_por_idade')
 
 # %%
-grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças 0-6 por idade')
+grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças 0-6 por idade',
+              nome_arquivo='cadunico_criancas_por_idade')
 
 # %% [markdown]
 # #### Análise por bairros
@@ -313,7 +427,7 @@ df_bairro = df.groupby(by=['bairro']).agg({'Crianças':'count','Famílias':'nuni
 df_bairro.loc['Total'] = df_bairro.sum()
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro.to_csv('Tabelas_finais\\cadunico_por_bairro_2026.csv')
+df_bairro.to_csv('tabelas_finais\\cadunico_por_bairro_2026.csv')
 
 # %%
 df_bairro.sort_values(by='Crianças', ascending=False).head(10)
@@ -329,7 +443,7 @@ df_bairro_ate_4 = df_ate_4.groupby(by=['bairro']).agg({'Crianças':'count','Fam�
 df_bairro_ate_4.loc['Total'] = df_bairro_ate_4.sum()
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro_ate_4.to_csv('Tabelas_finais\\cadunico_por_bairro_2026.csv')
+df_bairro_ate_4.to_csv('tabelas_finais\\cadunico_por_bairro_2026.csv')
 df_bairro_ate_4 = df_bairro_ate_4.merge(df_censo[['bairro','0 a 4 anos']], on='bairro', how='right')
 df_bairro_ate_4['Primeira Inf. Cadúnico'] = df_bairro_ate_4['Crianças']/df_bairro_ate_4['0 a 4 anos']
 df_bairro_ate_4.sort_values(by='Crianças', ascending=False).head(10)
@@ -339,7 +453,7 @@ df_bairro[df_bairro['bairro']=='Complexo do Alemão']
 
 
 # %% [markdown]
-# ### DataSus - tabnet
+# ### 🏥 DataSus - tabnet
 
 # %% [markdown]
 # Séries do Datasus/Tabnet (nascidos vivos e óbitos), por bairro de residência, padronizadas pela função `limpeza_tabnet_bairros`.
@@ -351,15 +465,6 @@ df_bairro[df_bairro['bairro']=='Complexo do Alemão']
 # Nascidos vivos totais por bairro (2006-2025).
 
 # %%
-def limpeza_tabnet_bairros(df,categoria):
-    df.columns = ['bairro','ano',categoria]
-    df = df[df['bairro']!='Total']
-    df = df[df['ano']!='Total']
-    df[['codigo','bairro']] = df.loc[df['bairro']!='EM BRANCO','bairro'].str.split(' ', n=1,expand=True)
-    return df
-
-
-# %%
 #Nascidos vivos
 df_vivos = pd.read_csv("dados_locais\\mortalidade\\nascidos_vivos_bairros_2006_a_2025.csv")
 df_vivos = limpa_dados_datasus(df_vivos)
@@ -369,7 +474,7 @@ df_vivos.head()
 
 # %%
 #extracao para mapas
-df_vivos[df_vivos['ano']=='2025'].to_excel('tabelas_finais\\mapa_bairros_nascidos_vivos_bruto.xlsx')
+df_vivos[df_vivos['ano']=='2025'].to_excel('mapas/tabelas_bairros/mapa_bairros_nascidos_vivos_bruto.xlsx')
 
 # %%
 #agrupamento por ano
@@ -380,7 +485,8 @@ print(df_vivos_por_ano.head(25))
 df_vivos_por_ano.to_csv('tabelas_finais\\nascidos_vivos_por_ano.csv')
 
 # %%
-serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nascidos vivos por ano')
+serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nascidos vivos por ano',
+               nome_arquivo='nascidos_vivos_por_ano')
 
 # %% [markdown]
 # #### Nascidos abaixo peso
@@ -397,20 +503,21 @@ df_baixo_peso.head()
 
 # %%
 df_baixo_peso['percentual abaixo do peso'] = (df_baixo_peso['nascidos abaixo peso']/df_vivos['nascidos vivos'])*100
-df_baixo_peso[df_baixo_peso['ano']=='2025'].to_excel('tabelas_finais\\mapa_bairros_nascidos_abaixo_peso.xlsx')
+df_baixo_peso[df_baixo_peso['ano']=='2025'].to_excel('mapas/tabelas_bairros/mapa_bairros_nascidos_abaixo_peso.xlsx')
 
 # %%
 df_baixo_ano = df_baixo_peso.loc[:,['ano','nascidos abaixo peso']].groupby(by='ano').sum()
 df_baixo_ano.reset_index(inplace=True)
 df_baixo_ano['percentual abaixo do peso'] = (df_baixo_ano['nascidos abaixo peso']/df_vivos_por_ano['nascidos vivos'])*100
-df_baixo_ano.to_csv('Tabelas_finais\\nascidos_abaixo_peso_por_ano.csv')
+df_baixo_ano.to_csv('tabelas_finais\\nascidos_abaixo_peso_por_ano.csv')
 df_baixo_ano.head(25)
 
 # %%
-serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titulo='Percentual Nascidos com baixo peso por ano')
+serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titulo='Percentual Nascidos com baixo peso por ano',
+               nome_arquivo='nascidos_abaixo_peso_percentual_por_ano')
 
 # %% [markdown]
-# #### Mortalidade
+# #### 📉 Mortalidade
 
 # %% [markdown]
 # Óbitos até 1 ano de idade: por raça/cor, causas evitáveis, gravidez/puerpério e mortalidade neonatal (precoce, tardia, pós-neonatal e total).
@@ -428,18 +535,6 @@ serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titul
 # - Óbitos e nascidos vivos por raça vêm de consultas independentes do Datasus (óbito de residente x nascimento registrado no bairro) -> em bairros/anos com poucos casos é possível ter óbitos de uma raça sem nascidos vivos correspondentes, gerando percentuais instáveis ou indefinidos (tratados como NaN). Afeta principalmente `indigena`, `amarela` e `nao_informado`, categorias com poucas observações.
 
 # %%
-def carrega_raca_bairro(caminho, categoria, anos_validos, sep=';'):
-    df = pd.read_csv(caminho, sep=sep)
-    df = limpa_dados_datasus(df)
-    df = limpeza_tabnet_bairros(df, categoria=categoria)
-    df = df.dropna(subset=['codigo', 'bairro'])
-    df['ano'] = df['ano'].astype(int)
-    grade = df[['codigo', 'bairro']].drop_duplicates().merge(pd.DataFrame({'ano': anos_validos}), how='cross')
-    df = grade.merge(df[['codigo', 'bairro', 'ano', categoria]], on=['codigo', 'bairro', 'ano'], how='left')
-    df[categoria] = df[categoria].fillna(0)
-    df['ano'] = df['ano'].astype(str)
-    return df
-
 racas = ['amarela','branca','indigena','parda','preta','nao_informado']
 arquivos_obitos = {'amarela':'amarelos','branca':'brancos','indigena':'indigenas',
                     'parda':'pardos','preta':'pretos','nao_informado':'nao_informado'}
@@ -559,19 +654,6 @@ serie_temporal_multipla(
 # - A categoria `nao_informado` tem um pico isolado em 1996 (2.136 óbitos, muito acima dos demais anos) por baixa completude do preenchimento de raça/cor no início da série -> não interpretar como aumento real de óbitos.
 
 # %%
-def carrega_causas_evitaveis_raca(caminho, categoria):
-    df = pd.read_csv(caminho, sep=';', encoding='latin-1')
-    df = df.rename(columns={df.columns[0]: 'raca'})
-    df['raca'] = df['raca'].str.strip()
-    df = df[df['raca'].isin(['Branca','Preta','Amarela','Parda','Indígena','Ignorado'])]
-    df = df.drop(columns=['Total'])
-    df = df.melt(id_vars=['raca'], var_name='ano', value_name=categoria)
-    df[categoria] = df[categoria].replace('-', 0).astype(float)
-    mapa_raca = {'Branca':'branca','Preta':'preta','Amarela':'amarela','Parda':'parda',
-                 'Indígena':'indigena','Ignorado':'nao_informado'}
-    df['raca'] = df['raca'].map(mapa_raca)
-    return df
-
 faixas_evitaveis = {
     '0_6': 'dados_locais//mortalidade//obitos_causas_evitaveis_0_6_dias_cor_raca_municipio_1996_2025.csv',
     '7_27': 'dados_locais//mortalidade//obitos_causas_evitaveis_7_27_dias_cor_raca_municipio_1996_2025.csv',
@@ -646,17 +728,6 @@ serie_temporal_multipla(
 # `3. Demais causas (não claramente evitáveis)` não tem subgrupos e por isso só aparece no gráfico de grupo.
 
 # %%
-def carrega_causas_evitaveis_categoria(caminho, padrao):
-    df = pd.read_csv(caminho, sep=';', encoding='latin-1')
-    df = df.rename(columns={df.columns[0]: 'causa'})
-    df = df[df['causa'].notna()]
-    df = df[df['causa'].str.match(padrao)]
-    df = df.drop(columns=['Total'])
-    df = df.melt(id_vars=['causa'], var_name='ano', value_name='obitos')
-    df['obitos'] = df['obitos'].replace('-', 0).astype(float)
-    df['ano'] = df['ano'].astype(int)
-    return df
-
 faixas_evitaveis_causa = {
     '0_6': 'dados_locais//mortalidade//obitos_causas_evitaveis_0_6_dias_segundo_causas_municipio_1996_2025.csv',
     '7_27': 'dados_locais//mortalidade//obitos_causas_evitaveis_7_27_dias_segundo_causas_municipio_1996_2025.csv',
@@ -667,15 +738,8 @@ faixas_evitaveis_causa = {
 padrao_grupo = r'^[123]\.\s'
 padrao_subgrupo = r'^(1\.1\.|1\.2\.[123]|1\.3\.|1\.4\.|2\.)\s'
 
-def combina_faixas_causa(padrao):
-    df_total = None
-    for caminho in faixas_evitaveis_causa.values():
-        df_faixa = carrega_causas_evitaveis_categoria(caminho, padrao)
-        df_total = df_faixa if df_total is None else pd.concat([df_total, df_faixa])
-    return df_total.groupby(['causa','ano'], as_index=False)['obitos'].sum()
-
-df_evitaveis_grupo = combina_faixas_causa(padrao_grupo)
-df_evitaveis_subgrupo = combina_faixas_causa(padrao_subgrupo)
+df_evitaveis_grupo = combina_faixas_causa(padrao_grupo, faixas_evitaveis_causa)
+df_evitaveis_subgrupo = combina_faixas_causa(padrao_subgrupo, faixas_evitaveis_causa)
 
 df_evitaveis_grupo_wide = df_evitaveis_grupo.pivot(index='ano', columns='causa', values='obitos').reset_index()
 df_evitaveis_subgrupo_wide = df_evitaveis_subgrupo.pivot(index='ano', columns='causa', values='obitos').reset_index()
@@ -715,7 +779,7 @@ serie_temporal_multipla(
 # ##### Óbitos por causas evitáveis, por grupo de causa e faixa etária
 
 # %% [markdown]
-# Mesma classificação de grupo/subgrupo da seção anterior, mas sem somar as três faixas etárias: cada uma (0-6, 7-27 e 28-364 dias) é analisada separadamente, no mesmo recorte usado em Mortalidade Neonatal. Reaproveita `carrega_causas_evitaveis_categoria`, `padrao_grupo`, `padrao_subgrupo` e `faixas_evitaveis_causa`, já definidos na seção anterior.
+# Mesma classificação de grupo/subgrupo da seção anterior, mas sem somar as três faixas etárias: cada uma (0-6, 7-27 e 28-364 dias) é analisada separadamente, no mesmo recorte usado em Mortalidade Neonatal. Reaproveita `carrega_causas_evitaveis_categoria`, `combina_faixas_causa`, `padrao_grupo`, `padrao_subgrupo` e `faixas_evitaveis_causa`, já definidos acima.
 
 # %% [markdown]
 # ###### Precoce (0 a 6 dias)
@@ -879,7 +943,7 @@ grafico_barra_agrupado(
 )
 
 # %% [markdown]
-# #### Óbitos gravidez e puerpério
+# #### 📋 Óbitos gravidez e puerpério
 
 # %% [markdown]
 # Óbitos maternos durante a gravidez e o puerpério, por bairro de residência (2006-2025).
@@ -897,7 +961,8 @@ df_obitos_gravidez_anual.to_csv('tabelas_finais//obitos_gravidez_por_ano.csv')
 df_obitos_gravidez_anual
 
 # %%
-serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durante gravidez por ano')
+serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durante gravidez por ano',
+               nome_arquivo='obitos_gravidez_por_ano')
 
 # %%
 df_obitos_puerperio = pd.read_csv('dados_locais\\mortalidade\\obitos_puerperio_bairro_2006_2025.csv')
@@ -912,10 +977,11 @@ df_obitos_puerperio_anual.to_csv('tabelas_finais//obitos_puerperio_por_ano.csv')
 df_obitos_puerperio_anual
 
 # %%
-serie_temporal(df_obitos_puerperio_anual,'ano','óbitos-puerpério','Óbitos durante puerpério por ano')
+serie_temporal(df_obitos_puerperio_anual,'ano','óbitos-puerpério','Óbitos durante puerpério por ano',
+               nome_arquivo='obitos_puerperio_por_ano')
 
 # %% [markdown]
-# #### Mortalidade Neonatal
+# #### 🩺 Mortalidade Neonatal
 
 # %% [markdown]
 # Óbitos de menores de 1 ano por faixa etária (precoce, tardia, pós-neonatal e total 0-364 dias), com taxa por 1.000 nascidos vivos.
@@ -940,7 +1006,8 @@ df_neonatal_precoce_anual.to_csv('tabelas_finais//mortalidade_neonatal_precoce_p
 df_neonatal_precoce_anual
 
 # %%
-serie_temporal(df_neonatal_precoce_anual,'ano','taxa_mortalidade_precoce','Taxa de óbitos precoces por ano')
+serie_temporal(df_neonatal_precoce_anual,'ano','taxa_mortalidade_precoce','Taxa de óbitos precoces por ano',
+               nome_arquivo='taxa_mortalidade_precoce_ano')
 
 # %% [markdown]
 # ##### Tardia (7 a 27 dias)
@@ -960,7 +1027,8 @@ df_neonatal_tardia_anual.to_csv('tabelas_finais//mortalidade_neonatal_tardia_por
 df_neonatal_tardia_anual
 
 # %%
-serie_temporal(df_neonatal_tardia_anual,'ano','taxa_obitos_tardios','Taxa de óbitos tardios por ano')
+serie_temporal(df_neonatal_tardia_anual,'ano','taxa_obitos_tardios','Taxa de óbitos tardios por ano',
+               nome_arquivo='taxa_obitos_tardios_ano')
 
 # %% [markdown]
 # ##### Pós-neonatal (28 a 364 dias)
@@ -1009,16 +1077,18 @@ df_mortalidade_infantil_anual.to_csv('tabelas_finais//mortalidade_infantil_pos_n
 df_mortalidade_infantil_anual
 
 # %%
-serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonatal','Taxa de mortalidade pós-neonatal (28-364 dias) por ano')
+serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonatal','Taxa de mortalidade pós-neonatal (28-364 dias) por ano',
+               nome_arquivo='taxa_mortalidade_pos_neonatal_ano')
 
 # %% [markdown]
 # ##### Total (0 a 364 dias)
 
 # %%
-serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','Taxa de mortalidade infantil (0-364 dias) por ano')
+serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','Taxa de mortalidade infantil (0-364 dias) por ano',
+               nome_arquivo='taxa_mortalidade_infantil_ano')
 
 # %% [markdown]
-# ### DataSus - SISVAN
+# ### 🥗 DataSus - SISVAN
 
 # %% [markdown]
 # Percentual de crianças 0-6 anos com sobrepeso/obesidade e desnutrição, agregado por ano (fonte: SISVAN).
@@ -1031,8 +1101,9 @@ df_desnutricao.tail()
 df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
-df_desnutricao.to_csv('Tabelas_finais\\sisvan_desnutricao_por_ano.csv')
-serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual Crianças 0-6 com baixo peso')
+df_desnutricao.to_csv('tabelas_finais\\sisvan_desnutricao_por_ano.csv')
+serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual Crianças 0-6 com baixo peso',
+               nome_arquivo='sisvan_desnutricao_percentual_por_ano')
 
 # %%
 df_sobrepeso = pd.read_csv(r"dados_locais\tratados\sobrepeso.csv", index_col=0)
@@ -1042,14 +1113,16 @@ df_sobrepeso.head()
 df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
-df_sobrepeso.to_csv('Tabelas_finais\\sisvan_sobrepeso_por_ano.csv')
-serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual Crianças 0-6 com sobrepeso i.e. PESO ACIMA + OBESIDADE')
+df_sobrepeso.to_csv('tabelas_finais\\sisvan_sobrepeso_por_ano.csv')
+serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual Crianças 0-6 com sobrepeso i.e. PESO ACIMA + OBESIDADE',
+               nome_arquivo='sisvan_sobrepeso_percentual_por_ano')
 
 # %%
-serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual Crianças 0-6 com obesidade')
+serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual Crianças 0-6 com obesidade',
+               nome_arquivo='sisvan_obesidade_percentual_por_ano')
 
 # %% [markdown]
-# ### Cobertura Vacinal EPI
+# ### 💉 Cobertura Vacinal EPI
 
 # %% [markdown]
 # Cobertura vacinal (%) por imunobiológico, série histórica do EPI/SVS-Rio (2016-2026).
@@ -1059,14 +1132,6 @@ serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Pe
 # - 2026 é um ano ainda em curso (dados parciais); comparar com cautela contra os anos fechados.
 
 # %%
-def carrega_cobertura_vacinal(caminho):
-    df = pd.read_csv(caminho, sep=';')
-    df['ano_num'] = pd.to_numeric(df['ANO'], errors='coerce')
-    df = df[df['ano_num'].notna()]
-    df['ano'] = df['ano_num'].astype(int)
-    df['cobertura'] = df['COBERTURA'].str.replace('%','',regex=False).str.replace(',','.',regex=False).astype(float)
-    return df[['ano','IMUNO','cobertura']].rename(columns={'IMUNO':'imunobiologico'})
-
 df_cobertura_vacinal = carrega_cobertura_vacinal('dados_locais//vacinacao//serie_historica_cobertura_vacinal.csv')
 df_cobertura_vacinal_wide = df_cobertura_vacinal.pivot(index='ano', columns='imunobiologico', values='cobertura').reset_index()
 df_cobertura_vacinal_wide.to_csv('tabelas_finais//cobertura_vacinal_epi_por_ano.csv', index=False)
@@ -1114,7 +1179,7 @@ grafico_barra_agrupado(
 )
 
 # %% [markdown]
-# ### PNAD Contínua, Censo Escolar e INEP
+# ### 🎓 PNAD Contínua, Censo Escolar e INEP
 
 # %% [markdown]
 # Frequência escolar (PNAD Contínua) e matrículas (Censo Escolar/INEP) de crianças de 0 a 6 anos.
@@ -1132,7 +1197,8 @@ df_freq_escolar.to_csv('tabelas_finais//frequencia_escolar_pnad_por_idade.csv', 
 df_freq_escolar
 
 # %%
-grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequencia escolar por idade")
+grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequencia escolar por idade",
+              nome_arquivo='pnad_frequencia_escolar_por_idade')
 
 # %% [markdown]
 # #### Número de matrículas 0 a 6 anos (complementar 2021-2025)
@@ -1145,7 +1211,8 @@ df_freq_escolar.to_csv('tabelas_finais//matriculas_0_a_6_por_ano.csv', index=Fal
 df_freq_escolar
 
 # %%
-serie_temporal(df_freq_escolar,'ano','matriculas','Matrículas de 0 a 6 anos por ano')
+serie_temporal(df_freq_escolar,'ano','matriculas','Matrículas de 0 a 6 anos por ano',
+               nome_arquivo='matriculas_0_a_6_por_ano')
 
 # %% [markdown]
 # #### Juncao de tabelas por bairro
@@ -1164,7 +1231,7 @@ for i in lista_dfs[1:]:
     df_final = df_final.merge(i,on=['codigo','bairro','ano'],how='outer')
 #df_final = df_final[df_final['ano']!='Total']
 df_final.drop(columns=['nascidos vivos_x','nascidos vivos_y'],inplace=True)
-df_final.to_excel('dados_datasus_por_bairro.xlsx')
+df_final.to_excel('mapas/tabelas_bairros/dados_datasus_por_bairro.xlsx')
 df_final.head()
 #pensar testes
 
@@ -1176,7 +1243,8 @@ df_final.head()
 # *(Pendente)* Agregação das tabelas acima ao nível município-ano.
 
 # %% [markdown]
-# ## Análise / Relatório
+# ---
+# ## 📝 Análise / Relatório
 
 # %% [markdown]
 # *(Pendente)* Síntese narrativa dos achados.
