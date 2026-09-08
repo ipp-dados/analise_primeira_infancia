@@ -16,7 +16,7 @@ bairro-level table in the project.
 
 ## Iteration history (read this before assuming today's version is final)
 
-This function went through seven rounds of user feedback in one session,
+This function went through nine rounds of user feedback in one session,
 each changing a real design decision — not just polish. If you're picking
 this up cold, skim this table before re-deriving choices from scratch; the
 detailed sections below explain the *why* behind each row.
@@ -29,13 +29,15 @@ detailed sections below explain the *why* behind each row.
 | 4 | Absolute counts always discrete bins (even at AP/RP level — was continuous there), continuous colorbar moved down for top clearance, bolder/darker legend text, footnote citing spatial reference + data source | Consistency fix + three legibility/citation requests |
 | 5 | Continuous colorbar: **moved back up** (round 4's "move down for clearance" had made overlap with real bairro data worse, not better) **and** given a white background panel behind its tick labels/axis label, which had no backing at all | User reported the colorbar was "still over the map area" after round 4 — the actual bug was missing text backing, not just position; see "Layout" below for why round 4's fix was the wrong mechanism |
 | 6 | Removed the border (`edgecolor`) from that round-5 background panel, on the continuous-colorbar (percentage) maps only — kept the white fill | Direct ask to remove "the outer box" from the top-left legend on percent-scale maps; the discrete legend's own bordered box (absolute-count maps) wasn't part of the request and is untouched |
-| 7 (current) | Removed the round-5 background panel's `facecolor` too (the whole rectangle is gone now) — legibility moved from a backing box to a white `path_effects.withStroke` halo on each text element instead, the same technique the neighbor-municipality labels already used | Follow-up ask ("remove the fill for the percentage map") — no box left at all behind the continuous colorbar |
+| 7 | Removed the round-5 background panel's `facecolor` too (the whole rectangle is gone now) — legibility moved from a backing box to a white `path_effects.withStroke` halo on each text element instead, the same technique the neighbor-municipality labels already used | Follow-up ask ("remove the fill for the percentage map") — no box left at all behind the continuous colorbar |
+| 8 | Footnote's spatial-reference line now says "SIRGAS 2000, UTM - Fuso 23S", copied verbatim from `mapa_referencia.jpeg`'s own citation, instead of a generic "SIRGAS 2000 (EPSG:4326)" | Direct ask to match the reference map's exact wording — a citation choice, not a change to which CRS the code actually plots in (still `EPSG:4326`/`EPSG:3857`, never `EPSG:31983`) |
+| 9 (current) | Footnote's `x` anchor nudged left, `0.62 → 0.55` | Round 8's longer citation text pushed the footnote's right edge into the scale bar again — a direct consequence of round 8, not an unrelated request |
 
 The throughline: **background style, aggregation level, citation
 requirements, and even a prior round's own "fix" all changed after
 shipping** — this function is not "done" in the sense of being unlikely to
 change again. Treat any hardcoded visual constant here (`_ZONA_LEGENDA`, the
-`cax` rect, `x=0.62` for the footnote, the
+`cax` rect, `x=0.55` for the footnote, the
 per-level `bins`) as tuned-by-eye for the current layout, not derived from a
 formula — expect to re-tune them together if you change the figure size,
 padding, or add another on-map element. And when a user reports the same
@@ -431,22 +433,33 @@ Every map gets a small citation box, bottom-center-ish, reproducing the
 convention on `mapas/mapa_referencia.jpeg` (which has its own boxed footer:
 "Sistema de Referência: SIRGAS 2000, UTM - Fuso 23S" / "Fonte: DATA.RIO").
 Two lines:
-1. Spatial reference — `'Sistema de referência: SIRGAS 2000 (dados) | Web
-   Mercator EPSG:3857 (mapa)'` when `fundo` is set (the geometry gets
-   reprojected to Web Mercator for basemap tiles to align — the same reason
-   the scale bar needs a latitude correction, see above), or just
-   `'Sistema de referência: SIRGAS 2000 (EPSG:4326)'` with `fundo=None` (no
-   reprojection happens, data stays in the source CRS). SIRGAS 2000 is
-   Brazil's official geodetic datum and numerically what the source geojson
-   is in (read back as `EPSG:4326`/WGS84 by geopandas — the two are
-   equivalent at this precision, and SIRGAS 2000 is the term the reference
-   map and Brazilian cartographic convention actually use).
+1. Spatial reference — `'Sistema de referência: SIRGAS 2000, UTM - Fuso 23S
+   (dados) | Web Mercator EPSG:3857 (mapa)'` when `fundo` is set (the
+   geometry gets reprojected to Web Mercator for basemap tiles to align —
+   the same reason the scale bar needs a latitude correction, see above),
+   or just `'Sistema de referência: SIRGAS 2000, UTM - Fuso 23S'` with
+   `fundo=None` (no reprojection happens, data stays in the source CRS).
+   **"SIRGAS 2000, UTM - Fuso 23S" is copied verbatim from
+   `mapa_referencia.jpeg`'s own citation** — it's the standard
+   name/projection combo Brazilian cartography uses for Rio de Janeiro
+   (SIRGAS 2000 datum, UTM zone 23S projection, `EPSG:31983`), added on
+   direct request to match that reference exactly. **This is a citation of
+   the data's nominal/official reference system, not a technically precise
+   description of what's actually plotted**: the source geojson is read
+   back by geopandas as `EPSG:4326` (geographic degrees, not the projected
+   UTM 23S metres), and with `fundo` set the geometry is further
+   reprojected to `EPSG:3857` for basemap tiles — the code never touches
+   `EPSG:31983` at any point. Don't "fix" this by reprojecting the geometry
+   to actually match the label; the wording follows the same convention
+   the reference map itself uses (citing the region's standard SIRGAS
+   2000/UTM 23S reference by name, independent of the specific CRS a given
+   render happens to use).
 2. `'Fonte: {fonte_dados}'` — only appended if the caller passed
    `fonte_dados`; every real call site in `analise.py` does (`fonte_censo =
    'Censo Demográfico 2022 (IBGE/Data.Rio)'`, reused across all 6 Censo map
    calls).
 
-**Placement took three tries** — every corner is already claimed by
+**Placement took four tries** — every corner is already claimed by
 something else, so this is worth understanding before moving it again:
 - Bottom-right (first try): collided with the scale bar, which also lives
   bottom-right — the scale bar's black bar and "15 km" label were rendering
@@ -456,13 +469,18 @@ something else, so this is worth understanding before moving it again:
   with `contextily`'s bottom-left attribution text (itself 2 lines,
   variable width depending on which basemap tiles/sources were used for
   that particular render).
-- **What it does now:** two lines (`\n`-joined, not `|`-joined — half the
-  width per line), `fontsize=6.5`, anchored at axes-fraction `x=0.62`
-  (right of true center, `ha='center'`) — clear of both the attribution
-  (left) and the scale bar (right) across bairro/AP/RP renders. If you
-  change the footnote text length materially (e.g. a much longer
-  `fonte_dados`), re-check both edges again — `x=0.62` was tuned by
-  rendering and eyeballing, not computed from measured text widths.
+- `x=0.62` (third try, two lines): cleared both at the time, but the
+  spatial-reference line later grew longer ("SIRGAS 2000, UTM - Fuso 23S"
+  added — see the Footnote text section above) and started crowding the
+  scale bar again on its right edge.
+- **What it does now:** `x=0.55` (nudged left from 0.62), still two lines
+  (`\n`-joined, not `|`-joined), `fontsize=6.5` — clear of both the
+  attribution (left) and the scale bar (right) across bairro/AP/RP renders
+  with the current (longer) text. If you change the footnote text length
+  materially again (e.g. a much longer `fonte_dados`, or another line),
+  re-check both edges — `x=0.55` was tuned by rendering and eyeballing, not
+  computed from measured text widths, and has already needed to move once
+  as the text grew.
 - Rendered as `ax.annotate(..., bbox=dict(boxstyle='square,pad=0.35',
   facecolor='white', alpha=0.8, edgecolor='none'))` — a translucent white
   box behind the text, same idea as `contextily`'s own attribution
