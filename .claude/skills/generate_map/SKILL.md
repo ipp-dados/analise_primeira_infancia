@@ -16,7 +16,7 @@ bairro-level table in the project.
 
 ## Iteration history (read this before assuming today's version is final)
 
-This function went through five rounds of user feedback in one session,
+This function went through seven rounds of user feedback in one session,
 each changing a real design decision — not just polish. If you're picking
 this up cold, skim this table before re-deriving choices from scratch; the
 detailed sections below explain the *why* behind each row.
@@ -27,13 +27,15 @@ detailed sections below explain the *why* behind each row.
 | 2 | Added `fundo` (satellite **and** drawn-map style), UF boundary overlay, wide aspect ratio, north arrow, scale bar, 300 DPI | User wanted a background image + orientation elements, "like an academic map" |
 | 3 | **Dropped satellite entirely** (kept only the drawn-map style, and swapped its provider from `WorldStreetMap` to label-free `OceanBasemap`), added `nivel`/AP/RP aggregation + `agrega_bairros_por_nivel`, neighbor-municipality labels, serif title font, ~10-15% larger text, narrowed to ~A4-landscape ratio | Direct preference after comparing both background styles side by side; new aggregation-level requirement; typography/format polish requests |
 | 4 | Absolute counts always discrete bins (even at AP/RP level — was continuous there), continuous colorbar moved down for top clearance, bolder/darker legend text, footnote citing spatial reference + data source | Consistency fix + three legibility/citation requests |
-| 5 (current) | Continuous colorbar: **moved back up** (round 4's "move down for clearance" had made overlap with real bairro data worse, not better) **and** given a white background panel behind its tick labels/axis label, which had no backing at all | User reported the colorbar was "still over the map area" after round 4 — the actual bug was missing text backing, not just position; see "Layout" below for why round 4's fix was the wrong mechanism |
+| 5 | Continuous colorbar: **moved back up** (round 4's "move down for clearance" had made overlap with real bairro data worse, not better) **and** given a white background panel behind its tick labels/axis label, which had no backing at all | User reported the colorbar was "still over the map area" after round 4 — the actual bug was missing text backing, not just position; see "Layout" below for why round 4's fix was the wrong mechanism |
+| 6 | Removed the border (`edgecolor`) from that round-5 background panel, on the continuous-colorbar (percentage) maps only — kept the white fill | Direct ask to remove "the outer box" from the top-left legend on percent-scale maps; the discrete legend's own bordered box (absolute-count maps) wasn't part of the request and is untouched |
+| 7 (current) | Removed the round-5 background panel's `facecolor` too (the whole rectangle is gone now) — legibility moved from a backing box to a white `path_effects.withStroke` halo on each text element instead, the same technique the neighbor-municipality labels already used | Follow-up ask ("remove the fill for the percentage map") — no box left at all behind the continuous colorbar |
 
 The throughline: **background style, aggregation level, citation
 requirements, and even a prior round's own "fix" all changed after
 shipping** — this function is not "done" in the sense of being unlikely to
 change again. Treat any hardcoded visual constant here (`_ZONA_LEGENDA`, the
-`cax` rect, the backing-panel rectangle, `x=0.62` for the footnote, the
+`cax` rect, `x=0.62` for the footnote, the
 per-level `bins`) as tuned-by-eye for the current layout, not derived from a
 formula — expect to re-tune them together if you change the figure size,
 padding, or add another on-map element. And when a user reports the same
@@ -350,9 +352,12 @@ separate white strip):
   sync with the colorbar's `cax` rect** if you move either — they're two
   independent hardcoded values that happen to need to agree; nothing
   enforces that automatically.
-- **Continuous colorbar position + backing panel:** `cax = ax.inset_axes([0.035, 0.60, 0.03, 0.30])`
-  (x0, y0, width, height). This took three rounds to get right — each round
-  fixed a real, distinct problem, not a re-litigation of the same one:
+- **Continuous colorbar position and text legibility:** `cax = ax.inset_axes([0.035, 0.60, 0.03, 0.30])`
+  (x0, y0, width, height). This took five rounds to settle — each round
+  fixed a real, distinct problem, not a re-litigation of the same one
+  (rounds 4 and 5 in particular look like they're undoing round 3, but
+  they're not: round 3 solved *legibility*, rounds 4-5 removed the *visual
+  weight* of the solution while keeping legibility solved a different way):
   1. Original `y0=0.55, height=0.35` (top at 0.90, only 10% clearance from
      the map's top edge) — flagged as sitting too close to the top ("so it
      don't go over the image").
@@ -363,16 +368,15 @@ separate white strip):
      colorbar sat squarely on top of colored bairro polygons instead of
      empty basemap margin. The user then reported it was "still over the
      map area" and asked to move it toward the top.
-  3. **What's there now:** moved back up to `y0=0.60, height=0.30` (closer
-     to the original position, not further from it — round 2 moved the
-     wrong direction), **plus** a white background patch
-     (`ax.add_patch(plt.Rectangle(...))`, drawn just before `cax` is
-     created) sized to cover the bar *and* its tick labels *and* its
-     rotated axis label — `(cax_x0-0.02, cax_y0-0.025)` to
-     `+0.175 width, +0.05 height`. This is the fix that actually mattered:
-     **tick labels and the y-axis label render outside `cax`'s own bounds,
-     in the parent axes' space, with no opaque background of their own**
-     (unlike the discrete legend, which gets a white box for free via
+  3. Moved back up to `y0=0.60, height=0.30` (closer to the original
+     position, not further from it — round 2 moved the wrong direction),
+     **plus** a white background patch (`ax.add_patch(plt.Rectangle(...))`,
+     drawn just before `cax` is created) sized to cover the bar *and* its
+     tick labels *and* its rotated axis label — `(cax_x0-0.02, cax_y0-0.025)`
+     to `+0.175 width, +0.05 height`. This was the fix that actually
+     mattered: **tick labels and the y-axis label render outside `cax`'s own
+     bounds, in the parent axes' space, with no opaque background of their
+     own** (unlike the discrete legend, which gets a white box for free via
      `legend_kwds={'framealpha':..., 'facecolor': 'white'}`) — so no matter
      where the colorbar sits, its *text* was always going to be unreadable
      over a busy basemap/choropleth without an explicit backing. Moving
@@ -380,10 +384,29 @@ separate white strip):
      asked to reposition this again — check whether it's a legibility
      complaint (needs the backing panel) or a pure overlap-with-data
      complaint (needs repositioning) before picking a fix.
+  4. **`edgecolor` on that background patch was then set to `'none'`**
+     (originally `'#c9c9c9'`, matching the discrete legend's border) — the
+     user asked to remove "the outer box" from the percentage-scale maps
+     specifically. Scoped to the continuous-colorbar branch only; the
+     discrete legend's own bordered box (absolute-count maps) was never in
+     question and still has `edgecolor='#c9c9c9'`.
+  5. **The background patch was then removed entirely** (`facecolor` too,
+     not just the border — the user's next ask was "remove the fill for the
+     percentage map" as well). With no backing box left at all, legibility
+     had to move to the *text itself*: the colorbar's tick labels and axis
+     label each get a white halo via
+     `matplotlib.patheffects.withStroke(linewidth=3, foreground='white')`
+     (`.set_path_effects([...])`, applied after `.set_fontweight`/`.set_color`)
+     — the same technique `_adiciona_rotulos_municipios_vizinhos` already
+     used for neighbor-city labels. This is the current state: **no
+     rectangle patch of any kind behind the continuous colorbar**, only a
+     halo on each text element. If asked to add any box/panel back here,
+     confirm first — three consecutive rounds (3, 4, 5) removed it piece by
+     piece on direct request, so reintroducing one is very likely to be
+     unwanted rather than an oversight to "fix."
   If you touch the position again, `_ZONA_LEGENDA`'s `y0` (above) needs to
-  stay ≤ this `cax`'s `y0` with some margin, the backing-panel rectangle's
-  bounds need to keep matching `cax`'s actual bounds, and re-check the
-  footnote/scale-bar corners below don't newly collide with whatever moved.
+  stay ≤ this `cax`'s `y0` with some margin, and re-check the footnote/scale-bar
+  corners below don't newly collide with whatever moved.
 - **North arrow** (`_adiciona_rosa_dos_ventos`, right above the main
   function): a simple annotated arrow + "N" label at axes-fraction
   `(0.94, 0.90)`, i.e. upper-right — deliberately a plain arrow, not an
@@ -534,7 +557,11 @@ objects after `.plot()` (`ax.get_legend()` for the discrete case,
 `legend_kwds` alone doesn't expose a font-weight knob. Requested directly
 ("give the fonts for the legends a little more contrast") after the plain
 default-black legend text read as a bit thin/light against the textured
-basemap underneath it.
+basemap underneath it. On the continuous colorbar specifically, this
+color/weight styling is no longer enough on its own since the backing box
+behind it was later removed entirely (see "Layout" above, rounds 5-7) — a
+white `path_effects.withStroke` halo on each text element does the rest of
+the legibility work there.
 
 **Typography** ("think of it as an academic publication map" — a direct
 request): the title uses `_FONTE_TITULO = 'Palatino Linotype'` (bold,

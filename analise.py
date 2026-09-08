@@ -403,29 +403,28 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
         # colorbar como inset dentro da própria área do mapa (não numa coluna externa) -- mesmo canto
         # que a legenda de classes usaria, já que os dois modos são mutuamente exclusivos numa chamada;
         # deslocada para perto do topo (y0=0,60) para ficar mais sobre a margem de contexto (fora dos
-        # bairros) do que sobre os próprios polígonos coloridos. Isso sozinho não bastava: os rótulos
-        # dos ticks e o texto do eixo (rotacionado) ficam FORA da própria cax (na margem dela), então
-        # não herdam nenhum fundo opaco -- diferente da legenda de classes, que já tem uma caixa
-        # branca própria (framealpha/facecolor). Por isso um retângulo branco é desenhado por baixo,
-        # cobrindo a barra + ticks + rótulo do eixo, para o texto continuar legível não importa sobre
-        # qual parte do mapa a colorbar caia.
+        # bairros) do que sobre os próprios polígonos coloridos. Sem nenhum retângulo/caixa de fundo
+        # (nem borda, nem preenchimento) atrás da colorbar -- os rótulos dos ticks e o texto do eixo
+        # (rotacionado) ficam FORA da própria cax, então em vez de uma caixa opaca por baixo, cada
+        # texto ganha um halo branco (path_effects.withStroke, a mesma técnica dos rótulos de
+        # município vizinho) para continuar legível não importa sobre qual parte do mapa a colorbar
+        # caia.
         cax_x0, cax_y0, cax_largura, cax_altura = 0.035, 0.60, 0.03, 0.30
-        ax.add_patch(plt.Rectangle(
-            (cax_x0 - 0.02, cax_y0 - 0.025), 0.175, cax_altura + 0.05,
-            transform=ax.transAxes, facecolor='white', edgecolor='#c9c9c9', alpha=0.88, zorder=2.5,
-        ))
         cax = ax.inset_axes([cax_x0, cax_y0, cax_largura, cax_altura])
         gdf.plot(
             column=coluna_valor, ax=ax, cmap=cmap, linewidth=0.4, edgecolor='#616161', legend=True, alpha=alpha,
             zorder=2, missing_kwds=missing_kwds, cax=cax,
             legend_kwds={'label': legenda_titulo or coluna_valor},
         )
+        halo = [pe.withStroke(linewidth=3, foreground='white')]
         cax.tick_params(labelsize=9, colors='#111111')
         for rotulo in cax.get_yticklabels():
             rotulo.set_fontweight('semibold')
+            rotulo.set_path_effects(halo)
         cax.yaxis.label.set_size(11)
         cax.yaxis.label.set_color('#111111')
         cax.yaxis.label.set_fontweight('bold')
+        cax.yaxis.label.set_path_effects(halo)
 
     if usa_fundo:
         # amplia a vista além dos bairros para dar contexto (região metropolitana, baía, mar)
