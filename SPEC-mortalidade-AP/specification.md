@@ -1,11 +1,14 @@
 # Especificação — Óbitos por causas evitáveis na primeira infância, por Área Programática de Saúde (CAP)
 
 Branch: `spec/mortalidade-ap`
-Status: **revisão 2** — decisões do usuário incorporadas; nenhum código escrito ainda
+Status: **revisão 3** — decisões do usuário incorporadas; nenhum código escrito ainda
 
-> **Restrição do usuário (vale para tudo abaixo): NUNCA alterar código já existente.**
-> Nenhuma função, assinatura, constante ou célula atual de `analise.py` é modificada.
-> Só se acrescenta código novo. Ver `plan.md` §4 para a consequência de design disso.
+> **Restrição do usuário: NUNCA alterar código já existente**, com uma única exceção pontual
+> autorizada nesta revisão (§3, §4.1, `plan.md` §4): acrescentar a chave `'cap'` a
+> `_NIVEIS_AGREGACAO`. Fora essa chave nova, nenhuma função, assinatura, constante ou célula
+> atual de `analise.py` é modificada — **e mesmo essa exceção não pode alterar os códigos/
+> colunas já atribuídos aos níveis existentes** (`bairro`, `ap`, `rp`), para preservar a
+> consistência do que já está em produção. Fora isso, só se acrescenta código novo.
 
 ---
 
@@ -99,16 +102,16 @@ linha +11: em branco
 Mesma taxonomia já usada no notebook (Malta et al., lista de causas evitáveis), em rótulos
 abreviados pelo TabWin:
 
-| # | rótulo na planilha | grupo |
-|---|---|---|
-| 1 | `1.1. Reduzível pelas ações de imunização` | 1. Evitáveis |
-| 2 | `1.2.1. Red por ad at à mulher na gestação` | 1. Evitáveis |
-| 3 | `1.2.2. Red por ad at à mulher no parto` | 1. Evitáveis |
-| 4 | `1.2.3. Red por ad at ao recém-nascido` | 1. Evitáveis |
-| 5 | `1.3. Red por ações de diag e trat adequado` | 1. Evitáveis |
-| 6 | `1.4. Red por ações promoção vinc a atenção` | 1. Evitáveis |
-| 7 | `2. Causas mal definidas` | 2. Mal definidas |
-| 8 | `3. Demais causas (não claramente evitáveis)` | 3. Demais |
+| # | rótulo na planilha | grupo | subgrupo
+|---|---|---|---
+| 1 | `1.1. Reduzível pelas ações de imunização` | 1. Evitáveis | `1.1. Reduzível pelas ações de imunização`
+| 2 | `1.2.1. Red por ad at à mulher na gestação` | 1. Evitáveis |`1.2.1. Red por at à mulher na gestação`
+| 3 | `1.2.2. Red por ad at à mulher no parto` | 1. Evitáveis |`1.2.2. Red por at à mulher no parto`
+| 4 | `1.2.3. Red por ad at ao recém-nascido` | 1. Evitáveis |`1.2.3. Red por at ao recém-nascido`
+| 5 | `1.3. Red por ações de diag e trat adequado` | 1. Evitáveis |`1.3. Red por ações de diag e trat adequado` 
+| 6 | `1.4. Red por ações promoção vinc a atenção` | 1. Evitáveis | `1.4. Red por ações promoção vinc a atenção`
+| 7 | `2. Causas mal definidas` | 2. Mal definidas | `2. Causas mal definidas` 
+| 8 | `3. Demais causas (não claramente evitáveis)` | 3. Demais | `3. Demais causas (não claramente evitáveis)`
 
 ⚠️ Note que a planilha **não traz o nível "grupo"** (`1.`, `2.`, `3.`) como linha própria —
 o grupo `1.` é obtido somando as seis linhas `1.*`. Isso difere dos arquivos "segundo
@@ -142,8 +145,8 @@ Planejamento do IPP** (`area_plane`). Para não criar ambiguidade:
 | conceito | 5 unidades | 10 unidades |
 |---|---|---|
 | nome | Área de Planejamento (IPP) | **Coordenadoria de Área Programática (CAP/SMS)** |
-| no código | `nivel='ap'` (existente, **intocado**) | sufixo `_cap` nos nomes de arquivo/variável |
-| no geojson | `area_plane` (limite de bairros) | `cod_ap_sms` (arquivo novo, §4) |
+| no código | `nivel='ap'` (existente, **intocado**) | `nivel='cap'` — chave **nova** em `_NIVEIS_AGREGACAO` (§4.1, `plan.md` §4) |
+| no geojson | `area_plane` (limite de bairros) | `cod_ap_sms` (arquivo novo, §4) — usada direto no join, sem alias |
 
 Nos títulos de gráficos e mapas: **"Área Programática de Saúde (CAP)"** na primeira menção,
 "CAP" depois. Nos nomes de arquivo, sufixo `_cap` (ex.: `mapa_obitos_evitaveis_menores_1_ano_cap_2025.png`).
@@ -169,9 +172,13 @@ Tratamento aplicado na gravação (só dados, nenhum código do projeto tocado):
 - `make_valid()` — o arquivo original vem com geometrias inválidas (auto-interseções);
 - coluna `cod_ap_sms` = `COD_AP_SMS` sem o prefixo `"AP "` → `'1.0'`, `'2.1'`, … `'5.3'`,
   **exatamente os códigos usados na planilha** (join direto, sem normalização);
-- coluna `cod_rp` = cópia de `cod_ap_sms` — **alias técnico** exigido pela reutilização da
-  função de mapa existente sem alterá-la; a justificativa está em `plan.md` §4;
 - descartados `OBJECTID`, `GlobalID`, `Shape__Area`, `Shape__Length` (metadados do ArcGIS).
+
+> A revisão 2 desta spec também gravava uma coluna `cod_rp` como cópia de `cod_ap_sms` —
+> um alias técnico para reaproveitar o nível `'rp'` sem tocar em `_NIVEIS_AGREGACAO`. Não é
+> mais necessário: o usuário autorizou a chave `'cap'` direta no dicionário (§3, `plan.md`
+> §4), que já lê `cod_ap_sms`. Se o arquivo já salvo ainda tiver a coluna `cod_rp`, ela fica
+> inofensiva e sem uso — pode ser descartada numa limpeza futura, não bloqueia nada.
 
 ### 4.2 Conferência contra o limite de bairros
 
@@ -323,8 +330,9 @@ Seção nova, **dentro de `🏥 DataSus - tabnet` → `📉 Mortalidade`**, depo
 ```
 
 As funções de leitura/limpeza vão para **`### 🧹 Limpeza e wrangling de dados`** (topo do
-notebook), e o novo nível `'cap'` para junto de `_NIVEIS_AGREGACAO` em
-**`### 📈 Funções de visualização`** — respeitando a regra do projeto de que as seções de
+notebook), e o novo nível `'cap'` entra como **chave nova dentro de `_NIVEIS_AGREGACAO`**, em
+**`### 📈 Funções de visualização`** — a única exceção autorizada à restrição de não alterar
+código existente (§3, `plan.md` §4) — respeitando a regra do projeto de que as seções de
 análise só *chamam* funções, nunca as definem.
 
 A extração da planilha → CSVs entra em **`### 🧼 Limpeza de dados prévia`**, ao lado das
@@ -353,7 +361,8 @@ duas chamadas `limpa_dados_sisvan(...)` — mesmo padrão de "roda uma vez, mate
 | 1 | Nomenclatura `cap` × `ap` | **CAP**, com `nivel='ap'` existente intocado (§3) |
 | 2 | Guaratiba / Ilha do Governador | resolvido pelo **dado oficial**: Guaratiba → 5.2, Ilha do Governador → 3.1, Complexo do Alemão → 3.1 (§4.3) |
 | 3 | Geometria das CAPs | baixada do Data.Rio, salva em `dados_locais/geo/limite_ap_saude_rio.geojson` (§4.1) |
-| 4 | Alterar código existente | **proibido** — ver `plan.md` §4 |
+| 4 | Alterar código existente | **proibido, com uma exceção pontual** (item 5) — ver `plan.md` §4 |
+| 5 | Adaptador com alias `cod_rp` × chave `'cap'` direta em `_NIVEIS_AGREGACAO` | **decidido pelo usuário: chave `'cap'` direta** (`plan.md` §4). Zero linhas alteradas em `mapa_coropletico_bairros` (a função já é genérica sobre `nivel`); os códigos/colunas de `bairro`, `ap` e `rp` ficam intocados. Sem adaptador `mapa_coropletico_cap`, sem alias `cod_rp` |
 
 ### ⚠️ Ainda em aberto
 
@@ -362,8 +371,7 @@ duas chamadas `limpa_dados_sisvan(...)` — mesmo padrão de "roda uma vez, mate
 | A | **Texto institucional da fonte** para o rodapé dos mapas (§2.2) | uso `SIM/SVS-Rio (TabWin) — óbitos de residentes no município do Rio de Janeiro` |
 | B | **Destino dos CSVs extraídos**: `dados_locais/tratados/` (proposto, mesmo destino de `limpa_dados_sisvan`) ou `dados_locais/mortalidade/` | sigo com `tratados/` |
 | C | **Nascidos vivos por CAP**: existe export do Tabnet? | sem ele, não há mapa de taxa por mil NV — só contagem absoluta e % de evitáveis (§5.3) |
-| D | **Alias `cod_rp` no geojson de CAP** (`plan.md` §4.2): aceitável como está, ou prefere autorizar as 3 linhas em `mapa_coropletico_bairros`? | sigo com o alias, que respeita a restrição de não mudar código |
 | E | `SPEC-mortalidade-AP/` entra no commit final? (precedente: `relatorio/specs.md` é versionado) | mantenho versionado |
 
-Nenhuma delas bloqueia o início da implementação — A, B, D e E têm padrão assumido, e C só
+Nenhuma delas bloqueia o início da implementação — A, B e E têm padrão assumido, e C só
 adiciona 3 mapas opcionais.
