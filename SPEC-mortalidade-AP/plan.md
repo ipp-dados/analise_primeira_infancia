@@ -3,10 +3,12 @@
 Companion de `specification.md`. Aqui está **como** implementar, com as assinaturas de
 função propostas e as decisões de design justificadas.
 
-> **Revisão 2** — incorpora duas decisões do usuário: trabalhar no nível **CAP** com
-> geometria oficial, e **nunca alterar código já existente**. A §4 foi reescrita por
-> inteiro: a estratégia anterior (acrescentar uma chave em `_NIVEIS_AGREGACAO` e 3 linhas
-> em `mapa_coropletico_bairros`) violaria a restrição.
+> **Revisão 3** — o usuário autorizou a exceção pontual que a revisão 2 tinha descartado:
+> acrescentar a chave `'cap'` a `_NIVEIS_AGREGACAO`, desde que os códigos/colunas já
+> atribuídos a `bairro`/`ap`/`rp` não mudem. A §4 foi reescrita por inteiro — cai o
+> adaptador `mapa_coropletico_cap` e o alias `cod_rp` no geojson de CAP (verificados contra
+> o código real de `analise.py`: a função `mapa_coropletico_bairros` não precisa de **nenhuma**
+> linha nova, só a chave no dicionário).
 
 ---
 
@@ -18,9 +20,11 @@ O `analise.py` tem uma estrutura explícita, documentada no README e reforçada 
 > "as seções de análise abaixo apenas *chamam* essas funções, sem redefini-las"
 
 Somado à restrição **"nunca alterar código existente"**, o plano fica: **4 funções novas de
-wrangling + 1 função-adaptador de mapa + 1 seção de análise que só orquestra**. Nenhuma
-linha existente é editada — nem funções, nem constantes, nem células de análise. Tudo é
-acréscimo.
+wrangling + 1 seção de análise que só orquestra**, mais **uma única exceção pontual**
+autorizada pelo usuário nesta revisão: uma chave nova (`'cap'`) em `_NIVEIS_AGREGACAO` (§4).
+Fora essa chave, nenhuma linha existente é editada — nem funções, nem células de análise.
+Tudo o mais é acréscimo, e a própria exceção não pode alterar os códigos/colunas já
+atribuídos aos níveis existentes (`bairro`, `ap`, `rp`) — ver §4.1.
 
 ---
 
@@ -49,7 +53,11 @@ Design:
   o layout antes de qualquer confiança no resultado;
 - a CAP sai do título por `str.split(', AP ')[1].split(',')[0]` — o único lugar da aba que a
   identifica (a planilha escreve `AP 3.1`; guardamos `'3.1'` em `cod_ap_sms`);
-- devolve `ano` e `obitos` como `int`; `causa` com `.strip()`.
+- devolve `ano` e `obitos` como `int`; `causa` **não** é só `.strip()` do rótulo bruto —
+  é normalizada para o texto de `subgrupo` da tabela em `specification.md` §2.4: 3 dos 8
+  rótulos trazem o trecho redundante `ad ` antes de `at` (ex.: `1.2.1. Red por ad at à
+  mulher na gestação` → `1.2.1. Red por at à mulher na gestação`); os outros 5 já batem
+  com o rótulo bruto. Usa o mesmo dicionário `_ROTULO_PARA_SUBGRUPO` de §3.1.
 
 ### 2.2 `extrai_evitaveis_municipio(caminho)`
 
@@ -74,10 +82,41 @@ que também é "roda uma vez, materializa CSV". É essa função que a seção
 
 ## 3. Camada 2 — Agregação por grupo CID
 
+### 3.0 Princípio: só se trabalha em dois níveis — grupo e subgrupo
+
+A planilha só oferece as 8 linhas `CID Evitav INF` (**subgrupo**) e não traz o nível "grupo"
+como linha própria (spec §2.4) — e não há, nesta fonte, um terceiro nível "causa" (a
+diferença para os arquivos "segundo causas" já existentes no notebook, que têm os três
+níveis grupo/subgrupo/causa, está registrada em `specification.md` linha 28). Por isso todo
+código e toda tabela derivada desta planilha carregam **sempre as duas colunas**, `subgrupo`
+e `grupo` (esta última derivada da primeira) — nunca uma coluna genérica `causa` solta, e
+nunca uma tentativa de desagregar além do subgrupo.
+
+O texto de `subgrupo` usado em qualquer DataFrame é o normalizado da tabela de
+`specification.md` §2.4 (coluna "subgrupo"), não o rótulo bruto da planilha — ver §2.1:
+
+```python
+_ROTULO_PARA_SUBGRUPO = {
+    '1.1. Reduzível pelas ações de imunização':    '1.1. Reduzível pelas ações de imunização',
+    '1.2.1. Red por ad at à mulher na gestação':   '1.2.1. Red por at à mulher na gestação',
+    '1.2.2. Red por ad at à mulher no parto':      '1.2.2. Red por at à mulher no parto',
+    '1.2.3. Red por ad at ao recém-nascido':       '1.2.3. Red por at ao recém-nascido',
+    '1.3. Red por ações de diag e trat adequado':  '1.3. Red por ações de diag e trat adequado',
+    '1.4. Red por ações promoção vinc a atenção':  '1.4. Red por ações promoção vinc a atenção',
+    '2. Causas mal definidas':                     '2. Causas mal definidas',
+    '3. Demais causas (não claramente evitáveis)': '3. Demais causas (não claramente evitáveis)',
+}
+```
+
+Note que 5 das 8 chaves e valores são idênticos — só as 3 categorias `1.2.*` mudam (o `ad `
+redundante é removido). O dicionário existe mesmo assim, com as 8 entradas, para que
+`extrai_evitaveis_cap_blocos` e `extrai_evitaveis_municipio` apliquem uma única regra
+(`.map(_ROTULO_PARA_SUBGRUPO)`) em vez de tratar 5 casos como "iguais" e 3 como "especiais".
+
 ### 3.1 `agrega_grupo_cid(df)`
 
-A planilha não traz o nível "grupo" como linha (spec §2.4). Deriva-se do prefixo do rótulo,
-reaproveitando o `padrao_grupo` mental já usado no notebook:
+O grupo se deriva do prefixo do `subgrupo` já normalizado (não do rótulo bruto), reaproveitando
+o `padrao_grupo` mental já usado no notebook:
 
 ```python
 _GRUPOS_CID = {'1': '1. Causas evitáveis',
@@ -89,7 +128,7 @@ def agrega_grupo_cid(df, colunas_chave):
 
     A planilha TabWin traz só os subgrupos -- diferente dos arquivos 'segundo causas' usados
     nas seções anteriores, onde grupo e subgrupo são linhas separadas. O grupo sai do primeiro
-    caractere do rótulo ('1.2.3. Red por ad...' -> grupo '1').
+    caractere do subgrupo já normalizado ('1.2.3. Red por at ao recém-nascido' -> grupo '1').
     """
 ```
 
@@ -111,13 +150,18 @@ com 0 óbitos totais.
 
 ---
 
-## 4. Camada 3 — Mapas por CAP sem tocar em código existente
+## 4. Camada 3 — Mapas por CAP: chave nova em `_NIVEIS_AGREGACAO`
 
-Este é o ponto de maior atenção do plano. A restrição do usuário elimina a solução óbvia.
+### 4.1 Decisão do usuário: exceção pontual autorizada
 
-### 4.1 O impasse
+A revisão 2 descartou o caminho natural — acrescentar `'cap'` a `_NIVEIS_AGREGACAO` — por
+violar a restrição "nunca alterar código existente", e construiu um adaptador
+(`mapa_coropletico_cap`) que reaproveitava o nível `'rp'` via um alias `cod_rp` no geojson de
+CAP. **O usuário liberou o caminho natural nesta revisão**, com uma condição: os
+códigos/colunas já atribuídos aos três níveis existentes (`bairro`, `ap`, `rp`) não podem
+mudar. O adaptador e o alias caem por inteiro — não são mais necessários.
 
-`mapa_coropletico_bairros` resolve o nível geográfico por um dicionário no topo do arquivo:
+`_NIVEIS_AGREGACAO`, hoje (`analise.py:239-243`):
 
 ```python
 _NIVEIS_AGREGACAO = {
@@ -127,80 +171,82 @@ _NIVEIS_AGREGACAO = {
 }
 ```
 
-O caminho natural seria acrescentar `'cap'` a esse dicionário. Mas isso é **editar uma
-constante existente**, e a função precisaria de mais 3 linhas para derivar a coluna — ou
-seja, editar a função também. **Proibido.**
-
-### 4.2 A saída: o geojson é parâmetro, e `'rp'` já é genérico
-
-Duas observações destravam o problema **sem tocar em nada**:
-
-1. `mapa_coropletico_bairros` já expõe **`caminho_geojson`** como parâmetro — a geometria
-   nunca foi fixa no código.
-2. O nível `'rp'` não tem nada de específico de Região de Planejamento: ele significa
-   literalmente *"faça o join por uma coluna de texto chamada `cod_rp`"*. O `dissolve` por
-   essa coluna, num arquivo que já tem uma feição por valor, é um **no-op**.
-
-Então basta que o geojson de CAP traga uma coluna `cod_rp` com `'1.0'`, `'2.1'`, … `'5.3'`.
-Por isso o arquivo salvo em `dados_locais/geo/limite_ap_saude_rio.geojson` tem **duas**
-colunas de código (`specification.md` §4.1):
-
-- `cod_ap_sms` — o nome honesto, é o que a documentação e qualquer uso futuro devem ler;
-- `cod_rp` — cópia, **alias técnico** que existe só para encaixar no nível `'rp'`.
-
-Já verificado de ponta a ponta (simulando exatamente o que a função faz): `dissolve` devolve
-os 10 polígonos válidos, o merge acha os 10 sem nenhum "Sem dado", CRS e `total_bounds`
-batem com o limite de bairros.
-
-### 4.3 O adaptador (código novo, não substitui nada)
-
-Para que o alias não vaze para as células de análise, uma função nova, fina, que só
-pré-preenche argumentos:
+Passa a ser, com **uma linha nova** e as três existentes bit-a-bit idênticas:
 
 ```python
-_CAMINHO_GEO_CAP = 'dados_locais/geo/limite_ap_saude_rio.geojson'
-
-def mapa_coropletico_cap(df, coluna_valor, titulo, nome_arquivo, chave='cod_ap_sms', **kwargs):
-    """Mapa coroplético por CAP (Área Programática de Saúde da SMS-Rio, 10 unidades).
-
-    Adaptador fino sobre `mapa_coropletico_bairros`, que NÃO é alterada. Duas notas:
-
-    - As CAPs não existem no geojson de bairros do IPP (que traz Área de Planejamento e
-      Região de Planejamento). A geometria vem de um arquivo próprio, baixado do Data.Rio
-      ('Áreas Programáticas da Saúde', SMS) -- ver SPEC-mortalidade-AP/specification.md §4.
-    - Repassa `nivel='rp'` não porque isto seja Região de Planejamento, mas porque esse
-      nível é, na prática, "join por uma coluna de texto chamada cod_rp" -- e o geojson de
-      CAP traz `cod_rp` como alias de `cod_ap_sms` justamente para encaixar aí. O `dissolve`
-      vira no-op (o arquivo já tem uma feição por CAP).
-
-    Cuidado ao usar: `df` precisa da coluna `cod_ap_sms` com os códigos no formato da
-    planilha ('1.0', '2.1', ... '5.3') -- sem o prefixo 'AP '.
-    """
-    df = df.rename(columns={chave: 'cod_rp'})
-    return mapa_coropletico_bairros(
-        df, coluna_valor=coluna_valor, titulo=titulo, nome_arquivo=nome_arquivo,
-        nivel='rp', caminho_geojson=_CAMINHO_GEO_CAP, **kwargs,
-    )
+_NIVEIS_AGREGACAO = {
+    'bairro': {'coluna_geo': 'codbairro',  'tipo': int},
+    'ap':     {'coluna_geo': 'area_plane', 'tipo': int},
+    'rp':     {'coluna_geo': 'cod_rp',     'tipo': str},
+    'cap':    {'coluna_geo': 'cod_ap_sms', 'tipo': str},   # NOVO — único acréscimo autorizado
+}
 ```
 
-Cinco linhas efetivas, zero duplicação da lógica cartográfica (bins, colorbar, rosa dos
-ventos, escala, rodapé, rótulos de vizinhos — tudo herdado).
+`tipo=str` pelo mesmo motivo de `'rp'`: os códigos de CAP (`'1.0'`, `'2.1'`, … `'5.3'`) têm
+formato `AP.subregião` e perderiam precisão como número.
+
+### 4.2 Por que `mapa_coropletico_bairros` não precisa de nenhuma linha nova
+
+A revisão 2 estimava "mais 3 linhas para derivar a coluna" na função. Conferido contra o
+código real (`analise.py:312-357`), essa estimativa era **excessivamente cautelosa**: a
+função já é inteiramente genérica sobre `nivel` —
+
+```python
+info_nivel = _NIVEIS_AGREGACAO[nivel]
+coluna_geo, tipo = info_nivel['coluna_geo'], info_nivel['tipo']
+chave = chave or coluna_geo
+...
+gdf_nivel = gdf_bairros if nivel == 'bairro' else gdf_bairros.dissolve(by=coluna_geo, as_index=False)
+```
+
+Não há nenhum `if nivel == 'ap'`/`'rp'` especial: qualquer chave não-`'bairro'` passa pelo
+mesmo `dissolve(by=coluna_geo)`, que é **no-op** quando o geojson já tem uma feição por
+valor — exatamente o caso do geojson de CAP (10 feições, uma por `cod_ap_sms`, `plan.md` era
+`specification.md` §4.2). Chamada direta, sem adaptador:
+
+```python
+mapa_coropletico_bairros(
+    df, coluna_valor=..., titulo=..., nome_arquivo=...,
+    nivel='cap', caminho_geojson='dados_locais/geo/limite_ap_saude_rio.geojson',
+)
+```
+
+`caminho_geojson` já era parâmetro (não fixo no código) — essa parte da observação da
+revisão 2 continua válida, só que agora não precisa de um alias para chegar lá.
+
+A função **fica com zero linhas alteradas**, docstring inclusive — ela não lista `'cap'`
+entre os valores de `nivel` (só cita `'bairro'`/`'ap'`/`'rp'`), e não é atualizada para
+listar, porque isso seria editar uma linha existente. O significado de `'cap'` fica
+documentado aqui e em `specification.md`, não na docstring da função.
+
+### 4.3 O geojson: sem alias
+
+`dados_locais/geo/limite_ap_saude_rio.geojson` só precisa da coluna `cod_ap_sms` — o join
+agora usa essa coluna direto (`chave` default = `coluna_geo` = `'cod_ap_sms'`). A coluna
+`cod_rp` gravada na revisão 2 como alias técnico não tem mais função; se o arquivo já salvo
+ainda a tiver, é inofensiva e pode ser removida numa limpeza futura (não bloqueia nada).
+
+Já verificado de ponta a ponta na revisão 2 (simulando exatamente o que a função faz):
+`dissolve` devolve os 10 polígonos válidos, o merge acha os 10 sem nenhum "Sem dado", CRS e
+`total_bounds` batem com o limite de bairros — nada disso muda ao trocar `cod_rp` por
+`cod_ap_sms` como coluna de join, é o mesmo dado.
 
 ### 4.4 Alternativas descartadas
 
 | alternativa | por que não |
 |---|---|
-| Chave `'cap'` em `_NIVEIS_AGREGACAO` + 3 linhas na função | **viola a restrição**; é a solução mais limpa e fica registrada em `specification.md` §8-D caso o usuário mude de ideia |
+| Adaptador `mapa_coropletico_cap` + alias `cod_rp` (plano da revisão 2) | funcionava e não tocava em nada, mas era mais código (função + docstring + geojson com coluna redundante) para o mesmo resultado, uma vez que o usuário autorizou a chave direta |
 | Duplicar `mapa_coropletico_bairros` como `mapa_coropletico_cap` | ~200 linhas copiadas; qualquer ajuste cartográfico futuro teria de ser feito em dois lugares |
 | Derivar as CAPs do de-para RA→CAP e dissolver o geojson de bairros | foi a proposta da revisão 1; **errava 5 bairros** (`specification.md` §4.3) e as fronteiras sairiam diferentes das oficiais |
-| Renomear `cod_ap_sms` → `cod_rp` e ponto | perderia o nome correto do campo; manter os dois custa 10 valores de texto |
 
 ### 4.5 Risco assumido, explicitamente
 
-O alias `cod_rp` num arquivo de CAP é **enganoso para quem abrir o geojson sem contexto**.
-Mitigação: o nome honesto `cod_ap_sms` está no mesmo arquivo e é o usado em todas as
-tabelas; a docstring do adaptador explica o porquê; e `specification.md` §8-D deixa a
-decisão aberta para o usuário reverter para a solução limpa quando quiser.
+A chave `'cap'` em `_NIVEIS_AGREGACAO` é uma edição real de uma constante que já existia —
+tecnicamente fora do "nunca alterar código existente" tomado ao pé da letra, mas dentro do
+que o usuário autorizou nesta revisão. Mitigação: a validação (`validation.md` V10.2) confere
+mecanicamente que as três chaves antigas ficam bit-a-bit idênticas e que `mapa_coropletico_
+bairros` em si (V10.3) não muda nenhuma linha — a exceção fica contida numa única entrada de
+dicionário, auditável num `git diff` de uma linha.
 
 ### 4.6 De-para RA → CAP: ainda vale a pena?
 
@@ -232,7 +278,7 @@ Estrutura de células, seguindo o padrão markdown-antes-de-código do notebook:
 
 ###### 🗺️ Mapas por CAP (2025)
   [py] recorte 2025 + exporta mortalidade_evitaveis_cap_2025.csv
-  [py] loop nas 3 faixas -> mapa_coropletico_cap: absoluto (bins) + percentual (contínuo)
+  [py] loop nas 3 faixas -> mapa_coropletico_bairros(nivel='cap'): absoluto (bins) + percentual (contínuo)
 ```
 
 O loop das 3 faixas usa um dict de configuração no mesmo estilo do `niveis_planejamento` já
@@ -282,14 +328,16 @@ todas ancoradas em fatos já verificados:
 | 2 | funções de extração + validação V1-V4 | layout do TabWin diferente do esperado | passo fixo de 12 falha alto; V1 confere antes |
 | 3 | CSVs materializados | — | V2/V3 conferem contra os totais da própria planilha |
 | 4 | geojson oficial de CAP | ✅ **já feito** — baixado, validado, salvo | V5 |
-| 5 | adaptador `mapa_coropletico_cap` + 1 mapa de fumaça | alias `cod_rp` confundir quem ler | docstring + `cod_ap_sms` no mesmo arquivo (§4.5) |
+| 5 | chave `'cap'` em `_NIVEIS_AGREGACAO` + 1 mapa de fumaça | editar uma constante existente | V10.2 confere que as 3 chaves antigas não mudam |
 | 6 | escolher `bins` a partir da distribuição | mapa de classe única | V6 |
 | 7 | séries temporais | 10 séries acima da paleta de 8 | aceito, precedente da cobertura vacinal |
 | 8 | README + Update Table | — | V8 |
 
-**Risco de regressão: zero por construção.** Nenhuma linha existente é editada — a restrição
-do usuário, além de ser uma ordem, é também a garantia. O que resta conferir (V9) é só que o
-código novo não quebre a execução do arquivo como um todo.
+**Risco de regressão: quase zero por construção.** Só uma linha de `analise.py` muda uma
+constante existente (`_NIVEIS_AGREGACAO`, ganha a chave `'cap'`) — autorizado nesta revisão,
+com a garantia mecânica de que as 3 chaves antigas ficam idênticas (V10.2) e nenhuma outra
+função existente é tocada (V10.3-V10.4). Fora essa linha, nada existente é editado. O que
+resta conferir (V9) é que o código novo não quebre a execução do arquivo como um todo.
 
 ---
 

@@ -1,8 +1,11 @@
 # Tarefas — Óbitos por causas evitáveis por Área Programática de Saúde (CAP)
 
-> **Revisão 2.** Duas decisões do usuário mudaram a lista: nível **CAP** com geometria
-> oficial (Bloco 1 e 4), e **nunca alterar código existente** (Bloco 4 reescrito).
-> ⛔ **Regra permanente: nenhuma linha de `analise.py` que já existe pode ser editada.**
+> **Revisão 3.** Bloco 4 reescrito de novo: o usuário autorizou a exceção pontual que a
+> revisão 2 tinha descartado — acrescentar a chave `'cap'` a `_NIVEIS_AGREGACAO`. Cai o
+> adaptador `mapa_coropletico_cap` e o alias `cod_rp` no geojson de CAP.
+> ⛔ **Regra permanente: nenhuma linha de `analise.py` que já existe pode ser editada — com
+> a única exceção da chave `'cap'` em `_NIVEIS_AGREGACAO` (Bloco 4), que não pode alterar os
+> códigos/colunas já atribuídos a `bairro`/`ap`/`rp`.**
 
 Ordem de execução. Cada bloco só começa depois do anterior passar na validação
 correspondente (`validation.md`).
@@ -13,12 +16,14 @@ correspondente (`validation.md`).
 
 - [x] **T0.1** — Usuário revisou a revisão 1 dos documentos
 - [x] **T0.2** — Nível **CAP** confirmado; `nivel='ap'` existente permanece intocado
-- [x] **T0.3** — Restrição registrada: **nunca alterar código existente**
+- [x] **T0.3** — Restrição registrada: **nunca alterar código existente**, exceto a chave
+      `'cap'` em `_NIVEIS_AGREGACAO` (autorizado na revisão 3, `plan.md` §4.1)
 - [x] **T0.4** — Geometria oficial obtida (Data.Rio, "Áreas Programáticas da Saúde")
 - [x] **T0.5** — De-para RA→CAP corrigido pelo dado oficial (Guaratiba→5.2, Alemão→3.1)
-- [ ] **T0.6** — Usuário revisa a revisão 2 destes documentos ⛔ *não começar o Bloco 2 antes*
+- [x] **T0.6** — Usuário revisou a revisão 2; revisão 3 liberou a chave `'cap'` direta em
+      `_NIVEIS_AGREGACAO` (era o item D) ⛔ *não começar o Bloco 2 antes do aval da revisão 3*
 - [ ] **T0.7** — Opcional, não bloqueia (`specification.md` §8): texto da fonte (A), destino
-      dos CSVs (B), NV por CAP (C), alias `cod_rp` (D), versionar a spec (E)
+      dos CSVs (B), NV por CAP (C), versionar a spec (E)
 
 ---
 
@@ -29,8 +34,9 @@ correspondente (`validation.md`).
 - [ ] **T1.3** — Confirmar que o `.gitignore` não exclui `.xlsx` (não exclui — só `.zip`,
       `.png`, `.svg`, `.html`, `.ipynb`)
 - [x] **T1.4** — Baixar o geojson oficial das CAPs do Data.Rio e salvar em
-      `dados_locais/geo/limite_ap_saude_rio.geojson` (`make_valid`, colunas `cod_ap_sms` +
-      alias `cod_rp`) — ✅ **feito**
+      `dados_locais/geo/limite_ap_saude_rio.geojson` (`make_valid`, coluna `cod_ap_sms`) —
+      ✅ **feito**. A coluna `cod_rp` gravada como alias na revisão 2 não é mais necessária
+      (`plan.md` §4.3) — se ainda estiver no arquivo, é inofensiva; remoção fica opcional
 - [ ] **T1.5** — `git add` do geojson novo
 
 → **valida com V0**
@@ -40,12 +46,15 @@ correspondente (`validation.md`).
 ## Bloco 2 — Funções de extração (`### 🧹 Limpeza e wrangling de dados`)
 
 - [ ] **T2.1** — `extrai_evitaveis_cap_blocos(caminho, aba, anos)` — 10 blocos × 12 linhas → longo
-      `cod_ap_sms, causa, ano, obitos`; descarta linha `Total` e coluna `Total`
+      `cod_ap_sms, causa, ano, obitos`; descarta linha `Total` e coluna `Total`; normaliza
+      `causa` para o texto de `subgrupo` via `_ROTULO_PARA_SUBGRUPO` (`plan.md` §3.0/§2.4 da spec)
 - [ ] **T2.2** — `extrai_evitaveis_municipio(caminho)` — 3 tabelas da aba `Informações gerais`;
-      ` Ign` + ` Ignorado` somados em `Ignorado`
+      ` Ign` + ` Ignorado` somados em `Ignorado`; mesma normalização rótulo→subgrupo na tabela `por_causa`
 - [ ] **T2.3** — `extrai_planilha_evitaveis_cap(caminho)` — orquestrador; escreve os 6 CSVs
       em `dados_locais/tratados/`
-- [ ] **T2.4** — `agrega_grupo_cid(df, colunas_chave)` + dict `_GRUPOS_CID`
+- [ ] **T2.4** — dict `_ROTULO_PARA_SUBGRUPO` (rótulo bruto → subgrupo normalizado, `plan.md` §3.0)
+      + `agrega_grupo_cid(df, colunas_chave)` + dict `_GRUPOS_CID` — sempre as duas colunas,
+      `subgrupo` e `grupo`, nunca uma `causa` genérica
 - [ ] **T2.5** — Docstrings no estilo do arquivo (pt-BR, explicando o *porquê* das decisões,
       não só o *quê*)
 
@@ -61,24 +70,27 @@ correspondente (`validation.md`).
 
 ---
 
-## Bloco 4 — Adaptador de mapa por CAP (**só código novo**)
+## Bloco 4 — Mapa por CAP: chave nova em `_NIVEIS_AGREGACAO`
 
-⛔ `_NIVEIS_AGREGACAO`, `mapa_coropletico_bairros`, `agrega_bairros_por_nivel` e a docstring
-delas **não são tocadas**. Ver `plan.md` §4 para o porquê e para as alternativas descartadas.
+⛔ `mapa_coropletico_bairros` e `agrega_bairros_por_nivel` **não são tocadas** (zero linhas —
+`plan.md` §4.2 confere isso contra o código real). A **única** exceção autorizada é a chave
+`'cap'` em `_NIVEIS_AGREGACAO`, e mesmo essa não pode alterar as três chaves existentes
+(`bairro`, `ap`, `rp`). Ver `plan.md` §4 para o porquê e para as alternativas descartadas.
 
-- [ ] **T4.1** — Constante nova `_CAMINHO_GEO_CAP` apontando para o geojson de CAP
-- [ ] **T4.2** — Função nova `mapa_coropletico_cap(...)` — adaptador fino que repassa
-      `nivel='rp'` + `caminho_geojson=_CAMINHO_GEO_CAP` e renomeia `cod_ap_sms` → `cod_rp`
-- [ ] **T4.3** — Docstring explicando (a) por que a CAP não está no geojson de bairros e
-      (b) por que `nivel='rp'` não significa Região de Planejamento aqui
-- [ ] **T4.4** — Constante nova `_RA_PARA_CAP` (de-para corrigido), **só documental** nesta
+- [ ] **T4.1** — Acrescentar a chave `'cap': {'coluna_geo': 'cod_ap_sms', 'tipo': str}` a
+      `_NIVEIS_AGREGACAO` (`plan.md` §4.1) — única linha nova; `bairro`/`ap`/`rp` bit-a-bit
+      idênticas (checar com `git diff`)
+- [ ] **T4.2** — Chamar `mapa_coropletico_bairros(..., nivel='cap',
+      caminho_geojson='dados_locais/geo/limite_ap_saude_rio.geojson')` direto nas células de
+      análise — sem função adaptadora, sem alias
+- [ ] **T4.3** — Constante nova `_RA_PARA_CAP` (de-para corrigido), **só documental** nesta
       entrega — não usada pelos mapas
-- [ ] **T4.5** — Mapa de fumaça: gerar 1 mapa por CAP e conferir 10 polígonos, 0 "Sem dado"
-- [ ] **T4.6** — ❌ **NÃO** editar `.claude/skills/generate_map/SKILL.md` (documenta código
+- [ ] **T4.4** — Mapa de fumaça: gerar 1 mapa por CAP e conferir 10 polígonos, 0 "Sem dado"
+- [ ] **T4.5** — ❌ **NÃO** editar `.claude/skills/generate_map/SKILL.md` (documenta código
       existente). Em vez disso, se valer a pena, acrescentar uma seção nova ao final sobre o
       nível CAP — decisão do usuário, fora do caminho crítico
 
-→ **valida com V5**
+→ **valida com V5, V10.2**
 
 ---
 
@@ -113,8 +125,8 @@ de Mortalidade Neonatal.
 - [ ] **T5.3.2** — Imprimir `.describe()` da distribuição 2025 por faixa **antes** de escolher
       os `bins` (⚠️ não chutar)
 - [ ] **T5.3.3** — Preencher os `bins` em `faixas_primeira_infancia`
-- [ ] **T5.3.4** — 3 mapas absolutos (classes discretas) via `mapa_coropletico_cap`, um por faixa
-- [ ] **T5.3.5** — 3 mapas de percentual (colorbar contínua) via `mapa_coropletico_cap`, um por faixa
+- [ ] **T5.3.4** — 3 mapas absolutos (classes discretas) via `mapa_coropletico_bairros(nivel='cap')`, um por faixa
+- [ ] **T5.3.5** — 3 mapas de percentual (colorbar contínua) via `mapa_coropletico_bairros(nivel='cap')`, um por faixa
 - [ ] **T5.3.6** — 🔒 *bloqueado por T0.7-C*: 3 mapas de taxa por mil NV, se o export de
       nascidos vivos por CAP existir
 
@@ -151,7 +163,7 @@ de Mortalidade Neonatal.
 
 - [ ] Small multiples CAP × subgrupo CID (10 × 8) — hoje fora de escopo
 - [ ] Simplificar o geojson de CAP (2,57 MB → ~200 KB) se o tamanho no git incomodar
-- [ ] Se o usuário liberar: substituir o adaptador pela chave `'cap'` em `_NIVEIS_AGREGACAO` (solução limpa, `plan.md` §4.4)
+- [ ] Remover a coluna `cod_rp` do geojson de CAP se ainda estiver lá (não usada desde a revisão 3, `plan.md` §4.3)
 - [ ] Atualizar `relatorio/index.html` e derivados com os novos gráficos
 - [ ] Regerar o PDF (`skill export_pdf_report`)
 - [ ] Mapas por CAP para outros anos além de 2025 (a função já seria genérica — é só um loop)

@@ -3,6 +3,11 @@
 > **Revisão 2.** V5 foi reescrita: a geometria agora é oficial, não derivada, e o critério de
 > "aninhamento nas Áreas de Planejamento" foi **removido** — o dado oficial mostrou que ele
 > não vale (Guaratiba). V10 é nova: prova a restrição de não alterar código existente.
+>
+> **Revisão 3.** O usuário autorizou a chave `'cap'` direta em `_NIVEIS_AGREGACAO`
+> (`plan.md` §4.1) — cai o adaptador `mapa_coropletico_cap` e o alias `cod_rp`. V5.8/V5.9
+> ajustadas; V10.2 agora testa a exceção pontual (chave nova, 3 chaves antigas idênticas) em
+> vez de "dicionário idêntico ao de `staging_main`".
 
 Cada checagem tem um **critério de aceite objetivo**. Os valores esperados abaixo já foram
 medidos na planilha e no geojson oficial durante a redação da spec — não são estimativas.
@@ -33,7 +38,7 @@ o passo fixo de 12 linhas está inválido.
 | V1.3 | Shape da aba geral | `(34, 22)` |
 | V1.4 | Blocos por aba | 10, nos índices `0, 12, 24, ..., 108` |
 | V1.5 | CAPs, na ordem | `['1.0','2.1','2.2','3.1','3.2','3.3','4.0','5.1','5.2','5.3']` |
-| V1.6 | Categorias CID por bloco | as mesmas 8, na mesma ordem, nos 30 blocos (10 CAPs × 3 abas) |
+| V1.6 | Categorias CID por bloco | as mesmas 8, na mesma ordem, nos 30 blocos (10 CAPs × 3 abas) — como *rótulo bruto* da planilha (antes da normalização de V2.9) |
 | V1.7 | Anos | colunas 1-20 = `2006..2025`; coluna 21 = `Total` |
 
 ---
@@ -50,6 +55,7 @@ o passo fixo de 12 linhas está inválido.
 | V2.6 | Total geral `< 5 anos` (10 CAPs, 2006-2025) | **22.784** |
 | V2.7 | Total geral `< 1 ano` | soma dos blocos = soma dos totais impressos na planilha |
 | V2.8 | Total geral `1-4 anos` | idem |
+| V2.9 | Normalização rótulo→subgrupo aplicada | `set(df.causa.unique()) == set(_ROTULO_PARA_SUBGRUPO.values())` — as 3 categorias `1.2.*` **não** podem conter o `ad ` redundante do rótulo bruto (`plan.md` §3.0) |
 
 ---
 
@@ -89,8 +95,8 @@ Já verificado durante a redação da spec — repetir após instalar o arquivo 
 | V5.5 | `total_bounds` × limite de bairros | iguais até a 4ª casa decimal |
 | V5.6 | Bairros cobertos | **166 de 166** dentro de alguma CAP, nenhum órfão |
 | V5.7 | RA dividida entre CAPs | **nenhuma** — toda CAP é união exata de RAs |
-| V5.8 | Alias | colunas `cod_ap_sms` e `cod_rp` presentes e **idênticas** valor a valor |
-| V5.9 | `dissolve` dentro do adaptador | 10 polígonos (no-op), todos válidos |
+| V5.8 | Coluna de join | `cod_ap_sms` presente; sem dependência de alias (`cod_rp` não é mais necessária — `plan.md` §4.3) |
+| V5.9 | `dissolve` em `mapa_coropletico_bairros(nivel='cap')` | 10 polígonos (no-op), todos válidos |
 | V5.10 | Join do dado com a geometria | 10 CAPs com valor, **0** "Sem dado" no mapa de 2025 |
 | V5.11 | De-para `_RA_PARA_CAP` | bate 100% com o cruzamento espacial oficial (33 RAs) |
 
@@ -132,7 +138,7 @@ Já verificado durante a redação da spec — repetir após instalar o arquivo 
 
 | # | checagem | aceite |
 |---|---|---|
-| V8.1 | Funções no lugar certo | extração em `🧹 Limpeza e wrangling`; `mapa_coropletico_cap`/`_CAMINHO_GEO_CAP`/`_RA_PARA_CAP` em `📈 Funções de visualização` |
+| V8.1 | Funções no lugar certo | extração em `🧹 Limpeza e wrangling`; chave `'cap'` em `_NIVEIS_AGREGACAO` e `_RA_PARA_CAP` em `📈 Funções de visualização` |
 | V8.2 | Seção de análise só chama | nenhuma função definida fora de `📦 Pacotes e Funções Auxiliares` |
 | V8.3 | Hierarquia de headings | `#####` para a seção, `######` para as subseções (sem pular nível) |
 | V8.4 | Notas de markdown | as 6 notas de `plan.md` §6 presentes |
@@ -156,15 +162,17 @@ Já verificado durante a redação da spec — repetir após instalar o arquivo 
 
 ---
 
-## V10 — Restrição: nenhum código existente alterado
+## V10 — Restrição: nenhum código existente alterado, exceto a exceção autorizada
 
-A checagem mais importante desta revisão. Objetiva e mecânica:
+A checagem mais importante da spec. Objetiva e mecânica. A revisão 3 abriu uma exceção
+pontual (`_NIVEIS_AGREGACAO` ganha a chave `'cap'`) — V10.2 verifica que ela não vazou para
+mais nada:
 
 | # | checagem | aceite |
 |---|---|---|
-| V10.1 | Diff de `analise.py` | apenas linhas adicionadas; nenhuma linha removida ou modificada |
-| V10.2 | `_NIVEIS_AGREGACAO` | idêntico ao de `staging_main` |
-| V10.3 | `mapa_coropletico_bairros` | idêntica, docstring inclusive |
+| V10.1 | Diff de `analise.py` | apenas linhas adicionadas; nenhuma linha removida — a única linha *dentro* de uma estrutura existente que pode aparecer como adicionada é a entrada `'cap': {...}` em `_NIVEIS_AGREGACAO` |
+| V10.2 | `_NIVEIS_AGREGACAO` | as três chaves `bairro`/`ap`/`rp` idênticas, valor a valor, ao de `staging_main`; só a chave `'cap'` é nova |
+| V10.3 | `mapa_coropletico_bairros` | idêntica, docstring inclusive — **zero linhas mudam**, nem para mencionar `'cap'` (`plan.md` §4.2) |
 | V10.4 | `agrega_bairros_por_nivel`, `serie_temporal*`, `grafico_barra*` | idênticas |
 | V10.5 | Células de análise anteriores | nenhuma editada; a seção nova é inserida **entre** células existentes |
 | V10.6 | Skills e README | `generate_map/SKILL.md` sem alteração; no README, só acréscimos |
@@ -173,6 +181,13 @@ Comando de conferência (lista toda linha removida do arquivo; **aceite: saída 
 
 ```bash
 git diff staging_main -- analise.py | grep "^-" | grep -v "^---"
+```
+
+Comando complementar para V10.2 (isola o diff de `_NIVEIS_AGREGACAO`; **aceite: só a linha
+`'cap': ...` aparece como `+`, nenhuma linha de `bairro`/`ap`/`rp` aparece como `-` ou `+`):
+
+```bash
+git diff staging_main -- analise.py | grep -A6 "_NIVEIS_AGREGACAO = {"
 ```
 
 ---
