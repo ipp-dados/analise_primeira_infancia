@@ -4,6 +4,8 @@
 <p>Cadúnico -> dados armazenados em camada silver em banco CTPE no Siurb (fonte original Data Lake Prefeitura, Assistência Social)</p>
 <p>Tabnet municipal -> dados disponíveis em nosso google drive para download, fonte original Datasus, tabnet municipal</p>
 <p>Censo 2020/10/00 -> dados disponíveis em nosso google drive para download, fonte original IBGE, DataRio</p>
+<p>Óbitos por causas evitáveis na primeira infância por CAP -> planilha exportada do TabWin/SIM municipal (SIM/SVS-Rio), óbitos de residentes no Rio de Janeiro, 2006-2025, por Área Programática de Saúde e faixa etária (`dados_locais/mortalidade/obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx`)</p>
+<p>Geometria das CAPs (Coordenadoria de Área Programática de Saúde, SMS-Rio) -> Data.Rio/IPP-PCRJ, dataset "Áreas Programáticas da Saúde" (`dados_locais/geo/limite_ap_saude_rio.geojson`)</p>
 <p></p>
 <i>OBS: listagem dos dados da versão MVP e do relatório final disponíveis no Google Drive.</i>
 
@@ -11,7 +13,7 @@
 *   `analise.py`: Script principal (sincronizável com Jupytext) que contém extração, limpeza, análise e geração de visualizações; organizado como notebook (células e markdown). Todas as funções de limpeza/wrangling e de visualização ficam centralizadas na seção **Pacotes e Funções Auxiliares**, no topo do notebook.
 *   `requirements.txt`: Lista de dependências Python do projeto.
 *   `dados_locais/`: Diretório para os dados brutos. Subpastas por fonte (ex.: `nascidos_vivos/`, `mortalidade/`, `sisvan/`, `cadunico/`).
-*   `dados_locais/geo/`: Camadas geográficas de referência, versionadas no git: `limite_bairros_rio.geojson` (limites de bairro do Rio, Data.Rio/IPP, camada `Cartografia/Limites_administrativos`, geometria simplificada, com as colunas de Área/Região de Planejamento usadas nos mapas agregados), `limite_uf_brasil.geojson` (limites dos estados/UF do Brasil, IBGE) e `limite_municipios_rj.geojson` (limites e nomes dos 92 municípios do estado do Rio, IBGE, usados para rotular os municípios vizinhos nos mapas com basemap).
+*   `dados_locais/geo/`: Camadas geográficas de referência, versionadas no git: `limite_bairros_rio.geojson` (limites de bairro do Rio, Data.Rio/IPP, camada `Cartografia/Limites_administrativos`, geometria simplificada, com as colunas de Área/Região de Planejamento usadas nos mapas agregados), `limite_uf_brasil.geojson` (limites dos estados/UF do Brasil, IBGE), `limite_municipios_rj.geojson` (limites e nomes dos 92 municípios do estado do Rio, IBGE, usados para rotular os municípios vizinhos nos mapas com basemap) e `limite_ap_saude_rio.geojson` (as 10 Coordenadorias de Área Programática de Saúde da SMS-Rio, Data.Rio -- não são as 5 Áreas de Planejamento do IPP acima; coluna `cod_ap_sms`).
 *   `dados_locais/tratados/`: Saída intermediária de datasets limpos.
 *   `tabelas_finais/`: Pasta de saída padronizada (CSV/Excel) para tabelas e agregados gerados pelo pipeline.
 *   `visualizacoes/`: Diretório para os gráficos exportados pelo notebook (PNG por padrão; exportação adicional em SVG disponível, mas comentada, em cada função de gráfico). Nomes de arquivo refletem a seção/tema da análise (ex.: `cobertura_vacinal_epi_ano.png`, `cadunico_criancas_por_idade.png`).
@@ -34,6 +36,7 @@ O script `analise.py` realiza as seguintes operações, em ordem prática:
 4.  CadÚnico: extração via CTPE, análise por faixa de renda, idade e bairro, com export em `tabelas_finais/` (ex.: `cadunico_por_faixa_etaria_2026.csv`).
 5.  DATASUS (Tabnet) — padrão comum: os arquivos Tabnet são normalizados pela função `limpeza_tabnet_bairros(df, categoria)`, que extrai `codigo` e `bairro`, remove linhas 'Total' e harmoniza nomes de colunas.
 6.  Para cada tema do DATASUS (nascidos vivos, baixo peso, mortalidade precoce/tardia, óbitos gravidez/puerpério) são geradas séries temporais e agregações anuais. Nas junções entre tabelas, a chave `codigo` (quando disponível) e `bairro`+`ano` são utilizadas para evitar ambiguidades.
+6b. Óbitos por causas evitáveis na primeira infância por CAP: `extrai_planilha_evitaveis_cap` lê a planilha TabWin (10 blocos de 12 linhas por aba) e materializa 6 CSVs fiéis à fonte em `dados_locais/tratados/`; `agrega_grupo_cid` deriva o nível grupo a partir dos 8 subgrupos CID; mapas por CAP usam o nível `'cap'` de `mapa_coropletico_bairros` (geometria em `dados_locais/geo/limite_ap_saude_rio.geojson`, coluna `cod_ap_sms` -- não confundir com o nível `'ap'`, as 5 Áreas de Planejamento do IPP).
 7.  Padronização: nomes de saída e colunas agregadas seguem o padrão `*_anual` e campos de taxa usam nomes descritivos (ex.: `taxa_mortalidade_precoce`). Saídas finais CSV/Excel são escritas em `tabelas_finais/`.
 8.  Junção final: múltiplas tabelas DATASUS por bairro são unidas (merge outer) em `dados_datasus_por_bairro.xlsx`. Esta e as demais tabelas por bairro em Excel (nascidos vivos, baixo peso, Censo 0-4 anos) são sempre exportadas em `mapas/tabelas_bairros/`, para facilitar análises espaciais e export para mapas.
 9.  Visualizações: geração de séries temporais e gráficos de barras em `visualizacoes/`, com nomes de arquivo PNG que refletem a seção/tema da análise; exportação adicional em SVG fica disponível (comentada) em cada função de gráfico.
@@ -208,6 +211,30 @@ Notable code changes (2026-09-08) — colorbar contínua ainda ilegível sobre o
 - Rodapé deslocado um pouco mais à esquerda (`x=0.62 → 0.55`): o texto mais longo do sistema de
   referência (item acima) tinha passado a encostar na escala gráfica, no canto inferior direito.
 
+Notable code changes (2026-09-08) — óbitos por causas evitáveis na primeira infância por CAP:
+- Nova planilha `dados_locais/mortalidade/obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx`
+  (renomeada do export original do TabWin/SIM), trazendo pela primeira vez no notebook óbitos por
+  causas evitáveis desagregados por **Área Programática de Saúde (CAP)** -- as 10 Coordenadorias de
+  Área Programática da SMS-Rio, não confundir com as 5 Áreas de Planejamento do IPP (`nivel='ap'`).
+- Novas funções `extrai_evitaveis_cap_blocos`, `extrai_evitaveis_municipio` e
+  `extrai_planilha_evitaveis_cap` (Pacotes e Funções Auxiliares): leem o layout fixo de 12 linhas por
+  bloco/CAP da planilha TabWin e materializam 6 CSVs fiéis à fonte em `dados_locais/tratados/`. A
+  planilha só traz os 8 subgrupos CID (nunca o grupo como linha própria, nem um terceiro nível
+  'causa'); `_ROTULO_PARA_SUBGRUPO` normaliza 3 rótulos brutos que trazem um trecho redundante, e
+  `agrega_grupo_cid` deriva o grupo a partir do subgrupo normalizado.
+- Nova chave `'cap'` em `_NIVEIS_AGREGACAO` (`coluna_geo='cod_ap_sms'`), a única exceção autorizada à
+  regra de não alterar código existente: `mapa_coropletico_bairros` em si não precisou de nenhuma
+  linha nova, já sendo genérica sobre `nivel`. Geometria em novo `dados_locais/geo/limite_ap_saude_rio.geojson`
+  (Data.Rio, "Áreas Programáticas da Saúde", 10 feições, `make_valid()` aplicado no arquivo original
+  que vinha com geometrias inválidas).
+- Nova seção "Óbitos por causas evitáveis na primeira infância, por Área Programática de Saúde (CAP)"
+  em `📉 Mortalidade`: panorama municipal (série de subgrupos CID e taxa por mil nascidos vivos),
+  séries temporais por CAP e faixa etária (óbitos evitáveis, percentual evitáveis, total de óbitos) e
+  6 mapas coropléticos por CAP em 2025 (3 faixas × absoluto/percentual), com `bins` de classes
+  discretas escolhidos a partir da distribuição real de 2025 (diferentes por faixa etária).
+- Documentado (não usado pelos mapas, que usam a geometria oficial) o de-para `_RA_PARA_CAP`,
+  derivado do cruzamento espacial das 33 Regiões Administrativas com o polígono oficial das CAPs.
+
 ---
 
 ## Update Table
@@ -233,3 +260,4 @@ Notable code changes (2026-09-08) — colorbar contínua ainda ilegível sobre o
 | 0.13.3  | 2026-09-08 | Removido também o preenchimento do retângulo atrás da colorbar contínua; legibilidade do texto passa a vir de um halo branco (`path_effects.withStroke`) em vez de uma caixa de fundo. |
 | 0.13.4  | 2026-09-08 | Rodapé cita "SIRGAS 2000, UTM - Fuso 23S" (igual a `mapas/mapa_referencia.jpeg`) em vez de "SIRGAS 2000 (EPSG:4326)". |
 | 0.13.5  | 2026-09-08 | Rodapé deslocado mais à esquerda (`x=0.55`) para não encostar na escala gráfica com o texto mais longo do sistema de referência. |
+| 0.14.0  | 2026-09-08 | Óbitos por causas evitáveis na primeira infância por Área Programática de Saúde (CAP): nova planilha TabWin (`obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx`) extraída para 6 CSVs em `dados_locais/tratados/`; painel municipal (série por subgrupo CID e taxa por mil NV), séries por CAP e faixa etária (`< 1 ano`/`1-4 anos`/`< 5 anos`), e 6 mapas coropléticos por CAP em 2025 (absoluto em classes discretas, percentual em escala contínua), via novo nível `'cap'` em `mapa_coropletico_bairros` (`_NIVEIS_AGREGACAO`) e geometria oficial das CAPs (`dados_locais/geo/limite_ap_saude_rio.geojson`, Data.Rio). |

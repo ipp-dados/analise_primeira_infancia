@@ -165,6 +165,112 @@ def carrega_cobertura_vacinal(caminho):
     df['cobertura'] = df['COBERTURA'].str.replace('%','',regex=False).str.replace(',','.',regex=False).astype(float)
     return df[['ano','IMUNO','cobertura']].rename(columns={'IMUNO':'imunobiologico'})
 
+# a planilha TabWin de causas evitáveis por CAP só traz os 8 subgrupos CID (nunca o nível
+# 'grupo' como linha própria, e nunca um terceiro nível 'causa' -- ver SPEC-mortalidade-AP/
+# specification.md §2.4); o rótulo bruto de 3 das 8 categorias ('1.2.*') traz um trecho 'ad '
+# redundante que não aparece no texto de subgrupo canônico -- este dicionário normaliza os 8
+# rótulos possíveis para esse texto canônico, usado em toda tabela derivada desta planilha
+_ROTULO_PARA_SUBGRUPO = {
+    '1.1. Reduzível pelas ações de imunização':    '1.1. Reduzível pelas ações de imunização',
+    '1.2.1. Red por ad at à mulher na gestação':   '1.2.1. Red por at à mulher na gestação',
+    '1.2.2. Red por ad at à mulher no parto':      '1.2.2. Red por at à mulher no parto',
+    '1.2.3. Red por ad at ao recém-nascido':       '1.2.3. Red por at ao recém-nascido',
+    '1.3. Red por ações de diag e trat adequado':  '1.3. Red por ações de diag e trat adequado',
+    '1.4. Red por ações promoção vinc a atenção':  '1.4. Red por ações promoção vinc a atenção',
+    '2. Causas mal definidas':                     '2. Causas mal definidas',
+    '3. Demais causas (não claramente evitáveis)': '3. Demais causas (não claramente evitáveis)',
+}
+
+_GRUPOS_CID = {'1': '1. Causas evitáveis',
+               '2': '2. Causas mal definidas',
+               '3': '3. Demais causas (não claramente evitáveis)'}
+
+def extrai_evitaveis_cap_blocos(caminho, aba, anos=range(2006, 2026)):
+    """Lê uma aba 'por CAP' (`<1 ano` / `1-4 anos` / `<5 anos`) da planilha de causas evitáveis
+    na primeira infância (TabWin) e devolve formato longo `cod_ap_sms, subgrupo, ano, obitos`.
+
+    A aba é uma pilha de 10 blocos de 12 linhas, um por Área Programática de Saúde (CAP):
+    título (carrega o código da CAP, ex. 'AP 3.1'), cabeçalho, 8 categorias CID, 'Total' e uma
+    linha em branco. Passo fixo de 12 linhas (não busca por regex de título) -- o layout do
+    TabWin é rígido e um passo fixo falha ruidosamente (IndexError) se a planilha mudar, o que
+    é preferível a falhar em silêncio. A linha 'Total' é descartada -- é recalculável e
+    entraria em dupla contagem em qualquer groupby posterior.
+    """
+    df = pd.read_excel(caminho, sheet_name=aba, header=None)
+    registros = []
+    for inicio in range(0, len(df), 12):
+        cod_ap_sms = df.iloc[inicio, 0].split(', AP ')[1].split(',')[0]
+        for linha in range(inicio + 2, inicio + 10):
+            subgrupo = _ROTULO_PARA_SUBGRUPO[df.iloc[linha, 0].strip()]
+            for ano, obitos in zip(anos, df.iloc[linha, 1:21]):
+                registros.append((cod_ap_sms, subgrupo, ano, int(obitos)))
+    return pd.DataFrame(registros, columns=['cod_ap_sms', 'subgrupo', 'ano', 'obitos'])
+
+def extrai_evitaveis_municipio(caminho):
+    """Lê a aba 'Informações gerais' (nível município, < 5 anos) da planilha de causas
+    evitáveis na primeira infância e devolve as três tabelas empilhadas nela, como uma tupla
+    de DataFrames `(por_subgrupo, por_cap, taxa)`. Índices de linha fixos (2-9 / 14-25 /
+    31-33), pelo mesmo motivo de `extrai_evitaveis_cap_blocos`.
+
+    As linhas ' Ign' e ' Ignorado' da tabela por CAP (CAP de residência não registrada, sob
+    dois rótulos diferentes ao longo da série) são somadas numa única categoria 'Ignorado' --
+    o mesmo padrão já usado no notebook para `mae_ignorado` + `mae_nao_informado`.
+    """
+    df = pd.read_excel(caminho, sheet_name='Informações gerais', header=None)
+    anos = list(range(2006, 2026))
+
+    registros_subgrupo = []
+    for linha in range(2, 10):
+        subgrupo = _ROTULO_PARA_SUBGRUPO[df.iloc[linha, 0].strip()]
+        for ano, obitos in zip(anos, df.iloc[linha, 1:21]):
+            registros_subgrupo.append((subgrupo, ano, int(obitos)))
+    por_subgrupo = pd.DataFrame(registros_subgrupo, columns=['subgrupo', 'ano', 'obitos'])
+
+    registros_cap = []
+    for linha in range(14, 26):
+        cod_ap_sms = df.iloc[linha, 0].strip()
+        cod_ap_sms = 'Ignorado' if cod_ap_sms in ('Ign', 'Ignorado') else cod_ap_sms
+        for ano, obitos in zip(anos, df.iloc[linha, 1:21]):
+            registros_cap.append((cod_ap_sms, ano, int(obitos)))
+    por_cap = pd.DataFrame(registros_cap, columns=['cod_ap_sms', 'ano', 'obitos'])
+    por_cap = por_cap.groupby(['cod_ap_sms', 'ano'], as_index=False)['obitos'].sum()
+
+    registros_taxa = list(zip(anos, df.iloc[31, 1:21], df.iloc[32, 1:21], df.iloc[33, 1:21]))
+    taxa = pd.DataFrame(registros_taxa, columns=['ano', 'obitos', 'nascidos_vivos', 'taxa_por_mil'])
+    taxa['obitos'] = taxa['obitos'].astype(int)
+    taxa['nascidos_vivos'] = taxa['nascidos_vivos'].astype(int)
+    taxa['taxa_por_mil'] = taxa['taxa_por_mil'].astype(float)
+
+    return por_subgrupo, por_cap, taxa
+
+def extrai_planilha_evitaveis_cap(caminho):
+    """Extrai a planilha de causas evitáveis na primeira infância por CAP (TabWin) e
+    materializa os 6 CSVs 'fiéis à fonte' (sem cálculo) em `dados_locais/tratados/` -- mesmo
+    padrão de `limpa_dados_sisvan`: roda uma vez, materializa CSV, não devolve nada."""
+    por_subgrupo, por_cap_municipio, taxa = extrai_evitaveis_municipio(caminho)
+    por_subgrupo.to_csv('dados_locais//tratados//obitos_evitaveis_menores_5_causa_municipio_2006_2025.csv', index=False)
+    por_cap_municipio.to_csv('dados_locais//tratados//obitos_evitaveis_menores_5_cap_municipio_2006_2025.csv', index=False)
+    taxa.to_csv('dados_locais//tratados//taxa_mortalidade_evitaveis_menores_5_municipio_2006_2025.csv', index=False)
+
+    abas_por_sufixo = {'menores_1_ano': '<1 ano', '1_a_4_anos': '1-4 anos', 'menores_5_anos': '<5 anos'}
+    for sufixo, aba in abas_por_sufixo.items():
+        df_bloco = extrai_evitaveis_cap_blocos(caminho, aba)
+        df_bloco.to_csv(f'dados_locais//tratados//obitos_evitaveis_{sufixo}_causa_cap_2006_2025.csv', index=False)
+
+def agrega_grupo_cid(df, colunas_chave):
+    """Soma os 8 subgrupos CID (coluna 'subgrupo') de uma tabela extraída da planilha de
+    causas evitáveis na primeira infância nos 3 grupos de primeiro nível ('1.', '2.', '3.'),
+    devolvendo uma coluna 'grupo' no lugar de 'subgrupo'. A planilha TabWin traz só os
+    subgrupos -- diferente dos arquivos 'segundo causas' usados nas seções anteriores, onde
+    grupo e subgrupo são linhas separadas -- então o grupo sai do primeiro caractere do
+    subgrupo já normalizado ('1.2.3. Red por at ao recém-nascido' -> grupo '1').
+
+    `colunas_chave` permite reusar a função para `['cod_ap_sms','ano','faixa_etaria']` (por
+    CAP) ou `['ano']` (município), sem duplicar lógica."""
+    df = df.copy()
+    df['grupo'] = df['subgrupo'].str[0].map(_GRUPOS_CID)
+    return df.groupby(colunas_chave + ['grupo'], as_index=False)['obitos'].sum()
+
 # %% [markdown]
 # ### 📈 Funções de visualização
 #
@@ -240,6 +346,29 @@ _NIVEIS_AGREGACAO = {
     'bairro': {'coluna_geo': 'codbairro', 'tipo': int},
     'ap':     {'coluna_geo': 'area_plane', 'tipo': int},
     'rp':     {'coluna_geo': 'cod_rp', 'tipo': str},
+    'cap':    {'coluna_geo': 'cod_ap_sms', 'tipo': str},
+}
+
+# geojson oficial das 10 CAPs (Coordenadoria de Área Programática de Saúde, SMS-Rio -- não
+# aninha no geojson de bairros do IPP, que só traz Área/Região de Planejamento), Data.Rio
+# ("Áreas Programáticas da Saúde"); ver SPEC-mortalidade-AP/specification.md §4
+_CAMINHO_GEO_CAP = 'dados_locais/geo/limite_ap_saude_rio.geojson'
+
+# de-para RA -> CAP, derivado do cruzamento espacial com o polígono oficial acima (não de
+# memória -- a versão anterior, escrita à mão, errava Guaratiba e Complexo do Alemão). Não é
+# usado pelos mapas desta seção (que usam o geojson oficial direto via nivel='cap'); fica
+# documentado para uso futuro, agregando qualquer tabela por bairro/RA até a CAP
+_RA_PARA_CAP = {
+    1: '1.0', 2: '1.0', 3: '1.0', 7: '1.0', 21: '1.0', 23: '1.0',
+    4: '2.1', 5: '2.1', 6: '2.1', 27: '2.1',
+    8: '2.2', 9: '2.2',
+    10: '3.1', 11: '3.1', 20: '3.1', 29: '3.1', 30: '3.1', 31: '3.1',
+    12: '3.2', 13: '3.2', 28: '3.2',
+    14: '3.3', 15: '3.3', 22: '3.3', 25: '3.3',
+    16: '4.0', 24: '4.0', 34: '4.0',
+    17: '5.1', 33: '5.1',
+    18: '5.2', 26: '5.2',
+    19: '5.3',
 }
 
 _FONTE_TITULO = 'Palatino Linotype'  # serifada, estilo de publicação acadêmica
@@ -483,6 +612,7 @@ for pasta in ["tabelas_finais", "visualizacoes", "mapas/tabelas_bairros", "dados
 # %%
 limpa_dados_sisvan(colunas=['magreza_acentuada','magreza','eutrofia','risco sobrepeso','sobrepeso','obesidade','total'], dataset='sobrepeso')
 limpa_dados_sisvan(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','peso_elevado','total'], dataset='desnutrição')
+extrai_planilha_evitaveis_cap('dados_locais/mortalidade/obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx')
 
 # %% [markdown]
 # ---
@@ -1275,6 +1405,185 @@ grafico_barra_agrupado(
     ordem_agrupador=ordem_subgrupo,
     rotacao_x=0,
 )
+
+# %% [markdown]
+# ##### Óbitos por causas evitáveis na primeira infância, por Área Programática de Saúde (CAP)
+
+# %% [markdown]
+# Primeira vez no notebook com óbitos por causas evitáveis desagregados por **Área Programática de Saúde (CAP)** -- as 10 Coordenadorias de Área Programática da SMS-Rio (`cod_ap_sms`, geometria oficial em `dados_locais/geo/limite_ap_saude_rio.geojson`), que **não são** as 5 Áreas de Planejamento do IPP (`nivel='ap'`) usadas nos mapas do Censo acima. Fonte: planilha `obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx`, exportada do TabWin/SIM municipal (SIM/SVS-Rio, óbitos de residentes no município do Rio de Janeiro), 2006-2025, em três faixas etárias: `< 1 ano`, `1-4 anos` e `< 5 anos`.
+#
+# Notas de leitura:
+# 1. As três faixas são aninhadas: `< 5 anos` = `< 1 ano` + `1-4 anos` (verificado célula a célula, 0 divergências) -- **não somar as três**, seria dupla contagem.
+# 2. 165 óbitos (0,7% da série) não têm CAP de residência registrada, concentrados em 2006-2011; **em 2025 são zero**, então os mapas de 2025 cobrem 100% dos óbitos.
+# 3. A planilha só traz subgrupos CID; o grupo `1. Causas evitáveis` é a soma das seis linhas `1.*` -- diferente dos arquivos "segundo causas" das seções anteriores, onde grupo e subgrupo são linhas separadas.
+# 4. `1-4 anos` tem contagens muito baixas (13 a 25 óbitos/ano na cidade inteira, 0 a 3 por CAP); percentuais por CAP nessa faixa são instáveis e não devem ser lidos como tendência.
+# 5. O denominador (nascidos vivos) só existe no nível municipal -> sem taxa por mil NV por CAP; os mapas absolutos **não são comparáveis entre CAPs sem considerar o tamanho da população** -- a CAP 3.3 tem 29 bairros contra 5 da 5.2.
+# 6. A CAP (SMS, 10 unidades) **não é** a Área de Planejamento do IPP (5 unidades) usada nos mapas do Censo deste mesmo notebook -- são divisões territoriais diferentes e não devem ser comparadas lado a lado sem ressalva.
+
+# %% [markdown]
+# ###### Panorama municipal (< 5 anos)
+
+# %%
+df_evitaveis_subgrupo_mrj = pd.read_csv('dados_locais//tratados//obitos_evitaveis_menores_5_causa_municipio_2006_2025.csv')
+df_taxa_evitaveis_cap_mrj = pd.read_csv('dados_locais//tratados//taxa_mortalidade_evitaveis_menores_5_municipio_2006_2025.csv')
+
+df_evitaveis_subgrupo_mrj.to_csv('tabelas_finais//obitos_evitaveis_menores_5_subgrupo_municipio_ano.csv', index=False)
+df_taxa_evitaveis_cap_mrj.to_csv('tabelas_finais//taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv', index=False)
+df_taxa_evitaveis_cap_mrj.head()
+
+# %%
+df_evitaveis_subgrupo_mrj_wide = df_evitaveis_subgrupo_mrj.pivot(index='ano', columns='subgrupo', values='obitos').reset_index()
+colunas_subgrupo_evitaveis_cap = {c: c for c in df_evitaveis_subgrupo_mrj_wide.columns if c != 'ano'}
+
+serie_temporal_multipla(
+    df_evitaveis_subgrupo_mrj_wide,
+    tempo='ano',
+    colunas=colunas_subgrupo_evitaveis_cap,
+    titulo='Óbitos por causas evitáveis (< 5 anos) por subgrupo - Rio de Janeiro (2006-2025)',
+    nome_arquivo='obitos_evitaveis_menores_5_subgrupo_ano',
+    ylabel='Óbitos',
+    legend_title='Subgrupo',
+    figsize=(14,7),
+)
+
+# %%
+serie_temporal(
+    df_taxa_evitaveis_cap_mrj, 'ano', 'taxa_por_mil',
+    'Taxa de mortalidade por causas evitáveis (< 5 anos), por mil nascidos vivos - Rio de Janeiro (2006-2025)',
+    nome_arquivo='taxa_mortalidade_evitaveis_menores_5_ano',
+)
+
+# %% [markdown]
+# ###### Por CAP e faixa etária
+
+# %%
+fonte_evitaveis_cap = 'SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro'
+
+# bins definidos depois de ver a distribuição de 2025 por faixa (célula 'Mapas por CAP' abaixo)
+# -- contagens uma ordem de grandeza menores em '1-4 anos' que em '< 1 ano'/'< 5 anos', então
+# cada faixa tem seus próprios limites de classe (não dá pra reaproveitar entre faixas)
+faixas_primeira_infancia = {
+    'menores_1_ano':  {'rotulo': 'menores de 1 ano',   'bins_absoluto': [20, 40, 60, 80]},
+    '1_a_4_anos':     {'rotulo': 'de 1 a 4 anos',       'bins_absoluto': [2, 4, 7, 10]},
+    'menores_5_anos': {'rotulo': 'menores de 5 anos',   'bins_absoluto': [20, 45, 70, 95]},
+}
+
+partes_evitaveis_cap = []
+for sufixo, info in faixas_primeira_infancia.items():
+    df_bloco = pd.read_csv(f'dados_locais//tratados//obitos_evitaveis_{sufixo}_causa_cap_2006_2025.csv')
+    df_bloco['faixa_etaria'] = info['rotulo']
+    partes_evitaveis_cap.append(df_bloco)
+
+df_evitaveis_cap_faixa = pd.concat(partes_evitaveis_cap, ignore_index=True)
+df_evitaveis_cap_faixa.to_csv('dados_locais//tratados//mortalidade_evitaveis_cap_faixa_ano.csv', index=False)
+df_evitaveis_cap_faixa.to_csv('tabelas_finais//mortalidade_evitaveis_cap_faixa_ano.csv', index=False)
+df_evitaveis_cap_faixa.head()
+
+# %%
+df_evitaveis_grupo_cap_faixa = agrega_grupo_cid(df_evitaveis_cap_faixa, ['cod_ap_sms', 'ano', 'faixa_etaria'])
+
+df_grupo_cap_faixa_wide = df_evitaveis_grupo_cap_faixa.pivot_table(
+    index=['cod_ap_sms', 'ano', 'faixa_etaria'], columns='grupo', values='obitos', aggfunc='sum'
+).reset_index()
+
+colunas_grupo_cap = list(_GRUPOS_CID.values())
+df_grupo_cap_faixa_wide['total'] = df_grupo_cap_faixa_wide[colunas_grupo_cap].sum(axis=1)
+percentual_evitaveis_cap = df_grupo_cap_faixa_wide[_GRUPOS_CID['1']] / df_grupo_cap_faixa_wide['total'] * 100
+df_grupo_cap_faixa_wide['percentual_evitaveis'] = percentual_evitaveis_cap.replace([float('inf'), -float('inf')], float('nan')).round(2)
+
+df_grupo_cap_faixa_wide.to_csv('dados_locais//tratados//mortalidade_evitaveis_grupo_cap_faixa_ano.csv', index=False)
+df_grupo_cap_faixa_wide.to_csv('tabelas_finais//mortalidade_evitaveis_grupo_cap_faixa_ano.csv', index=False)
+df_grupo_cap_faixa_wide.head()
+
+# %%
+for sufixo, info in faixas_primeira_infancia.items():
+    df_faixa_grupo = df_grupo_cap_faixa_wide[df_grupo_cap_faixa_wide['faixa_etaria'] == info['rotulo']]
+
+    df_obitos_evitaveis_wide = df_faixa_grupo.pivot(index='ano', columns='cod_ap_sms', values=_GRUPOS_CID['1']).reset_index()
+    serie_temporal_multipla(
+        df_obitos_evitaveis_wide,
+        tempo='ano',
+        colunas={c: c for c in df_obitos_evitaveis_wide.columns if c != 'ano'},
+        titulo=f'Óbitos por causas evitáveis, {info["rotulo"]}, por CAP - Rio de Janeiro (2006-2025)',
+        nome_arquivo=f'obitos_evitaveis_cap_{sufixo}_ano',
+        ylabel='Óbitos',
+        legend_title='CAP',
+        figsize=(14,7),
+    )
+
+    df_percentual_evitaveis_wide = df_faixa_grupo.pivot(index='ano', columns='cod_ap_sms', values='percentual_evitaveis').reset_index()
+    serie_temporal_multipla(
+        df_percentual_evitaveis_wide,
+        tempo='ano',
+        colunas={c: c for c in df_percentual_evitaveis_wide.columns if c != 'ano'},
+        titulo=f'Percentual de óbitos evitáveis, {info["rotulo"]}, por CAP - Rio de Janeiro (2006-2025)',
+        nome_arquivo=f'percentual_evitaveis_cap_{sufixo}_ano',
+        ylabel='Percentual (%)',
+        legend_title='CAP',
+        figsize=(14,7),
+    )
+
+# %%
+df_total_menores_5_cap_wide = (
+    df_grupo_cap_faixa_wide[df_grupo_cap_faixa_wide['faixa_etaria'] == 'menores de 5 anos']
+    .pivot(index='ano', columns='cod_ap_sms', values='total').reset_index()
+)
+serie_temporal_multipla(
+    df_total_menores_5_cap_wide,
+    tempo='ano',
+    colunas={c: c for c in df_total_menores_5_cap_wide.columns if c != 'ano'},
+    titulo='Total de óbitos (todas as causas), menores de 5 anos, por CAP - Rio de Janeiro (2006-2025)',
+    nome_arquivo='obitos_evitaveis_total_cap_ano',
+    ylabel='Óbitos',
+    legend_title='CAP',
+    figsize=(14,7),
+)
+
+# %% [markdown]
+# ###### 🗺️ Mapas por CAP (2025)
+
+# %%
+df_evitaveis_cap_2025 = df_grupo_cap_faixa_wide[df_grupo_cap_faixa_wide['ano'] == 2025].copy()
+df_evitaveis_cap_2025 = df_evitaveis_cap_2025.rename(columns={
+    _GRUPOS_CID['1']: 'evitaveis', _GRUPOS_CID['2']: 'mal_definidas', _GRUPOS_CID['3']: 'demais',
+})
+df_evitaveis_cap_2025.to_csv('dados_locais//tratados//mortalidade_evitaveis_cap_2025.csv', index=False)
+df_evitaveis_cap_2025.to_csv('tabelas_finais//mortalidade_evitaveis_cap_2025.csv', index=False)
+
+df_evitaveis_subgrupo_cap_2025 = df_evitaveis_cap_faixa[df_evitaveis_cap_faixa['ano'] == 2025]
+df_evitaveis_subgrupo_cap_2025_wide = df_evitaveis_subgrupo_cap_2025.pivot_table(
+    index=['cod_ap_sms', 'faixa_etaria'], columns='subgrupo', values='obitos', aggfunc='sum'
+).reset_index()
+df_evitaveis_subgrupo_cap_2025_wide.to_csv('dados_locais//tratados//mortalidade_evitaveis_subgrupo_cap_2025.csv', index=False)
+df_evitaveis_subgrupo_cap_2025_wide.to_csv('tabelas_finais//mortalidade_evitaveis_subgrupo_cap_2025.csv', index=False)
+
+# distribuição de 2025 por faixa, impressa antes de usar os bins acima -- os limites de
+# 'faixas_primeira_infancia' já foram escolhidos a partir desta mesma distribuição
+for sufixo, info in faixas_primeira_infancia.items():
+    print(info['rotulo'])
+    print(df_evitaveis_cap_2025.loc[df_evitaveis_cap_2025['faixa_etaria'] == info['rotulo'], 'evitaveis'].describe())
+
+# %%
+for sufixo, info in faixas_primeira_infancia.items():
+    df_faixa_2025 = df_evitaveis_cap_2025[df_evitaveis_cap_2025['faixa_etaria'] == info['rotulo']]
+
+    mapa_coropletico_bairros(
+        df_faixa_2025, coluna_valor='evitaveis', nivel='cap',
+        titulo=f'Óbitos por causas evitáveis, {info["rotulo"]}, por CAP - Rio de Janeiro (2025)',
+        nome_arquivo=f'mapa_obitos_evitaveis_{sufixo}_cap_2025',
+        bins=info['bins_absoluto'],
+        legenda_titulo='Óbitos',
+        caminho_geojson=_CAMINHO_GEO_CAP,
+        fonte_dados=fonte_evitaveis_cap,
+    )
+    mapa_coropletico_bairros(
+        df_faixa_2025, coluna_valor='percentual_evitaveis', nivel='cap',
+        titulo=f'Percentual de óbitos evitáveis, {info["rotulo"]}, por CAP - Rio de Janeiro (2025)',
+        nome_arquivo=f'mapa_percentual_evitaveis_{sufixo}_cap_2025',
+        legenda_titulo='% evitáveis',
+        caminho_geojson=_CAMINHO_GEO_CAP,
+        fonte_dados=fonte_evitaveis_cap,
+    )
 
 # %% [markdown]
 # #### 📋 Óbitos gravidez e puerpério

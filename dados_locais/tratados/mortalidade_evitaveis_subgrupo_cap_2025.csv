@@ -1,0 +1,31 @@
+cod_ap_sms,faixa_etaria,1.1. Reduzível pelas ações de imunização,1.2.1. Red por at à mulher na gestação,1.2.2. Red por at à mulher no parto,1.2.3. Red por at ao recém-nascido,1.3. Red por ações de diag e trat adequado,1.4. Red por ações promoção vinc a atenção,2. Causas mal definidas,3. Demais causas (não claramente evitáveis)
+1.0,de 1 a 4 anos,0,0,0,0,0,1,0,4
+1.0,menores de 1 ano,0,13,8,1,2,3,0,11
+1.0,menores de 5 anos,0,13,8,1,2,4,0,15
+2.1,de 1 a 4 anos,0,0,0,0,2,0,0,1
+2.1,menores de 1 ano,0,7,1,1,3,0,4,16
+2.1,menores de 5 anos,0,7,1,1,5,0,4,17
+2.2,de 1 a 4 anos,0,0,0,0,2,4,0,0
+2.2,menores de 1 ano,0,3,3,2,0,1,0,5
+2.2,menores de 5 anos,0,3,3,2,2,5,0,5
+3.1,de 1 a 4 anos,0,0,0,0,6,2,1,9
+3.1,menores de 1 ano,0,28,8,8,10,10,3,30
+3.1,menores de 5 anos,0,28,8,8,16,12,4,39
+3.2,de 1 a 4 anos,0,0,0,0,1,3,2,9
+3.2,menores de 1 ano,0,24,6,2,0,2,0,18
+3.2,menores de 5 anos,0,24,6,2,1,5,2,27
+3.3,de 1 a 4 anos,1,1,0,0,6,4,1,7
+3.3,menores de 1 ano,0,39,10,16,12,7,2,25
+3.3,menores de 5 anos,1,40,10,16,18,11,3,32
+4.0,de 1 a 4 anos,0,0,0,0,2,5,2,9
+4.0,menores de 1 ano,0,47,10,11,7,14,4,39
+4.0,menores de 5 anos,0,47,10,11,9,19,6,48
+5.1,de 1 a 4 anos,0,0,0,0,3,6,1,6
+5.1,menores de 1 ano,0,31,4,2,6,5,1,23
+5.1,menores de 5 anos,0,31,4,2,9,11,2,29
+5.2,de 1 a 4 anos,0,1,0,0,3,3,0,8
+5.2,menores de 1 ano,0,40,7,6,4,10,0,33
+5.2,menores de 5 anos,0,41,7,6,7,13,0,41
+5.3,de 1 a 4 anos,0,0,0,0,4,6,0,6
+5.3,menores de 1 ano,1,32,10,6,2,6,1,18
+5.3,menores de 5 anos,1,32,10,6,6,12,1,24
