@@ -193,6 +193,13 @@ Notable code changes (2026-09-08) — colorbar contínua ainda ilegível sobre o
   Por isso o texto ficava ilegível sobre o mapa não importa onde a colorbar fosse posicionada.
   Corrigido com um retângulo branco (`ax.add_patch`) desenhado atrás da colorbar, cobrindo a barra, os
   ticks e o rótulo do eixo.
+- Removida a borda (`edgecolor`) desse retângulo branco nos mapas por percentual -- mantido só o
+  preenchimento branco (ainda necessário para a legibilidade do texto). A caixa com borda da legenda
+  de classes discretas (mapas por valor absoluto) não foi alterada.
+- Removido também o preenchimento (o retângulo inteiro saiu) -- a legibilidade dos rótulos dos ticks
+  e do texto do eixo da colorbar contínua passa a vir de um halo branco em cada texto
+  (`matplotlib.patheffects.withStroke`), a mesma técnica já usada nos rótulos de município vizinho,
+  em vez de uma caixa de fundo.
 
 ---
 
@@ -215,3 +222,5 @@ Notable code changes (2026-09-08) — colorbar contínua ainda ilegível sobre o
 | 0.12.0  | 2026-09-08 | Mapas coropléticos agora em três níveis de agregação (bairro, Área de Planejamento, Região de Planejamento, via `nivel`/`agrega_bairros_por_nivel`); municípios vizinhos rotulados (`dados_locais/geo/limite_municipios_rj.geojson`, IBGE); título em fonte serifada (Palatino Linotype) e demais textos ~10-15% maiores; proporção mais estreita (~1,46:1), próxima de A4 paisagem. |
 | 0.13.0  | 2026-09-08 | Absoluto sempre em classes discretas (`bins` próprios por nível: bairro/AP/RP) e percentual sempre em escala contínua; colorbar contínua com mais folga do topo; textos da legenda em negrito/cor mais escura; rodapé cartográfico em todo mapa (sistema de referência + projeção de render + fonte dos dados, via novo parâmetro `fonte_dados`). |
 | 0.13.1  | 2026-09-08 | Colorbar contínua de volta para perto do topo (o ajuste anterior piorava a sobreposição com bairros de verdade no nível bairro) e com um fundo branco atrás dos ticks/rótulo do eixo, que não tinham nenhuma caixa própria e por isso ficavam ilegíveis sobre o mapa em qualquer posição. |
+| 0.13.2  | 2026-09-08 | Removida a borda do retângulo branco atrás da colorbar contínua (mapas por percentual) -- mantido só o preenchimento. |
+| 0.13.3  | 2026-09-08 | Removido também o preenchimento do retângulo atrás da colorbar contínua; legibilidade do texto passa a vir de um halo branco (`path_effects.withStroke`) em vez de uma caixa de fundo. |
