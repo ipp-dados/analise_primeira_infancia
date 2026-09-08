@@ -451,11 +451,11 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
     # com ou sem fundo. Em duas linhas e deslocado um pouco à direita do centro: nem sobre o atributo
     # do basemap do contextily (inferior esquerdo, 2 linhas largas) nem sobre a escala gráfica
     # (inferior direito) -- ambos variam de largura conforme o recorte/nível do mapa
-    texto_referencia = ('Sistema de referência: SIRGAS 2000 (dados) | Web Mercator EPSG:3857 (mapa)'
-                         if usa_fundo else 'Sistema de referência: SIRGAS 2000 (EPSG:4326)')
+    texto_referencia = ('Sistema de referência: SIRGAS 2000, UTM - Fuso 23S (dados) | Web Mercator EPSG:3857 (mapa)'
+                         if usa_fundo else 'Sistema de referência: SIRGAS 2000, UTM - Fuso 23S')
     rodape = texto_referencia if not fonte_dados else f"{texto_referencia}\nFonte: {fonte_dados}"
     ax.annotate(
-        rodape, xy=(0.62, 0.012), xycoords='axes fraction', ha='center', va='bottom',
+        rodape, xy=(0.55, 0.012), xycoords='axes fraction', ha='center', va='bottom',
         fontsize=6.5, color='#262626', zorder=6,
         bbox=dict(boxstyle='square,pad=0.35', facecolor='white', alpha=0.8, edgecolor='none'),
     )

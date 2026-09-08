@@ -200,6 +200,13 @@ Notable code changes (2026-09-08) — colorbar contínua ainda ilegível sobre o
   e do texto do eixo da colorbar contínua passa a vir de um halo branco em cada texto
   (`matplotlib.patheffects.withStroke`), a mesma técnica já usada nos rótulos de município vizinho,
   em vez de uma caixa de fundo.
+- Linha do sistema de referência no rodapé passa a citar "SIRGAS 2000, UTM - Fuso 23S" (copiado
+  literalmente do rodapé de `mapas/mapa_referencia.jpeg`), em vez do genérico "SIRGAS 2000
+  (EPSG:4326)" -- é uma citação da referência oficial da região, não uma descrição técnica do CRS
+  realmente usado no render (que continua EPSG:4326/EPSG:3857; o código nunca reprojeta para
+  EPSG:31983).
+- Rodapé deslocado um pouco mais à esquerda (`x=0.62 → 0.55`): o texto mais longo do sistema de
+  referência (item acima) tinha passado a encostar na escala gráfica, no canto inferior direito.
 
 ---
 
@@ -224,3 +231,5 @@ Notable code changes (2026-09-08) — colorbar contínua ainda ilegível sobre o
 | 0.13.1  | 2026-09-08 | Colorbar contínua de volta para perto do topo (o ajuste anterior piorava a sobreposição com bairros de verdade no nível bairro) e com um fundo branco atrás dos ticks/rótulo do eixo, que não tinham nenhuma caixa própria e por isso ficavam ilegíveis sobre o mapa em qualquer posição. |
 | 0.13.2  | 2026-09-08 | Removida a borda do retângulo branco atrás da colorbar contínua (mapas por percentual) -- mantido só o preenchimento. |
 | 0.13.3  | 2026-09-08 | Removido também o preenchimento do retângulo atrás da colorbar contínua; legibilidade do texto passa a vir de um halo branco (`path_effects.withStroke`) em vez de uma caixa de fundo. |
+| 0.13.4  | 2026-09-08 | Rodapé cita "SIRGAS 2000, UTM - Fuso 23S" (igual a `mapas/mapa_referencia.jpeg`) em vez de "SIRGAS 2000 (EPSG:4326)". |
+| 0.13.5  | 2026-09-08 | Rodapé deslocado mais à esquerda (`x=0.55`) para não encostar na escala gráfica com o texto mais longo do sistema de referência. |
