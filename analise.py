@@ -18,9 +18,15 @@
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from pathlib import Path
+from matplotlib_scalebar.scalebar import ScaleBar
+from shapely.geometry import box
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as pe
+import contextily as ctx
+import geopandas as gpd
 import pandas as pd
+import math
 import os
 
 # %% [markdown]
@@ -217,6 +223,250 @@ def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
+def _numero_ptbr(n):
+    """Formata um número inteiro com separador de milhar no padrão brasileiro (ex.: 10000 -> '10.000')."""
+    return f"{n:,.0f}".replace(",", ".")
+
+# basemap cartográfico/'desenho' (sem satélite -- descartado; ver generate_map skill para o porquê):
+# relevo suave, sem rótulos de municípios vizinhos, mar em azul. max_zoom 13 (suficiente na escala do município).
+_PROVEDORES_FUNDO = {
+    'mapa': ctx.providers.Esri.OceanBasemap,
+}
+
+# nível de agregação geográfica: coluna do geojson de bairros usada no dissolve/join, e o tipo para
+# comparação (Área de Planejamento e codbairro são numéricos; Região de Planejamento é 'AP.subregião',
+# ex. '4.2', e não pode virar número sem perder precisão)
+_NIVEIS_AGREGACAO = {
+    'bairro': {'coluna_geo': 'codbairro', 'tipo': int},
+    'ap':     {'coluna_geo': 'area_plane', 'tipo': int},
+    'rp':     {'coluna_geo': 'cod_rp', 'tipo': str},
+}
+
+_FONTE_TITULO = 'Palatino Linotype'  # serifada, estilo de publicação acadêmica
+
+# canto reservado para a legenda/colorbar (sempre 'upper left'), em fração dos eixos (0-1) -- um
+# rótulo de município vizinho que caia aqui seria sobreposto pela legenda, então é descartado
+_ZONA_LEGENDA = (0.0, 0.46, 0.34, 1.0)  # (x0, y0, x1, y1)
+
+def _adiciona_rosa_dos_ventos(ax, x=0.94, y=0.90, tamanho=0.05, cor='#262626'):
+    """Desenha uma seta 'N' simples (rosa dos ventos) no canto superior direito do mapa."""
+    ax.annotate(
+        'N', xy=(x, y), xytext=(x, y - tamanho),
+        xycoords=ax.transAxes, textcoords=ax.transAxes,
+        ha='center', va='center', fontsize=15, fontweight='bold', color=cor,
+        arrowprops=dict(arrowstyle='-|>', color=cor, lw=2.0, mutation_scale=24),
+        zorder=5,
+    )
+
+def _adiciona_rotulos_municipios_vizinhos(ax, xlim, ylim, cor='#262626', tamanho=10, margem=0.02,
+                                           caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson'):
+    """Rotula os municípios vizinhos (não Rio de Janeiro) visíveis na área do mapa.
+
+    Usa o ponto representativo do FRAGMENTO recortado pela janela (garante que o rótulo fique dentro
+    da parte de fato visível do município, não fora do mapa) -- mas descarta fragmentos cujo ponto
+    fica perto demais da borda (`margem`), que é o caso de um município que só encosta numa pontinha
+    do canto do mapa (ex.: Rio Claro, cujo pedaço visível é um triângulo minúsculo no canto) e cujo
+    rótulo sairia cortado pela borda da figura. Também descarta quem cairia sobre a legenda/colorbar
+    (sempre no canto superior esquerdo -- `_ZONA_LEGENDA`).
+    """
+    gdf_mun = gpd.read_file(caminho_municipios).to_crs(epsg=3857)
+    gdf_mun = gdf_mun[gdf_mun['nome'] != 'Rio de Janeiro'].copy()
+    janela = box(xlim[0], ylim[0], xlim[1], ylim[1])
+    gdf_mun = gdf_mun[gdf_mun.intersects(janela)].copy()
+    gdf_mun['ponto'] = gdf_mun.intersection(janela).apply(lambda g: g.representative_point())
+
+    largura, altura = xlim[1] - xlim[0], ylim[1] - ylim[0]
+    x0, x1 = xlim[0] + largura * margem, xlim[1] - largura * margem
+    y0, y1 = ylim[0] + altura * margem, ylim[1] - altura * margem
+    lx0, ly0, lx1, ly1 = _ZONA_LEGENDA
+
+    def _visivel(p):
+        if not (x0 <= p.x <= x1 and y0 <= p.y <= y1):
+            return False
+        xf, yf = (p.x - xlim[0]) / largura, (p.y - ylim[0]) / altura
+        return not (lx0 <= xf <= lx1 and ly0 <= yf <= ly1)
+
+    gdf_visiveis = gdf_mun[gdf_mun['ponto'].apply(_visivel)]
+    for _, row in gdf_visiveis.iterrows():
+        ponto = row['ponto']
+        ax.annotate(
+            row['nome'], xy=(ponto.x, ponto.y), ha='center', va='center',
+            fontsize=tamanho, color=cor, fontweight='medium', zorder=4,
+            path_effects=[pe.withStroke(linewidth=2.5, foreground='white')],
+        )
+
+def agrega_bairros_por_nivel(df, nivel, colunas_soma):
+    """Agrega uma tabela por bairro para o nível de Área de Planejamento ('ap') ou Região de
+    Planejamento ('rp'), somando `colunas_soma` (ex.: contagens absolutas). Percentuais devem ser
+    recalculados depois a partir das colunas somadas (ex.: total de crianças / população total),
+    nunca por média simples das linhas por bairro -- bairros têm populações muito desiguais.
+
+    `df` precisa já trazer a coluna administrativa do próprio nível ('area_plane' para 'ap', 'cod_rp'
+    para 'rp') -- os exports do Censo/Data.Rio por bairro já vêm com essas colunas nativamente (não
+    é preciso buscá-las no geojson de bairros à parte)."""
+    coluna_geo, tipo = _NIVEIS_AGREGACAO[nivel]['coluna_geo'], _NIVEIS_AGREGACAO[nivel]['tipo']
+    df = df.copy()
+    df[coluna_geo] = df[coluna_geo].astype(tipo)
+    return df.groupby(coluna_geo, as_index=False)[colunas_soma].sum()
+
+def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None, nivel='bairro', bins=None,
+                              cmap='Oranges', legenda_titulo=None, fundo='mapa', alpha=None, fonte_dados=None,
+                              caminho_geojson='dados_locais/geo/limite_bairros_rio.geojson',
+                              caminho_uf='dados_locais/geo/limite_uf_brasil.geojson',
+                              caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson', formato='png'):
+    """Gera um mapa coroplético do Rio (limites IPP/Data.Rio, simplificados) e salva em mapas/.
+
+    `nivel`: 'bairro' (padrão) | 'ap' (Área de Planejamento, 5 regiões) | 'rp' (Região de
+    Planejamento, 16 regiões) -- une (`dissolve`) os polígonos de bairro nesse nível antes do join
+    com `df`. `chave` é a coluna de `df` usada no join; se None, usa o nome padrão de cada nível
+    ('codbairro', 'area_plane' ou 'cod_rp') -- `df` deve trazer essa coluna já agregada (ver
+    `agrega_bairros_por_nivel` para ir de uma tabela por bairro a uma por AP/RP).
+
+    Bairros/regiões sem correspondência em `df` ficam sem preenchimento ('Sem dado'). Se `bins` for
+    informado (lista de limites superiores, ex.: [1000, 2500, 5000, 10000]), o mapa usa classes
+    discretas com legenda no padrão 'Até X' / 'X a Y' / 'Mais de Z' (estilo de
+    `mapas/mapa_referencia.jpeg`); caso contrário, usa uma escala contínua com barra de cores
+    (legenda/colorbar sempre dentro da própria área do mapa, não numa coluna externa -- só o título
+    fica na margem branca da figura).
+
+    `fundo`: 'mapa' (padrão -- basemap cartográfico via Esri Ocean Basemap: relevo, mar em azul, sem
+    nomes de cidade) | None (fundo branco liso, sem contexto geográfico). Com fundo, os limites
+    estaduais (UF, fonte IBGE) do entorno são sobrepostos em amarelo tracejado, os municípios
+    vizinhos (não Rio de Janeiro) visíveis são rotulados, a vista é ampliada além dos bairros para
+    dar contexto (região metropolitana, baía, mar), e o mapa recebe rosa dos ventos + escala gráfica
+    (corrigida para a distorção de latitude do Web Mercator).
+    A figura usa proporção larga (~1,46:1, próxima de A4 paisagem) e é exportada a 300 DPI com
+    `bbox_inches='tight'`, para que só o título ocupe espaço fora do mapa em si.
+
+    `fonte_dados`: texto curto citando a fonte dos dados temáticos (ex.: 'Censo Demográfico 2022
+    (IBGE/Data.Rio)'), exibido no rodapé do mapa junto com o sistema de referência -- SIRGAS 2000
+    (dados originais) e, quando `fundo` está ativo, Web Mercator/EPSG:3857 (projeção usada para
+    render, a mesma dos basemaps web -- por isso a escala gráfica é corrigida para a latitude, ver
+    a skill generate_map).
+    """
+    info_nivel = _NIVEIS_AGREGACAO[nivel]
+    coluna_geo, tipo = info_nivel['coluna_geo'], info_nivel['tipo']
+    chave = chave or coluna_geo
+
+    gdf_bairros = gpd.read_file(caminho_geojson)
+    gdf_bairros[coluna_geo] = gdf_bairros[coluna_geo].astype(tipo)
+    gdf_nivel = gdf_bairros if nivel == 'bairro' else gdf_bairros.dissolve(by=coluna_geo, as_index=False)
+
+    df = df.copy()
+    df[chave] = df[chave].astype(tipo)
+    gdf = gdf_nivel.merge(df[[chave, coluna_valor]], left_on=coluna_geo, right_on=chave, how='left')
+
+    # fator de correção do Web Mercator na latitude do Rio (~-23°), para a escala gráfica ficar correta
+    # (centroide aproximado só para essa correção, não precisa de precisão métrica -- dispensa reprojeção)
+    lat_media = gdf.geometry.centroid.y.mean()
+    correcao_mercator = math.cos(math.radians(lat_media))
+
+    usa_fundo = fundo is not None
+    if usa_fundo:
+        if fundo not in _PROVEDORES_FUNDO:
+            raise ValueError(f"fundo inválido: {fundo!r} (use 'mapa' ou None)")
+        gdf = gdf.to_crs(epsg=3857)
+    alpha = alpha if alpha is not None else (0.82 if usa_fundo else 1.0)
+    missing_kwds = ({'color': 'none', 'edgecolor': '#8a8a8a', 'hatch': '///', 'label': 'Sem dado'}
+                     if usa_fundo else {'color': '#f0f0f0', 'edgecolor': '#bdbdbd', 'label': 'Sem dado'})
+
+    # figura em formato largo: padding vertical generoso (contexto acima/abaixo do município), mas
+    # bem mais enxuto na horizontal -- o contorno dos bairros já é ~1,9:1 (muito mais largo que
+    # alto); cortar o excesso de fundo/basemap nas laterais (não os bairros) aproxima a proporção
+    # final de uma página A4 paisagem (~1,41:1) sem cortar nenhum dado
+    minx, miny, maxx, maxy = gdf.total_bounds
+    padx, pady = (maxx - minx) * 0.03, (maxy - miny) * 0.15
+    aspecto = (maxx - minx + 2 * padx) / (maxy - miny + 2 * pady)
+    altura_fig = 8.5
+    _, ax = plt.subplots(figsize=(round(altura_fig * aspecto, 1), altura_fig))
+
+    if bins:
+        limite_inferior = min(gdf[coluna_valor].min(), bins[0]) - 1
+        limite_superior = max(gdf[coluna_valor].max(), bins[-1])
+        limites = [limite_inferior] + list(bins) + [limite_superior]
+        rotulos = [f"Até {_numero_ptbr(bins[0])}"]
+        rotulos += [f"{_numero_ptbr(bins[i-1]+1)} a {_numero_ptbr(bins[i])}" for i in range(1, len(bins))]
+        rotulos.append(f"Mais de {_numero_ptbr(bins[-1])}")
+        gdf['faixa'] = pd.cut(gdf[coluna_valor], bins=limites, labels=rotulos, ordered=True)
+        gdf.plot(
+            column='faixa', ax=ax, cmap=cmap, linewidth=0.4, edgecolor='#616161', legend=True, alpha=alpha,
+            zorder=2, missing_kwds=missing_kwds,
+            legend_kwds={'title': legenda_titulo or coluna_valor, 'loc': 'upper left', 'fontsize': 10,
+                         'title_fontsize': 12, 'framealpha': 0.92, 'facecolor': 'white', 'edgecolor': '#c9c9c9',
+                         'labelcolor': '#111111'},
+        )
+        legenda = ax.get_legend()
+        legenda.get_title().set_fontweight('bold')
+        for texto in legenda.get_texts():
+            texto.set_fontweight('semibold')
+    else:
+        # colorbar como inset dentro da própria área do mapa (não numa coluna externa) -- mesmo canto
+        # que a legenda de classes usaria, já que os dois modos são mutuamente exclusivos numa chamada;
+        # deslocada para perto do topo (y0=0,60) para ficar mais sobre a margem de contexto (fora dos
+        # bairros) do que sobre os próprios polígonos coloridos. Isso sozinho não bastava: os rótulos
+        # dos ticks e o texto do eixo (rotacionado) ficam FORA da própria cax (na margem dela), então
+        # não herdam nenhum fundo opaco -- diferente da legenda de classes, que já tem uma caixa
+        # branca própria (framealpha/facecolor). Por isso um retângulo branco é desenhado por baixo,
+        # cobrindo a barra + ticks + rótulo do eixo, para o texto continuar legível não importa sobre
+        # qual parte do mapa a colorbar caia.
+        cax_x0, cax_y0, cax_largura, cax_altura = 0.035, 0.60, 0.03, 0.30
+        ax.add_patch(plt.Rectangle(
+            (cax_x0 - 0.02, cax_y0 - 0.025), 0.175, cax_altura + 0.05,
+            transform=ax.transAxes, facecolor='white', edgecolor='#c9c9c9', alpha=0.88, zorder=2.5,
+        ))
+        cax = ax.inset_axes([cax_x0, cax_y0, cax_largura, cax_altura])
+        gdf.plot(
+            column=coluna_valor, ax=ax, cmap=cmap, linewidth=0.4, edgecolor='#616161', legend=True, alpha=alpha,
+            zorder=2, missing_kwds=missing_kwds, cax=cax,
+            legend_kwds={'label': legenda_titulo or coluna_valor},
+        )
+        cax.tick_params(labelsize=9, colors='#111111')
+        for rotulo in cax.get_yticklabels():
+            rotulo.set_fontweight('semibold')
+        cax.yaxis.label.set_size(11)
+        cax.yaxis.label.set_color('#111111')
+        cax.yaxis.label.set_fontweight('bold')
+
+    if usa_fundo:
+        # amplia a vista além dos bairros para dar contexto (região metropolitana, baía, mar)
+        ax.set_xlim(minx - padx, maxx + padx)
+        ax.set_ylim(miny - pady, maxy + pady)
+
+        gdf_uf = gpd.read_file(caminho_uf).to_crs(epsg=3857)
+        gdf_uf.boundary.plot(ax=ax, color='#ffeb3b', linewidth=1.3, linestyle='--', zorder=1)
+        ax.set_xlim(minx - padx, maxx + padx)
+        ax.set_ylim(miny - pady, maxy + pady)
+
+        ctx.add_basemap(ax, source=_PROVEDORES_FUNDO[fundo], zorder=0, attribution_size=6)
+
+        _adiciona_rosa_dos_ventos(ax)
+        ax.add_artist(ScaleBar(
+            correcao_mercator, units='m', location='lower right', box_alpha=0.75,
+            color='#262626', box_color='white', scale_loc='bottom', border_pad=0.6,
+            font_properties={'size': 10},
+        ))
+        _adiciona_rotulos_municipios_vizinhos(ax, ax.get_xlim(), ax.get_ylim(), caminho_municipios=caminho_municipios)
+
+    # rodapé com sistema de referência (+ projeção de render, quando reprojetado para o basemap) e
+    # fonte dos dados -- convenção cartográfica (ver mapas/mapa_referencia.jpeg); sempre presente,
+    # com ou sem fundo. Em duas linhas e deslocado um pouco à direita do centro: nem sobre o atributo
+    # do basemap do contextily (inferior esquerdo, 2 linhas largas) nem sobre a escala gráfica
+    # (inferior direito) -- ambos variam de largura conforme o recorte/nível do mapa
+    texto_referencia = ('Sistema de referência: SIRGAS 2000 (dados) | Web Mercator EPSG:3857 (mapa)'
+                         if usa_fundo else 'Sistema de referência: SIRGAS 2000 (EPSG:4326)')
+    rodape = texto_referencia if not fonte_dados else f"{texto_referencia}\nFonte: {fonte_dados}"
+    ax.annotate(
+        rodape, xy=(0.62, 0.012), xycoords='axes fraction', ha='center', va='bottom',
+        fontsize=6.5, color='#262626', zorder=6,
+        bbox=dict(boxstyle='square,pad=0.35', facecolor='white', alpha=0.8, edgecolor='none'),
+    )
+
+    ax.set_title(titulo, fontsize=22, pad=14, fontfamily=_FONTE_TITULO, fontweight='bold')
+    ax.axis('off')
+    plt.tight_layout()
+    plt.savefig(f"mapas/{nome_arquivo}.{formato}", dpi=300, bbox_inches='tight', pad_inches=0.15)
+    plt.show()
+
 # %% [markdown]
 # ### ⚙️ Setup
 
@@ -254,7 +504,7 @@ limpa_dados_sisvan(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','pes
 
 # %%
 ## dados censo
-df_censo = pd.read_csv("dados_locais\\pop_censo_2022_datario.csv", encoding='Latin-1', sep=';')
+df_censo = pd.read_csv("dados_locais\\censo\\pop_censo_2022_datario.csv", encoding='Latin-1', sep=';')
 df_censo.head()
 
 # %%
@@ -272,7 +522,7 @@ df_censo['Percentual 0 a 4'] = (df_censo['0 a 4 anos']/df_censo['Total'])*100
 df_censo['Percentual 5 a 9'] = (df_censo['5 a 9 anos']/df_censo['Total'])*100
 
 # %%
-df_censo[['bairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 9']].sort_values(by='0 a 4 anos',ascending=False).to_csv('tabelas_finais\\censo_por_bairro.csv')
+df_censo[['bairro','codbairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 9']].sort_values(by='0 a 4 anos',ascending=False).to_csv('tabelas_finais\\censo_por_bairro.csv')
 
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
@@ -290,6 +540,85 @@ df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4'
 
 # %%
 df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).head(20)
+
+# %% [markdown]
+# #### 🗺️ Mapa coroplético (bairros)
+#
+# Mapas coropléticos de crianças de 0 a 4 anos por bairro (Censo 2022), a partir de
+# `tabelas_finais/censo_por_bairro.csv`. O join com a geometria dos bairros usa `codbairro`
+# (código oficial IPP/Data.Rio), não o nome do bairro -- mais robusto a variações de grafia
+# entre fontes. Limites de bairro em `dados_locais/geo/limite_bairros_rio.geojson`
+# (Data.Rio, camada `Cartografia/Limites_administrativos`, geometria simplificada).
+# Faixas do mapa absoluto seguem o padrão de `mapas/mapa_referencia.jpeg`, para comparação.
+#
+# Fundo cartográfico/'desenho' via Esri Ocean Basemap (parâmetro `fundo='mapa'` de
+# `mapa_coropletico_bairros`, o padrão da função): relevo suave, mar em azul, sem nomes de
+# municípios vizinhos. Os limites estaduais (UF, fonte IBGE,
+# `dados_locais/geo/limite_uf_brasil.geojson`) do entorno aparecem em amarelo tracejado, a vista é
+# ampliada além dos bairros para dar contexto (região metropolitana, baía, mar), e o mapa traz rosa
+# dos ventos e escala gráfica. Exportado a 300 DPI, em formato largo.
+
+# %%
+df_mapa_censo = pd.read_csv('tabelas_finais\\censo_por_bairro.csv')
+
+fonte_censo = 'Censo Demográfico 2022 (IBGE/Data.Rio)'
+
+mapa_coropletico_bairros(
+    df_mapa_censo, coluna_valor='0 a 4 anos',
+    titulo='Crianças de 0 a 4 anos de idade, por bairro (Censo 2022)',
+    nome_arquivo='mapa_censo_0_4_absoluto',
+    bins=[1000, 2500, 5000, 10000],
+    legenda_titulo='Crianças 0-4 anos',
+    fonte_dados=fonte_censo,
+)
+
+# %%
+mapa_coropletico_bairros(
+    df_mapa_censo, coluna_valor='Percentual 0 a 4',
+    titulo='Percentual de crianças de 0 a 4 anos, por bairro (Censo 2022)',
+    nome_arquivo='mapa_censo_0_4_percentual',
+    legenda_titulo='% da população do bairro',
+    fonte_dados=fonte_censo,
+)
+
+# %% [markdown]
+# #### 🗺️ Versões alternativas: por Área e por Região de Planejamento
+#
+# Mesmos dados, agregados para os dois níveis de planejamento acima do bairro (`agrega_bairros_por_nivel`
+# soma as contagens por bairro; o percentual é recalculado a partir das somas, não pela média das taxas
+# por bairro, para não distorcer o resultado entre bairros de tamanhos muito diferentes): as 5 Áreas de
+# Planejamento (AP) e as 16 Regiões de Planejamento (RP) do IPP/Data.Rio, ambas já presentes no geojson
+# de bairros (`area_plane`, `cod_rp`) e unidas (`dissolve`) por `mapa_coropletico_bairros` via `nivel`.
+
+# %%
+# classes discretas por nível -- faixas de valor bem diferentes entre AP (5 regiões grandes) e RP
+# (16 regiões menores), então cada nível tem seus próprios limites (não dá pra reaproveitar os do
+# bairro); percentuais continuam em escala contínua (não fazem sentido em classes fixas aqui, com só
+# 5/16 unidades)
+niveis_planejamento = {
+    'ap': {'nome': 'Área de Planejamento', 'bins': [25000, 50000, 75000, 100000]},
+    'rp': {'nome': 'Região de Planejamento', 'bins': [12000, 18000, 24000, 30000]},
+}
+
+for nivel, info in niveis_planejamento.items():
+    df_censo_nivel = agrega_bairros_por_nivel(df_censo, nivel, colunas_soma=['0 a 4 anos', 'Total'])
+    df_censo_nivel['Percentual 0 a 4'] = (df_censo_nivel['0 a 4 anos'] / df_censo_nivel['Total']) * 100
+
+    mapa_coropletico_bairros(
+        df_censo_nivel, coluna_valor='0 a 4 anos', nivel=nivel,
+        titulo=f'Crianças de 0 a 4 anos de idade, por {info["nome"]} (Censo 2022)',
+        nome_arquivo=f'mapa_censo_0_4_absoluto_{nivel}',
+        bins=info['bins'],
+        legenda_titulo='Crianças 0-4 anos',
+        fonte_dados=fonte_censo,
+    )
+    mapa_coropletico_bairros(
+        df_censo_nivel, coluna_valor='Percentual 0 a 4', nivel=nivel,
+        titulo=f'Percentual de crianças de 0 a 4 anos, por {info["nome"]} (Censo 2022)',
+        nome_arquivo=f'mapa_censo_0_4_percentual_{nivel}',
+        legenda_titulo='% da população',
+        fonte_dados=fonte_censo,
+    )
 
 # %% [markdown]
 # #### Serie temporal censo
@@ -640,6 +969,9 @@ serie_temporal_multipla(
     ylabel='Percentual (%)'
 )
 
+# %%
+## Retirar não informados do gráfico de percentual
+
 # %% [markdown]
 # ##### Óbitos por causas evitáveis por raça/cor
 
@@ -701,6 +1033,9 @@ serie_temporal_multipla(
     nome_arquivo='obitos_causas_evitaveis_raca_ano',
     ylabel='Óbitos'
 )
+
+# %%
+## retirar 1996 do ano acima e colocar nota de rodapé
 
 # %%
 # percentual só existe a partir de 2011 (início da série de nascidos vivos por raça/cor da mãe)
@@ -1188,7 +1523,7 @@ grafico_barra_agrupado(
 # #### Taxa de frequência escolar
 
 # %%
-df_freq_escolar = pd.read_csv('dados_locais//educacao_pnad//taxa_frequencia_escolar_ate_6_anos.csv', sep=';')
+df_freq_escolar = pd.read_csv('dados_locais//educacao//pnad_taxa_frequencia_escolar_ate_6_anos.csv', sep=';')
 df_freq_escolar = df_freq_escolar[(df_freq_escolar['Idade'] != '0 a 3 anos')
                                   & (df_freq_escolar['Idade'] != '4 a 5 anos')
                                   & (df_freq_escolar['Idade'] != '6 anos')]
@@ -1250,3 +1585,33 @@ df_final.head()
 # *(Pendente)* Síntese narrativa dos achados.
 
 # %%
+###
+
+# %% [markdown]
+# ### Demografia e População
+
+# %%
+#### Resumo dos achados
+
+#### Fontes de Dados
+
+# %%
+#### Dimensão temporal
+
+# %%
+#### Recortes de Raça e Gênero
+
+# %%
+#### Dimensão geográfica
+
+# %% [markdown]
+# ### Assistência Social
+
+# %% [markdown]
+# ### Educação
+
+# %% [markdown]
+# ### Saúde
+
+# %% [markdown]
+# ### Proteção
