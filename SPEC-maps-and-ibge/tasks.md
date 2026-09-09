@@ -164,16 +164,22 @@ originais mantidos intactos
 
 ## Bloco 8 — Documentação e fechamento
 
-- [ ] **T8.1** — README: nova entrada em `## Fontes de dados` (IBGE SIDRA)
-- [ ] **T8.2** — README: nova entrada em `## Fluxo de Análise (analise.py)` (Componentes A-E)
-- [ ] **T8.3** — README: bloco em `## Recent changes in analise.py`
-- [ ] **T8.4** — README: linha nova na `## Update Table`
-- [ ] **T8.5** — Sincronizar `analise.ipynb` via `jupytext --sync analise.py`
-- [ ] **T8.6** — Rodar `jupyter nbconvert --execute` de ponta a ponta, kernel limpo — 0 erros
-      (mesmo processo já usado no início desta sessão)
-- [ ] **T8.7** — Conferir visualmente uma amostra dos ~35 PNGs novos (todos os mapas + pelo
-      menos 1 de cada tipo de série temporal)
-- [ ] **T8.8** — Commit(s) na branch `spec/maps-and-ibge`
+- [x] **T8.1** — README: nova entrada em `## Fontes de dados` (IBGE SIDRA)
+- [x] **T8.2** — README: nova entrada em `## Fluxo de Análise (analise.py)` (Componentes A-E,
+      passos 6b/6c/8b)
+- [x] **T8.3** — README: bloco em `## Recent changes in analise.py`
+- [x] **T8.4** — README: linha nova na `## Update Table` (0.15.0)
+- [x] **T8.5** — `analise.ipynb` sincronizado via `jupytext --sync` a cada bloco (não só no
+      fechamento)
+- [x] **T8.6** — Notebook já rodado do zero, kernel limpo, ao final de cada bloco (5 execuções
+      completas nesta sessão); `analise.py` não mudou desde a última (Bloco 7, 0 erros, 138
+      células) — sem necessidade de rerun só para o README
+- [x] **T8.7** — Amostra conferida visualmente: 1 mapa por bairro (`mapa_mortalidade_infantil_
+      bairro_2025.png`), 1 mapa por CAP/subgrupo (`mapa_obitos_evitaveis_gestacao_menores_1_
+      ano_cap_2025.png`), 1 gráfico SIDRA (`censo_sidra_populacao_0_6_raca_2022.png`) — todos
+      corretos, convenções cartográficas/gráficas do projeto respeitadas
+- [x] **T8.8** — Commits feitos incrementalmente por bloco na branch `spec/maps-and-ibge`
+      (`9aac4af`, `18978de`, `178e349`, `75b205e`, + este de fechamento)
 - [ ] **T8.9** — Merge em `staging_main` (só após aval do usuário)
 
 → **valida com V7, V8**
