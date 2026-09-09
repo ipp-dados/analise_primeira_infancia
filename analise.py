@@ -306,53 +306,109 @@ def carrega_sidra_longo(caminho, coluna_corte=None):
 # quando precisar de um formato vetorial.
 
 # %%
-def serie_temporal(df,tempo,valor,titulo,nome_arquivo=None, formato='png'):
+# Identidade visual compartilhada por todas as funções de visualização desta seção --
+# mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver SPEC-visual-identity).
+
+# paleta categórica de 11 cores -- mesmos hex do motor JS de relatorio/index.html (--c1..--c11),
+# para a mesma série ter a mesma cor no notebook, no PDF e no HTML.
+_PALETA_CATEGORICA = ['#6a95c8', '#d28060', '#66cca7', '#deb254', '#ca688d',
+                       '#54de54', '#8177bb', '#cc6766', '#bc9776', '#b67c99', '#8e9ea4']
+
+# matiz sequencial por tema, usado por mapa_coropletico_bairros no lugar de um cmap fixo --
+# mesma lógica "um matiz só por mapa" (magnitude), variando o matiz conforme o assunto.
+_CORES_TEMA_MAPA = {
+    'natalidade': 'BuGn',    # nascidos vivos, baixo peso
+    'mortalidade': 'RdPu',   # óbitos (neonatal, gravidez, puerpério, raça, evitáveis/CAP)
+    'cadunico': 'YlOrBr',    # CadÚnico
+    'censo': 'Blues',        # Censo/população
+}
+
+_LIMIAR_DESTAQUE_SERIES = 6  # acima disso, serie_temporal_multipla destaca só as mais relevantes
+_N_SERIES_DESTACADAS = 4
+_COR_SERIE_APAGADA = '#c9c9c9'
+_COR_FONTE_RODAPE = '#5E6D68'
+
+def _rodape_fonte(fonte_dados):
+    """Desenha 'Fonte: ...' discreto no canto inferior direito da figura -- mesma ideia do
+    footnote dos mapas, aplicada aos gráficos de série/barra. No-op se fonte_dados for None."""
+    if fonte_dados:
+        plt.figtext(0.99, 0.01, f'Fonte: {fonte_dados}', ha='right', va='bottom',
+                    fontsize=7, style='italic', color=_COR_FONTE_RODAPE)
+
+def serie_temporal(df,tempo,valor,titulo,nome_arquivo=None, formato='png', fonte_dados=None):
     nome_arquivo = nome_arquivo or f"{valor}_{tempo}"
     plt.figure(figsize=(12,6))
-    sns.lineplot(x=tempo,y=valor,data=df)
+    sns.lineplot(x=tempo,y=valor,data=df, color=_PALETA_CATEGORICA[0], marker='o')
     plt.xlabel(tempo,fontsize=12)
     plt.ylabel(valor,fontsize=12)
-    plt.title(titulo,fontsize=14)
-    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}")
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
+    plt.grid(True,alpha=0.25)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout()
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
-def grafico_barra(df,categoria,valor,titulo,nome_arquivo=None, formato='png'):
+def grafico_barra(df,categoria,valor,titulo,nome_arquivo=None, formato='png', fonte_dados=None):
     nome_arquivo = nome_arquivo or f"{valor}_{categoria}"
     plt.figure(figsize=(10,6))
-    sns.barplot(x=categoria,y=valor,data=df,palette='pastel',hue=categoria)
+    sns.barplot(x=categoria,y=valor,data=df,palette=_PALETA_CATEGORICA,hue=categoria,legend=False)
     plt.xlabel(categoria,fontsize=12)
     plt.ylabel(valor, fontsize=12)
-    plt.title(titulo,fontsize=14)
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
+    _rodape_fonte(fonte_dados)
     plt.tight_layout()
-    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}")
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
-def grafico_barra_agrupado(df,categoria,valor,agrupador,titulo,nome_arquivo,ylabel=None,legend_title=None,ordem_categoria=None,ordem_agrupador=None,rotacao_x=30,figsize=(12,7),formato='png'):
+def grafico_barra_agrupado(df,categoria,valor,agrupador,titulo,nome_arquivo,ylabel=None,legend_title=None,ordem_categoria=None,ordem_agrupador=None,rotacao_x=30,figsize=(12,7),formato='png', fonte_dados=None):
     plt.figure(figsize=figsize)
-    sns.barplot(data=df, x=categoria, y=valor, hue=agrupador, order=ordem_categoria, hue_order=ordem_agrupador)
+    sns.barplot(data=df, x=categoria, y=valor, hue=agrupador, order=ordem_categoria, hue_order=ordem_agrupador, palette=_PALETA_CATEGORICA)
     plt.xlabel(categoria,fontsize=12)
     plt.ylabel(ylabel or valor, fontsize=12)
-    plt.title(titulo,fontsize=14)
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
     plt.xticks(rotation=rotacao_x, ha='right' if rotacao_x else 'center')
     plt.legend(title=legend_title or agrupador, fontsize=9)
+    _rodape_fonte(fonte_dados)
     plt.tight_layout()
-    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}")
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
-def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',legend_title='Cor/Raça',figsize=(12,6),formato='png'):
+def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',legend_title='Cor/Raça',figsize=(12,6),formato='png', fonte_dados=None, destaques=None):
     plt.figure(figsize=figsize)
-    for rotulo,coluna in colunas.items():
-        sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None)
+    itens = list(colunas.items())
+    if len(itens) > _LIMIAR_DESTAQUE_SERIES:
+        mapa_colunas = dict(itens)
+        if destaques is None:
+            def _valor_final(coluna):
+                serie = df[coluna].dropna()
+                return serie.iloc[-1] if len(serie) else float('-inf')
+            destaques = sorted((r for r, _ in itens), key=lambda r: _valor_final(mapa_colunas[r]), reverse=True)[:_N_SERIES_DESTACADAS]
+        cor_idx = 0
+        for rotulo,coluna in itens:
+            if rotulo in destaques:
+                sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None,
+                             color=_PALETA_CATEGORICA[cor_idx % len(_PALETA_CATEGORICA)], linewidth=2.2, zorder=3)
+                cor_idx += 1
+            else:
+                sns.lineplot(x=tempo,y=coluna,data=df,marker=None,errorbar=None,legend=False,
+                             color=_COR_SERIE_APAGADA, alpha=0.6, linewidth=1.1, zorder=1)
+        plt.plot([],[],color=_COR_SERIE_APAGADA,alpha=0.6,linewidth=1.1,
+                 label=f'Outras ({len(itens) - len(destaques)})')
+    else:
+        for i,(rotulo,coluna) in enumerate(itens):
+            sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None,
+                         color=_PALETA_CATEGORICA[i % len(_PALETA_CATEGORICA)])
     plt.xlabel(tempo,fontsize=12)
     plt.ylabel(ylabel,fontsize=12)
-    plt.title(titulo,fontsize=14)
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
     plt.legend(title=legend_title,fontsize=9)
     plt.grid(True,alpha=0.3)
+    _rodape_fonte(fonte_dados)
     plt.tight_layout()
-    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}")
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
@@ -709,6 +765,8 @@ df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4'
 df_censo_sidra_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Censo//tabela9606_populacao_raca_cor.csv', coluna_corte='Cor ou raça')
 df_censo_sidra_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Censo//tabela9606_populacao_sexo.csv', coluna_corte='Sexo')
 
+fonte_sidra_censo = 'Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)'
+
 df_censo_sidra_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//censo_sidra_populacao_0_6_raca_2022.csv')
 df_censo_sidra_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//censo_sidra_populacao_0_6_sexo_2022.csv')
 df_censo_sidra_raca.head()
@@ -721,7 +779,7 @@ grafico_barra_agrupado(
     categoria='idade', valor='valor', agrupador='Cor ou raça',
     titulo='População residente de 0 a 6 anos por idade e raça/cor - Rio de Janeiro (Censo 2022)',
     nome_arquivo='censo_sidra_populacao_0_6_raca_2022', ylabel='Pessoas', legend_title='Raça/cor',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6, fonte_dados=fonte_sidra_censo,
 )
 
 # %%
@@ -730,7 +788,7 @@ grafico_barra_agrupado(
     categoria='idade', valor='valor', agrupador='Sexo',
     titulo='População residente de 0 a 6 anos por idade e sexo - Rio de Janeiro (Censo 2022)',
     nome_arquivo='censo_sidra_populacao_0_6_sexo_2022', ylabel='Pessoas', legend_title='Sexo',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6, fonte_dados=fonte_sidra_censo,
 )
 
 # %% [markdown]
@@ -759,6 +817,7 @@ mapa_coropletico_bairros(
     df_mapa_censo, coluna_valor='0 a 4 anos',
     titulo='Crianças de 0 a 4 anos de idade, por bairro (Censo 2022)',
     nome_arquivo='mapa_censo_0_4_absoluto',
+    cmap=_CORES_TEMA_MAPA['censo'],
     bins=[1000, 2500, 5000, 10000],
     legenda_titulo='Crianças 0-4 anos',
     fonte_dados=fonte_censo,
@@ -769,6 +828,7 @@ mapa_coropletico_bairros(
     df_mapa_censo, coluna_valor='Percentual 0 a 4',
     titulo='Percentual de crianças de 0 a 4 anos, por bairro (Censo 2022)',
     nome_arquivo='mapa_censo_0_4_percentual',
+    cmap=_CORES_TEMA_MAPA['censo'],
     legenda_titulo='% da população do bairro',
     fonte_dados=fonte_censo,
 )
@@ -800,6 +860,7 @@ for nivel, info in niveis_planejamento.items():
         df_censo_nivel, coluna_valor='0 a 4 anos', nivel=nivel,
         titulo=f'Crianças de 0 a 4 anos de idade, por {info["nome"]} (Censo 2022)',
         nome_arquivo=f'mapa_censo_0_4_absoluto_{nivel}',
+        cmap=_CORES_TEMA_MAPA['censo'],
         bins=info['bins'],
         legenda_titulo='Crianças 0-4 anos',
         fonte_dados=fonte_censo,
@@ -808,6 +869,7 @@ for nivel, info in niveis_planejamento.items():
         df_censo_nivel, coluna_valor='Percentual 0 a 4', nivel=nivel,
         titulo=f'Percentual de crianças de 0 a 4 anos, por {info["nome"]} (Censo 2022)',
         nome_arquivo=f'mapa_censo_0_4_percentual_{nivel}',
+        cmap=_CORES_TEMA_MAPA['censo'],
         legenda_titulo='% da população',
         fonte_dados=fonte_censo,
     )
@@ -880,6 +942,8 @@ plt.show()
 # #### Recorte 0-6 anos
 
 # %%
+fonte_cadunico = 'CadÚnico (extração CTPE)'
+
 #Banco CTPE
 engine = connect_db_ctpe()
 df_original = pd.read_sql("SELECT * FROM silver_cadunico_geral WHERE grupo_idade='0-6'", engine)
@@ -913,12 +977,12 @@ df_renda.head(10)
 # %%
 grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Famílias',
               titulo='CADÚNICO: Famílias c/crianças 0-6 por faixa de renda per capita',
-              nome_arquivo='cadunico_familias_por_faixa_renda')
+              nome_arquivo='cadunico_familias_por_faixa_renda', fonte_dados=fonte_cadunico)
 
 # %%
 grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Crianças',
               titulo='CADÚNICO: Crianças 0-6 por faixa de renda per capita',
-              nome_arquivo='cadunico_criancas_por_faixa_renda')
+              nome_arquivo='cadunico_criancas_por_faixa_renda', fonte_dados=fonte_cadunico)
 
 # %% [markdown]
 # #### Análise por idade
@@ -933,11 +997,11 @@ df_idade.head(10)
 
 # %%
 grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: Famílias c/ crianças 0-6 por idade',
-              nome_arquivo='cadunico_familias_por_idade')
+              nome_arquivo='cadunico_familias_por_idade', fonte_dados=fonte_cadunico)
 
 # %%
 grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças 0-6 por idade',
-              nome_arquivo='cadunico_criancas_por_idade')
+              nome_arquivo='cadunico_criancas_por_idade', fonte_dados=fonte_cadunico)
 
 # %% [markdown]
 # #### Análise por bairros
@@ -1007,12 +1071,11 @@ df_bairro.loc[['Complexo do Alemão']]
 # #### 🗺️ Mapas por bairro
 
 # %%
-fonte_cadunico = 'CadÚnico (extração CTPE)'
-
 df_bairro_mapa.to_csv('tabelas_finais//tabela_mapa_cadunico_criancas_2026.csv', index=False)
 mapa_coropletico_bairros(
     df_bairro_mapa, coluna_valor='Crianças', titulo='Crianças (0-6 anos) no CadÚnico, por bairro',
     nome_arquivo='mapa_cadunico_criancas_bairro_2026', chave='codbairro',
+    cmap=_CORES_TEMA_MAPA['cadunico'],
     bins=[250, 750, 1500, 3000], legenda_titulo='Crianças', fonte_dados=fonte_cadunico,
 )
 
@@ -1033,11 +1096,13 @@ df_ate_4_mapa.to_csv('tabelas_finais//tabela_mapa_cadunico_primeira_infancia_202
 mapa_coropletico_bairros(
     df_ate_4_mapa, coluna_valor='Crianças', titulo='Crianças (0-4 anos) no CadÚnico, por bairro',
     nome_arquivo='mapa_cadunico_primeira_infancia_bairro_2026', chave='codbairro',
+    cmap=_CORES_TEMA_MAPA['cadunico'],
     bins=[200, 500, 1000, 2000], legenda_titulo='Crianças', fonte_dados=fonte_cadunico,
 )
 mapa_coropletico_bairros(
     df_ate_4_mapa, coluna_valor='Percentual Primeira Inf. Cadúnico', titulo='% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro',
     nome_arquivo='mapa_percentual_cadunico_primeira_infancia_bairro_2026', chave='codbairro',
+    cmap=_CORES_TEMA_MAPA['cadunico'],
     legenda_titulo='% CadÚnico/Censo', fonte_dados=fonte_cadunico,
 )
 
@@ -1075,6 +1140,7 @@ df_vivos_mapa.to_csv('tabelas_finais//tabela_mapa_nascidos_vivos_2025.csv', inde
 mapa_coropletico_bairros(
     df_vivos_mapa, coluna_valor='nascidos vivos', titulo='Nascidos vivos por bairro (2025)',
     nome_arquivo='mapa_nascidos_vivos_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['natalidade'],
     bins=[200, 400, 800, 1500], legenda_titulo='Nascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
 
@@ -1088,7 +1154,7 @@ df_vivos_por_ano.to_csv('tabelas_finais\\nascidos_vivos_por_ano.csv')
 
 # %%
 serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nascidos vivos por ano',
-               nome_arquivo='nascidos_vivos_por_ano')
+               nome_arquivo='nascidos_vivos_por_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # #### Nascidos abaixo peso
@@ -1116,11 +1182,13 @@ df_baixo_peso_mapa.to_csv('tabelas_finais//tabela_mapa_nascidos_baixo_peso_2025.
 mapa_coropletico_bairros(
     df_baixo_peso_mapa, coluna_valor='nascidos abaixo peso', titulo='Nascidos com baixo peso por bairro (2025)',
     nome_arquivo='mapa_nascidos_baixo_peso_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['natalidade'],
     bins=[15, 30, 60, 120], legenda_titulo='Nascidos abaixo do peso', fonte_dados=fonte_datasus_bairro,
 )
 mapa_coropletico_bairros(
     df_baixo_peso_mapa, coluna_valor='percentual abaixo do peso', titulo='% de nascidos com baixo peso por bairro (2025)',
     nome_arquivo='mapa_percentual_baixo_peso_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['natalidade'],
     legenda_titulo='% baixo peso', fonte_dados=fonte_datasus_bairro,
 )
 
@@ -1133,7 +1201,7 @@ df_baixo_ano.head(25)
 
 # %%
 serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titulo='Percentual Nascidos com baixo peso por ano',
-               nome_arquivo='nascidos_abaixo_peso_percentual_por_ano')
+               nome_arquivo='nascidos_abaixo_peso_percentual_por_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # #### 📉 Mortalidade
@@ -1251,7 +1319,7 @@ serie_temporal_multipla(
     colunas={rotulo: f'obitos_{raca}' for rotulo, raca in rotulos_raca.items()},
     titulo='Óbitos de 0 a 364 dias por raça/cor - Rio de Janeiro (2006-2025)',
     nome_arquivo='obitos_raca_ano',
-    ylabel='Óbitos'
+    ylabel='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 
 # %%
@@ -1264,7 +1332,7 @@ serie_temporal_multipla(
     colunas={rotulo: f'percentual_{raca}' for rotulo, raca in rotulos_raca.items()},
     titulo='Percentual de óbitos (0-364 dias) em relação aos nascidos vivos por raça/cor - Rio de Janeiro (2011-2025)',
     nome_arquivo='percentual_mortalidade_raca_ano',
-    ylabel='Percentual (%)'
+    ylabel='Percentual (%)', fonte_dados=fonte_datasus_bairro,
 )
 
 # %% [markdown]
@@ -1277,11 +1345,13 @@ df_raca_mapa_2025.to_csv('tabelas_finais//tabela_mapa_obitos_raca_total_2025.csv
 mapa_coropletico_bairros(
     df_raca_mapa_2025, coluna_valor='obitos_total', titulo='Óbitos de 0 a 364 dias por bairro (2025)',
     nome_arquivo='mapa_obitos_raca_total_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     bins=[2, 5, 10, 20], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 mapa_coropletico_bairros(
     df_raca_mapa_2025, coluna_valor='percentual_total', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_obitos_raca_total_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='% s/ nascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
 
@@ -1341,13 +1411,17 @@ df_evitaveis_raca_municipio
 rotulos_raca_evitaveis = {'Amarela':'amarela','Branca':'branca','Indígena':'indigena',
                            'Parda':'parda','Preta':'preta','Não informada':'nao_informado'}
 
+# fonte reaproveitada por todas as séries/mapas de óbitos por causas evitáveis desta seção
+# (raça/cor, grupo/subgrupo de causa e, mais adiante, por CAP) -- mesmo sistema de origem (SIM/SVS-Rio)
+fonte_evitaveis = 'SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro'
+
 serie_temporal_multipla(
     df_evitaveis_raca_municipio,
     tempo='ano',
     colunas={rotulo: f'obitos_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis.items()},
     titulo='Óbitos por causas evitáveis (0-364 dias) por raça/cor - Rio de Janeiro (1996-2025)',
     nome_arquivo='obitos_causas_evitaveis_raca_ano',
-    ylabel='Óbitos'
+    ylabel='Óbitos', fonte_dados=fonte_evitaveis,
 )
 
 # %% [markdown]
@@ -1369,7 +1443,7 @@ serie_temporal_multipla(
     colunas={rotulo: f'obitos_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis_sem_nao_informado.items()},
     titulo='Óbitos por causas evitáveis (0-364 dias) por raça/cor, sem "não informada" - Rio de Janeiro (1997-2025)',
     nome_arquivo='obitos_causas_evitaveis_raca_sem_nao_informado_ano',
-    ylabel='Óbitos'
+    ylabel='Óbitos', fonte_dados=fonte_evitaveis,
 )
 
 # %%
@@ -1382,7 +1456,7 @@ serie_temporal_multipla(
     colunas={rotulo: f'percentual_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis.items()},
     titulo='Percentual de óbitos evitáveis (0-364 dias) em relação aos nascidos vivos por raça/cor - Rio de Janeiro (2011-2025)',
     nome_arquivo='percentual_mortalidade_causas_evitaveis_raca_ano',
-    ylabel='Percentual (%)'
+    ylabel='Percentual (%)', fonte_dados=fonte_evitaveis,
 )
 
 # %% [markdown]
@@ -1395,7 +1469,7 @@ serie_temporal_multipla(
     colunas={rotulo: f'percentual_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis_sem_nao_informado.items()},
     titulo='Percentual de óbitos evitáveis (0-364 dias) por raça/cor, sem "não informada" - Rio de Janeiro (2011-2025)',
     nome_arquivo='percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano',
-    ylabel='Percentual (%)'
+    ylabel='Percentual (%)', fonte_dados=fonte_evitaveis,
 )
 
 # %% [markdown]
@@ -1442,7 +1516,7 @@ serie_temporal_multipla(
     titulo='Óbitos por causas evitáveis (0-364 dias) por grupo - Rio de Janeiro (1996-2025)',
     nome_arquivo='obitos_causas_evitaveis_grupo_ano',
     ylabel='Óbitos',
-    legend_title='Grupo',
+    legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
 
 # %%
@@ -1455,7 +1529,7 @@ serie_temporal_multipla(
     nome_arquivo='obitos_causas_evitaveis_subgrupo_ano',
     ylabel='Óbitos',
     legend_title='Subgrupo',
-    figsize=(14,7),
+    figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
 
 # %% [markdown]
@@ -1489,7 +1563,7 @@ serie_temporal_multipla(
     titulo='Óbitos por causas evitáveis (0-6 dias) por grupo - Rio de Janeiro (1996-2025)',
     nome_arquivo='obitos_causas_evitaveis_grupo_0_6_ano',
     ylabel='Óbitos',
-    legend_title='Grupo',
+    legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
 
 # %%
@@ -1502,7 +1576,7 @@ serie_temporal_multipla(
     nome_arquivo='obitos_causas_evitaveis_subgrupo_0_6_ano',
     ylabel='Óbitos',
     legend_title='Subgrupo',
-    figsize=(14,7),
+    figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
 
 # %% [markdown]
@@ -1530,7 +1604,7 @@ serie_temporal_multipla(
     titulo='Óbitos por causas evitáveis (7-27 dias) por grupo - Rio de Janeiro (1996-2025)',
     nome_arquivo='obitos_causas_evitaveis_grupo_7_27_ano',
     ylabel='Óbitos',
-    legend_title='Grupo',
+    legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
 
 # %%
@@ -1543,7 +1617,7 @@ serie_temporal_multipla(
     nome_arquivo='obitos_causas_evitaveis_subgrupo_7_27_ano',
     ylabel='Óbitos',
     legend_title='Subgrupo',
-    figsize=(14,7),
+    figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
 
 # %% [markdown]
@@ -1571,7 +1645,7 @@ serie_temporal_multipla(
     titulo='Óbitos por causas evitáveis (28-364 dias) por grupo - Rio de Janeiro (1996-2025)',
     nome_arquivo='obitos_causas_evitaveis_grupo_28_364_ano',
     ylabel='Óbitos',
-    legend_title='Grupo',
+    legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
 
 # %%
@@ -1584,7 +1658,7 @@ serie_temporal_multipla(
     nome_arquivo='obitos_causas_evitaveis_subgrupo_28_364_ano',
     ylabel='Óbitos',
     legend_title='Subgrupo',
-    figsize=(14,7),
+    figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
 
 # %% [markdown]
@@ -1622,7 +1696,7 @@ grafico_barra_agrupado(
     legend_title='Subgrupo',
     ordem_categoria=ordem_faixa,
     ordem_agrupador=ordem_subgrupo,
-    rotacao_x=0,
+    rotacao_x=0, fonte_dados=fonte_evitaveis,
 )
 
 # %% [markdown]
@@ -1662,14 +1736,14 @@ serie_temporal_multipla(
     nome_arquivo='obitos_evitaveis_menores_5_subgrupo_ano',
     ylabel='Óbitos',
     legend_title='Subgrupo',
-    figsize=(14,7),
+    figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
 
 # %%
 serie_temporal(
     df_taxa_evitaveis_cap_mrj, 'ano', 'taxa_por_mil',
     'Taxa de mortalidade por causas evitáveis (< 5 anos), por mil nascidos vivos - Rio de Janeiro (2006-2025)',
-    nome_arquivo='taxa_mortalidade_evitaveis_menores_5_ano',
+    nome_arquivo='taxa_mortalidade_evitaveis_menores_5_ano', fonte_dados=fonte_evitaveis,
 )
 
 # %% [markdown]
@@ -1698,14 +1772,11 @@ for sufixo, rotulo in faixas_evitaveis_municipio_extra.items():
         colunas={c: c for c in df_municipio_faixa_wide.columns if c != 'ano'},
         titulo=f'Óbitos por causas evitáveis ({rotulo}) por subgrupo - Rio de Janeiro (2006-2025)',
         nome_arquivo=f'obitos_evitaveis_{sufixo}_subgrupo_ano',
-        ylabel='Óbitos', legend_title='Subgrupo', figsize=(14,7),
+        ylabel='Óbitos', legend_title='Subgrupo', figsize=(14,7), fonte_dados=fonte_evitaveis,
     )
 
 # %% [markdown]
 # ###### Por CAP e faixa etária
-
-# %%
-fonte_evitaveis_cap = 'SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro'
 
 # bins definidos depois de ver a distribuição de 2025 por faixa (célula 'Mapas por CAP' abaixo)
 # -- contagens uma ordem de grandeza menores em '1-4 anos' que em '< 1 ano'/'< 5 anos', então
@@ -1756,7 +1827,7 @@ for sufixo, info in faixas_primeira_infancia.items():
         nome_arquivo=f'obitos_evitaveis_cap_{sufixo}_ano',
         ylabel='Óbitos',
         legend_title='CAP',
-        figsize=(14,7),
+        figsize=(14,7), fonte_dados=fonte_evitaveis,
     )
 
     df_percentual_evitaveis_wide = df_faixa_grupo.pivot(index='ano', columns='cod_ap_sms', values='percentual_evitaveis').reset_index()
@@ -1768,7 +1839,7 @@ for sufixo, info in faixas_primeira_infancia.items():
         nome_arquivo=f'percentual_evitaveis_cap_{sufixo}_ano',
         ylabel='Percentual (%)',
         legend_title='CAP',
-        figsize=(14,7),
+        figsize=(14,7), fonte_dados=fonte_evitaveis,
     )
 
 # %%
@@ -1784,7 +1855,7 @@ serie_temporal_multipla(
     nome_arquivo='obitos_evitaveis_total_cap_ano',
     ylabel='Óbitos',
     legend_title='CAP',
-    figsize=(14,7),
+    figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
 
 # %% [markdown]
@@ -1818,7 +1889,7 @@ for subgrupo, slug in _SLUG_SUBGRUPO_EVITAVEL.items():
             colunas={c: c for c in df_serie_subgrupo_cap.columns if c != 'ano'},
             titulo=f'Óbitos evitáveis - {subgrupo.split(". ",1)[1]}, {info["rotulo"]}, por CAP (2006-2025)',
             nome_arquivo=f'obitos_evitaveis_{slug}_cap_{sufixo}_ano',
-            ylabel='Óbitos', legend_title='CAP', figsize=(14,7),
+            ylabel='Óbitos', legend_title='CAP', figsize=(14,7), fonte_dados=fonte_evitaveis,
         )
 
 # %% [markdown]
@@ -1853,18 +1924,20 @@ for sufixo, info in faixas_primeira_infancia.items():
         df_faixa_2025, coluna_valor='evitaveis', nivel='cap',
         titulo=f'Óbitos por causas evitáveis, {info["rotulo"]}, por CAP - Rio de Janeiro (2025)',
         nome_arquivo=f'mapa_obitos_evitaveis_{sufixo}_cap_2025',
+        cmap=_CORES_TEMA_MAPA['mortalidade'],
         bins=info['bins_absoluto'],
         legenda_titulo='Óbitos',
         caminho_geojson=_CAMINHO_GEO_CAP,
-        fonte_dados=fonte_evitaveis_cap,
+        fonte_dados=fonte_evitaveis,
     )
     mapa_coropletico_bairros(
         df_faixa_2025, coluna_valor='percentual_evitaveis', nivel='cap',
         titulo=f'Percentual de óbitos evitáveis, {info["rotulo"]}, por CAP - Rio de Janeiro (2025)',
         nome_arquivo=f'mapa_percentual_evitaveis_{sufixo}_cap_2025',
+        cmap=_CORES_TEMA_MAPA['mortalidade'],
         legenda_titulo='% evitáveis',
         caminho_geojson=_CAMINHO_GEO_CAP,
-        fonte_dados=fonte_evitaveis_cap,
+        fonte_dados=fonte_evitaveis,
     )
 
 # %% [markdown]
@@ -1896,8 +1969,9 @@ for slug, subgrupo in subgrupos_componente_c.items():
         df_subgrupo_2025, coluna_valor='obitos', nivel='cap',
         titulo=f'Óbitos evitáveis - {subgrupo.split(". ",1)[1]}, menores de 1 ano, por CAP (2025)',
         nome_arquivo=f'mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025',
+        cmap=_CORES_TEMA_MAPA['mortalidade'],
         bins=bins_subgrupo_componente_c[slug],
-        legenda_titulo='Óbitos', caminho_geojson=_CAMINHO_GEO_CAP, fonte_dados=fonte_evitaveis_cap,
+        legenda_titulo='Óbitos', caminho_geojson=_CAMINHO_GEO_CAP, fonte_dados=fonte_evitaveis,
     )
 
 # %% [markdown]
@@ -1919,7 +1993,7 @@ for slug in ('gestacao', 'parto'):
         colunas={c: c for c in df_serie_componente_c.columns if c != 'ano'},
         titulo=f'Óbitos evitáveis - {subgrupos_componente_c[slug].split(". ",1)[1]}, menores de 1 ano, por CAP (2006-2025)',
         nome_arquivo=f'obitos_evitaveis_{slug}_cap_menores_1_ano_ano',
-        ylabel='Óbitos', legend_title='CAP', figsize=(14,7),
+        ylabel='Óbitos', legend_title='CAP', figsize=(14,7), fonte_dados=fonte_evitaveis,
     )
 
 # %% [markdown]
@@ -1943,7 +2017,7 @@ df_obitos_gravidez_anual
 
 # %%
 serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durante gravidez por ano',
-               nome_arquivo='obitos_gravidez_por_ano')
+               nome_arquivo='obitos_gravidez_por_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025)
@@ -1959,6 +2033,7 @@ df_obitos_gravidez_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_gravidez_2025
 mapa_coropletico_bairros(
     df_obitos_gravidez_mapa, coluna_valor='óbitos-gravidez', titulo='Óbitos durante a gravidez por bairro (2025)',
     nome_arquivo='mapa_obitos_gravidez_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     bins=[0, 1], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 
@@ -1977,7 +2052,7 @@ df_obitos_puerperio_anual
 
 # %%
 serie_temporal(df_obitos_puerperio_anual,'ano','óbitos-puerpério','Óbitos durante puerpério por ano',
-               nome_arquivo='obitos_puerperio_por_ano')
+               nome_arquivo='obitos_puerperio_por_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025)
@@ -1992,6 +2067,7 @@ df_obitos_puerperio_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_puerperio_20
 mapa_coropletico_bairros(
     df_obitos_puerperio_mapa, coluna_valor='óbitos-puerpério', titulo='Óbitos durante o puerpério por bairro (2025)',
     nome_arquivo='mapa_obitos_puerperio_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     bins=[0, 1, 2], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 
@@ -2023,7 +2099,7 @@ df_neonatal_precoce_anual
 
 # %%
 serie_temporal(df_neonatal_precoce_anual,'ano','taxa_mortalidade_precoce','Taxa de óbitos precoces por ano',
-               nome_arquivo='taxa_mortalidade_precoce_ano')
+               nome_arquivo='taxa_mortalidade_precoce_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2035,11 +2111,13 @@ df_neonatal_precoce_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_neonatal_pre
 mapa_coropletico_bairros(
     df_neonatal_precoce_mapa, coluna_valor='obitos precoces', titulo='Óbitos precoces (0-6 dias) por bairro (2025)',
     nome_arquivo='mapa_obitos_neonatal_precoce_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     bins=[1, 3, 6, 12], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 mapa_coropletico_bairros(
     df_neonatal_precoce_mapa, coluna_valor='taxa_mortalidade_precoce', titulo='Taxa de óbitos precoces (0-6 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_mortalidade_precoce_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
 )
 
@@ -2063,7 +2141,7 @@ df_neonatal_tardia_anual
 
 # %%
 serie_temporal(df_neonatal_tardia_anual,'ano','taxa_obitos_tardios','Taxa de óbitos tardios por ano',
-               nome_arquivo='taxa_obitos_tardios_ano')
+               nome_arquivo='taxa_obitos_tardios_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2075,11 +2153,13 @@ df_neonatal_tardia_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_neonatal_tard
 mapa_coropletico_bairros(
     df_neonatal_tardia_mapa, coluna_valor='obitos_tardios', titulo='Óbitos tardios (7-27 dias) por bairro (2025)',
     nome_arquivo='mapa_obitos_neonatal_tardia_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 mapa_coropletico_bairros(
     df_neonatal_tardia_mapa, coluna_valor='taxa_obitos_tardios', titulo='Taxa de óbitos tardios (7-27 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_obitos_tardios_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
 )
 
@@ -2132,7 +2212,7 @@ df_mortalidade_infantil_anual
 
 # %%
 serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonatal','Taxa de mortalidade pós-neonatal (28-364 dias) por ano',
-               nome_arquivo='taxa_mortalidade_pos_neonatal_ano')
+               nome_arquivo='taxa_mortalidade_pos_neonatal_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2144,11 +2224,13 @@ df_mortalidade_infantil_mapa.to_csv('tabelas_finais//tabela_mapa_mortalidade_inf
 mapa_coropletico_bairros(
     df_mortalidade_infantil_mapa, coluna_valor='obitos_28_364', titulo='Óbitos pós-neonatais (28-364 dias) por bairro (2025)',
     nome_arquivo='mapa_obitos_pos_neonatal_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 mapa_coropletico_bairros(
     df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_pos_neonatal', titulo='Taxa de mortalidade pós-neonatal (28-364 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_mortalidade_pos_neonatal_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
 )
 
@@ -2157,7 +2239,7 @@ mapa_coropletico_bairros(
 
 # %%
 serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','Taxa de mortalidade infantil (0-364 dias) por ano',
-               nome_arquivo='taxa_mortalidade_infantil_ano')
+               nome_arquivo='taxa_mortalidade_infantil_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2166,11 +2248,13 @@ serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','
 mapa_coropletico_bairros(
     df_mortalidade_infantil_mapa, coluna_valor='obitos_0_364', titulo='Óbitos infantis (0-364 dias) por bairro (2025)',
     nome_arquivo='mapa_mortalidade_infantil_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     bins=[2, 5, 10, 20], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 mapa_coropletico_bairros(
     df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_infantil', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_mortalidade_infantil_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
 )
 
@@ -2181,6 +2265,8 @@ mapa_coropletico_bairros(
 # Percentual de crianças 0-6 anos com sobrepeso/obesidade e desnutrição, agregado por ano (fonte: SISVAN).
 
 # %%
+fonte_sisvan = 'SISVAN/DATASUS'
+
 df_desnutricao = pd.read_csv(r"dados_locais\tratados\desnutrição.csv", index_col=0)
 df_desnutricao.tail()
 
@@ -2190,7 +2276,7 @@ df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
 df_desnutricao.to_csv('tabelas_finais\\sisvan_desnutricao_por_ano.csv')
 serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual Crianças 0-6 com baixo peso',
-               nome_arquivo='sisvan_desnutricao_percentual_por_ano')
+               nome_arquivo='sisvan_desnutricao_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %%
 df_sobrepeso = pd.read_csv(r"dados_locais\tratados\sobrepeso.csv", index_col=0)
@@ -2202,11 +2288,11 @@ df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].appl
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
 df_sobrepeso.to_csv('tabelas_finais\\sisvan_sobrepeso_por_ano.csv')
 serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual Crianças 0-6 com sobrepeso i.e. PESO ACIMA + OBESIDADE',
-               nome_arquivo='sisvan_sobrepeso_percentual_por_ano')
+               nome_arquivo='sisvan_sobrepeso_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %%
 serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual Crianças 0-6 com obesidade',
-               nome_arquivo='sisvan_obesidade_percentual_por_ano')
+               nome_arquivo='sisvan_obesidade_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %% [markdown]
 # ### 💉 Cobertura Vacinal EPI
@@ -2219,6 +2305,8 @@ serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Pe
 # - 2026 é um ano ainda em curso (dados parciais); comparar com cautela contra os anos fechados.
 
 # %%
+fonte_cobertura_vacinal = 'EPI/SVS-Rio, cobertura vacinal por imunobiológico'
+
 df_cobertura_vacinal = carrega_cobertura_vacinal('dados_locais//vacinacao//serie_historica_cobertura_vacinal.csv')
 df_cobertura_vacinal_wide = df_cobertura_vacinal.pivot(index='ano', columns='imunobiologico', values='cobertura').reset_index()
 df_cobertura_vacinal_wide.to_csv('tabelas_finais//cobertura_vacinal_epi_por_ano.csv', index=False)
@@ -2234,7 +2322,7 @@ serie_temporal_multipla(
     nome_arquivo='cobertura_vacinal_epi_ano',
     ylabel='Cobertura (%)',
     legend_title='Imunobiológico',
-    figsize=(14,7),
+    figsize=(14,7), fonte_dados=fonte_cobertura_vacinal,
 )
 
 # %% [markdown]
@@ -2262,7 +2350,7 @@ grafico_barra_agrupado(
     ordem_categoria=[str(a) for a in anos_comparacao],
     ordem_agrupador=ordem_vacinas,
     rotacao_x=0,
-    figsize=(16,7),
+    figsize=(16,7), fonte_dados=fonte_cobertura_vacinal,
 )
 
 # %% [markdown]
@@ -2281,6 +2369,8 @@ grafico_barra_agrupado(
 # o SIDRA para o retrato mais fino de 2022, a PNAD para tendência ao longo do tempo.
 
 # %%
+fonte_sidra_educacao = 'Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)'
+
 df_sidra_freq_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_raca_cor.csv', coluna_corte='Cor ou raça')
 df_sidra_freq_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_sexo.csv', coluna_corte='Sexo')
 df_sidra_taxa_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_raca_cor.csv', coluna_corte='Cor ou raça')
@@ -2301,7 +2391,7 @@ grafico_barra_agrupado(
     categoria='idade', valor='valor', agrupador='Cor ou raça',
     titulo='Crianças de até 5 anos que frequentam escola/creche, por idade e raça/cor - Rio de Janeiro (Censo 2022)',
     nome_arquivo='sidra_frequencia_escola_0_5_raca_2022', ylabel='Pessoas', legend_title='Raça/cor',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5, fonte_dados=fonte_sidra_educacao,
 )
 
 # %%
@@ -2310,7 +2400,7 @@ grafico_barra_agrupado(
     categoria='idade', valor='valor', agrupador='Sexo',
     titulo='Crianças de até 5 anos que frequentam escola/creche, por idade e sexo - Rio de Janeiro (Censo 2022)',
     nome_arquivo='sidra_frequencia_escola_0_5_sexo_2022', ylabel='Pessoas', legend_title='Sexo',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5, fonte_dados=fonte_sidra_educacao,
 )
 
 # %%
@@ -2319,7 +2409,7 @@ grafico_barra_agrupado(
     categoria='idade', valor='valor', agrupador='Cor ou raça',
     titulo='Taxa de frequência escolar bruta (0-6 anos), por idade e raça/cor - Rio de Janeiro (Censo 2022)',
     nome_arquivo='sidra_taxa_frequencia_0_6_raca_2022', ylabel='Taxa (%)', legend_title='Raça/cor',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU, fonte_dados=fonte_sidra_educacao,
 )
 
 # %%
@@ -2328,13 +2418,15 @@ grafico_barra_agrupado(
     categoria='idade', valor='valor', agrupador='Sexo',
     titulo='Taxa de frequência escolar bruta (0-6 anos), por idade e sexo - Rio de Janeiro (Censo 2022)',
     nome_arquivo='sidra_taxa_frequencia_0_6_sexo_2022', ylabel='Taxa (%)', legend_title='Sexo',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU, fonte_dados=fonte_sidra_educacao,
 )
 
 # %% [markdown]
 # #### Taxa de frequência escolar
 
 # %%
+fonte_pnad = 'PNAD Contínua (IBGE)'
+
 df_freq_escolar = pd.read_csv('dados_locais//educacao//pnad_taxa_frequencia_escolar_ate_6_anos.csv', sep=';')
 df_freq_escolar = df_freq_escolar[(df_freq_escolar['Idade'] != '0 a 3 anos')
                                   & (df_freq_escolar['Idade'] != '4 a 5 anos')
@@ -2345,12 +2437,14 @@ df_freq_escolar
 
 # %%
 grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequencia escolar por idade",
-              nome_arquivo='pnad_frequencia_escolar_por_idade')
+              nome_arquivo='pnad_frequencia_escolar_por_idade', fonte_dados=fonte_pnad)
 
 # %% [markdown]
 # #### Número de matrículas 0 a 6 anos (complementar 2021-2025)
 
 # %%
+fonte_matriculas = 'Censo Escolar/INEP'
+
 df_freq_escolar = pd.read_csv('dados_locais//educacao//censo_escolar_matriculas_ate_6anos.csv')
 df_freq_escolar.sort_values('ano', inplace=True)
 df_freq_escolar.rename(columns={'f0_': 'matriculas'}, inplace=True)
@@ -2359,7 +2453,7 @@ df_freq_escolar
 
 # %%
 serie_temporal(df_freq_escolar,'ano','matriculas','Matrículas de 0 a 6 anos por ano',
-               nome_arquivo='matriculas_0_a_6_por_ano')
+               nome_arquivo='matriculas_0_a_6_por_ano', fonte_dados=fonte_matriculas)
 
 # %% [markdown]
 # #### Juncao de tabelas por bairro

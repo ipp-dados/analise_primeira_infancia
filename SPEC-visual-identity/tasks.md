@@ -5,60 +5,67 @@
 - [x] **T0.2** — Branch `spec/visual-identity` criada a partir de `spec/maps-and-ibge`.
 
 ## Bloco 1 — Módulo de estilo compartilhado (`analise.py`)
-- [ ] **T1.1** — Adicionar `_PALETA_CATEGORICA`, `_CORES_TEMA_MAPA`,
+- [x] **T1.1** — Adicionadas `_PALETA_CATEGORICA`, `_CORES_TEMA_MAPA`,
       `_LIMIAR_DESTAQUE_SERIES`, `_N_SERIES_DESTACADAS`, `_COR_SERIE_APAGADA`,
       `_COR_FONTE_RODAPE`, `_rodape_fonte()` (plan.md §1).
-- [ ] **T1.2** — Atualizar `serie_temporal` (fonte_dados, título serifado, DPI 200).
-- [ ] **T1.3** — Atualizar `grafico_barra` (paleta do projeto no lugar de `'pastel'`, fonte_dados).
-- [ ] **T1.4** — Atualizar `grafico_barra_agrupado` (paleta, fonte_dados).
-- [ ] **T1.5** — Atualizar `serie_temporal_multipla` (paleta fixa por posição, lógica de
+- [x] **T1.2** — `serie_temporal` atualizada (fonte_dados, título serifado, DPI 200).
+- [x] **T1.3** — `grafico_barra` atualizada (paleta do projeto no lugar de `'pastel'`, fonte_dados).
+- [x] **T1.4** — `grafico_barra_agrupado` atualizada (paleta, fonte_dados).
+- [x] **T1.5** — `serie_temporal_multipla` atualizada (paleta fixa por posição, lógica de
       destaque acima de 6 séries, `destaques=` opcional, fonte_dados).
-- [ ] **T1.6** — Rodar as 4 funções isoladas (fora do notebook completo) num teste rápido
-      com dado sintético para confirmar que não quebram antes de tocar os ~73 call sites.
+- [x] **T1.6** — As 4 funções testadas isoladas com dado sintético (série simples, barra,
+      barra agrupada, múltipla com ≤6 e com >6 séries) — todas geraram PNG válido; o caso
+      >6 séries confirmado visualmente (4 linhas coloridas + "Outras (N)" em cinza).
 
 ## Bloco 2 — Mapas: `cmap` por tema (25 call sites)
-- [ ] **T2.1** — Tema `censo` → `cmap=_CORES_TEMA_MAPA['censo']`: linhas 758, 768, 799, 807.
-- [ ] **T2.2** — Tema `cadunico`: linhas 1013, 1033, 1038.
-- [ ] **T2.3** — Tema `natalidade`: linhas 1075, 1116, 1121.
-- [ ] **T2.4** — Tema `mortalidade`: linhas 1277, 1282, 1852, 1861, 1895, 1959, 1992, 2035,
-      2040, 2075, 2080, 2144, 2149, 2166, 2171.
-- [ ] **T2.5** — Regenerar os 25 mapas (rodar as células) e checar visualmente contraste da
-      classe mais clara de cada rampa (`BuGn`/`RdPu`/`YlOrBr`/`Blues`) sobre o basemap —
-      ajustar opacidade/alpha só se algum ficar ilegível.
+- [x] **T2.1** — Tema `censo`: 4 call sites (Censo 0-4 anos bairro/AP/RP, abs+%).
+- [x] **T2.2** — Tema `cadunico`: 3 call sites.
+- [x] **T2.3** — Tema `natalidade`: 3 call sites.
+- [x] **T2.4** — Tema `mortalidade`: 15 call sites.
+- [x] **T2.5** — Confirmado por script que as 25 chamadas têm `cmap=_CORES_TEMA_MAPA[...]`
+      (4+3+3+15=25, nenhuma sobrou no default `'Oranges'`). Inspeção visual do contraste sobre
+      o basemap fica para o spot-check do Bloco 5 (depois da execução completa do notebook).
 
 ## Bloco 3 — `fonte_dados` + paleta nos ~48 call sites restantes
-Percorrer `analise.py` seção por seção (mesma ordem do notebook), adicionando
-`fonte_dados=fonte_<seção>` a cada chamada. Criar uma nova constante `fonte_*`
-para seções que ainda não têm uma (SISVAN, PNAD/matrículas, SIDRA educação).
-- [ ] **T3.1** — Censo: `grafico_barra_agrupado` (719, 728) → `fonte_censo` (já existe,
-      confirmar se cobre também os 2 gráficos SIDRA Censo do Componente B ou se precisam de
-      `fonte_sidra_censo` própria).
-- [ ] **T3.2** — CadÚnico: `grafico_barra` (914, 919, 935, 939) → `fonte_cadunico`.
-- [ ] **T3.3** — Nascidos vivos / baixo peso: `serie_temporal` (1090, 1135) → `fonte_datasus_bairro`.
-- [ ] **T3.4** — Óbitos por raça / evitáveis (0-364, subgrupo, grupo etário): `serie_temporal_multipla`
-      (1248, 1261, 1344, 1366, 1379, 1392, 1438, 1450, 1485, 1497, 1526, 1538, 1567, 1579,
-      1657, 1695, 1751, 1763, 1779, 1815, 1916) e `grafico_barra_agrupado` (1614) →
-      `fonte_datasus_bairro` ou `fonte_evitaveis_cap`, conforme a tabela de origem de cada uma
-      (checar `df_evitaveis_*` vs `df_mortalidade_raca_bairro` linha a linha).
-- [ ] **T3.5** — Gravidez/puerpério/neonatal: `serie_temporal` (1669, 1945, 1979, 2025, 2065,
-      2134, 2159) → `fonte_datasus_bairro`/`fonte_evitaveis_cap`.
-- [ ] **T3.6** — SISVAN (desnutrição/sobrepeso/obesidade): `serie_temporal` (2192, 2204, 2208)
-      → nova `fonte_sisvan` (checar se já existe uma constante equivalente antes de criar).
-- [ ] **T3.7** — PNAD/matrículas: `serie_temporal` (2361), `grafico_barra` (2347),
-      `grafico_barra_agrupado` (2253, 2299, 2308, 2317, 2326) → `fonte_pnad`/`fonte_matriculas`/
-      `fonte_sidra_educacao` conforme a seção.
-- [ ] **T3.8** — `serie_temporal_multipla` (2229) → conferir seção e fonte.
-- [ ] **T3.9** — Conferir que todo call site das 4 funções (73 no total, mapas incluídos) tem
-      `fonte_dados` — `grep -c "fonte_dados=" analise.py` deve bater com a contagem de chamadas.
+- [x] **T3.1** — Censo: `grafico_barra_agrupado` (SIDRA raça/sexo) → nova `fonte_sidra_censo`
+      (distinta de `fonte_censo`, que é Data.Rio, não IBGE/SIDRA).
+- [x] **T3.2** — CadÚnico: `grafico_barra` (4 chamadas, renda/idade) → `fonte_cadunico`
+      (definição movida para o início da seção CadÚnico, antes do 1º uso).
+- [x] **T3.3** — Nascidos vivos / baixo peso: `serie_temporal` (2) → `fonte_datasus_bairro`.
+- [x] **T3.4** — Óbitos por raça / evitáveis (raça, grupo, subgrupo, 0-364/0-6/7-27/28-364,
+      comparação por faixa, CAP, subgrupo×CAP): confirmado que raça/cor vem do Tabnet
+      (`fonte_datasus_bairro`) e que grupo/subgrupo/CAP vêm do SIM/SVS-Rio TabWin — a
+      constante `fonte_evitaveis_cap` (definida tarde demais, só na subseção CAP) foi
+      **renomeada para `fonte_evitaveis`, movida para antes do 1º uso** (linha ~1414, antes da
+      subseção de raça) e reaproveitada em todos os ~24 call sites evitáveis (séries + os 3
+      mapas que já a usavam).
+- [x] **T3.5** — Gravidez/puerpério/neonatal: `serie_temporal` (6) → `fonte_datasus_bairro`.
+- [x] **T3.6** — SISVAN: nova `fonte_sisvan`; 3 `serie_temporal`.
+- [x] **T3.7** — Cobertura vacinal: nova `fonte_cobertura_vacinal`; 1 `serie_temporal_multipla`
+      + 1 `grafico_barra_agrupado`. SIDRA educação: nova `fonte_sidra_educacao`; 4
+      `grafico_barra_agrupado`. PNAD: nova `fonte_pnad`; 1 `grafico_barra`. Matrículas: nova
+      `fonte_matriculas`; 1 `serie_temporal`.
+- [x] **T3.8** — Confirmado (fazia parte do levantamento acima).
+- [x] **T3.9** — `grep -c "fonte_dados=" analise.py` = 78 = 5 assinaturas de função (`=None`
+      nos 4 defs de gráfico + 1 no de mapa) + 73 call sites reais (25 mapas + 48 gráficos).
+      Verificação programática confirmou 0 call sites sem `fonte_dados`.
 
 ## Bloco 4 — Destaque de séries com muitas linhas
-- [ ] **T4.1** — Identificar todas as `serie_temporal_multipla` com >6 colunas (candidatos
-      conhecidos: cobertura vacinal EPI comparativo, as ~18 séries de evitáveis por
-      subgrupo×CAP do `SPEC-maps-and-ibge`).
-- [ ] **T4.2** — Para cada uma, decidir se o "top 4 pelo valor final" automático faz sentido
-      ou se precisa de `destaques=[...]` manual (ex.: cobertura vacinal pode preferir vacinas
-      específicas) — registrar a decisão como comentário no call site.
-- [ ] **T4.3** — Regenerar e inspecionar visualmente cada gráfico afetado.
+- [x] **T4.1** — >6 séries confirmadas em: 4 gráficos "subgrupo" evitáveis (7 séries: 6
+      subgrupos + `2.`), 2 "menores_5/extra" subgrupo (7 séries), ~27 gráficos "por CAP" (10
+      séries), 1 cobertura vacinal (11 séries). Painéis por raça/cor ficaram em 6 séries — não
+      disparam o destaque, como previsto no plan.md.
+- [x] **T4.2** — Decisão: manter o destaque **automático** (top 4 pelo valor final) em todos os
+      casos, inclusive cobertura vacinal. Motivo levantado ao checar os dados reais: os nomes
+      de coluna de `cobertura_vacinal_epi_por_ano.csv` têm mojibake pré-existente (`TR�PLICE
+      VIRAL D1`, `ROTAV�RUS` etc., confirmado com leitura `utf-8` explícita — bug real no
+      arquivo fonte, não um artefato de terminal) — hardcodar uma lista `destaques=[...]` teria
+      risco real de não bater com a string exata e falhar silenciosamente (nenhuma linha
+      destacada, sem erro). O top-4 automático já é defensável por si (evidencia os
+      imunobiológicos com maior cobertura corrente) e evita esse risco. Mojibake do CSV fica
+      registrado como um item separado de qualidade de dado, fora do escopo desta rodada.
+- [x] **T4.3** — Fica para o spot-check visual do Bloco 5 (cobertura vacinal e um gráfico
+      subgrupo×CAP), já que ambos exigem os dados reais do notebook.
 
 ## Bloco 5 — Validação completa do notebook
 - [ ] **T5.1** — `jupytext --sync` (ou execução direta) para refletir as mudanças de
