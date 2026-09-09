@@ -20,14 +20,14 @@ correspondente (`validation.md`). Referências `plan.md §N` apontam para o desi
 
 ## Bloco 1 — Correções pré-requisito (`plan.md` §2)
 
-- [ ] **T1.1** — Renomear o segundo `.to_csv` do CadÚnico:
+- [x] **T1.1** — Renomeado o segundo `.to_csv` do CadÚnico:
       `df_bairro_ate_4.to_csv('tabelas_finais/cadunico_por_bairro_ate_4_2026.csv')`
-- [ ] **T1.2** — `df_mortalidade_raca_bairro`: adicionar export em `tabelas_finais/mortalidade_raca_bairro_ano.csv`
-- [ ] **T1.3** — `df_neonatal_precoce`: adicionar export por bairro-ano em `tabelas_finais/`
-- [ ] **T1.4** — `df_neonatal_tardia`: idem
-- [ ] **T1.5** — `df_mortalidade_infantil`: idem
-- [ ] **T1.6** — `df_obitos_gravidez`: adicionar export por bairro-ano em `tabelas_finais/`
-- [ ] **T1.7** — `df_obitos_puerperio`: idem
+- [x] **T1.2** — `df_mortalidade_raca_bairro`: export em `tabelas_finais/mortalidade_raca_bairro_ano.csv`
+- [x] **T1.3** — `df_neonatal_precoce`: export por bairro-ano em `tabelas_finais/`
+- [x] **T1.4** — `df_neonatal_tardia`: idem
+- [x] **T1.5** — `df_mortalidade_infantil`: idem
+- [x] **T1.6** — `df_obitos_gravidez`: export por bairro-ano em `tabelas_finais/`
+- [x] **T1.7** — `df_obitos_puerperio`: idem
 
 → **valida com V1**
 
@@ -35,11 +35,12 @@ correspondente (`validation.md`). Referências `plan.md §N` apontam para o desi
 
 ## Bloco 2 — Componente A: funções auxiliares (`plan.md` §3.4-3.5)
 
-- [ ] **T2.1** — `junta_codbairro_por_bairro(df, df_referencia)` em
-      **Limpeza e wrangling de dados** (`plan.md` §3.4)
-- [ ] **T2.2** — Aplicar em `df_bairro` (reset do índice primeiro) e garantir que o merge
-      existente de `df_bairro_ate_4` com `df_censo` (linha ~905) já traz `codbairro`
-- [ ] **T2.3** — Colunas `obitos_total`/`nascidos_total`/`percentual_total` em
+- [x] **T2.1** — `junta_codbairro_por_bairro(df, df_referencia)` em
+      **Limpeza e wrangling de dados** (`plan.md` §3.4) — também `carrega_sidra_longo`
+      (Bloco 4) adicionada no mesmo local
+- [x] **T2.2** — Aplicado: `df_bairro_mapa` (nova variável, sem a linha `'Total'`) para
+      `df_bairro`; merge existente de `df_bairro_ate_4` com `df_censo` já traz `codbairro`
+- [x] **T2.3** — Colunas `obitos_total`/`nascidos_total`/`percentual_total` em
       `df_mortalidade_raca_bairro` (`plan.md` §3.5)
 
 → **valida com V2.1-V2.2**

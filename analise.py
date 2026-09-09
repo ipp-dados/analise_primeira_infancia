@@ -271,6 +271,33 @@ def agrega_grupo_cid(df, colunas_chave):
     df['grupo'] = df['subgrupo'].str[0].map(_GRUPOS_CID)
     return df.groupby(colunas_chave + ['grupo'], as_index=False)['obitos'].sum()
 
+def junta_codbairro_por_bairro(df, df_referencia):
+    """Junta `codbairro` a uma tabela cuja única chave de bairro é o nome (string) -- caso do
+    CadÚnico, a única fonte do projeto sem `codigo`/`codbairro` nativo. Usa `df_referencia`
+    (ex. `df_censo`, que já tem `codbairro` confiável) como fonte da correspondência
+    nome -> código. Levanta erro se sobrar alguma linha sem match, em vez de silenciosamente
+    dropar bairros -- um join fuzzy solto foi descartado como opção (skill `generate_map`)."""
+    resultado = df.merge(df_referencia[['bairro', 'codbairro']], on='bairro', how='left')
+    sem_match = resultado[resultado['codbairro'].isna()]
+    if len(sem_match) > 0:
+        raise ValueError(f"{len(sem_match)} bairros sem correspondência: {sorted(sem_match['bairro'].unique())}")
+    return resultado
+
+def carrega_sidra_longo(caminho, coluna_corte=None):
+    """Lê um export longo do IBGE SIDRA (uma linha de município, dimensões em colunas) e
+    devolve só as colunas relevantes: idade, `coluna_corte` (raça/sexo, se houver) e valor.
+
+    As tabelas de `dados_locais/IBGE SIDRA/` trazem sempre Rio de Janeiro (código 3304557),
+    2022, e uma coluna de idade (`Idade` na tabela 9606, `Grupo de idade` nas 10056/10057) --
+    normalizada aqui para 'idade'. `Valor == '-'` (0 ocorrências, mesma convenção já usada nos
+    arquivos Tabnet do projeto) é convertido para 0."""
+    df = pd.read_csv(caminho)
+    coluna_idade = 'Idade' if 'Idade' in df.columns else 'Grupo de idade'
+    df = df.rename(columns={coluna_idade: 'idade'})
+    df['valor'] = df['Valor'].replace('-', 0).astype(float)
+    colunas = ['idade', 'valor'] + ([coluna_corte] if coluna_corte else [])
+    return df[colunas]
+
 # %% [markdown]
 # ### 📈 Funções de visualização
 #
@@ -887,6 +914,34 @@ df_bairro.loc['Total'] = df_bairro.sum()
 #df_bairro = df_bairro.reindex(custom_order)
 df_bairro.to_csv('tabelas_finais\\cadunico_por_bairro_2026.csv')
 
+# %% [markdown]
+# **Nota sobre bairros do CadÚnico sem correspondência oficial:** o CadÚnico geocodifica
+# endereços por bairro autodeclarado/histórico, que nem sempre bate com a lista oficial de
+# 166 bairros do IPP usada em `df_censo`. Duas situações, tratadas de formas diferentes:
+# 4 nomes são variações de grafia do mesmo bairro oficial (normalizados via
+# `_ALIAS_BAIRRO_CADUNICO` antes do join); 6 são localidades informais/históricas sem bairro
+# oficial correspondente (ex. Dendê, Tubiacanga -- localidades da Ilha do Governador), juntos
+# **380 crianças de 178.329 (~0,2%)** -- excluídas só do mapa por bairro (a tabela completa,
+# `cadunico_por_bairro_2026.csv`, mantém todos os nomes originais).
+
+# %%
+_ALIAS_BAIRRO_CADUNICO = {
+    'Freguesia (Ilha do Governador)': 'Freguesia (Ilha)',
+    'Oswaldo Cruz': 'Osvaldo Cruz',
+    'São Cristóvão': 'Imperial de São Cristóvão',
+    'Turiaçu': 'Turiaçú',
+}
+_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA = [
+    'Dendê', 'Dumas', 'Guarabu', 'Itacolomi', 'Nossa Senhora das Graças', 'Tubiacanga',
+]
+
+# versão com codbairro (via df_censo), sem a linha 'Total' -- insumo do mapa por bairro (ver Mapas)
+df_bairro_mapa = df_bairro.drop(index='Total').reset_index()
+df_bairro_mapa['bairro'] = df_bairro_mapa['bairro'].replace(_ALIAS_BAIRRO_CADUNICO)
+df_bairro_mapa = df_bairro_mapa[~df_bairro_mapa['bairro'].isin(_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA)]
+df_bairro_mapa = junta_codbairro_por_bairro(df_bairro_mapa, df_censo)
+df_bairro_mapa.head()
+
 # %%
 df_bairro.sort_values(by='Crianças', ascending=False).head(10)
 # ADICIONAR NOTA SOBRE IDENTIFICACAO DE BAIRROS
@@ -898,8 +953,11 @@ df_bairro_ate_4 = df_ate_4.groupby(by=['bairro']).agg({'Crianças':'count','Fam�
 df_bairro_ate_4.loc['Total'] = df_bairro_ate_4.sum()
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro_ate_4.to_csv('tabelas_finais\\cadunico_por_bairro_2026.csv')
-df_bairro_ate_4 = df_bairro_ate_4.merge(df_censo[['bairro','0 a 4 anos']], on='bairro', how='right')
+df_bairro_ate_4.to_csv('tabelas_finais\\cadunico_por_bairro_ate_4_2026.csv')
+# mesma normalização/exclusão de nomes sem correspondência oficial que df_bairro_mapa (nota acima) --
+# sem isso, o merge 'right' abaixo já dropava essas linhas em silêncio (nenhum erro, só sumia o dado)
+df_bairro_ate_4 = df_bairro_ate_4.rename(index=_ALIAS_BAIRRO_CADUNICO).drop(index=_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA, errors='ignore')
+df_bairro_ate_4 = df_bairro_ate_4.merge(df_censo[['bairro','codbairro','0 a 4 anos']], on='bairro', how='right')
 df_bairro_ate_4['Primeira Inf. Cadúnico'] = df_bairro_ate_4['Crianças']/df_bairro_ate_4['0 a 4 anos']
 df_bairro_ate_4.sort_values(by='Crianças', ascending=False).head(10)
 
@@ -1050,8 +1108,16 @@ for raca in racas:
     percentual = (df_mortalidade_raca_bairro[f'obitos_{raca}'] / df_mortalidade_raca_bairro[f'nascidos_{raca}']) * 100
     df_mortalidade_raca_bairro[f'percentual_{raca}'] = percentual.replace([float('inf'), -float('inf')], float('nan')).round(2)
 
+# total agregado (todas as raças somadas) -- percentual sempre recalculado a partir das somas,
+# nunca média das 6 taxas por raça (mesma regra de agrega_bairros_por_nivel)
+df_mortalidade_raca_bairro['obitos_total'] = df_mortalidade_raca_bairro[colunas_obitos].sum(axis=1)
+df_mortalidade_raca_bairro['nascidos_total'] = df_mortalidade_raca_bairro[colunas_nascidos].sum(axis=1)
+percentual_total = (df_mortalidade_raca_bairro['obitos_total'] / df_mortalidade_raca_bairro['nascidos_total']) * 100
+df_mortalidade_raca_bairro['percentual_total'] = percentual_total.replace([float('inf'), -float('inf')], float('nan')).round(2)
+
 df_mortalidade_raca_bairro = df_mortalidade_raca_bairro.sort_values(by=['ano','bairro']).reset_index(drop=True)
 df_mortalidade_raca_bairro.to_csv('dados_locais//tratados//mortalidade_raca_bairro_ano.csv', index=False)
+df_mortalidade_raca_bairro.to_csv('tabelas_finais//mortalidade_raca_bairro_ano.csv', index=False)
 df_mortalidade_raca_bairro.head()
 
 # %%
@@ -1595,6 +1661,7 @@ for sufixo, info in faixas_primeira_infancia.items():
 df_obitos_gravidez = pd.read_csv('dados_locais\\mortalidade\\obitos_gravidez_bairro_2006_2025.csv')
 df_obitos_gravidez = limpa_dados_datasus(df_obitos_gravidez)
 df_obitos_gravidez = limpeza_tabnet_bairros(df_obitos_gravidez,categoria='óbitos-gravidez')
+df_obitos_gravidez.to_csv('tabelas_finais//obitos_gravidez_bairro_ano.csv', index=False)
 df_obitos_gravidez.head()
 
 # %%
@@ -1611,6 +1678,7 @@ serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durant
 df_obitos_puerperio = pd.read_csv('dados_locais\\mortalidade\\obitos_puerperio_bairro_2006_2025.csv')
 df_obitos_puerperio = limpa_dados_datasus(df_obitos_puerperio)
 df_obitos_puerperio = limpeza_tabnet_bairros(df_obitos_puerperio,categoria='óbitos-puerpério')
+df_obitos_puerperio.to_csv('tabelas_finais//obitos_puerperio_bairro_ano.csv', index=False)
 df_obitos_puerperio.head()
 
 # %%
@@ -1640,6 +1708,7 @@ df_neonatal_precoce = limpa_dados_datasus(df_neonatal_precoce)
 df_neonatal_precoce = limpeza_tabnet_bairros(df_neonatal_precoce,categoria='obitos precoces')
 df_neonatal_precoce = df_neonatal_precoce.merge(df_vivos, on=['bairro','ano','codigo'])
 df_neonatal_precoce['taxa_mortalidade_precoce'] = (df_neonatal_precoce['obitos precoces']/df_neonatal_precoce['nascidos vivos'])*1000
+df_neonatal_precoce.to_csv('tabelas_finais//mortalidade_neonatal_precoce_bairro_ano.csv', index=False)
 df_neonatal_precoce.head()
 
 # %%
@@ -1661,6 +1730,7 @@ df_neonatal_tardia = limpa_dados_datasus(df_neonatal_tardia)
 df_neonatal_tardia = limpeza_tabnet_bairros(df_neonatal_tardia,'obitos_tardios')
 df_neonatal_tardia = df_neonatal_tardia.merge(df_vivos, on=['bairro','ano','codigo'])
 df_neonatal_tardia['taxa_obitos_tardios'] = (df_neonatal_tardia['obitos_tardios']/df_neonatal_tardia['nascidos vivos'])*1000
+df_neonatal_tardia.to_csv('tabelas_finais//mortalidade_neonatal_tardia_bairro_ano.csv', index=False)
 df_neonatal_tardia.head()
 
 # %%
@@ -1710,6 +1780,7 @@ df_mortalidade_infantil['taxa_mortalidade_pos_neonatal'] = (
     (df_mortalidade_infantil['obitos_28_364'] / df_mortalidade_infantil['nascidos_vivos']) * 1000
 ).replace([float('inf'), -float('inf')], float('nan'))
 
+df_mortalidade_infantil.to_csv('tabelas_finais//mortalidade_infantil_pos_neonatal_total_bairro_ano.csv', index=False)
 df_mortalidade_infantil.head()
 
 # %%
