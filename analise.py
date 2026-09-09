@@ -892,9 +892,6 @@ df_bairro.sort_values(by='Crianças', ascending=False).head(10)
 # ADICIONAR NOTA SOBRE IDENTIFICACAO DE BAIRROS
 
 # %%
-df_bairro.sort_values(by='Primeira Inf. Cadúnico', ascending=True).head(10)
-
-# %%
 #quantitativos por grupo de renda pct
 df_ate_4 = df[df['idade']<5].copy()
 df_bairro_ate_4 = df_ate_4.groupby(by=['bairro']).agg({'Crianças':'count','Famílias':'nunique'})
@@ -907,7 +904,10 @@ df_bairro_ate_4['Primeira Inf. Cadúnico'] = df_bairro_ate_4['Crianças']/df_bai
 df_bairro_ate_4.sort_values(by='Crianças', ascending=False).head(10)
 
 # %%
-df_bairro[df_bairro['bairro']=='Complexo do Alemão']
+df_bairro_ate_4.sort_values(by='Primeira Inf. Cadúnico', ascending=True).head(10)
+
+# %%
+df_bairro.loc[['Complexo do Alemão']]
 
 
 # %% [markdown]
