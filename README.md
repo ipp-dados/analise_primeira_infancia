@@ -6,6 +6,7 @@
 <p>Censo 2020/10/00 -> dados disponíveis em nosso google drive para download, fonte original IBGE, DataRio</p>
 <p>Óbitos por causas evitáveis na primeira infância por CAP -> planilha exportada do TabWin/SIM municipal (SIM/SVS-Rio), óbitos de residentes no Rio de Janeiro, 2006-2025, por Área Programática de Saúde e faixa etária (`dados_locais/mortalidade/obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx`)</p>
 <p>Geometria das CAPs (Coordenadoria de Área Programática de Saúde, SMS-Rio) -> Data.Rio/IPP-PCRJ, dataset "Áreas Programáticas da Saúde" (`dados_locais/geo/limite_ap_saude_rio.geojson`)</p>
+<p>IBGE SIDRA -> exports do Censo 2022 (tabela 9606, população 0-6 por idade/raça/sexo) e frequência escolar (tabelas 10056/10057), nível município, disponíveis em `dados_locais/IBGE SIDRA/`</p>
 <p></p>
 <i>OBS: listagem dos dados da versão MVP e do relatório final disponíveis no Google Drive.</i>
 
@@ -17,7 +18,7 @@
 *   `dados_locais/tratados/`: Saída intermediária de datasets limpos.
 *   `tabelas_finais/`: Pasta de saída padronizada (CSV/Excel) para tabelas e agregados gerados pelo pipeline.
 *   `visualizacoes/`: Diretório para os gráficos exportados pelo notebook (PNG por padrão; exportação adicional em SVG disponível, mas comentada, em cada função de gráfico). Nomes de arquivo refletem a seção/tema da análise (ex.: `cobertura_vacinal_epi_ano.png`, `cadunico_criancas_por_idade.png`).
-*   `mapas/`: Imagens de mapas e a subpasta `mapas/tabelas_bairros/`, destino único das tabelas por bairro em Excel usadas para gerar mapas (ex.: `dados_datasus_por_bairro.xlsx`, `mapa_bairros_nascidos_vivos_bruto.xlsx`). A maioria dos mapas ainda é gerada externamente (ex. QGIS); os coropléticos do Censo são gerados dentro do próprio `analise.py`, com `geopandas`/`contextily`, pela função `mapa_coropletico_bairros`: basemap cartográfico (Esri Ocean Basemap), limite estadual sobreposto, municípios vizinhos rotulados, rosa dos ventos, escala gráfica, título em fonte serifada (Palatino Linotype), formato ~1,46:1 (próximo de A4 paisagem) e exportação a 300 DPI. Cada indicador sai em três níveis de agregação -- por bairro (`mapa_censo_0_4_absoluto.png`, `mapa_censo_0_4_percentual.png`), por Área de Planejamento (`..._ap.png`) e por Região de Planejamento (`..._rp.png`).
+*   `mapas/`: Imagens de mapas coropléticos, gerados dentro do próprio `analise.py` com `geopandas`/`contextily` pela função `mapa_coropletico_bairros`: basemap cartográfico (Esri Ocean Basemap), limite estadual sobreposto, municípios vizinhos rotulados, rosa dos ventos, escala gráfica, título em fonte serifada (Palatino Linotype), formato ~1,46:1 (próximo de A4 paisagem) e exportação a 300 DPI. Cobre hoje o Censo (bairro/AP/RP), mortalidade por causas evitáveis por CAP (grupo e subgrupo), e ~20 mapas por bairro no ano mais recente (CadÚnico, nascidos vivos, baixo peso, óbitos por raça, mortalidade neonatal, óbitos gravidez/puerpério) -- cada um com sua tabela-insumo gêmea em `tabelas_finais/tabela_mapa_*.csv`. `mapas/tabelas_bairros/` é o resquício do padrão anterior (Excel), mantido só para `dados_datasus_por_bairro.xlsx` e as tabelas do Censo (`tabela_mapa_0_4_*.xlsx`); nascidos vivos e baixo peso já migraram para o padrão CSV.
 *   `relatorio/`: Páginas HTML autocontidas com os gráficos do notebook renderizados de forma interativa (SVG, tooltip, tabela de dados), para compartilhamento com quem não abre o notebook. Três versões, mesmo conteúdo e mesma ordem de `analise.py`, variando só o tema visual:
     *   `relatorio/index.html`: tema padrão (fundo em tom de pedra, paleta de cores plena nos gráficos).
     *   `relatorio/lighter_index.html`: tema mais claro e paleta pastel nos gráficos, com uma seção adicional de mapas coropléticos por bairro (imagens de `mapas/`, redimensionadas e incorporadas na própria página).
@@ -36,9 +37,11 @@ O script `analise.py` realiza as seguintes operações, em ordem prática:
 4.  CadÚnico: extração via CTPE, análise por faixa de renda, idade e bairro, com export em `tabelas_finais/` (ex.: `cadunico_por_faixa_etaria_2026.csv`).
 5.  DATASUS (Tabnet) — padrão comum: os arquivos Tabnet são normalizados pela função `limpeza_tabnet_bairros(df, categoria)`, que extrai `codigo` e `bairro`, remove linhas 'Total' e harmoniza nomes de colunas.
 6.  Para cada tema do DATASUS (nascidos vivos, baixo peso, mortalidade precoce/tardia, óbitos gravidez/puerpério) são geradas séries temporais e agregações anuais. Nas junções entre tabelas, a chave `codigo` (quando disponível) e `bairro`+`ano` são utilizadas para evitar ambiguidades.
-6b. Óbitos por causas evitáveis na primeira infância por CAP: `extrai_planilha_evitaveis_cap` lê a planilha TabWin (10 blocos de 12 linhas por aba) e materializa 6 CSVs fiéis à fonte em `dados_locais/tratados/`; `agrega_grupo_cid` deriva o nível grupo a partir dos 8 subgrupos CID; mapas por CAP usam o nível `'cap'` de `mapa_coropletico_bairros` (geometria em `dados_locais/geo/limite_ap_saude_rio.geojson`, coluna `cod_ap_sms` -- não confundir com o nível `'ap'`, as 5 Áreas de Planejamento do IPP).
+6b. Óbitos por causas evitáveis na primeira infância por CAP: `extrai_planilha_evitaveis_cap` lê a planilha TabWin (10 blocos de 12 linhas por aba) e materializa 6 CSVs fiéis à fonte em `dados_locais/tratados/`; `agrega_grupo_cid` deriva o nível grupo a partir dos 8 subgrupos CID; mapas por CAP usam o nível `'cap'` de `mapa_coropletico_bairros` (geometria em `dados_locais/geo/limite_ap_saude_rio.geojson`, coluna `cod_ap_sms` -- não confundir com o nível `'ap'`, as 5 Áreas de Planejamento do IPP). Além do grupo agregado, dois subgrupos específicos (gestação `1.2.1`, parto `1.2.2`) têm mapa e série temporal próprios por CAP, `< 1 ano`; e uma matriz completa (6 subgrupos evitáveis × 3 faixas etárias × CAP) cobre o cruzamento subgrupo×CAP em série temporal.
+6c. IBGE SIDRA: `carrega_sidra_longo(caminho, coluna_corte)` lê as 9 tabelas de `dados_locais/IBGE SIDRA/` (Censo 2022 e frequência escolar, sempre nível município, sem recorte sub-municipal) e normaliza para formato longo (`idade`, corte de raça/sexo, `valor`); tabelas largas em `tabelas_finais/` e gráficos de barra agrupada por idade × raça/sexo em `visualizacoes/`.
 7.  Padronização: nomes de saída e colunas agregadas seguem o padrão `*_anual` e campos de taxa usam nomes descritivos (ex.: `taxa_mortalidade_precoce`). Saídas finais CSV/Excel são escritas em `tabelas_finais/`.
-8.  Junção final: múltiplas tabelas DATASUS por bairro são unidas (merge outer) em `dados_datasus_por_bairro.xlsx`. Esta e as demais tabelas por bairro em Excel (nascidos vivos, baixo peso, Censo 0-4 anos) são sempre exportadas em `mapas/tabelas_bairros/`, para facilitar análises espaciais e export para mapas.
+8.  Junção final: múltiplas tabelas DATASUS por bairro são unidas (merge outer) em `dados_datasus_por_bairro.xlsx` (`mapas/tabelas_bairros/`).
+8b. Mapas por bairro (cobertura completa): todo indicador com granularidade de bairro -- CadÚnico (via `junta_codbairro_por_bairro`, que resolve nomes de bairro do CadÚnico sem correspondência direta na lista oficial de 166), nascidos vivos, baixo peso, óbitos por raça (coluna total agregada), mortalidade neonatal (precoce/tardia/pós-neonatal/total), óbitos gravidez/puerpério -- gera par `tabelas_finais/tabela_mapa_*.csv` + `mapas/mapa_*.png` (absoluto e, onde já existe denominador, taxa/percentual) para o ano mais recente disponível.
 9.  Visualizações: geração de séries temporais e gráficos de barras em `visualizacoes/`, com nomes de arquivo PNG que refletem a seção/tema da análise; exportação adicional em SVG fica disponível (comentada) em cada função de gráfico.
 
 ## Como Executar
@@ -235,6 +238,38 @@ Notable code changes (2026-09-08) — óbitos por causas evitáveis na primeira 
 - Documentado (não usado pelos mapas, que usam a geometria oficial) o de-para `_RA_PARA_CAP`,
   derivado do cruzamento espacial das 33 Regiões Administrativas com o polígono oficial das CAPs.
 
+Notable code changes (2026-09-09) — mapas por bairro (cobertura completa), IBGE SIDRA e
+mortalidade por subgrupo evitável (`SPEC-maps-and-ibge/`):
+- **Mapas por bairro para todo indicador com essa granularidade**: 11 indicadores (CadÚnico
+  criancas/primeira infância, nascidos vivos, baixo peso, óbitos por raça, mortalidade
+  neonatal precoce/tardia/pós-neonatal/total, óbitos gravidez/puerpério), 18 novos mapas em
+  `mapas/` + `tabelas_finais/tabela_mapa_*.csv` correspondentes, ano mais recente disponível
+  (2025 para DataSUS/Tabnet). Nova função `junta_codbairro_por_bairro` resolve o único caso
+  sem `codigo`/`codbairro` nativo (CadÚnico, chave por nome) contra `df_censo`; achou 10
+  nomes sem correspondência direta na lista oficial de 166 bairros -- 4 variações de grafia
+  (`_ALIAS_BAIRRO_CADUNICO`) e 6 localidades informais/históricas (`_BAIRROS_CADUNICO_SEM_
+  CORRESPONDENCIA`, ~0,2% dos registros, excluídas só do mapa). Nascidos vivos e baixo peso
+  migraram do padrão Excel legado (`mapas/tabelas_bairros/*.xlsx`) para CSV/`tabelas_finais/`.
+- **IBGE SIDRA**: nova função `carrega_sidra_longo` lê as 9 tabelas de
+  `dados_locais/IBGE SIDRA/` (Censo 2022 e frequência escolar, sempre nível município) e
+  normaliza para formato longo; 6 tabelas largas + 6 gráficos de barra agrupada (população
+  0-6 por idade × raça/sexo, frequência escolar × raça/sexo) em novas seções dentro de
+  `🏘️ Censo 2022` e `🎓 PNAD Contínua, Censo Escolar e INEP`.
+- **Mortalidade por subgrupo evitável**: 2 mapas novos por CAP (`< 1 ano`, 2025) para os
+  subgrupos gestação (`1.2.1`) e parto (`1.2.2`) -- mais fino que os 6 mapas de grupo já
+  existentes; painel municipal por subgrupo estendido para as 3 faixas etárias (antes só
+  `< 5 anos`); matriz completa de séries temporais subgrupo × CAP (6 subgrupos evitáveis × 3
+  faixas, 18 gráficos) e o recorte gestação/parto × CAP em série (2 gráficos, ao lado dos 2
+  mapas).
+- **Causas evitáveis por raça/cor**: novas versões dos 2 gráficos município-ano sem a
+  categoria `nao_informado` e sem o ano de 1996 (pico isolado de baixa completude de
+  preenchimento) -- resolve um comentário-lembrete que estava solto no código desde a
+  extração da planilha por CAP. Originais mantidos, para fidelidade à fonte.
+- Dois bugs pré-existentes corrigidos (achados ao rodar o notebook do zero, kernel limpo, em
+  vez de reaproveitar estado): uma célula do CadÚnico por bairro referenciava uma coluna
+  antes dela existir, e outra filtrava por `bairro` numa tabela onde `bairro` é o índice, não
+  coluna -- ambas só "funcionavam" num kernel reexecutado fora de ordem.
+
 ---
 
 ## Update Table
@@ -261,3 +296,4 @@ Notable code changes (2026-09-08) — óbitos por causas evitáveis na primeira 
 | 0.13.4  | 2026-09-08 | Rodapé cita "SIRGAS 2000, UTM - Fuso 23S" (igual a `mapas/mapa_referencia.jpeg`) em vez de "SIRGAS 2000 (EPSG:4326)". |
 | 0.13.5  | 2026-09-08 | Rodapé deslocado mais à esquerda (`x=0.55`) para não encostar na escala gráfica com o texto mais longo do sistema de referência. |
 | 0.14.0  | 2026-09-08 | Óbitos por causas evitáveis na primeira infância por Área Programática de Saúde (CAP): nova planilha TabWin (`obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx`) extraída para 6 CSVs em `dados_locais/tratados/`; painel municipal (série por subgrupo CID e taxa por mil NV), séries por CAP e faixa etária (`< 1 ano`/`1-4 anos`/`< 5 anos`), e 6 mapas coropléticos por CAP em 2025 (absoluto em classes discretas, percentual em escala contínua), via novo nível `'cap'` em `mapa_coropletico_bairros` (`_NIVEIS_AGREGACAO`) e geometria oficial das CAPs (`dados_locais/geo/limite_ap_saude_rio.geojson`, Data.Rio). |
+| 0.15.0  | 2026-09-09 | Mapas por bairro para todo indicador com essa granularidade (11 indicadores, 18 mapas novos + `tabela_mapa_*.csv` gêmeas, migração de nascidos vivos/baixo peso do Excel legado para CSV); importação e visualização do IBGE SIDRA (Censo 2022 e frequência escolar, nível município, 6 tabelas + 6 gráficos); mortalidade por subgrupo evitável -- 2 mapas (gestação/parto, CAP, `< 1 ano`, 2025), painel municipal nas 3 faixas etárias, matriz de séries subgrupo×CAP (18 gráficos) e recorte gestação/parto×CAP (2 gráficos); versões dos gráficos de causas evitáveis por raça/cor sem `nao_informado`/1996. Dois bugs pré-existentes de ordenação de células corrigidos (`SPEC-maps-and-ibge/`). |
