@@ -9,11 +9,13 @@ JS engine (lineChart/barChart/groupedBarChart, lifted from the old lighter_index
 and extended with the "many-series" highlight logic used in analise.py's
 serie_temporal_multipla). Per SPEC-visual-identity decision B, this report is
 visualization-only: title + source + chart/map + optional data table, no prose/notes
-(those stay in the notebook and the PDF).
+(those stay in the notebook and the PDF). Maps are interleaved in the same position
+they appear in analise.py (not grouped in one trailing section), and the page opens
+with a two-level table of contents (h2+h3) linking to every section.
 
-This is a direct transcription of analise.py's chart call sites as of this branch --
-if analise.py's sections, column names, or exported filenames change, this needs
-matching edits, same caveat as build_notebook_report.py.
+This is a direct transcription of analise.py's chart/map call sites, in the same
+order they appear there -- if analise.py's sections, column names, exported
+filenames, or cell order change, this needs matching edits.
 
 Usage (from project root):
     python .claude/skills/export_pdf_report/scripts/build_html_report.py [out_path]
@@ -22,6 +24,7 @@ import base64
 import io
 import json
 import math
+import os
 import re
 import sys
 import datetime
@@ -55,28 +58,47 @@ def jsvals(seq):
 
 parts = []      # HTML body
 scripts = []     # JS statements appended inside the IIFE, in order
+toc = []          # (level, title, anchor_id) collected as headings are emitted
 _counter = [0]
+_slugs = set()
 
 def new_id(prefix):
     _counter[0] += 1
     return f"{prefix}-{_counter[0]}"
 
-def h2(t): parts.append(f"<h2>{t}</h2>")
-def h3(t): parts.append(f"<h3>{t}</h3>")
+def slugify(text):
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'[^\w\s-]', '', text, flags=re.UNICODE).strip().lower()
+    slug = re.sub(r'[\s_]+', '-', text) or 'sec'
+    base, i = slug, 2
+    while slug in _slugs:
+        slug = f"{base}-{i}"
+        i += 1
+    _slugs.add(slug)
+    return slug
+
+def h2(t):
+    sid = slugify(t)
+    toc.append((2, t, sid))
+    parts.append(f'<h2 id="{sid}">{t}</h2>')
+
+def h3(t):
+    sid = slugify(t)
+    toc.append((3, t, sid))
+    parts.append(f'<h3 id="{sid}">{t}</h3>')
+
 def h4(t): parts.append(f"<h4>{t}</h4>")
 def h5(t): parts.append(f"<h5>{t}</h5>")
 def h6(t): parts.append(f"<h6>{t}</h6>")
 
-def _out_div(elem_id, fonte):
+def _out_div(elem_id, fonte, titulo=None):
+    tit = f'<div class="chart-subtitle">{titulo}</div>' if titulo else ""
     src = f'<div class="out-src">{fonte}</div>' if fonte else ""
-    return f'<div class="out"><div id="{elem_id}"></div>{src}</div>'
+    return f'<div class="out">{tit}<div id="{elem_id}"></div>{src}</div>'
 
 FMT_MAP = {'int': 'v=>fmt(v)', 'pct': 'v=>pct(v)', 'pct1': 'v=>pct(v,1)'}
 
-def line_chart(x, series, opts=None, fonte=None, pair=False):
-    """series: list of {label, values, format in FMT_MAP}. Returns the elem id
-    (caller wraps in .out / .out-pair). Color/legend/highlight all handled by
-    the JS engine itself."""
+def line_chart(x, series, opts=None, fonte=None, titulo=None):
     elem_id = new_id('c')
     opts = dict(opts or {})
     js_series = []
@@ -90,22 +112,20 @@ def line_chart(x, series, opts=None, fonte=None, pair=False):
             json.dumps(elem_id), json.dumps(jsvals(list(x))), ",".join(js_series), json.dumps(opts)
         )
     )
-    parts.append(_out_div(elem_id, fonte))
+    parts.append(_out_div(elem_id, fonte, titulo))
     return elem_id
 
-def bar_chart(items, fonte=None):
-    """items: list of {label, value}."""
+def bar_chart(items, fonte=None, titulo=None):
     elem_id = new_id('c')
     js_items = [
         "{label:%s, value:%s}" % (json.dumps(str(it['label']), ensure_ascii=False), json.dumps(round(float(it['value']), 4)))
         for it in items
     ]
     scripts.append("barChart(byId(%s), {items:[%s]});" % (json.dumps(elem_id), ",".join(js_items)))
-    parts.append(_out_div(elem_id, fonte))
+    parts.append(_out_div(elem_id, fonte, titulo))
     return elem_id
 
-def grouped_bar_chart(groups, series, opts=None, fonte=None):
-    """series: list of {label, values, format}."""
+def grouped_bar_chart(groups, series, opts=None, fonte=None, titulo=None):
     elem_id = new_id('c')
     opts = dict(opts or {})
     opts.setdefault('table', True)
@@ -120,7 +140,7 @@ def grouped_bar_chart(groups, series, opts=None, fonte=None):
             json.dumps(elem_id), json.dumps([str(g) for g in groups], ensure_ascii=False), ",".join(js_series), json.dumps(opts)
         )
     )
-    parts.append(_out_div(elem_id, fonte))
+    parts.append(_out_div(elem_id, fonte, titulo))
     return elem_id
 
 def out_pair(fn1, fn2):
@@ -153,6 +173,20 @@ def map_card(png_name, caption, max_width=1400):
     b64 = base64.b64encode(buf.getvalue()).decode("ascii")
     return f'<figure class="map-card"><img src="data:image/webp;base64,{b64}" alt="{caption}" loading="lazy"><figcaption class="map-cap">{caption}</figcaption></figure>'
 
+def maps_block(imgs):
+    """imgs: list of (filename, caption)."""
+    parts.append('<div class="map-gallery">')
+    for fn, caption in imgs:
+        parts.append(map_card(fn, caption))
+    parts.append('</div>')
+
+available_maps = set(os.listdir(MAPAS))
+
+def check_maps(imgs):
+    missing = [fn for fn, _ in imgs if fn not in available_maps]
+    if missing:
+        raise SystemExit(f"missing map PNGs: {missing}")
+
 # ================================================================= HEADER ==
 
 parts.append('<header class="doc-head">')
@@ -160,6 +194,7 @@ parts.append('<h1><span class="glyph">\U0001F3DB️</span>Análise Primeira Inf�
 parts.append('<p class="sub">Visualizações dos indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro. Cada gráfico tem a fonte no rodapé e uma opção de ver os dados em tabela; a descrição metodológica completa fica no notebook (<code>analise.py</code>) e no relatório em PDF.</p>')
 parts.append('<div class="meta"><span>Instituto Pereira Passos</span><span id="gen-date">—</span></div>')
 parts.append('</header>')
+parts.append('<!--TOC-->')
 
 # ================================================================== CENSO ==
 
@@ -170,7 +205,34 @@ df_censo_bairro = read("censo_por_bairro.csv")
 top10 = df_censo_bairro.sort_values("0 a 4 anos", ascending=False).head(10)[["bairro", "0 a 4 anos", "Percentual 0 a 4"]]
 top10 = top10.rename(columns={"bairro": "Bairro", "0 a 4 anos": "Crianças 0-4", "Percentual 0 a 4": "% do bairro"})
 top10["% do bairro"] = top10["% do bairro"].map(lambda v: f"{v:.1f}%".replace(".", ","))
-plain_table(top10, fonte="Censo Demográfico 2022 (IBGE/Data.Rio)")
+FONTE_CENSO = "Censo Demográfico 2022 (IBGE/Data.Rio)"
+plain_table(top10, fonte=FONTE_CENSO)
+
+h3('População 0-6 por idade/raça/sexo (IBGE SIDRA, 2022)')
+FONTE_SIDRA_CENSO = "Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)"
+_ORDEM_IDADE_SIDRA_0_6 = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
+
+def _ordenar_idade(df, ordem):
+    return df[df["idade"].isin(ordem)].set_index("idade").reindex(ordem).reset_index()
+
+df_censo_raca = _ordenar_idade(read("censo_sidra_populacao_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
+raca_cols = [c for c in df_censo_raca.columns if c not in ("idade", "Total")]
+grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO)
+df_censo_sexo = _ordenar_idade(read("censo_sidra_populacao_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
+sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
+grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO)
+
+h3('Mapas')
+_censo_maps = [
+    ("mapa_censo_0_4_absoluto.png", "Crianças de 0 a 4 anos, por bairro (Censo 2022)"),
+    ("mapa_censo_0_4_percentual.png", "% de crianças de 0 a 4 anos, por bairro (Censo 2022)"),
+    ("mapa_censo_0_4_absoluto_ap.png", "Crianças de 0 a 4 anos, por Área de Planejamento"),
+    ("mapa_censo_0_4_percentual_ap.png", "% de crianças de 0 a 4 anos, por Área de Planejamento"),
+    ("mapa_censo_0_4_absoluto_rp.png", "Crianças de 0 a 4 anos, por Região de Planejamento"),
+    ("mapa_censo_0_4_percentual_rp.png", "% de crianças de 0 a 4 anos, por Região de Planejamento"),
+]
+check_maps(_censo_maps)
+maps_block(_censo_maps)
 
 h3('Série temporal')
 df_censo_serie = read("censo_0_a_4_anos_por_ano.csv")
@@ -183,18 +245,6 @@ line_chart(df_censo_serie["ano"], [
     {'label': 'Percentual 0–4 anos', 'values': df_censo_serie['Percentual 0 a 4 anos'], 'format': 'pct1'},
 ], opts={'height': 200, 'zeroBase': False, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)")
 
-h3('População 0-6 por idade/raça/sexo (IBGE SIDRA, 2022)')
-FONTE_SIDRA_CENSO = "Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)"
-_ORDEM_IDADE_SIDRA_0_6 = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
-df_censo_raca = read("censo_sidra_populacao_0_6_raca_2022.csv")
-df_censo_raca = df_censo_raca[df_censo_raca["idade"].isin(_ORDEM_IDADE_SIDRA_0_6)].set_index("idade").reindex(_ORDEM_IDADE_SIDRA_0_6).reset_index()
-raca_cols = [c for c in df_censo_raca.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO)
-df_censo_sexo = read("censo_sidra_populacao_0_6_sexo_2022.csv")
-df_censo_sexo = df_censo_sexo[df_censo_sexo["idade"].isin(_ORDEM_IDADE_SIDRA_0_6)].set_index("idade").reindex(_ORDEM_IDADE_SIDRA_0_6).reset_index()
-sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO)
-
 # ================================================================ CADUNICO ==
 
 h2('\U0001F5C2️ CadÚnico')
@@ -204,17 +254,26 @@ h3('Por faixa de renda')
 df_renda = read("cadunico_por_faixa_etaria_2026.csv")
 df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"]
 out_pair(
-    lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Famílias"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO),
-    lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Crianças"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO),
+    lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Crianças"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
+    lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Famílias"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
 )
 
 h3('Por idade')
 df_idade = read("cadunico_por_idade_2026.csv")
 df_idade["idade_lbl"] = df_idade["idade"].astype(int).map(lambda i: f"{i} ano" if i == 1 else f"{i} anos")
 out_pair(
-    lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Famílias"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO),
-    lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Crianças"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO),
+    lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Crianças"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
+    lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Famílias"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
 )
+
+h3('Mapas')
+_cadunico_maps = [
+    ("mapa_cadunico_criancas_bairro_2026.png", "Crianças (0-6 anos) no CadÚnico, por bairro"),
+    ("mapa_cadunico_primeira_infancia_bairro_2026.png", "Crianças (0-4 anos) no CadÚnico, por bairro"),
+    ("mapa_percentual_cadunico_primeira_infancia_bairro_2026.png", "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro"),
+]
+check_maps(_cadunico_maps)
+maps_block(_cadunico_maps)
 
 # ============================================================== DATASUS ===
 
@@ -222,19 +281,28 @@ h2('\U0001F3E5 DataSUS/Tabnet')
 FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro"
 
 h3('Nascidos vivos')
+maps_block([("mapa_nascidos_vivos_bairro_2025.png", "Nascidos vivos por bairro (2025)")])
 df_nv = read("nascidos_vivos_por_ano.csv")
 line_chart(df_nv["ano"], [{'label': 'Nascidos vivos', 'values': df_nv['nascidos vivos']}], opts={'height': 220, 'table': True}, fonte=FONTE_DATASUS)
 
 h3('Nascidos abaixo do peso')
+maps_block([
+    ("mapa_nascidos_baixo_peso_bairro_2025.png", "Nascidos com baixo peso por bairro (2025)"),
+    ("mapa_percentual_baixo_peso_bairro_2025.png", "% de nascidos com baixo peso por bairro (2025)"),
+])
 df_bp = read("nascidos_abaixo_peso_por_ano.csv")
 line_chart(df_bp["ano"], [{'label': '% abaixo do peso', 'values': df_bp['percentual abaixo do peso'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
 
-h3('\U0001F4C9 Mortalidade por raça/cor (0-364 dias)')
+h3('Mortalidade por raça/cor (0-364 dias)')
 RACA_LABEL = {"amarela": "Amarela", "branca": "Branca", "indigena": "Indígena", "parda": "Parda", "preta": "Preta", "nao_informado": "Não informado"}
 RACAS = list(RACA_LABEL)
 df_raca = read("mortalidade_raca_municipio_ano.csv")
 line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS)
 line_chart(df_raca["ano"], series_from_cols(df_raca, [f"percentual_{r}" for r in RACAS], {f"percentual_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
+maps_block([
+    ("mapa_obitos_raca_total_bairro_2025.png", "Óbitos de 0 a 364 dias por bairro (2025)"),
+    ("mapa_taxa_obitos_raca_total_bairro_2025.png", "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)"),
+])
 
 # ============================================================ EVITAVEIS ===
 
@@ -278,6 +346,7 @@ grouped_bar_chart(faixas_2025, series_2025, fonte=FONTE_EVITAVEIS)
 h3('Primeira infância, por Área Programática de Saúde (CAP)')
 df_cap_faixa = read("mortalidade_evitaveis_cap_faixa_ano.csv")
 df_grupo_cap_faixa = read("mortalidade_evitaveis_grupo_cap_faixa_ano.csv")
+
 h4('Panorama municipal, por subgrupo')
 for faixa in ['menores de 1 ano', 'de 1 a 4 anos', 'menores de 5 anos']:
     h5(faixa.capitalize())
@@ -356,24 +425,63 @@ line_chart(anos_m5, series_m5, opts={'height': 260, 'maxXLabels': 6, 'table': Tr
 df_taxa_m5 = read("taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv")
 line_chart(df_taxa_m5["ano"], [{'label': 'Taxa por mil NV', 'values': df_taxa_m5['taxa_por_mil'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)
 
+h4('Mapas')
+_cap_grupo_maps = [
+    ("mapa_obitos_evitaveis_menores_1_ano_cap_2025.png", "Óbitos evitáveis, menores de 1 ano, por CAP"),
+    ("mapa_percentual_evitaveis_menores_1_ano_cap_2025.png", "% de óbitos evitáveis, menores de 1 ano, por CAP"),
+    ("mapa_obitos_evitaveis_1_a_4_anos_cap_2025.png", "Óbitos evitáveis, de 1 a 4 anos, por CAP"),
+    ("mapa_percentual_evitaveis_1_a_4_anos_cap_2025.png", "% de óbitos evitáveis, de 1 a 4 anos, por CAP"),
+    ("mapa_obitos_evitaveis_menores_5_anos_cap_2025.png", "Óbitos evitáveis, menores de 5 anos, por CAP"),
+    ("mapa_percentual_evitaveis_menores_5_anos_cap_2025.png", "% de óbitos evitáveis, menores de 5 anos, por CAP"),
+    ("mapa_obitos_evitaveis_gestacao_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Gestação, menores de 1 ano, por CAP"),
+    ("mapa_obitos_evitaveis_parto_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Parto, menores de 1 ano, por CAP"),
+]
+check_maps(_cap_grupo_maps)
+maps_block(_cap_grupo_maps)
+
 # ==================================================== GRAVIDEZ/PUERPERIO ==
 
 h2('\U0001F930 Gravidez e puerpério')
 df_grav = read("obitos_gravidez_por_ano.csv")
 line_chart(df_grav["ano"], [{'label': 'Óbitos', 'values': df_grav['óbitos-gravidez']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)
+maps_block([("mapa_obitos_gravidez_bairro_2025.png", "Óbitos durante a gravidez por bairro (2025)")])
 df_puerp = read("obitos_puerperio_por_ano.csv")
 line_chart(df_puerp["ano"], [{'label': 'Óbitos', 'values': df_puerp['óbitos-puerpério']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)
+maps_block([("mapa_obitos_puerperio_bairro_2025.png", "Óbitos durante o puerpério por bairro (2025)")])
 
 # ======================================================== NEONATAL ========
 
 h2('\U0001FA7A Mortalidade neonatal')
+h3('Precoce (0-6 dias)')
 df_prec = read("mortalidade_neonatal_precoce_por_ano.csv")
 line_chart(df_prec["ano"], [{'label': 'Taxa (‰)', 'values': df_prec['taxa_mortalidade_precoce'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
+maps_block([
+    ("mapa_obitos_neonatal_precoce_bairro_2025.png", "Óbitos precoces (0-6 dias) por bairro (2025)"),
+    ("mapa_taxa_mortalidade_precoce_bairro_2025.png", "Taxa de óbitos precoces por bairro (2025)"),
+])
+
+h3('Tardia (7-27 dias)')
 df_tard = read("mortalidade_neonatal_tardia_por_ano.csv")
 line_chart(df_tard["ano"], [{'label': 'Taxa (‰)', 'values': df_tard['taxa_obitos_tardios'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
+maps_block([
+    ("mapa_obitos_neonatal_tardia_bairro_2025.png", "Óbitos tardios (7-27 dias) por bairro (2025)"),
+    ("mapa_taxa_obitos_tardios_bairro_2025.png", "Taxa de óbitos tardios por bairro (2025)"),
+])
+
+h3('Pós-neonatal (28-364 dias)')
 df_inf = read("mortalidade_infantil_pos_neonatal_total_por_ano.csv")
 line_chart(df_inf["ano"], [{'label': 'Taxa pós-neonatal (‰)', 'values': df_inf['taxa_mortalidade_pos_neonatal'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
+maps_block([
+    ("mapa_obitos_pos_neonatal_bairro_2025.png", "Óbitos pós-neonatais (28-364 dias) por bairro (2025)"),
+    ("mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png", "Taxa de mortalidade pós-neonatal por bairro (2025)"),
+])
+
+h3('Total (0-364 dias)')
 line_chart(df_inf["ano"], [{'label': 'Taxa infantil total (‰)', 'values': df_inf['taxa_mortalidade_infantil'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
+maps_block([
+    ("mapa_mortalidade_infantil_bairro_2025.png", "Óbitos infantis (0-364 dias) por bairro (2025)"),
+    ("mapa_taxa_mortalidade_infantil_bairro_2025.png", "Taxa de mortalidade infantil por bairro (2025)"),
+])
 
 # ============================================================== SISVAN ====
 
@@ -403,13 +511,10 @@ grouped_bar_chart(df_vac_comp_wide["ano"], series_from_cols(df_vac_comp_wide, co
 h2('\U0001F393 Educação')
 FONTE_SIDRA_EDU = "Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)"
 
+h3('Frequência escolar 0-5 anos (IBGE SIDRA)')
 _ORDEM_IDADE_SIDRA_0_5 = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
 _ORDEM_IDADE_SIDRA_0_6_EDU = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
 
-def _ordenar_idade(df, ordem):
-    return df[df["idade"].isin(ordem)].set_index("idade").reindex(ordem).reset_index()
-
-h3('Frequência escolar 0-5 anos (IBGE SIDRA)')
 df_freq_raca = _ordenar_idade(read("sidra_frequencia_escola_0_5_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
 fr_cols = [c for c in df_freq_raca.columns if c not in ("idade", "Total")]
 grouped_bar_chart(df_freq_raca["idade"], series_from_cols(df_freq_raca, fr_cols), fonte=FONTE_SIDRA_EDU)
@@ -433,73 +538,6 @@ h3('Matrículas 0 a 6 anos')
 df_mat = read("matriculas_0_a_6_por_ano.csv").sort_values("ano")
 line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}], opts={'height': 200, 'table': True}, fonte="Censo Escolar/INEP")
 
-# =================================================================== MAPS ==
-
-h2('\U0001F5FA️ Mapas')
-
-MAP_GROUPS = [
-    ("Censo/população", [
-        ("mapa_censo_0_4_absoluto.png", "Crianças de 0 a 4 anos, por bairro (Censo 2022)"),
-        ("mapa_censo_0_4_percentual.png", "% de crianças de 0 a 4 anos, por bairro (Censo 2022)"),
-        ("mapa_censo_0_4_absoluto_ap.png", "Crianças de 0 a 4 anos, por Área de Planejamento"),
-        ("mapa_censo_0_4_percentual_ap.png", "% de crianças de 0 a 4 anos, por Área de Planejamento"),
-        ("mapa_censo_0_4_absoluto_rp.png", "Crianças de 0 a 4 anos, por Região de Planejamento"),
-        ("mapa_censo_0_4_percentual_rp.png", "% de crianças de 0 a 4 anos, por Região de Planejamento"),
-    ]),
-    ("CadÚnico", [
-        ("mapa_cadunico_criancas_bairro_2026.png", "Crianças (0-6 anos) no CadÚnico, por bairro"),
-        ("mapa_cadunico_primeira_infancia_bairro_2026.png", "Crianças (0-4 anos) no CadÚnico, por bairro"),
-        ("mapa_percentual_cadunico_primeira_infancia_bairro_2026.png", "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro"),
-    ]),
-    ("Natalidade", [
-        ("mapa_nascidos_vivos_bairro_2025.png", "Nascidos vivos por bairro (2025)"),
-        ("mapa_nascidos_baixo_peso_bairro_2025.png", "Nascidos com baixo peso por bairro (2025)"),
-        ("mapa_percentual_baixo_peso_bairro_2025.png", "% de nascidos com baixo peso por bairro (2025)"),
-    ]),
-    ("Mortalidade por raça/cor", [
-        ("mapa_obitos_raca_total_bairro_2025.png", "Óbitos de 0 a 364 dias por bairro (2025)"),
-        ("mapa_taxa_obitos_raca_total_bairro_2025.png", "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)"),
-    ]),
-    ("Gravidez e puerpério", [
-        ("mapa_obitos_gravidez_bairro_2025.png", "Óbitos durante a gravidez por bairro (2025)"),
-        ("mapa_obitos_puerperio_bairro_2025.png", "Óbitos durante o puerpério por bairro (2025)"),
-    ]),
-    ("Mortalidade neonatal", [
-        ("mapa_obitos_neonatal_precoce_bairro_2025.png", "Óbitos precoces (0-6 dias) por bairro (2025)"),
-        ("mapa_taxa_mortalidade_precoce_bairro_2025.png", "Taxa de óbitos precoces por bairro (2025)"),
-        ("mapa_obitos_neonatal_tardia_bairro_2025.png", "Óbitos tardios (7-27 dias) por bairro (2025)"),
-        ("mapa_taxa_obitos_tardios_bairro_2025.png", "Taxa de óbitos tardios por bairro (2025)"),
-        ("mapa_obitos_pos_neonatal_bairro_2025.png", "Óbitos pós-neonatais (28-364 dias) por bairro (2025)"),
-        ("mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png", "Taxa de mortalidade pós-neonatal por bairro (2025)"),
-        ("mapa_mortalidade_infantil_bairro_2025.png", "Óbitos infantis (0-364 dias) por bairro (2025)"),
-        ("mapa_taxa_mortalidade_infantil_bairro_2025.png", "Taxa de mortalidade infantil por bairro (2025)"),
-    ]),
-    ("Causas evitáveis, por CAP (2025)", [
-        ("mapa_obitos_evitaveis_menores_1_ano_cap_2025.png", "Óbitos evitáveis, menores de 1 ano, por CAP"),
-        ("mapa_percentual_evitaveis_menores_1_ano_cap_2025.png", "% de óbitos evitáveis, menores de 1 ano, por CAP"),
-        ("mapa_obitos_evitaveis_1_a_4_anos_cap_2025.png", "Óbitos evitáveis, de 1 a 4 anos, por CAP"),
-        ("mapa_percentual_evitaveis_1_a_4_anos_cap_2025.png", "% de óbitos evitáveis, de 1 a 4 anos, por CAP"),
-        ("mapa_obitos_evitaveis_menores_5_anos_cap_2025.png", "Óbitos evitáveis, menores de 5 anos, por CAP"),
-        ("mapa_percentual_evitaveis_menores_5_anos_cap_2025.png", "% de óbitos evitáveis, menores de 5 anos, por CAP"),
-        ("mapa_obitos_evitaveis_gestacao_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Gestação, menores de 1 ano, por CAP"),
-        ("mapa_obitos_evitaveis_parto_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Parto, menores de 1 ano, por CAP"),
-    ]),
-]
-
-total_expected = sum(len(v) for _, v in MAP_GROUPS)
-import os
-available = set(os.listdir(MAPAS))
-missing = [fn for _, group in MAP_GROUPS for fn, _ in group if fn not in available]
-if missing:
-    raise SystemExit(f"missing map PNGs: {missing}")
-
-for tema, imgs in MAP_GROUPS:
-    h3(tema)
-    parts.append('<div class="map-gallery">')
-    for fn, caption in imgs:
-        parts.append(map_card(fn, caption))
-    parts.append('</div>')
-
 footer = '<footer class="doc-foot"><p>Fontes: IBGE (Censo, SIDRA), CTPE/CadÚnico, DATASUS/Tabnet (SINASC, SIM), SISVAN, EPI/SVS-Rio, PNAD Contínua e Censo Escolar/INEP. Elaborado a partir do pipeline documentado em <code>analise.py</code> — Instituto Pereira Passos, Prefeitura da Cidade do Rio de Janeiro.</p></footer>'
 parts.append(footer)
 
@@ -511,38 +549,61 @@ MESES = {"January": "janeiro", "February": "fevereiro", "March": "março", "Apri
 for en, pt in MESES.items():
     gen_date = gen_date.replace(en, pt)
 
+# ---- table of contents (h2 + nested h3), built from the headings collected above ----
+toc_html = ['<nav class="toc"><h6 class="toc-label">Sumário</h6><ul class="toc-list">']
+i = 0
+while i < len(toc):
+    level, title, sid = toc[i]
+    if level == 2:
+        toc_html.append(f'<li><a href="#{sid}">{title}</a>')
+        sub = []
+        j = i + 1
+        while j < len(toc) and toc[j][0] == 3:
+            _, t3, sid3 = toc[j]
+            sub.append(f'<li><a href="#{sid3}">{t3}</a></li>')
+            j += 1
+        if sub:
+            toc_html.append('<ul>' + "".join(sub) + '</ul>')
+        toc_html.append('</li>')
+        i = j
+    else:
+        i += 1
+toc_html.append('</ul></nav>')
+
 body = "\n".join(parts).replace('<span id="gen-date">—</span>', f'<span id="gen-date">Atualizado {gen_date}</span>')
+body = body.replace('<!--TOC-->', "\n".join(toc_html))
 
 CSS = r"""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
   :root{
-    --page:        #FDFCFA;
+    --page:        #FFFFFF;
     --surface:     #FFFFFF;
-    --surface-2:   #FFFFFF;
-    --ink:         #283532;
-    --ink-2:       #5E6D68;
-    --ink-3:       #98A6A1;
-    --hairline:    rgba(20,30,27,0.10);
-    --hairline-2:  rgba(20,30,27,0.05);
-    --accent:      #58b19c;
-    --accent-ink:  #1c2b27;
-    --accent-soft: #EAF6F2;
-    --shadow:      0 1px 2px rgba(20,30,27,.03), 0 6px 16px -10px rgba(20,30,27,.08);
+    --surface-2:   #F7F8F8;
+    --ink:         #1C1E1D;
+    --ink-2:       #5B615F;
+    --ink-3:       #949B99;
+    --hairline:    rgba(20,30,27,0.08);
+    --hairline-2:  rgba(20,30,27,0.045);
+    --accent:      #2E9678;
+    --accent-ink:  #123128;
+    --accent-soft: #E9F6F1;
+    --shadow:      0 1px 2px rgba(20,30,27,.03), 0 12px 28px -16px rgba(20,30,27,.12);
+    --shadow-hover:0 4px 10px rgba(20,30,27,.05), 0 20px 40px -18px rgba(20,30,27,.18);
 
     --c1: #6a95c8; --c1d:#87aad4;
     --c2: #d28060; --c2d:#d19e8a;
-    --c3: #66cca7; --c3d:#89d2b9;
+    --c3: #359c78; --c3d:#89d2b9;
     --c4: #deb254; --c4d:#e0be7b;
     --c5: #ca688d; --c5d:#cc8ea5;
-    --c6: #54de54; --c6d:#7be07b;
+    --c6: #4aa64a; --c6d:#7be07b;
     --c7: #8177bb; --c7d:#928ad1;
     --c8: #cc6766; --c8d:#d28989;
     --c9: #bc9776; --c9d:#bfad9c;
     --c10:#b67c99; --c10d:#c398b3;
     --c11:#8e9ea4; --c11d:#a5b2b6;
-    --c-muted: #c9c9c9; --c-muted-d:#5a6663;
+    --c-muted: #d4d4d4; --c-muted-d:#5a6663;
 
     --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
     --font-body: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
@@ -562,6 +623,7 @@ CSS = r"""
       --accent-ink:  #10201b;
       --accent-soft: #1D302B;
       --shadow:      0 1px 2px rgba(0,0,0,.4), 0 8px 26px -12px rgba(0,0,0,.6);
+      --shadow-hover:0 4px 12px rgba(0,0,0,.5), 0 20px 44px -16px rgba(0,0,0,.7);
       --c1:var(--c1d);--c2:var(--c2d);--c3:var(--c3d);--c4:var(--c4d);--c5:var(--c5d);--c6:var(--c6d);--c7:var(--c7d);--c8:var(--c8d);--c9:var(--c9d);--c10:var(--c10d);--c11:var(--c11d);--c-muted:var(--c-muted-d);
     }
   }
@@ -578,6 +640,7 @@ CSS = r"""
     --accent-ink:  #10201b;
     --accent-soft: #1D302B;
     --shadow:      0 1px 2px rgba(0,0,0,.4), 0 8px 26px -12px rgba(0,0,0,.6);
+    --shadow-hover:0 4px 12px rgba(0,0,0,.5), 0 20px 44px -16px rgba(0,0,0,.7);
     --c1:var(--c1d);--c2:var(--c2d);--c3:var(--c3d);--c4:var(--c4d);--c5:var(--c5d);--c6:var(--c6d);--c7:var(--c7d);--c8:var(--c8d);--c9:var(--c9d);--c10:var(--c10d);--c11:var(--c11d);--c-muted:var(--c-muted-d);
   }
 
@@ -590,54 +653,86 @@ CSS = r"""
   a{color:var(--accent);}
   code{font-family:var(--font-mono); font-size:.92em; background:var(--hairline-2); padding:.1em .35em; border-radius:3px;}
 
-  .doc{max-width:860px; margin:0 auto; padding:56px 24px 100px;}
+  .doc{max-width:880px; margin:0 auto; padding:64px 24px 110px;}
 
   header.doc-head{margin-bottom:8px;}
   header.doc-head h1{
     font-family:var(--font-display); font-weight:600; font-size:clamp(1.9rem,4.4vw,2.7rem);
-    margin:0 0 6px; line-height:1.12; text-wrap:balance; letter-spacing:-.01em;
+    margin:0 0 8px; line-height:1.12; text-wrap:balance; letter-spacing:-.01em;
     display:flex; align-items:center; gap:14px;
   }
   header.doc-head h1 .glyph{font-size:.82em; flex:none;}
   header.doc-head .sub{color:var(--ink-2); font-size:1.02rem; max-width:68ch; margin:0 0 18px;}
   header.doc-head .meta{
     display:flex; flex-wrap:wrap; gap:6px 16px; font-family:var(--font-mono); font-size:.76rem;
-    color:var(--ink-3); padding-bottom:28px; border-bottom:1px solid var(--hairline);
+    color:var(--ink-3); padding-bottom:28px;
   }
+
+  /* ---------- table of contents ---------- */
+  .toc{
+    background:var(--surface-2); border:1px solid var(--hairline); border-radius:12px;
+    padding:22px 26px 20px; margin:0 0 48px;
+  }
+  .toc-label{
+    font-family:var(--font-body); font-weight:600; font-size:.76rem; color:var(--ink-3);
+    text-transform:uppercase; letter-spacing:.08em; margin:0 0 12px;
+  }
+  ul.toc-list{
+    list-style:none; margin:0; padding:0; columns:2; column-gap:32px;
+  }
+  ul.toc-list > li{break-inside:avoid; margin:0 0 10px;}
+  ul.toc-list > li > a{
+    font-weight:600; color:var(--ink); text-decoration:none; font-size:.92rem;
+  }
+  ul.toc-list > li > a:hover{color:var(--accent);}
+  ul.toc-list ul{list-style:none; margin:5px 0 0; padding:0 0 0 14px; border-left:1px solid var(--hairline);}
+  ul.toc-list ul li{margin:4px 0;}
+  ul.toc-list ul a{color:var(--ink-2); text-decoration:none; font-size:.82rem;}
+  ul.toc-list ul a:hover{color:var(--accent); text-decoration:underline;}
 
   h2{
     font-family:var(--font-display); font-weight:600; font-size:clamp(1.5rem,3vw,1.85rem);
-    margin:64px 0 4px; padding-top:28px; border-top:1px solid var(--hairline); line-height:1.2; text-wrap:balance;
+    margin:68px 0 4px; padding-top:32px; border-top:1px solid var(--hairline); line-height:1.2;
+    text-wrap:balance; scroll-margin-top:24px;
   }
-  h2:first-of-type{margin-top:40px;}
+  h2:first-of-type{margin-top:0; padding-top:0; border-top:none;}
   h3{
-    font-family:var(--font-display); font-weight:600; font-size:1.42rem;
-    margin:46px 0 12px; line-height:1.2;
+    font-family:var(--font-display); font-weight:600; font-size:1.4rem;
+    margin:44px 0 14px; line-height:1.2; scroll-margin-top:24px;
   }
   h4{
-    font-family:var(--font-display); font-weight:600; font-size:1.18rem;
-    margin:34px 0 10px;
+    font-family:var(--font-display); font-weight:600; font-size:1.16rem;
+    margin:34px 0 12px;
   }
   h5{
-    font-family:var(--font-body); font-weight:600; font-size:1.02rem;
-    margin:28px 0 8px; color:var(--ink);
+    font-family:var(--font-body); font-weight:600; font-size:1rem;
+    margin:28px 0 10px; color:var(--ink);
   }
   h6{
-    font-family:var(--font-body); font-weight:600; font-size:.92rem;
-    margin:22px 0 6px; color:var(--ink-2); text-transform:uppercase; letter-spacing:.03em;
+    font-family:var(--font-body); font-weight:600; font-size:.88rem;
+    margin:22px 0 8px; color:var(--ink-2); text-transform:uppercase; letter-spacing:.03em;
   }
 
   .out{
-    margin:12px 0 6px; background:var(--surface); border:1px solid var(--hairline); border-radius:4px;
-    box-shadow:var(--shadow); padding:20px 22px 14px;
+    margin:14px 0 8px; background:var(--surface); border:1px solid var(--hairline); border-radius:10px;
+    box-shadow:var(--shadow); padding:22px 24px 16px;
   }
-  .out-pair{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:12px 0 6px;}
+  .out-pair{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; margin:14px 0 8px;}
+  .chart-subtitle{
+    font-family:var(--font-body); font-weight:600; font-size:.8rem; color:var(--ink-2);
+    text-transform:uppercase; letter-spacing:.05em; margin:0 0 12px;
+  }
 
-  .map-gallery{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px; margin:12px 0 32px;}
-  .map-card{margin:0; background:var(--surface); border:1px solid var(--hairline); border-radius:4px; box-shadow:var(--shadow); overflow:hidden;}
-  .map-card img{display:block; width:100%; height:auto;}
-  .map-cap{padding:10px 14px; font-size:.82rem; color:var(--ink-2); border-top:1px solid var(--hairline-2);}
-  .out-pair > .out{margin:0;}
+  /* ---------- maps: floating, no card chrome ---------- */
+  .map-gallery{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:30px; margin:16px 0 36px;}
+  .map-card{margin:0; background:transparent; border:none; box-shadow:none;}
+  .map-card img{
+    display:block; width:100%; height:auto; border-radius:10px;
+    box-shadow:var(--shadow); transition:box-shadow .2s ease, transform .2s ease;
+  }
+  .map-card img:hover{box-shadow:var(--shadow-hover); transform:translateY(-3px);}
+  .map-cap{padding:12px 4px 0; font-size:.82rem; color:var(--ink-2); text-align:center;}
+
   .out-src{font-family:var(--font-mono); font-size:.7rem; color:var(--ink-3); margin-top:10px; padding-top:8px; border-top:1px solid var(--hairline-2);}
 
   .chart-wrap{position:relative;}
@@ -652,7 +747,7 @@ CSS = r"""
   .hover-dot{stroke:var(--surface); stroke-width:2;}
   .chart-tooltip{
     position:absolute; top:4px; display:none; pointer-events:none; z-index:5;
-    background:var(--surface-2); border:1px solid var(--hairline); border-radius:4px; box-shadow:var(--shadow);
+    background:var(--surface); border:1px solid var(--hairline); border-radius:6px; box-shadow:var(--shadow-hover);
     padding:8px 11px; font-size:.76rem; min-width:104px; max-width:240px;
   }
   .tt-year{font-family:var(--font-mono); color:var(--ink-3); margin-bottom:3px; font-size:.68rem; letter-spacing:.03em;}
@@ -663,9 +758,9 @@ CSS = r"""
   .bar-chart{display:flex; flex-direction:column; gap:8px; min-width:0;}
   .bar-row{display:grid; grid-template-columns:minmax(78px,180px) 1fr auto; gap:10px; align-items:center; min-width:0;}
   .bar-label{font-size:.8rem; color:var(--ink-2); line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .bar-track{height:20px; background:var(--hairline-2); border-radius:3px; overflow:hidden; position:relative; min-width:0;}
+  .bar-track{height:20px; background:var(--hairline-2); border-radius:4px; overflow:hidden; position:relative; min-width:0;}
   .bar-fill{
-    height:100%; border-radius:3px; width:0%; transition:width .9s cubic-bezier(.16,.9,.25,1); min-width:2px;
+    height:100%; border-radius:4px; width:0%; transition:width .9s cubic-bezier(.16,.9,.25,1); min-width:2px;
   }
   @media (prefers-reduced-motion:reduce){ .bar-fill{transition:none;} }
   .bar-value{
@@ -691,15 +786,16 @@ CSS = r"""
   table.plain th{color:var(--ink-3); font-weight:500; font-size:.78rem;}
 
   footer.doc-foot{
-    max-width:860px; margin:80px auto 0; padding:24px 24px 60px; border-top:1px solid var(--hairline);
+    max-width:880px; margin:80px auto 0; padding:24px 24px 60px; border-top:1px solid var(--hairline);
     font-size:.82rem; color:var(--ink-3);
   }
   footer.doc-foot p{max-width:74ch;}
 
-  ::selection{background:var(--accent); color:var(--accent-ink);}
+  ::selection{background:var(--accent); color:#fff;}
 
   @media (max-width:520px){
     .bar-row{grid-template-columns:70px 1fr auto;}
+    ul.toc-list{columns:1;}
   }
 </style>
 """
@@ -803,13 +899,13 @@ ENGINE = r"""
         uid++;
         const gid = 'g'+uid;
         const grad = svgEl('linearGradient', {id:gid, x1:0, y1:0, x2:0, y2:1}, svg);
-        svgEl('stop', {offset:'0%', 'stop-color':cor, 'stop-opacity':.22}, grad);
+        svgEl('stop', {offset:'0%', 'stop-color':cor, 'stop-opacity':.18}, grad);
         svgEl('stop', {offset:'100%', 'stop-color':cor, 'stop-opacity':0}, grad);
         const base = yAt(vMin);
         const area = d + 'L'+validPts[validPts.length-1][0].toFixed(2)+','+base.toFixed(2)+' L'+validPts[0][0].toFixed(2)+','+base.toFixed(2)+' Z';
         svgEl('path', {d:area, fill:'url(#'+gid+')', stroke:'none'}, svg);
       }
-      svgEl('path', {d:d, fill:'none', stroke:cor, 'stroke-width':apagada?1.1:2, 'stroke-opacity':apagada?.6:1, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, svg);
+      svgEl('path', {d:d, fill:'none', stroke:cor, 'stroke-width':apagada?1.1:2, 'stroke-opacity':apagada?.55:1, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, svg);
       const last = validPts[validPts.length-1];
       if (last && !apagada && opts.endLabels !== false){
         svgEl('circle', {cx:last[0], cy:last[1], r:3.2, fill:cor}, svg);
@@ -994,4 +1090,4 @@ doc = f"""<title>Primeira Infância Carioca</title>
 
 with open(OUT_PATH, "w", encoding="utf-8") as f:
     f.write(doc)
-print(f"wrote {OUT_PATH}: {len(doc)} chars, {len(scripts)} charts, {sum(len(v) for _,v in MAP_GROUPS)} maps")
+print(f"wrote {OUT_PATH}: {len(doc)} chars, {len(scripts)} charts, {sum(1 for l,t,s in toc if l==2)} h2 / {sum(1 for l,t,s in toc if l==3)} h3 sections")

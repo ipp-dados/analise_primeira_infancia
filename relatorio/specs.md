@@ -119,6 +119,28 @@ totalmente diferente."
 - Paleta dos gráficos permanece a mesma de 11 cores pastel; mapas continuam
   como PNG resized/WebP embutido (não foi preciso mudar essa técnica).
 
+### v5.1 — mapas na ordem do notebook, fundo branco/clean, sumário navegável
+
+- **Mapas deixaram de ficar numa seção "🗺️ Mapas" só no final**: cada grupo de
+  mapas agora aparece intercalado no mesmo ponto do fluxo em que a célula
+  correspondente aparece em `analise.py` (ex.: os mapas do Censo vêm depois
+  dos gráficos SIDRA e antes da série temporal, exatamente como no notebook;
+  os do CadÚnico vêm depois dos gráficos de renda/idade).
+- **Novo esquema de cores**: fundo branco (antes um tom "pedra"/verde-escuro
+  no claro), tokens de superfície mais claros, sombra em vez de borda pesada
+  nos cartões de gráfico. Paleta categórica dos dados (11 cores) não mudou.
+- **Mapas "flutuantes"**: sem moldura/box — só a imagem com sombra suave
+  (que intensifica no hover) e a legenda abaixo, centralizada.
+- **Sumário no topo**, com âncoras para todas as seções (h2) e subseções
+  (h3) — duas colunas, gerado automaticamente a partir dos títulos.
+- CadÚnico: cada gráfico do par renda/idade ganhou um rótulo pequeno
+  ("Crianças" / "Famílias") acima do gráfico, já que os dois lados do par
+  agora têm papéis fixos (esquerda = Crianças, direita = Famílias).
+- `relatorio/index.html` passou a ser versionado no git (exceção adicionada
+  ao `.gitignore`, que ignora `*.html` de forma genérica) — pedido direto,
+  substitui a decisão F de `SPEC-visual-identity/specs.md` (mantinha fora do
+  git).
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
