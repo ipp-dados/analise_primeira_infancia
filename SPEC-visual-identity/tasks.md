@@ -164,14 +164,28 @@
       mais uma vez para confirmar o fix e checar os demais modos de falha conhecidos (milhar em
       `ano`, tabela larga cortada, percentual em escala errada, header/footer do Chrome, tema
       escuro vazando).
-- [ ] **T7.7** — Copiar o PDF final (pós-fix) verificado para `relatorio/analise_primeira_infancia.pdf`.
+- [x] **T7.7** — HTML e PDF regenerados após o fix do eixo de ano (`analise.ipynb` reexecutado
+      do zero, 138 células, 0 erros). PDF final: 95 páginas, ~50MB, verificado (contagem de
+      páginas + amostra rasterizada incluindo a página antes afetada pelo bug do eixo —
+      confirmado corrigido) e copiado para `relatorio/analise_primeira_infancia.pdf`. Este
+      arquivo **não** está no `.gitignore` (ao contrário de `relatorio/*.html`) — perguntar ao
+      usuário antes de commitar, por ser um binário de ~50MB (dobrou de tamanho em relação à
+      versão anterior por causa dos 32 mapas em vez de 5).
 
 ## Bloco 8 — Documentação e fechamento
-- [ ] **T8.1** — Atualizar `relatorio/specs.md` com a v5 (consolidação, script de build
-      persistido, remoção da prosa) — seguindo o histórico "v1/v2/v3/v4" já documentado ali.
-- [ ] **T8.2** — Atualizar `README.md` (changelog, versão).
-- [ ] **T8.3** — Atualizar `feature_roadmap.md` se algo ficar de fora nesta rodada.
-- [ ] **T8.4** — Fechar `tasks.md`/`validation.md`.
+- [x] **T8.1** — `relatorio/specs.md` atualizado com a entrada "v5" (Bloco 6).
+- [x] **T8.2** — `README.md` atualizado: "Estrutura do Projeto" (bullet `relatorio/`
+      reescrito para o arquivo único), novo bloco "Notable code changes (2026-09-09) —
+      identidade visual unificada...", linha `0.16.0` na Update Table.
+- [x] **T8.3** — `feature_roadmap.md`: item "Refactor architecture" já estava registrado
+      (rodada anterior); adicionado nesta rodada o pedido do usuário de converter o export em
+      PDF para LaTeX, para depois desta spec.
+- [x] **T8.4** — `tasks.md`/`validation.md` fechados.
+- [x] — `requirements.txt`: adicionadas `pymupdf`/`pypdf` (usadas para verificar o PDF —
+      instaladas neste ambiente durante o Bloco 7, não estavam registradas antes).
 - [ ] **T8.5** — **Merge em `staging_main` (só após aval do usuário)** — nota: este merge e o
       de `spec/maps-and-ibge` (ainda pendente) precisam ser sequenciados; decidir com o
-      usuário a ordem antes de mesclar qualquer um dos dois.
+      usuário a ordem antes de mesclar qualquer um dos dois. **Além disso**, o usuário precisa
+      decidir se quer commitar o novo `relatorio/analise_primeira_infancia.pdf` (~50MB, não
+      ignorado pelo git, dobrou de tamanho por causa dos 32 mapas em vez de 5) — ver
+      `export_pdf_report/SKILL.md` §6.
