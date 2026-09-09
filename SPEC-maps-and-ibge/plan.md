@@ -234,7 +234,7 @@ for slug, subgrupo in subgrupos_componente_c.items():
     df_subgrupo_2025 = df_evitaveis_cap_faixa[
         (df_evitaveis_cap_faixa['ano'] == 2025)
         & (df_evitaveis_cap_faixa['faixa_etaria'] == 'menores de 1 ano')
-        & (df_evitaveis_cap_faixa['causa'] == subgrupo)
+        & (df_evitaveis_cap_faixa['subgrupo'] == subgrupo)
     ]
     df_subgrupo_2025.to_csv(f'tabelas_finais/tabela_mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025.csv', index=False)
 
@@ -267,9 +267,9 @@ recorte município completo (`< 5 anos`) pronto na aba `Informações gerais`:
 for sufixo, info in faixas_primeira_infancia.items():
     df_municipio_faixa = (
         pd.read_csv(f'dados_locais/tratados/obitos_evitaveis_{sufixo}_causa_cap_2006_2025.csv')
-        .groupby(['causa', 'ano'], as_index=False)['obitos'].sum()
+        .groupby(['subgrupo', 'ano'], as_index=False)['obitos'].sum()
     )
-    df_wide = df_municipio_faixa.pivot(index='ano', columns='causa', values='obitos').reset_index()
+    df_wide = df_municipio_faixa.pivot(index='ano', columns='subgrupo', values='obitos').reset_index()
     serie_temporal_multipla(
         df_wide, tempo='ano', colunas={c: c for c in df_wide.columns if c != 'ano'},
         titulo=f'Óbitos por causas evitáveis ({info["rotulo"]}) por subgrupo - Rio de Janeiro (2006-2025)',
@@ -298,7 +298,7 @@ _SLUG_SUBGRUPO_EVITAVEL = {
 for subgrupo, slug in _SLUG_SUBGRUPO_EVITAVEL.items():
     for sufixo, info in faixas_primeira_infancia.items():
         df_serie = df_evitaveis_cap_faixa[
-            (df_evitaveis_cap_faixa['causa'] == subgrupo) & (df_evitaveis_cap_faixa['faixa_etaria'] == info['rotulo'])
+            (df_evitaveis_cap_faixa['subgrupo'] == subgrupo) & (df_evitaveis_cap_faixa['faixa_etaria'] == info['rotulo'])
         ].pivot(index='ano', columns='cod_ap_sms', values='obitos').reset_index()
 
         serie_temporal_multipla(
@@ -323,7 +323,7 @@ Subconjunto de D.2a — mesma fonte, só filtra os 2 subgrupos do Componente C e
 ```python
 for slug in ('gestacao', 'parto'):
     df_serie = df_evitaveis_cap_faixa[
-        (df_evitaveis_cap_faixa['causa'] == subgrupos_componente_c[slug])
+        (df_evitaveis_cap_faixa['subgrupo'] == subgrupos_componente_c[slug])
         & (df_evitaveis_cap_faixa['faixa_etaria'] == 'menores de 1 ano')
     ].pivot(index='ano', columns='cod_ap_sms', values='obitos').reset_index()
 
@@ -337,6 +337,14 @@ for slug in ('gestacao', 'parto'):
 
 Reaproveita `subgrupos_componente_c` já definido em §5 — mesma seção de análise, célula logo
 após os 2 mapas.
+
+**Achado real ao implementar:** este plano (revisões anteriores) escreveu a coluna de
+subgrupo de `df_evitaveis_cap_faixa` como `'causa'` em todos os trechos acima. O nome real,
+conferido em `tabelas_finais/mortalidade_evitaveis_cap_faixa_ano.csv`, é `'subgrupo'`
+(`['cod_ap_sms', 'subgrupo', 'ano', 'obitos', 'faixa_etaria']`) — todos os trechos de código
+desta seção e da §5 já foram corrigidos para `'subgrupo'`. `causa` só existe como nome de
+coluna no CSV bruto por faixa (`obitos_evitaveis_<faixa>_causa_cap_2006_2025.csv`) **antes**
+de virar `df_evitaveis_cap_faixa` — o próprio nome do arquivo é enganoso.
 
 ---
 

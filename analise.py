@@ -1350,8 +1350,27 @@ serie_temporal_multipla(
     ylabel='Óbitos'
 )
 
+# %% [markdown]
+# **Versão sem `Não informada` e sem 1996:** o gráfico acima mantém as 6 categorias e a série
+# completa (1996-2025) para preservar a fidelidade à fonte. Para leitura de tendência, a
+# versão abaixo remove `nao_informado` (categoria de completude, não uma raça/cor) e o ano de
+# 1996, que tem um pico isolado de 2.136 óbitos "não informado" por baixa completude do
+# preenchimento de raça/cor no início da série (nota acima) -- não é um aumento real de óbitos.
+
 # %%
-## retirar 1996 do ano acima e colocar nota de rodapé
+rotulos_raca_evitaveis_sem_nao_informado = {
+    rotulo: raca for rotulo, raca in rotulos_raca_evitaveis.items() if rotulo != 'Não informada'
+}
+df_evitaveis_raca_sem_1996 = df_evitaveis_raca_municipio[df_evitaveis_raca_municipio['ano'] > 1996]
+
+serie_temporal_multipla(
+    df_evitaveis_raca_sem_1996,
+    tempo='ano',
+    colunas={rotulo: f'obitos_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis_sem_nao_informado.items()},
+    titulo='Óbitos por causas evitáveis (0-364 dias) por raça/cor, sem "não informada" - Rio de Janeiro (1997-2025)',
+    nome_arquivo='obitos_causas_evitaveis_raca_sem_nao_informado_ano',
+    ylabel='Óbitos'
+)
 
 # %%
 # percentual só existe a partir de 2011 (início da série de nascidos vivos por raça/cor da mãe)
@@ -1363,6 +1382,19 @@ serie_temporal_multipla(
     colunas={rotulo: f'percentual_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis.items()},
     titulo='Percentual de óbitos evitáveis (0-364 dias) em relação aos nascidos vivos por raça/cor - Rio de Janeiro (2011-2025)',
     nome_arquivo='percentual_mortalidade_causas_evitaveis_raca_ano',
+    ylabel='Percentual (%)'
+)
+
+# %% [markdown]
+# **Versão sem `Não informada`:** já não inclui 1996 (a série só começa em 2011).
+
+# %%
+serie_temporal_multipla(
+    df_percentual_evitaveis_municipio,
+    tempo='ano',
+    colunas={rotulo: f'percentual_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis_sem_nao_informado.items()},
+    titulo='Percentual de óbitos evitáveis (0-364 dias) por raça/cor, sem "não informada" - Rio de Janeiro (2011-2025)',
+    nome_arquivo='percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano',
     ylabel='Percentual (%)'
 )
 
@@ -1641,6 +1673,35 @@ serie_temporal(
 )
 
 # %% [markdown]
+# ###### Panorama municipal, por subgrupo — demais faixas etárias
+#
+# A série acima (subgrupo CID, `< 5 anos`) já vem pronta da aba `Informações gerais` da
+# planilha. Para `< 1 ano` e `1-4 anos` (que não têm essa aba própria), soma-se as 10 CAPs
+# dos CSVs já extraídos por faixa -- mesmo total, caminho diferente.
+
+# %%
+faixas_evitaveis_municipio_extra = {
+    'menores_1_ano': 'menores de 1 ano',
+    '1_a_4_anos':    'de 1 a 4 anos',
+}
+
+for sufixo, rotulo in faixas_evitaveis_municipio_extra.items():
+    df_municipio_faixa = (
+        pd.read_csv(f'dados_locais//tratados//obitos_evitaveis_{sufixo}_causa_cap_2006_2025.csv')
+        .groupby(['subgrupo', 'ano'], as_index=False)['obitos'].sum()
+    )
+    df_municipio_faixa_wide = df_municipio_faixa.pivot(index='ano', columns='subgrupo', values='obitos').reset_index()
+
+    serie_temporal_multipla(
+        df_municipio_faixa_wide,
+        tempo='ano',
+        colunas={c: c for c in df_municipio_faixa_wide.columns if c != 'ano'},
+        titulo=f'Óbitos por causas evitáveis ({rotulo}) por subgrupo - Rio de Janeiro (2006-2025)',
+        nome_arquivo=f'obitos_evitaveis_{sufixo}_subgrupo_ano',
+        ylabel='Óbitos', legend_title='Subgrupo', figsize=(14,7),
+    )
+
+# %% [markdown]
 # ###### Por CAP e faixa etária
 
 # %%
@@ -1727,6 +1788,40 @@ serie_temporal_multipla(
 )
 
 # %% [markdown]
+# ###### Por subgrupo e CAP — séries temporais
+#
+# Cruzamento subgrupo × CAP: os 6 subgrupos do grupo `1. Causas evitáveis` (`1.1`-`1.4`,
+# sem `2. Causas mal definidas`/`3. Demais causas`), para as 3 faixas etárias, uma linha por
+# CAP em cada gráfico (18 gráficos). Contagens muito baixas nalgumas combinações (ex.
+# `1.2.1`/`1-4 anos`/CAP pequena) geram linhas quase todas em zero -- mesma ressalva já feita
+# para `1-4 anos` em geral.
+
+# %%
+_SLUG_SUBGRUPO_EVITAVEL = {
+    '1.1. Reduzível pelas ações de imunização':   'imunizacao',
+    '1.2.1. Red por at à mulher na gestação':     'gestacao',
+    '1.2.2. Red por at à mulher no parto':        'parto',
+    '1.2.3. Red por at ao recém-nascido':         'recem_nascido',
+    '1.3. Red por ações de diag e trat adequado': 'diagnostico_tratamento',
+    '1.4. Red por ações promoção vinc a atenção': 'promocao_vinculacao',
+}
+
+for subgrupo, slug in _SLUG_SUBGRUPO_EVITAVEL.items():
+    for sufixo, info in faixas_primeira_infancia.items():
+        df_serie_subgrupo_cap = df_evitaveis_cap_faixa[
+            (df_evitaveis_cap_faixa['subgrupo'] == subgrupo) & (df_evitaveis_cap_faixa['faixa_etaria'] == info['rotulo'])
+        ].pivot(index='ano', columns='cod_ap_sms', values='obitos').reset_index()
+
+        serie_temporal_multipla(
+            df_serie_subgrupo_cap,
+            tempo='ano',
+            colunas={c: c for c in df_serie_subgrupo_cap.columns if c != 'ano'},
+            titulo=f'Óbitos evitáveis - {subgrupo.split(". ",1)[1]}, {info["rotulo"]}, por CAP (2006-2025)',
+            nome_arquivo=f'obitos_evitaveis_{slug}_cap_{sufixo}_ano',
+            ylabel='Óbitos', legend_title='CAP', figsize=(14,7),
+        )
+
+# %% [markdown]
 # ###### 🗺️ Mapas por CAP (2025)
 
 # %%
@@ -1770,6 +1865,61 @@ for sufixo, info in faixas_primeira_infancia.items():
         legenda_titulo='% evitáveis',
         caminho_geojson=_CAMINHO_GEO_CAP,
         fonte_dados=fonte_evitaveis_cap,
+    )
+
+# %% [markdown]
+# ###### 🗺️ Mapas por subgrupo (gestação e parto, menores de 1 ano, 2025)
+#
+# Recorte mais fino que os mapas de grupo acima -- em vez do grupo `1. Causas evitáveis`
+# (soma dos 6 subgrupos), estes dois mapeiam só um subgrupo cada, na faixa `< 1 ano` (onde
+# causas ligadas a gestação/parto se concentram).
+
+# %%
+subgrupos_componente_c = {
+    'gestacao': '1.2.1. Red por at à mulher na gestação',
+    'parto':    '1.2.2. Red por at à mulher no parto',
+}
+bins_subgrupo_componente_c = {
+    'gestacao': [10, 20, 30, 40],
+    'parto':    [2, 4, 6, 8],
+}
+
+for slug, subgrupo in subgrupos_componente_c.items():
+    df_subgrupo_2025 = df_evitaveis_cap_faixa[
+        (df_evitaveis_cap_faixa['ano'] == 2025)
+        & (df_evitaveis_cap_faixa['faixa_etaria'] == 'menores de 1 ano')
+        & (df_evitaveis_cap_faixa['subgrupo'] == subgrupo)
+    ]
+    df_subgrupo_2025.to_csv(f'tabelas_finais//tabela_mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025.csv', index=False)
+
+    mapa_coropletico_bairros(
+        df_subgrupo_2025, coluna_valor='obitos', nivel='cap',
+        titulo=f'Óbitos evitáveis - {subgrupo.split(". ",1)[1]}, menores de 1 ano, por CAP (2025)',
+        nome_arquivo=f'mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025',
+        bins=bins_subgrupo_componente_c[slug],
+        legenda_titulo='Óbitos', caminho_geojson=_CAMINHO_GEO_CAP, fonte_dados=fonte_evitaveis_cap,
+    )
+
+# %% [markdown]
+# ###### Séries temporais — gestação e parto, menores de 1 ano, por CAP
+#
+# Mesmo recorte dos 2 mapas acima, em série temporal (2006-2025) em vez de foto de 2025 --
+# subconjunto da matriz completa da seção "Por subgrupo e CAP" acima, não um cálculo novo.
+
+# %%
+for slug in ('gestacao', 'parto'):
+    df_serie_componente_c = df_evitaveis_cap_faixa[
+        (df_evitaveis_cap_faixa['subgrupo'] == subgrupos_componente_c[slug])
+        & (df_evitaveis_cap_faixa['faixa_etaria'] == 'menores de 1 ano')
+    ].pivot(index='ano', columns='cod_ap_sms', values='obitos').reset_index()
+
+    serie_temporal_multipla(
+        df_serie_componente_c,
+        tempo='ano',
+        colunas={c: c for c in df_serie_componente_c.columns if c != 'ano'},
+        titulo=f'Óbitos evitáveis - {subgrupos_componente_c[slug].split(". ",1)[1]}, menores de 1 ano, por CAP (2006-2025)',
+        nome_arquivo=f'obitos_evitaveis_{slug}_cap_menores_1_ano_ano',
+        ylabel='Óbitos', legend_title='CAP', figsize=(14,7),
     )
 
 # %% [markdown]
