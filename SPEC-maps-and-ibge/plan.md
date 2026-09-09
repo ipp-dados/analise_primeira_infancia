@@ -114,6 +114,25 @@ def junta_codbairro_por_bairro(df, df_referencia):
     return resultado
 ```
 
+**Achado real ao implementar (não previsto na redação original deste plano):** rodar a
+função contra `df_bairro` levantou o erro esperado — 10 nomes sem correspondência, não 0.
+Investigado: 4 são variações de grafia do mesmo bairro oficial (`Freguesia (Ilha do
+Governador)` → `Freguesia (Ilha)`, `Oswaldo Cruz` → `Osvaldo Cruz`, `São Cristóvão` →
+`Imperial de São Cristóvão`, `Turiaçu` → `Turiaçú`) — normalizadas via um dict
+`_ALIAS_BAIRRO_CADUNICO` aplicado **antes** do join. Os outros 6 (`Dendê`, `Dumas`, `Guarabu`,
+`Itacolomi`, `Nossa Senhora das Graças`, `Tubiacanga`) são localidades informais/históricas
+do CadÚnico sem bairro oficial correspondente na lista de 166 do IPP (a maioria, localidades
+da Ilha do Governador) — juntas, **380 de 178.329 crianças (~0,2%)**, excluídas só do insumo
+do mapa (`df_bairro_mapa`), nunca da tabela completa (`cadunico_por_bairro_2026.csv`, que
+mantém os nomes originais). Documentado em célula markdown no notebook, não só aqui.
+
+O mesmo problema já existia, **silenciosamente**, no merge `how='right'` de `df_bairro_ate_4`
+contra `df_censo` (linha ~957 antes desta correção) — um merge `right` descarta sem erro
+qualquer linha da esquerda sem match, então essas mesmas 10 linhas já vinham sendo perdidas
+sem nenhum aviso, subestimando `Primeira Inf. Cadúnico` nos bairros afetados. Corrigido com a
+mesma normalização/exclusão antes desse merge também (não é uma mudança de escopo — é a
+mesma correção do parágrafo acima, aplicada ao segundo ponto onde o problema já existia).
+
 Chamada para `df_bairro` (reset o índice para expor `bairro` como coluna primeiro, já que
 hoje é o índice do `groupby`) e para `df_bairro_ate_4` (já tem `bairro` como coluna, do merge
 existente com `df_censo` na linha ~905 — só precisa que esse merge **também** traga
