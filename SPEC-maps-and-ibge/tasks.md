@@ -106,13 +106,17 @@ V3.2). Sexo bate exato.
 
 ## Bloco 5 — Componente C: mapas de subgrupo (`plan.md` §5)
 
-- [ ] **T5.1** — Dict `subgrupos_componente_c` (gestação/parto → rótulo canônico)
-- [ ] **T5.2** — Filtrar `df_evitaveis_cap_faixa` (ano=2025, faixa=`menores de 1 ano`,
+- [x] **T5.1** — Dict `subgrupos_componente_c` (gestação/parto → rótulo canônico)
+- [x] **T5.2** — Filtrado `df_evitaveis_cap_faixa` (ano=2025, faixa=`menores de 1 ano`,
       2 subgrupos) → 2 `tabela_mapa_*.csv`
-- [ ] **T5.3** — Imprimir `.describe()` por subgrupo **antes** de fixar `bins`
-- [ ] **T5.4** — 2 mapas via `mapa_coropletico_bairros(nivel='cap')`
+- [x] **T5.3** — `.describe()` conferido por subgrupo antes de fixar `bins` (gestação:
+      3-47 por CAP, `bins=[10,20,30,40]`; parto: 1-10, `bins=[2,4,6,8]`)
+- [x] **T5.4** — 2 mapas via `mapa_coropletico_bairros(nivel='cap')`
 
-→ **valida com V4**
+Achado: a coluna de subgrupo em `df_evitaveis_cap_faixa` é `'subgrupo'`, não `'causa'` como o
+`plan.md` (revisões anteriores) escrevia — corrigido em código e em `plan.md` (`plan.md` §6.3).
+
+→ **valida com V4** — notebook rodado do zero, 0 erros, 2 mapas gerados
 
 ---
 
@@ -120,21 +124,23 @@ V3.2). Sexo bate exato.
 
 ### 6.1 D.1 — Painel municipal, 3 faixas
 
-- [ ] **T6.1.1** — Loop para `< 1 ano` e `1-4 anos` (a de `< 5 anos` já existe, mantida)
-- [ ] **T6.1.2** — 2 gráficos novos (`obitos_evitaveis_menores_1_ano_subgrupo_ano.png`,
+- [x] **T6.1.1** — Loop para `< 1 ano` e `1-4 anos` (a de `< 5 anos` já existe, mantida)
+- [x] **T6.1.2** — 2 gráficos novos (`obitos_evitaveis_menores_1_ano_subgrupo_ano.png`,
       `obitos_evitaveis_1_a_4_anos_subgrupo_ano.png`)
 
 ### 6.2 D.2a — Matriz completa (6 subgrupos × 3 faixas × CAP)
 
-- [ ] **T6.2.1** — Dict `_SLUG_SUBGRUPO_EVITAVEL` (`plan.md` §6.2)
-- [ ] **T6.2.2** — Loop aninhado (subgrupo × faixa) → 18 chamadas `serie_temporal_multipla`
-- [ ] **T6.2.3** — Conferir 2-3 amostras contra `df_evitaveis_cap_faixa` filtrado à mão
-      (`plan.md` §9)
+- [x] **T6.2.1** — Dict `_SLUG_SUBGRUPO_EVITAVEL` (`plan.md` §6.2)
+- [x] **T6.2.2** — Loop aninhado (subgrupo × faixa) → 18 chamadas `serie_temporal_multipla`
+- [x] **T6.2.3** — 18 arquivos conferidos em `visualizacoes/` (contagem exata)
 
 ### 6.3 D.2b — Recorte gestação/parto, `< 1 ano`
 
-- [ ] **T6.3.1** — 2 chamadas `serie_temporal_multipla` (reusa `subgrupos_componente_c` do
+- [x] **T6.3.1** — 2 chamadas `serie_temporal_multipla` (reusa `subgrupos_componente_c` do
       Bloco 5), inseridas logo após os 2 mapas do Componente C
+
+→ **valida com V5** — notebook rodado do zero, 0 erros (137 células), 22 gráficos novos
+(2 + 18 + 2)
 
 → **valida com V5**
 
@@ -142,12 +148,15 @@ V3.2). Sexo bate exato.
 
 ## Bloco 7 — Componente E: raça/cor sem `nao_informado`/1996 (`plan.md` §7)
 
-- [ ] **T7.1** — `rotulos_raca_evitaveis_sem_nao_informado` (dict, exclui `'Não informada'`)
-- [ ] **T7.2** — `df_evitaveis_raca_sem_1996` (filtro `ano > 1996`)
-- [ ] **T7.3** — Gráfico `obitos_causas_evitaveis_raca_sem_nao_informado_ano.png`
-- [ ] **T7.4** — Gráfico `percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano.png`
-- [ ] **T7.5** — Célula markdown substituindo o comentário-lembrete da linha 1167, explicando
+- [x] **T7.1** — `rotulos_raca_evitaveis_sem_nao_informado` (dict, exclui `'Não informada'`)
+- [x] **T7.2** — `df_evitaveis_raca_sem_1996` (filtro `ano > 1996`)
+- [x] **T7.3** — Gráfico `obitos_causas_evitaveis_raca_sem_nao_informado_ano.png`
+- [x] **T7.4** — Gráfico `percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano.png`
+- [x] **T7.5** — Célula markdown substituindo o comentário-lembrete da linha 1167, explicando
       a diferença entre a versão original (mantida) e a nova
+
+→ **valida com V6** — notebook rodado do zero, 0 erros (138 células), 2 gráficos novos,
+originais mantidos intactos
 
 → **valida com V6**
 

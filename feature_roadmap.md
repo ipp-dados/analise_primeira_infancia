@@ -18,3 +18,7 @@
 ## Other (need to break down later)
 - Replace HTML visualization with proper Streamlit panel
 - Setup LaTeX final report
+- Refactor architecture (after SPEC-maps-and-ibge is completed) — analise.py has grown a lot
+  across SPEC-mortalidade-AP and SPEC-maps-and-ibge; revisit whether the single-script
+  notebook structure still scales, or whether wrangling/visualization/analysis should split
+  into separate modules
