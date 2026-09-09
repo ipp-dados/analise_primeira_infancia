@@ -698,6 +698,42 @@ df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4'
 df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).head(20)
 
 # %% [markdown]
+# #### 👶 População 0-6 por idade/raça/sexo (IBGE SIDRA, 2022)
+#
+# Complementa o Censo por bairro acima com o detalhe por idade simples (0 a 6 anos) e por
+# raça/sexo, direto das tabelas do IBGE SIDRA (Censo 2022, tabela 9606). **Só existe no nível
+# município** -- as exportações do SIDRA não trazem recorte por bairro/AP/RP/CAP, então não
+# há mapa aqui, só tabelas e gráficos comparativos.
+
+# %%
+df_censo_sidra_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Censo//tabela9606_populacao_raca_cor.csv', coluna_corte='Cor ou raça')
+df_censo_sidra_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Censo//tabela9606_populacao_sexo.csv', coluna_corte='Sexo')
+
+df_censo_sidra_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//censo_sidra_populacao_0_6_raca_2022.csv')
+df_censo_sidra_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//censo_sidra_populacao_0_6_sexo_2022.csv')
+df_censo_sidra_raca.head()
+
+# %%
+_ORDEM_IDADE_SIDRA_0_6 = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
+
+grafico_barra_agrupado(
+    df_censo_sidra_raca[df_censo_sidra_raca['Cor ou raça'] != 'Total'],
+    categoria='idade', valor='valor', agrupador='Cor ou raça',
+    titulo='População residente de 0 a 6 anos por idade e raça/cor - Rio de Janeiro (Censo 2022)',
+    nome_arquivo='censo_sidra_populacao_0_6_raca_2022', ylabel='Pessoas', legend_title='Raça/cor',
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6,
+)
+
+# %%
+grafico_barra_agrupado(
+    df_censo_sidra_sexo[df_censo_sidra_sexo['Sexo'] != 'Total'],
+    categoria='idade', valor='valor', agrupador='Sexo',
+    titulo='População residente de 0 a 6 anos por idade e sexo - Rio de Janeiro (Censo 2022)',
+    nome_arquivo='censo_sidra_populacao_0_6_sexo_2022', ylabel='Pessoas', legend_title='Sexo',
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6,
+)
+
+# %% [markdown]
 # #### 🗺️ Mapa coroplético (bairros)
 #
 # Mapas coropléticos de crianças de 0 a 4 anos por bairro (Censo 2022), a partir de
@@ -2084,6 +2120,66 @@ grafico_barra_agrupado(
 
 # %% [markdown]
 # Frequência escolar (PNAD Contínua) e matrículas (Censo Escolar/INEP) de crianças de 0 a 6 anos.
+
+# %% [markdown]
+# #### Frequência escolar 0-6 anos (IBGE SIDRA, Censo 2022)
+#
+# Comparativo mais recente e granular (idade simples, por raça/sexo) que a série PNAD abaixo
+# -- mas de fonte e desenho diferentes: o Censo é enumeração completa (não amostral) de um
+# único ano (2022), enquanto a PNAD Contínua é uma pesquisa amostral com série histórica e
+# recorte estadual/nacional (não municipal). Não são diretamente comparáveis ano a ano; usar
+# o SIDRA para o retrato mais fino de 2022, a PNAD para tendência ao longo do tempo.
+
+# %%
+df_sidra_freq_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_raca_cor.csv', coluna_corte='Cor ou raça')
+df_sidra_freq_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_sexo.csv', coluna_corte='Sexo')
+df_sidra_taxa_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_raca_cor.csv', coluna_corte='Cor ou raça')
+df_sidra_taxa_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_sexo.csv', coluna_corte='Sexo')
+
+df_sidra_freq_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//sidra_frequencia_escola_0_5_raca_2022.csv')
+df_sidra_freq_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//sidra_frequencia_escola_0_5_sexo_2022.csv')
+df_sidra_taxa_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//sidra_taxa_frequencia_0_6_raca_2022.csv')
+df_sidra_taxa_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//sidra_taxa_frequencia_0_6_sexo_2022.csv')
+df_sidra_taxa_raca.head()
+
+# %%
+_ORDEM_IDADE_SIDRA_0_5 = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
+_ORDEM_IDADE_SIDRA_0_6_EDU = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
+
+grafico_barra_agrupado(
+    df_sidra_freq_raca[df_sidra_freq_raca['Cor ou raça'] != 'Total'],
+    categoria='idade', valor='valor', agrupador='Cor ou raça',
+    titulo='Crianças de até 5 anos que frequentam escola/creche, por idade e raça/cor - Rio de Janeiro (Censo 2022)',
+    nome_arquivo='sidra_frequencia_escola_0_5_raca_2022', ylabel='Pessoas', legend_title='Raça/cor',
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5,
+)
+
+# %%
+grafico_barra_agrupado(
+    df_sidra_freq_sexo[df_sidra_freq_sexo['Sexo'] != 'Total'],
+    categoria='idade', valor='valor', agrupador='Sexo',
+    titulo='Crianças de até 5 anos que frequentam escola/creche, por idade e sexo - Rio de Janeiro (Censo 2022)',
+    nome_arquivo='sidra_frequencia_escola_0_5_sexo_2022', ylabel='Pessoas', legend_title='Sexo',
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5,
+)
+
+# %%
+grafico_barra_agrupado(
+    df_sidra_taxa_raca[df_sidra_taxa_raca['Cor ou raça'] != 'Total'],
+    categoria='idade', valor='valor', agrupador='Cor ou raça',
+    titulo='Taxa de frequência escolar bruta (0-6 anos), por idade e raça/cor - Rio de Janeiro (Censo 2022)',
+    nome_arquivo='sidra_taxa_frequencia_0_6_raca_2022', ylabel='Taxa (%)', legend_title='Raça/cor',
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU,
+)
+
+# %%
+grafico_barra_agrupado(
+    df_sidra_taxa_sexo[df_sidra_taxa_sexo['Sexo'] != 'Total'],
+    categoria='idade', valor='valor', agrupador='Sexo',
+    titulo='Taxa de frequência escolar bruta (0-6 anos), por idade e sexo - Rio de Janeiro (Censo 2022)',
+    nome_arquivo='sidra_taxa_frequencia_0_6_sexo_2022', ylabel='Taxa (%)', legend_title='Sexo',
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU,
+)
 
 # %% [markdown]
 # #### Taxa de frequência escolar

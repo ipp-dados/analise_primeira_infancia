@@ -86,17 +86,21 @@ células, 35 PNGs em `mapas/` (17 pré-existentes + 18 novos)
 
 ## Bloco 4 — Componente B: IBGE SIDRA (`plan.md` §4)
 
-- [ ] **T4.1** — `carrega_sidra_longo(caminho, coluna_corte)` em **Limpeza e wrangling de
-      dados** (`plan.md` §4.1)
-- [ ] **T4.2** — Ler as 6 tabelas com corte (raça/sexo) das 9 disponíveis; conferir
-      shape/colunas contra o esperado antes de generalizar (V3.1)
-- [ ] **T4.3** — 6 tabelas largas em `tabelas_finais/` (`plan.md` §4.2)
-- [ ] **T4.4** — 6 gráficos via `grafico_barra_agrupado` (`plan.md` §4.3) — inclui
-      `sidra_frequencia_escola_0_5_sexo_2022.png` (movido dos itens opcionais para este bloco)
-- [ ] **T4.5** — Seção nova no notebook: Censo SIDRA dentro de `🏘️ Censo 2022`; Educação
+- [x] **T4.1** — `carrega_sidra_longo(caminho, coluna_corte)` em **Limpeza e wrangling de
+      dados** (`plan.md` §4.1) — feito no Bloco 2
+- [x] **T4.2** — Lidas as 6 tabelas com corte (raça/sexo); layout confere com o esperado
+- [x] **T4.3** — 6 tabelas largas em `tabelas_finais/` (`plan.md` §4.2)
+- [x] **T4.4** — 6 gráficos via `grafico_barra_agrupado` (`plan.md` §4.3) — inclui
+      `sidra_frequencia_escola_0_5_sexo_2022.png`
+- [x] **T4.5** — Seção nova no notebook: Censo SIDRA dentro de `🏘️ Censo 2022`; Educação
       SIDRA dentro de `🎓 PNAD Contínua, Censo Escolar e INEP` (`plan.md` §8)
 
-→ **valida com V3**
+Achado: os totais de `tabela9606` (coluna `Total`) têm uma diferença de até ~5 pessoas por
+idade em relação à soma das 5 raças -- confirmado como rounding do próprio IBGE (disclosure
+control), presente já no CSV bruto do SIDRA, não um bug de `carrega_sidra_longo` (`validation.md`
+V3.2). Sexo bate exato.
+
+→ **valida com V3** — notebook rodado do zero, 0 erros (133 células), 6 tabelas + 6 gráficos gerados
 
 ---
 
