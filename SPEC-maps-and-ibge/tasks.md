@@ -11,11 +11,10 @@ correspondente (`validation.md`). Referências `plan.md §N` apontam para o desi
 - [x] **T0.2** — Revisão 2 de `specs.md` incorpora as respostas; commitada (`0eb01ee`)
 - [x] **T0.3** — Item H (mapas AP/RP para os novos indicadores) registrado em
       `feature_roadmap.md`, fora de escopo deste branch
-- [ ] **T0.4** — ⚠️ Confirmar a leitura assumida em `specs.md` §8 (item em aberto): "Taxa de
-      Óbitos evitável/não evitável" = mortalidade infantil como um todo (já coberta pelas
-      taxas existentes de `df_neonatal_*`/`df_mortalidade_infantil`), não um cruzamento novo
-      por causa evitável a nível bairro (que não tem fonte de dado hoje) — **bloqueia o
-      Bloco 3** se a leitura estiver errada
+- [x] **T0.4** — Confirmado pelo usuário: "Taxa de Óbitos evitável/não evitável" = soma
+      evitável + não evitável (mortalidade infantil como um todo), já coberta pelas taxas
+      existentes de `df_neonatal_*`/`df_mortalidade_infantil` — nenhum cruzamento novo por
+      causa evitável a nível bairro é necessário. Bloco 3 desbloqueado.
 
 ---
 
