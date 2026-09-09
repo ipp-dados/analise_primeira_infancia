@@ -96,13 +96,34 @@ totalmente diferente."
   visualizador (`data-theme="light"`/`"dark"` e `prefers-color-scheme`, sem
   *stamp*).
 
+### v5 — `index.html` único, gerado por script, sem prosa (SPEC-visual-identity)
+
+- Os 3 arquivos (`index`/`lighter`/`white`) foram consolidados em **um único
+  `relatorio/index.html`**, com tema claro/escuro automático via
+  `prefers-color-scheme` (mesma técnica CSS de antes, sem toggle manual).
+- **Primeiro gerador persistido**: até aqui, os 3 arquivos eram montados por
+  scripts Python ad-hoc, nunca salvos — cada atualização era uma edição direta
+  do HTML. Agora `.claude/skills/export_pdf_report/scripts/build_html_report.py`
+  lê `tabelas_finais/*.csv` (mesma fonte do PDF) e `mapas/*.png` e gera o
+  arquivo do zero a cada rodada.
+- **Só visualização**: cada gráfico/mapa tem título + fonte + alternância "ver
+  tabela" — sem as notas de método/prosa que as versões anteriores copiavam do
+  notebook (essas ficam no notebook e no PDF).
+- Cobertura ampliada para as ~73 visualizações do notebook (25 já existentes +
+  tudo que `SPEC-maps-and-ibge` adicionou: SIDRA, evitáveis por CAP/subgrupo,
+  painéis D.1/D.2, raça sem "não informada") e as 32 imagens reais em
+  `mapas/*.png` (7 grupos temáticos).
+- `lineChart` ganhou a mesma lógica de destaque de `serie_temporal_multipla`
+  em `analise.py`: séries com mais de 6 linhas mostram só as 4 mais relevantes
+  coloridas, o resto vira uma linha cinza fina agrupada em "Outras (N)".
+- Paleta dos gráficos permanece a mesma de 11 cores pastel; mapas continuam
+  como PNG resized/WebP embutido (não foi preciso mudar essa técnica).
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
 | :--- | :--- | :--- | :--- |
-| `index.html` | Padrão (pedra) | Plena | Não |
-| `lighter_index.html` | Claro | Pastel | Sim |
-| `white_index.html` | Branco/cinza neutro | Pastel | Sim |
+| `index.html` | Claro/escuro automático | Pastel | Sim (32 mapas, 7 grupos temáticos) |
 
 ## Limitações conhecidas
 
@@ -110,8 +131,8 @@ totalmente diferente."
   que não pode ser reexecutada neste ambiente; os números refletem o último
   export salvo em `tabelas_finais/`.
 - `relatorio/*.html` não está versionado no git: o `.gitignore` do projeto
-  tem uma regra genérica `*.html` que os exclui — pendente decisão do usuário
-  sobre versionar ou manter só local/artefato.
+  tem uma regra genérica `*.html` que os exclui — decisão explícita de manter
+  assim nesta rodada (ver `SPEC-visual-identity/specs.md` §4, decisão F).
 - Algumas seções de `analise.py` sem saída visual (funções auxiliares,
   junção de tabelas por bairro) não têm equivalente no relatório, por não
   gerarem gráfico algum no notebook.

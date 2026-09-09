@@ -90,23 +90,41 @@
       corretos.
 
 ## Bloco 6 — `relatorio/` HTML (consolidação)
-- [ ] **T6.1** — Extrair o motor JS (`lineChart`/`barChart`/`groupedBarChart`) e o esqueleto
-      de tema claro/escuro de `lighter_index.html`/`white_index.html` para um template
-      reaproveitável pelo novo script de build.
-- [ ] **T6.2** — Escrever `.claude/skills/export_pdf_report/scripts/build_html_report.py`
-      (plan.md §4.2): lê `tabelas_finais/*.csv`, monta o JSON por seção, renderiza 1
-      `relatorio/index.html`.
-- [ ] **T6.3** — Portar a lógica de destaque de séries (Bloco 4) para o `lineChart` do motor JS.
-- [ ] **T6.4** — Adicionar seção "🗺️ Mapas" cobrindo os 25 mapas atuais (WebP ~1400px,
-      mesma técnica já usada), agrupados por tema (natalidade/mortalidade/cadunico/censo).
-- [ ] **T6.5** — Cada visualização com só título + fonte + alternância "ver tabela" — sem
-      prosa/notas de método.
-- [ ] **T6.6** — Rodar o script, gerar `relatorio/index.html`, abrir no navegador e conferir:
-      tema claro/escuro automático, todas as ~35 visualizações novas presentes, tabela de
-      dados funcionando em pelo menos 1 gráfico de cada tipo (linha simples, linha múltipla,
-      barra, barra agrupada, mapa).
-- [ ] **T6.7** — Remover `relatorio/lighter_index.html` e `relatorio/white_index.html` (arquivos
-      antigos, substituídos pelo novo `index.html` consolidado) — local only, já fora do git.
+- [x] **T6.1** — Motor JS (`lineChart`/`barChart`/`groupedBarChart`, `fmt`/`pct`/`svgEl`/`byId`)
+      e o CSS de tema claro/escuro extraídos de `lighter_index.html` via `Grep` (o arquivo tem
+      uma linha de ~3MB com os mapas em base64 que estoura o limite do `Read` — contornado lendo
+      só os trechos de código via `Grep -A`).
+- [x] **T6.2** — `.claude/skills/export_pdf_report/scripts/build_html_report.py` escrito: lê
+      `tabelas_finais/*.csv` direto (sem um blob `DATA` intermediário — cada chamada
+      `line_chart`/`bar_chart`/`grouped_bar_chart` já embute os arrays literais na chamada JS),
+      resolve os mapas via Pillow (resize + WebP), renderiza 1 `relatorio/index.html`.
+      **Achado real ao implementar:** `fmt`/`pct` (usados dentro das funções `format` passadas a
+      cada série) não estavam expostos em `window`, só `byId`/`lineChart`/`barChart`/
+      `groupedBarChart` — como as chamadas de render ficam num `<script>` (IIFE) separado do
+      motor, isso gerava `ReferenceError: fmt is not defined` em todo gráfico com formatação
+      customizada. Corrigido expondo `window.fmt`/`window.pct` também.
+- [x] **T6.3** — Lógica de destaque portada para `lineChart`: series >6 → top 4 pelo último
+      valor não-nulo coloridas (com rótulo/legenda), resto em linha cinza fina sem rótulo, 1
+      entrada de legenda "Outras (N)".
+- [x] **T6.4** — Seção "🗺️ Mapas" com as **32** imagens reais em `mapas/*.png` (não 25 — a
+      estimativa do plan.md contava call sites, não imagens renderizadas; alguns call sites são
+      loops que produzem várias imagens), agrupadas em 7 blocos temáticos.
+- [x] **T6.5** — Todas as ~73 visualizações (48 gráficos + a cobertura completa de
+      SPEC-maps-and-ibge: SIDRA, evitáveis por CAP/subgrupo, D.1/D.2, raça sem "não informada")
+      com só título + fonte + alternância "ver tabela" — sem prosa.
+- [x] **T6.6** — Gerado e validado com Chrome headless (`--screenshot`, sem servidor/browser
+      interativo disponível neste ambiente): 0 erros de console (2 rodadas, 1 bug real
+      encontrado e corrigido — ver T6.2); spot-check visual no topo (Censo, tabela+gráficos),
+      meio (evitáveis por CAP, destaque de 10 séries) e final (mapas + rodapé) da página — tema
+      escuro automático aplicado corretamente (ambiente sem preferência clara), paleta/fontes
+      consistentes com o notebook.
+      **Achado real ao implementar:** os gráficos de barra agrupada por idade/raça e
+      idade/sexo (SIDRA Censo e SIDRA educação) inicialmente incluíam uma categoria "Total"
+      espúria no eixo X — a versão matplotlib evitava isso via `order=_ORDEM_IDADE_SIDRA_0_6`
+      (que o `sns.barplot` usa para *filtrar*, não só ordenar); replicado no gerador Python
+      filtrando+reordenando pelas mesmas 3 listas de idade que `analise.py` já usa.
+- [x] **T6.7** — `relatorio/lighter_index.html` e `relatorio/white_index.html` removidos (local
+      only, já fora do git); `relatorio/index.html` agora é o único arquivo, gerado pelo script.
 
 ## Bloco 7 — PDF
 - [ ] **T7.1** — Rodar `regen_missing_pngs.py`, atualizar se necessário para as funções/
