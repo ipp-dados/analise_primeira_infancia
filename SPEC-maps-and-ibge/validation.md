@@ -42,7 +42,7 @@ funcionava" — por isso `V8` (regressão) é a seção mais pesada aqui.
 | # | checagem | aceite |
 |---|---|---|
 | V3.1 | Layout das 9 tabelas confere com o esperado | uma linha de município (`3304557`), ano `2022`, colunas nomeadas como em `specs.md` §3.1 — se algum arquivo divergir, `carrega_sidra_longo` falha ruidosamente (não silenciosamente) |
-| V3.2 | Totais batem entre o corte "geral" e a soma dos cortes com dimensão | `tabela9606_populacao_geral` (coluna `Total`) == soma de `tabela9606_populacao_raca_cor` pelas 5 raças, por idade — mesma checagem para sexo (Homens+Mulheres) |
+| V3.2 | Totais batem (com tolerância) entre o corte "geral" e a soma dos cortes com dimensão | `tabela9606_populacao_geral` (coluna `Total`) ≈ soma de `tabela9606_populacao_raca_cor` pelas 5 raças, por idade — checado: diferença de até ~5 pessoas por idade (ex. `1 ano`: soma das raças 55.991 vs. Total 55.996). **Confirmado como rounding do próprio IBGE** (controle de disclosure em recorte pequeno), não erro de `carrega_sidra_longo`/pivot — os mesmos valores já aparecem divergentes no CSV bruto do SIDRA. Sexo (Homens+Mulheres) bate exato com o Total. |
 | V3.3 | Valores `-` viram 0 | nenhum `NaN`/erro de conversão nas 6 tabelas tratadas |
 | V3.4 | 6 tabelas em `tabelas_finais/` | existem, formato largo, uma linha por idade (0-6 ou 0-5, + `Total`) |
 | V3.5 | 6 gráficos em `visualizacoes/` | existem, eixo x = idade simples (0-6), legenda = raça/sexo (inclui `sidra_frequencia_escola_0_5_sexo_2022`, `plan.md` §4.3) |
