@@ -1778,6 +1778,7 @@ for sufixo, rotulo in faixas_evitaveis_municipio_extra.items():
 # %% [markdown]
 # ###### Por CAP e faixa etária
 
+# %%
 # bins definidos depois de ver a distribuição de 2025 por faixa (célula 'Mapas por CAP' abaixo)
 # -- contagens uma ordem de grandeza menores em '1-4 anos' que em '< 1 ano'/'< 5 anos', então
 # cada faixa tem seus próprios limites de classe (não dá pra reaproveitar entre faixas)

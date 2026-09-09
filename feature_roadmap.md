@@ -22,3 +22,6 @@
   across SPEC-mortalidade-AP and SPEC-maps-and-ibge; revisit whether the single-script
   notebook structure still scales, or whether wrangling/visualization/analysis should split
   into separate modules
+- Convert the PDF export pipeline to LaTeX (after SPEC-visual-identity is completed) —
+  requested once the current `export_pdf_report` skill's Chrome-headless HTML-to-PDF pipeline
+  and the new unified visual identity (SPEC-visual-identity) are both in place

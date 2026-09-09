@@ -56,25 +56,38 @@
       séries), 1 cobertura vacinal (11 séries). Painéis por raça/cor ficaram em 6 séries — não
       disparam o destaque, como previsto no plan.md.
 - [x] **T4.2** — Decisão: manter o destaque **automático** (top 4 pelo valor final) em todos os
-      casos, inclusive cobertura vacinal. Motivo levantado ao checar os dados reais: os nomes
-      de coluna de `cobertura_vacinal_epi_por_ano.csv` têm mojibake pré-existente (`TR�PLICE
-      VIRAL D1`, `ROTAV�RUS` etc., confirmado com leitura `utf-8` explícita — bug real no
-      arquivo fonte, não um artefato de terminal) — hardcodar uma lista `destaques=[...]` teria
-      risco real de não bater com a string exata e falhar silenciosamente (nenhuma linha
-      destacada, sem erro). O top-4 automático já é defensável por si (evidencia os
-      imunobiológicos com maior cobertura corrente) e evita esse risco. Mojibake do CSV fica
-      registrado como um item separado de qualidade de dado, fora do escopo desta rodada.
-- [x] **T4.3** — Fica para o spot-check visual do Bloco 5 (cobertura vacinal e um gráfico
-      subgrupo×CAP), já que ambos exigem os dados reais do notebook.
+      casos, inclusive cobertura vacinal. Motivo levantado ao checar os dados via um script
+      Python solto: os nomes de coluna de `cobertura_vacinal_epi_por_ano.csv` apareciam com
+      mojibake (`TR�PLICE VIRAL D1` etc.) mesmo lendo com `encoding='utf-8'` explícito — mas
+      **isso era um artefato do meu script de diagnóstico** (não especificava o mesmo encoding
+      que `carrega_cobertura_vacinal` usa em `analise.py`), confirmado no spot-check visual do
+      Bloco 5: o gráfico real mostra "TRÍPLICE VIRAL D1" corretamente acentuado na legenda. Não
+      era um risco real, mas a decisão de manter o automático continua válida por si só (top-4
+      evidencia os imunobiológicos com maior cobertura corrente, sem curadoria arbitrária).
+- [x] **T4.3** — Confirmado no Bloco 5: `obitos_causas_evitaveis_subgrupo_ano.png` (7 séries) e
+      `cobertura_vacinal_epi_ano.png` (11 séries) renderizam corretamente com 4 linhas
+      destacadas + "Outras (N)" em cinza.
 
 ## Bloco 5 — Validação completa do notebook
-- [ ] **T5.1** — `jupytext --sync` (ou execução direta) para refletir as mudanças de
-      `analise.py` no `.ipynb`.
-- [ ] **T5.2** — `jupyter nbconvert --to notebook --execute --inplace` a partir de kernel limpo — 0 erros.
-- [ ] **T5.3** — Checar `nbformat` por células com `output_type == 'error'` (script já usado nas rodadas anteriores).
-- [ ] **T5.4** — Spot-check visual: 1 mapa por tema (4), 1 `serie_temporal_multipla` com
-      destaque (1), 1 gráfico de barra simples e 1 agrupado — abrir os PNGs e conferir título
-      serifado, rodapé de fonte, paleta correta.
+- [x] **T5.1** — `jupytext --sync` rodado (2x — ver nota abaixo).
+- [x] **T5.2** — `jupyter nbconvert --to notebook --execute --inplace` a partir de kernel limpo — 0 erros, 138 células de código.
+      **Achado real ao implementar:** a 1ª tentativa (executada com o processo indevidamente
+      auto-desanexado do rastreamento do harness — ver nota) rodou sobre uma `analise.py`
+      corrompida por um erro meu: um `Edit` do Bloco 3 removeu a linha `fonte_evitaveis_cap =
+      '...'` junto com o marcador de célula `# %%` que a precedia, fundindo silenciosamente a
+      célula de código seguinte (que definia `faixas_primeira_infancia`, `df_evitaveis_cap_faixa`
+      etc.) dentro da célula de markdown anterior — o código virou comentário e nunca executou,
+      causando `NameError: name 'df_evitaveis_cap_faixa' is not defined` mais adiante. Corrigido
+      restaurando o `# %%` no lugar certo; varredura automática confirmou que nenhum outro
+      `Edit` desta rodada cometeu o mesmo erro. Re-executado do zero com sucesso (138 células,
+      0 erros, ordem cronológica de geração dos PNGs consistente com a ordem do arquivo).
+- [x] **T5.3** — Script `nbformat` confirmou 0 células com `output_type == 'error'`.
+- [x] **T5.4** — Spot-check visual: mapas dos 4 temas (censo=Blues, cadúnico=YlOrBr,
+      natalidade=BuGn, mortalidade=RdPu) corretos; `obitos_causas_evitaveis_subgrupo_ano.png`
+      (7 séries) e `cobertura_vacinal_epi_ano.png` (11 séries) com destaque automático
+      funcionando; `cadunico_familias_por_idade.png` (barra simples) e
+      `censo_sidra_populacao_0_6_raca_2022.png` (barra agrupada) com paleta/título/fonte
+      corretos.
 
 ## Bloco 6 — `relatorio/` HTML (consolidação)
 - [ ] **T6.1** — Extrair o motor JS (`lineChart`/`barChart`/`groupedBarChart`) e o esqueleto
