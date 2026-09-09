@@ -209,12 +209,13 @@ usado em `df_evitaveis_subgrupo_mrj_wide` (linha 1435).
 | `censo_sidra_populacao_0_6_raca_2022.png` | população por idade simples × raça |
 | `censo_sidra_populacao_0_6_sexo_2022.png` | população por idade simples × sexo |
 | `sidra_frequencia_escola_0_5_raca_2022.png` | nº que frequenta escola/creche por idade × raça |
+| `sidra_frequencia_escola_0_5_sexo_2022.png` | nº que frequenta escola/creche por idade × sexo |
 | `sidra_taxa_frequencia_0_6_raca_2022.png` | taxa de frequência (%) por idade × raça |
 | `sidra_taxa_frequencia_0_6_sexo_2022.png` | taxa de frequência (%) por idade × sexo |
 
-(`sidra_frequencia_escola_0_5_sexo_2022` fica só como tabela — o gráfico por sexo já é
-melhor representado pela taxa %, que normaliza a diferença de tamanho de população entre os
-grupos; a contagem absoluta por sexo é redundante com a taxa por sexo já no gráfico acima.)
+> Revisão: o gráfico de `sidra_frequencia_escola_0_5_sexo_2022` (contagem absoluta por sexo),
+> antes deixado só como tabela por ser redundante com a taxa % por sexo, entra no primeiro
+> round por pedido do usuário — 6 gráficos, não 5.
 
 ---
 

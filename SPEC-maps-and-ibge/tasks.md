@@ -52,22 +52,35 @@ correspondente (`validation.md`). Referências `plan.md §N` apontam para o desi
 ⚠️ Só inicia após T0.4 confirmado. Ordem sugerida — do mais simples (sem taxa) ao mais
 complexo (2 pares de mapas no mesmo dataset):
 
-- [ ] **T3.1** — `cadunico_criancas` (abs) — 1 mapa
-- [ ] **T3.2** — `cadunico_primeira_infancia` (abs + %) — 2 mapas
-- [ ] **T3.3** — `nascidos_vivos` (abs) — 1 mapa
-- [ ] **T3.4** — `nascidos_baixo_peso` (abs + %) — 2 mapas
-- [ ] **T3.5** — `obitos_raca_total` (abs + taxa) — 2 mapas
-- [ ] **T3.6** — `obitos_neonatal_precoce` (abs + taxa) — 2 mapas
-- [ ] **T3.7** — `obitos_neonatal_tardia` (abs + taxa) — 2 mapas
-- [ ] **T3.8** — `mortalidade_infantil` (abs + taxa, 0-364) — 2 mapas
-- [ ] **T3.9** — `mortalidade_pos_neonatal` (abs + taxa, 28-364, mesmo `df`) — 2 mapas
-- [ ] **T3.10** — `obitos_gravidez` (abs, nota de cautela sobre números pequenos) — 1 mapa
-- [ ] **T3.11** — `obitos_puerperio` (idem) — 1 mapa
+- [x] **T3.1** — `cadunico_criancas` (abs) — 1 mapa
+- [x] **T3.2** — `cadunico_primeira_infancia` (abs + %) — 2 mapas
+- [x] **T3.3** — `nascidos_vivos` (abs) — 1 mapa
+- [x] **T3.4** — `nascidos_baixo_peso` (abs + %) — 2 mapas
+- [x] **T3.5** — `obitos_raca_total` (abs + taxa) — 2 mapas
+- [x] **T3.6** — `obitos_neonatal_precoce` (abs + taxa) — 2 mapas
+- [x] **T3.7** — `obitos_neonatal_tardia` (abs + taxa) — 2 mapas
+- [x] **T3.8** — `mortalidade_infantil` (abs + taxa, 0-364) — 2 mapas
+- [x] **T3.9** — `mortalidade_pos_neonatal` (abs + taxa, 28-364, mesmo `df`) — 2 mapas
+- [x] **T3.10** — `obitos_gravidez` (abs, nota de cautela sobre números pequenos) — 1 mapa
+- [x] **T3.11** — `obitos_puerperio` (idem) — 1 mapa
 
 Para cada um: `.describe()` da coluna absoluta → escolher `bins` → `tabela_mapa_*.csv` →
-`mapa_coropletico_bairros(...)` (`plan.md` §3.1-3.3). **18 PNGs no total.**
+`mapa_coropletico_bairros(...)` (`plan.md` §3.1-3.3). **18 PNGs no total — todos gerados.**
 
-→ **valida com V2.3-V2.8** (rodar após cada 2-3 itens, não só no final — `plan.md` §9)
+Dois achados reais durante a implementação, não previstos no plano original:
+- 4 dos 11 indicadores (`nascidos_vivos`, `nascidos_baixo_peso`, `obitos_gravidez`,
+  `obitos_puerperio`, mais `obitos_neonatal_precoce`/`obitos_neonatal_tardia` mesmo após
+  o merge com `df_vivos`) têm linhas `'EM BRANCO'` (bairro não identificado) que
+  `limpeza_tabnet_bairros` deixa com `codigo`/`bairro` = NaN — `mapa_coropletico_bairros`
+  falha ao converter NaN para inteiro. Corrigido com `.dropna(subset=['codigo'])` antes de
+  cada mapa (não altera `limpeza_tabnet_bairros` em si, só o insumo do mapa).
+- `mapa_coropletico_bairros` exige `bins[-1] < valor_maximo_real` (senão o último `limite`
+  colide com `bins[-1]` e `pd.cut` rejeita bordas duplicadas) — `obitos_gravidez`/
+  `obitos_puerperio` têm contagens tão baixas (max real 2 e 3) que os `bins` propostos em
+  `plan.md` (`[1,2,3,5]`) estouravam essa regra; ajustados para `[0,1]`/`[0,1,2]`.
+
+→ **valida com V2.3-V2.8** — notebook rodado do zero após cada correção, 0 erros em 125
+células, 35 PNGs em `mapas/` (17 pré-existentes + 18 novos)
 
 ---
 
@@ -78,7 +91,8 @@ Para cada um: `.describe()` da coluna absoluta → escolher `bins` → `tabela_m
 - [ ] **T4.2** — Ler as 6 tabelas com corte (raça/sexo) das 9 disponíveis; conferir
       shape/colunas contra o esperado antes de generalizar (V3.1)
 - [ ] **T4.3** — 6 tabelas largas em `tabelas_finais/` (`plan.md` §4.2)
-- [ ] **T4.4** — 5 gráficos via `grafico_barra_agrupado` (`plan.md` §4.3)
+- [ ] **T4.4** — 6 gráficos via `grafico_barra_agrupado` (`plan.md` §4.3) — inclui
+      `sidra_frequencia_escola_0_5_sexo_2022.png` (movido dos itens opcionais para este bloco)
 - [ ] **T4.5** — Seção nova no notebook: Censo SIDRA dentro de `🏘️ Censo 2022`; Educação
       SIDRA dentro de `🎓 PNAD Contínua, Censo Escolar e INEP` (`plan.md` §8)
 
@@ -155,10 +169,10 @@ Para cada um: `.describe()` da coluna absoluta → escolher `bins` → `tabela_m
 
 ## Itens opcionais / segunda rodada
 
-- [ ] Mapas AP/RP para os 11 indicadores do Componente A (registrado em `feature_roadmap.md`)
-- [ ] Resolver definitivamente o item T0.4 se a leitura assumida estiver errada — buscar fonte
-      de causas evitáveis por bairro (se existir no Tabnet) e refazer o Componente A com o
-      cruzamento evitável/não evitável de verdade
+> Revisão: os dois itens de "mapas AP/RP" e "resolver T0.4 se a leitura estiver errada" saíram
+> desta lista (o primeiro já vive só em `feature_roadmap.md`, o segundo ficou sem objeto após
+> a confirmação em T0.4). O item de `sidra_frequencia_escola_0_5_sexo_2022` foi promovido para
+> o Bloco 4 (T4.4) nesta primeira rodada.
+
 - [ ] Atualizar `relatorio/*.html` e regerar o PDF (`skill export_pdf_report`) com os novos
       gráficos/mapas
-- [ ] `sidra_frequencia_escola_0_5_sexo_2022` como gráfico próprio (hoje só tabela, `plan.md` §4.3)
