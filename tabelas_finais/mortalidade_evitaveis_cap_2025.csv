@@ -1,0 +1,31 @@
+cod_ap_sms,ano,faixa_etaria,evitaveis,mal_definidas,demais,total,percentual_evitaveis
+1.0,2025,de 1 a 4 anos,1,0,4,5,20.0
+1.0,2025,menores de 1 ano,27,0,11,38,71.05
+1.0,2025,menores de 5 anos,28,0,15,43,65.12
+2.1,2025,de 1 a 4 anos,2,0,1,3,66.67
+2.1,2025,menores de 1 ano,12,4,16,32,37.5
+2.1,2025,menores de 5 anos,14,4,17,35,40.0
+2.2,2025,de 1 a 4 anos,6,0,0,6,100.0
+2.2,2025,menores de 1 ano,9,0,5,14,64.29
+2.2,2025,menores de 5 anos,15,0,5,20,75.0
+3.1,2025,de 1 a 4 anos,8,1,9,18,44.44
+3.1,2025,menores de 1 ano,64,3,30,97,65.98
+3.1,2025,menores de 5 anos,72,4,39,115,62.61
+3.2,2025,de 1 a 4 anos,4,2,9,15,26.67
+3.2,2025,menores de 1 ano,34,0,18,52,65.38
+3.2,2025,menores de 5 anos,38,2,27,67,56.72
+3.3,2025,de 1 a 4 anos,12,1,7,20,60.0
+3.3,2025,menores de 1 ano,84,2,25,111,75.68
+3.3,2025,menores de 5 anos,96,3,32,131,73.28
+4.0,2025,de 1 a 4 anos,7,2,9,18,38.89
+4.0,2025,menores de 1 ano,89,4,39,132,67.42
+4.0,2025,menores de 5 anos,96,6,48,150,64.0
+5.1,2025,de 1 a 4 anos,9,1,6,16,56.25
+5.1,2025,menores de 1 ano,48,1,23,72,66.67
+5.1,2025,menores de 5 anos,57,2,29,88,64.77
+5.2,2025,de 1 a 4 anos,7,0,8,15,46.67
+5.2,2025,menores de 1 ano,67,0,33,100,67.0
+5.2,2025,menores de 5 anos,74,0,41,115,64.35
+5.3,2025,de 1 a 4 anos,10,0,6,16,62.5
+5.3,2025,menores de 1 ano,57,1,18,76,75.0
+5.3,2025,menores de 5 anos,67,1,24,92,72.83
