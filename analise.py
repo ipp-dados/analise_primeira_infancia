@@ -339,6 +339,7 @@ def serie_temporal(df,tempo,valor,titulo,nome_arquivo=None, formato='png', fonte
     nome_arquivo = nome_arquivo or f"{valor}_{tempo}"
     plt.figure(figsize=(12,6))
     sns.lineplot(x=tempo,y=valor,data=df, color=_PALETA_CATEGORICA[0], marker='o')
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
     plt.xlabel(tempo,fontsize=12)
     plt.ylabel(valor,fontsize=12)
     plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
@@ -401,6 +402,7 @@ def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',
         for i,(rotulo,coluna) in enumerate(itens):
             sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None,
                          color=_PALETA_CATEGORICA[i % len(_PALETA_CATEGORICA)])
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
     plt.xlabel(tempo,fontsize=12)
     plt.ylabel(ylabel,fontsize=12)
     plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)

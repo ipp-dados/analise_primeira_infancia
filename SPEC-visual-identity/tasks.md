@@ -127,18 +127,44 @@
       only, já fora do git); `relatorio/index.html` agora é o único arquivo, gerado pelo script.
 
 ## Bloco 7 — PDF
-- [ ] **T7.1** — Rodar `regen_missing_pngs.py`, atualizar se necessário para as funções/
-      esquemas de CSV que mudaram no Bloco 1-3.
-- [ ] **T7.2** — Atualizar `extract_maps.py` para ler do novo `relatorio/index.html` único.
-- [ ] **T7.3** — Atualizar `build_notebook_report.py` com as seções novas de `SPEC-maps-and-ibge`.
-- [ ] **T7.4** — Rodar o pipeline completo até o Chrome headless (flags de segurança do
-      `--user-data-dir` isolado, `--no-pdf-header-footer`).
-- [ ] **T7.5** — Verificar contagem de páginas + rasterizar amostra (primeira, várias do meio,
-      seção de mapas, última) e olhar as imagens.
-- [ ] **T7.6** — Checar os modos de falha conhecidos da skill (ano com separador de milhar,
-      tabela larga cortada, coluna de percentual na escala errada, header/footer do Chrome
-      vazando, tema escuro vazando).
-- [ ] **T7.7** — Copiar o PDF verificado para `relatorio/analise_primeira_infancia.pdf`.
+- [x] **T7.1** — Não necessário: a execução completa do notebook no Bloco 5 já regenerou
+      todos os PNGs (74 em `visualizacoes/`, incluindo tudo que `SPEC-maps-and-ibge` adicionou)
+      com o estilo novo — nada para `regen_missing_pngs.py` preencher.
+- [x] **T7.2** — `extract_maps.py` **descontinuado** (não atualizado): ele lia um `const MAPS =
+      [...]` de um `relatorio/*.html`, mas o novo `relatorio/index.html` (Bloco 6) embute mapas
+      como `<img>` direto, sem esse array JS. `build_notebook_report.py` agora resolve/
+      redimensiona `mapas/*.png` sozinho (`map_card()`, mesma técnica Pillow/WebP do Bloco 6) —
+      elimina a dependência entre os dois scripts.
+- [x] **T7.3** — `build_notebook_report.py` atualizado com as seções que faltavam: SIDRA Censo
+      (raça/sexo), raça sem "não informada" (Componente E), a subseção inteira de evitáveis por
+      CAP (panorama municipal, por subgrupo×CAP×faixa, grupo evitável por CAP, gestação/parto),
+      SIDRA educação (4 gráficos), e a galeria de mapas expandida de 5 para as 32 imagens reais
+      (7 grupos temáticos, mesmo agrupamento do Bloco 6).
+- [x] **T7.4** — Pipeline rodado até o PDF (1ª passada, antes do achado de T7.6 abaixo).
+      **Achado real ao implementar:** a primeira tentativa gerou um PDF de 25KB (1 página,
+      "ERR_FILE_NOT_FOUND") — a URL `file:///$SCRATCH/...` estava malformada porque `$SCRATCH`
+      já é um caminho POSIX (`/c/Users/...`), resultando em 4 barras (`file:////c/Users/...`)
+      em vez de `file:///C:/Users/...`. Corrigido convertendo para o caminho Windows via
+      `cygpath -m` antes de montar a URL. PDF dessa passada: 95 páginas, ~50MB.
+- [x] **T7.5** — `pypdf`/`PyMuPDF` não estavam instalados no ambiente (instalados agora,
+      registrar em `requirements.txt` no Bloco 8) — contagem de páginas confirmada (95),
+      amostra rasterizada (capa, meio com tabela CAP 10-colunas, mapas, última página/rodapé)
+      e inspecionada visualmente.
+- [x] **T7.6** — **Achado real ao implementar** (durante a inspeção de T7.5): um dos gráficos
+      novos (evitáveis por subgrupo×CAP) mostrava ticks fracionários no eixo de ano ("2007.5",
+      "2010.0"...) — o mesmo modo de falha "ano com eixo numérico contínuo" já documentado na
+      skill, mas nunca antes visível porque as séries mais antigas (1996-2025) por coincidência
+      caem em intervalos redondos no locator automático do matplotlib; as novas (2006-2025) não.
+      Bug pré-existente em `serie_temporal`/`serie_temporal_multipla` desde antes desta rodada
+      — corrigido com `plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))`
+      (preserva o adensamento automático de ticks para séries longas, só proíbe posições
+      fracionárias, ao contrário de forçar eixo categórico, que lotaria de rótulos uma série de
+      30 anos). Notebook reexecutado do zero para regenerar todos os PNGs afetados (em
+      andamento) — HTML e PDF precisam ser regenerados de novo depois, e a amostra revisada
+      mais uma vez para confirmar o fix e checar os demais modos de falha conhecidos (milhar em
+      `ano`, tabela larga cortada, percentual em escala errada, header/footer do Chrome, tema
+      escuro vazando).
+- [ ] **T7.7** — Copiar o PDF final (pós-fix) verificado para `relatorio/analise_primeira_infancia.pdf`.
 
 ## Bloco 8 — Documentação e fechamento
 - [ ] **T8.1** — Atualizar `relatorio/specs.md` com a v5 (consolidação, script de build

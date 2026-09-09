@@ -7,29 +7,35 @@ from tabelas_finais/) under each chart. Run render_pdf.py on its output to
 get the final PDF.
 
 This script is a direct transcription of analise.py's markdown cells and
-plotting/export calls as of 2026-09-02 -- if analise.py's sections, column
-names, or exported filenames change, this needs matching edits. It is not
-a generic notebook-to-PDF converter.
+plotting/export calls as of this branch (SPEC-visual-identity) -- if
+analise.py's sections, column names, or exported filenames change, this
+needs matching edits. It is not a generic notebook-to-PDF converter.
 
 Run from the project root:
-    python build_notebook_report.py <maps.json> <out.html>
+    python build_notebook_report.py <out.html>
 
-<maps.json> comes from extract_maps.py (run against any relatorio/*.html).
+Maps are embedded directly from mapas/*.png (resized/WebP via Pillow, same
+technique as build_html_report.py) -- no longer routed through
+relatorio/*.html + extract_maps.py, since the consolidated relatorio/index.html
+(SPEC-visual-identity) embeds maps as plain <img> tags, not a `const MAPS = [...]`
+JS array extract_maps.py could parse.
 """
 import base64
 import datetime
-import json
+import io
 import math
+import os
 import re
 import sys
 
 import pandas as pd
+from PIL import Image
 
-maps_json_path = sys.argv[1]
-out_path = sys.argv[2]
+out_path = sys.argv[1] if len(sys.argv) > 1 else sys.argv[-1]
 
 TF = "tabelas_finais"
 VIZ = "visualizacoes"
+MAPAS = "mapas"
 
 # ---------------------------------------------------------------- helpers --
 
@@ -48,6 +54,16 @@ def chart_block(png_name, src_csv=None):
     b64 = img_b64(png_name)
     src = f'<div class="out-src">{src_csv}</div>' if src_csv else ""
     return f'<div class="out"><img class="chart-img" src="data:image/png;base64,{b64}" alt="{png_name}">{src}</div>'
+
+def map_card(png_name, caption, max_width=1400):
+    img = Image.open(f"{MAPAS}/{png_name}").convert("RGB")
+    if img.width > max_width:
+        h = int(img.height * max_width / img.width)
+        img = img.resize((max_width, h), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="WEBP", quality=80, method=6)
+    b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    return f'<figure class="map-card"><img src="data:image/webp;base64,{b64}" alt="{caption}"><figcaption class="map-cap">{caption}</figcaption></figure>'
 
 def clean_causa(label):
     """Strip a leading CID-10-style numeric code ('1.2.1 ') from a label."""
@@ -135,7 +151,10 @@ add(table_html(df_censo_serie[["ano", "0 a 4 anos", "Sexo feminino, 0 a 4 anos",
 add(chart_block("censo_0_a_4_serie_percentual_ano.png", "censo_0_a_4_anos_por_ano.csv"))
 add(table_html(df_censo_serie[["ano", "Percentual 0 a 4 anos"]], pct_cols=["Percentual 0 a 4 anos"], rename={"ano": "Ano"}))
 
-add(h5('Pendente: Censo 2022 por idade e raça/cor (0 a 6 anos, cidade toda)'))
+add(h4('População 0-6 por idade/raça/sexo (IBGE SIDRA, 2022)'))
+add(p('Complementa o Censo por bairro acima com o detalhe por idade simples (0 a 6 anos) e por raça/sexo, direto das tabelas do IBGE SIDRA (Censo 2022, tabela 9606). Só existe no nível município.'))
+add(chart_block("censo_sidra_populacao_0_6_raca_2022.png", "censo_sidra_populacao_0_6_raca_2022.csv"))
+add(chart_block("censo_sidra_populacao_0_6_sexo_2022.png", "censo_sidra_populacao_0_6_sexo_2022.csv"))
 
 add(h3('\U0001F5C2️ Cadúnico'))
 add(p('Fonte: CadÚnico via banco CTPE (<code>silver_cadunico_geral</code>), recorte de crianças 0-6 anos.'))
@@ -209,6 +228,17 @@ add(chart_block("percentual_mortalidade_causas_evitaveis_raca_ano.png", "mortali
 pct_evit_cols = [f"percentual_evitaveis_{r}" for r in RACA_LABEL]
 add(table_html(df_evit_raca[["ano"] + pct_evit_cols], pct_cols=pct_evit_cols, rename={"ano": "Ano", **{f"percentual_evitaveis_{r}": lbl for r, lbl in RACA_LABEL.items()}}))
 
+add(h6('Sem "não informada" (a partir de 1997)'))
+add(p('Mesmos dois gráficos acima, excluindo a categoria "não informada" e o ano de 1996 (baixa completude do preenchimento de raça/cor nesse ano inicial da série).'))
+RACA_LABEL_SEM_NI = {k: v for k, v in RACA_LABEL.items() if k != "nao_informado"}
+df_evit_raca_sem = df_evit_raca[df_evit_raca["ano"] > 1996]
+add(chart_block("obitos_causas_evitaveis_raca_sem_nao_informado_ano.png", "mortalidade_causas_evitaveis_raca_municipio_ano.csv"))
+obitos_evit_cols_sem = [f"obitos_evitaveis_{r}" for r in RACA_LABEL_SEM_NI]
+add(table_html(df_evit_raca_sem[["ano"] + obitos_evit_cols_sem], rename={"ano": "Ano", **{f"obitos_evitaveis_{r}": lbl for r, lbl in RACA_LABEL_SEM_NI.items()}}))
+add(chart_block("percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano.png", "mortalidade_causas_evitaveis_raca_municipio_ano.csv"))
+pct_evit_cols_sem = [f"percentual_evitaveis_{r}" for r in RACA_LABEL_SEM_NI]
+add(table_html(df_evit_raca_sem[["ano"] + pct_evit_cols_sem], pct_cols=pct_evit_cols_sem, rename={"ano": "Ano", **{f"percentual_evitaveis_{r}": lbl for r, lbl in RACA_LABEL_SEM_NI.items()}}))
+
 add(h5('Óbitos por causas evitáveis, por grupo de causa (CID-10)'))
 add(p('Usa os arquivos "segundo causas" (não por raça/cor), que classificam cada óbito evitável em uma hierarquia de grupo/subgrupo/causa específica. Soma as três faixas etárias (0-6, 7-27 e 28-364 dias) para obter o total 0-364 dias, no nível de município (1996-2025).'))
 add(notes_list([
@@ -239,6 +269,76 @@ ordem_faixa = [c for c in ["0-6 dias", "7-27 dias", "28-364 dias"] if c in df_fa
 df_faixa2025_wide = df_faixa2025_wide[["subgrupo"] + ordem_faixa]
 df_faixa2025_wide["subgrupo"] = df_faixa2025_wide["subgrupo"].map(clean_causa)
 add(table_html(df_faixa2025_wide, rename={"subgrupo": "Subgrupo"}))
+
+add(h5('Primeira infância, por Área Programática de Saúde (CAP)'))
+add(p('Coordenadorias de Área Programática da SMS-Rio (10 unidades) — divisão territorial diferente das 5 Áreas de Planejamento do IPP usadas nos mapas do Censo.'))
+
+df_cap_faixa = read("mortalidade_evitaveis_cap_faixa_ano.csv")
+df_grupo_cap_faixa = read("mortalidade_evitaveis_grupo_cap_faixa_ano.csv")
+_FAIXAS_CAP = [("menores_1_ano", "menores de 1 ano", "Menores de 1 ano"), ("1_a_4_anos", "de 1 a 4 anos", "De 1 a 4 anos"), ("menores_5_anos", "menores de 5 anos", "Menores de 5 anos")]
+_SLUG_SUBGRUPO_PDF = {
+    "1.1. Reduzível pelas ações de imunização": ("imunizacao", "Imunização"),
+    "1.2.1. Red por at à mulher na gestação": ("gestacao", "Gestação"),
+    "1.2.2. Red por at à mulher no parto": ("parto", "Parto"),
+    "1.2.3. Red por at ao recém-nascido": ("recem_nascido", "Recém-nascido"),
+    "1.3. Red por ações de diag e trat adequado": ("diagnostico_tratamento", "Diagnóstico/tratamento"),
+    "1.4. Red por ações promoção vinc a atenção": ("promocao_vinculacao", "Promoção/vinculação"),
+}
+
+def cap_pivot_table(df, value_col, faixa_full, fmt_pct=False):
+    sub = df[df["faixa_etaria"] == faixa_full]
+    wide = sub.pivot(index="ano", columns="cod_ap_sms", values=value_col).reset_index()
+    wide.columns = ["ano"] + [f"CAP {c}" for c in wide.columns[1:]]
+    cap_cols = [c for c in wide.columns if c != "ano"]
+    return table_html(wide, pct_cols=cap_cols if fmt_pct else [], rename={"ano": "Ano"})
+
+add(h6('Panorama municipal, por subgrupo'))
+for sufixo, faixa_full, faixa_lbl in _FAIXAS_CAP:
+    add(h6(faixa_lbl))
+    fname = "obitos_evitaveis_menores_5_subgrupo_ano.png" if sufixo == "menores_5_anos" else f"obitos_evitaveis_{sufixo}_subgrupo_ano.png"
+    add(chart_block(fname, "mortalidade_evitaveis_cap_faixa_ano.csv"))
+    sub = df_cap_faixa[df_cap_faixa["faixa_etaria"] == faixa_full].groupby(["subgrupo", "ano"], as_index=False)["obitos"].sum()
+    wide = sub.pivot(index="ano", columns="subgrupo", values="obitos").reset_index()
+    add(table_html(wide, rename={"ano": "Ano"}, clean_headers=True))
+
+add(h6('Por CAP e faixa etária, por subgrupo'))
+for sufixo, faixa_full, faixa_lbl in _FAIXAS_CAP:
+    add(p(faixa_lbl))
+    for subgrupo_full, (slug, subgrupo_lbl) in _SLUG_SUBGRUPO_PDF.items():
+        add(chart_block(f"obitos_evitaveis_{slug}_cap_{sufixo}_ano.png", "mortalidade_evitaveis_cap_faixa_ano.csv"))
+        sub = df_cap_faixa[(df_cap_faixa["subgrupo"] == subgrupo_full) & (df_cap_faixa["faixa_etaria"] == faixa_full)]
+        wide = sub.pivot(index="ano", columns="cod_ap_sms", values="obitos").reset_index()
+        wide.columns = ["ano"] + [f"CAP {c}" for c in wide.columns[1:]]
+        add(table_html(wide, rename={"ano": "Ano"}))
+
+add(h6('Grupo evitável, por CAP'))
+for sufixo, faixa_full, faixa_lbl in _FAIXAS_CAP:
+    add(p(faixa_lbl))
+    if sufixo == "menores_5_anos":
+        add(chart_block("obitos_evitaveis_cap_menores_5_anos_ano.png", "mortalidade_evitaveis_grupo_cap_faixa_ano.csv"))
+    else:
+        add(chart_block(f"obitos_evitaveis_cap_{sufixo}_ano.png", "mortalidade_evitaveis_grupo_cap_faixa_ano.csv"))
+    add(cap_pivot_table(df_grupo_cap_faixa, "1. Causas evitáveis", faixa_full))
+    add(chart_block(f"percentual_evitaveis_cap_{sufixo}_ano.png", "mortalidade_evitaveis_grupo_cap_faixa_ano.csv"))
+    add(cap_pivot_table(df_grupo_cap_faixa, "percentual_evitaveis", faixa_full, fmt_pct=True))
+add(chart_block("obitos_evitaveis_total_cap_ano.png", "mortalidade_evitaveis_grupo_cap_faixa_ano.csv"))
+add(cap_pivot_table(df_grupo_cap_faixa, "total", "menores de 5 anos"))
+
+add(h6('Gestação e parto, menores de 1 ano, por CAP'))
+for subgrupo_full, (slug, subgrupo_lbl) in [
+    ("1.2.1. Red por at à mulher na gestação", ("gestacao", "Gestação")),
+    ("1.2.2. Red por at à mulher no parto", ("parto", "Parto")),
+]:
+    add(p(subgrupo_lbl))
+    add(chart_block(f"obitos_evitaveis_{slug}_cap_menores_1_ano_ano.png", "mortalidade_evitaveis_cap_faixa_ano.csv"))
+    sub = df_cap_faixa[(df_cap_faixa["subgrupo"] == subgrupo_full) & (df_cap_faixa["faixa_etaria"] == "menores de 1 ano")]
+    wide = sub.pivot(index="ano", columns="cod_ap_sms", values="obitos").reset_index()
+    wide.columns = ["ano"] + [f"CAP {c}" for c in wide.columns[1:]]
+    add(table_html(wide, rename={"ano": "Ano"}))
+
+add(h6('Panorama municipal (< 5 anos) e taxa'))
+add(chart_block("taxa_mortalidade_evitaveis_menores_5_ano.png", "taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv"))
+add(table_html(read("taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv"), dec_cols={"taxa_por_mil": 1}, rename={"ano": "Ano", "obitos": "Óbitos", "nascidos_vivos": "Nascidos vivos", "taxa_por_mil": "Taxa (‰)"}))
 
 add(h4('\U0001F4CB Óbitos gravidez e puerpério'))
 add(p('Óbitos maternos durante a gravidez e o puerpério, por bairro de residência (2006-2025).'))
@@ -299,6 +399,13 @@ add(table_html(df_vac_comp_wide, pct_cols=vac_comp_cols, rename={"ano": "Ano"}))
 add(h3('\U0001F393 PNAD Contínua, Censo Escolar e INEP'))
 add(p('Frequência escolar (PNAD Contínua) e matrículas (Censo Escolar/INEP) de crianças de 0 a 6 anos.'))
 
+add(h4('Frequência escolar 0-6 anos (IBGE SIDRA, Censo 2022)'))
+add(p('Comparativo mais recente e granular (idade simples, por raça/sexo) que a série PNAD abaixo — o Censo é enumeração completa de um único ano (2022), a PNAD Contínua é amostral com série histórica. Não são diretamente comparáveis ano a ano.'))
+add(chart_block("sidra_frequencia_escola_0_5_raca_2022.png", "sidra_frequencia_escola_0_5_raca_2022.csv"))
+add(chart_block("sidra_frequencia_escola_0_5_sexo_2022.png", "sidra_frequencia_escola_0_5_sexo_2022.csv"))
+add(chart_block("sidra_taxa_frequencia_0_6_raca_2022.png", "sidra_taxa_frequencia_0_6_raca_2022.csv"))
+add(chart_block("sidra_taxa_frequencia_0_6_sexo_2022.png", "sidra_taxa_frequencia_0_6_sexo_2022.csv"))
+
 add(h4('Taxa de frequência escolar'))
 df_freq = read("frequencia_escolar_pnad_por_idade.csv")
 add(chart_block("pnad_frequencia_escolar_por_idade.png", "frequencia_escolar_pnad_por_idade.csv"))
@@ -310,13 +417,68 @@ add(chart_block("matriculas_0_a_6_por_ano.png", "matriculas_0_a_6_por_ano.csv"))
 add(table_html(read("matriculas_0_a_6_por_ano.csv")[["ano", "matriculas"]], rename={"ano": "Ano", "matriculas": "Matrículas"}))
 
 add(h2('\U0001F5FA️ Mapas'))
-add(p('Mapas coropléticos por bairro, gerados a partir das tabelas exportadas para <code>mapas/tabelas_bairros/</code>.'))
-with open(maps_json_path, "r", encoding="utf-8") as f:
-    MAPS = json.load(f)
-add('<div class="map-gallery">')
-for m in MAPS:
-    add(f'<figure class="map-card"><img src="{m["data"]}" alt="{m["caption"]}"><figcaption class="map-cap">{m["caption"]}</figcaption></figure>')
-add('</div>')
+add(p('Mapas coropléticos por bairro/CAP, gerados a partir das tabelas exportadas para <code>tabelas_finais/</code>.'))
+
+MAP_GROUPS = [
+    ("Censo/população", [
+        ("mapa_censo_0_4_absoluto.png", "Crianças de 0 a 4 anos, por bairro (Censo 2022)"),
+        ("mapa_censo_0_4_percentual.png", "% de crianças de 0 a 4 anos, por bairro (Censo 2022)"),
+        ("mapa_censo_0_4_absoluto_ap.png", "Crianças de 0 a 4 anos, por Área de Planejamento"),
+        ("mapa_censo_0_4_percentual_ap.png", "% de crianças de 0 a 4 anos, por Área de Planejamento"),
+        ("mapa_censo_0_4_absoluto_rp.png", "Crianças de 0 a 4 anos, por Região de Planejamento"),
+        ("mapa_censo_0_4_percentual_rp.png", "% de crianças de 0 a 4 anos, por Região de Planejamento"),
+    ]),
+    ("CadÚnico", [
+        ("mapa_cadunico_criancas_bairro_2026.png", "Crianças (0-6 anos) no CadÚnico, por bairro"),
+        ("mapa_cadunico_primeira_infancia_bairro_2026.png", "Crianças (0-4 anos) no CadÚnico, por bairro"),
+        ("mapa_percentual_cadunico_primeira_infancia_bairro_2026.png", "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro"),
+    ]),
+    ("Natalidade", [
+        ("mapa_nascidos_vivos_bairro_2025.png", "Nascidos vivos por bairro (2025)"),
+        ("mapa_nascidos_baixo_peso_bairro_2025.png", "Nascidos com baixo peso por bairro (2025)"),
+        ("mapa_percentual_baixo_peso_bairro_2025.png", "% de nascidos com baixo peso por bairro (2025)"),
+    ]),
+    ("Mortalidade por raça/cor", [
+        ("mapa_obitos_raca_total_bairro_2025.png", "Óbitos de 0 a 364 dias por bairro (2025)"),
+        ("mapa_taxa_obitos_raca_total_bairro_2025.png", "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)"),
+    ]),
+    ("Gravidez e puerpério", [
+        ("mapa_obitos_gravidez_bairro_2025.png", "Óbitos durante a gravidez por bairro (2025)"),
+        ("mapa_obitos_puerperio_bairro_2025.png", "Óbitos durante o puerpério por bairro (2025)"),
+    ]),
+    ("Mortalidade neonatal", [
+        ("mapa_obitos_neonatal_precoce_bairro_2025.png", "Óbitos precoces (0-6 dias) por bairro (2025)"),
+        ("mapa_taxa_mortalidade_precoce_bairro_2025.png", "Taxa de óbitos precoces por bairro (2025)"),
+        ("mapa_obitos_neonatal_tardia_bairro_2025.png", "Óbitos tardios (7-27 dias) por bairro (2025)"),
+        ("mapa_taxa_obitos_tardios_bairro_2025.png", "Taxa de óbitos tardios por bairro (2025)"),
+        ("mapa_obitos_pos_neonatal_bairro_2025.png", "Óbitos pós-neonatais (28-364 dias) por bairro (2025)"),
+        ("mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png", "Taxa de mortalidade pós-neonatal por bairro (2025)"),
+        ("mapa_mortalidade_infantil_bairro_2025.png", "Óbitos infantis (0-364 dias) por bairro (2025)"),
+        ("mapa_taxa_mortalidade_infantil_bairro_2025.png", "Taxa de mortalidade infantil por bairro (2025)"),
+    ]),
+    ("Causas evitáveis, por CAP (2025)", [
+        ("mapa_obitos_evitaveis_menores_1_ano_cap_2025.png", "Óbitos evitáveis, menores de 1 ano, por CAP"),
+        ("mapa_percentual_evitaveis_menores_1_ano_cap_2025.png", "% de óbitos evitáveis, menores de 1 ano, por CAP"),
+        ("mapa_obitos_evitaveis_1_a_4_anos_cap_2025.png", "Óbitos evitáveis, de 1 a 4 anos, por CAP"),
+        ("mapa_percentual_evitaveis_1_a_4_anos_cap_2025.png", "% de óbitos evitáveis, de 1 a 4 anos, por CAP"),
+        ("mapa_obitos_evitaveis_menores_5_anos_cap_2025.png", "Óbitos evitáveis, menores de 5 anos, por CAP"),
+        ("mapa_percentual_evitaveis_menores_5_anos_cap_2025.png", "% de óbitos evitáveis, menores de 5 anos, por CAP"),
+        ("mapa_obitos_evitaveis_gestacao_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Gestação, menores de 1 ano, por CAP"),
+        ("mapa_obitos_evitaveis_parto_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Parto, menores de 1 ano, por CAP"),
+    ]),
+]
+
+available_maps = set(os.listdir(MAPAS))
+missing_maps = [fn for _, group in MAP_GROUPS for fn, _ in group if fn not in available_maps]
+if missing_maps:
+    raise SystemExit(f"missing map PNGs: {missing_maps}")
+
+for tema, imgs in MAP_GROUPS:
+    add(h3(tema))
+    add('<div class="map-gallery">')
+    for fn, caption in imgs:
+        add(map_card(fn, caption))
+    add('</div>')
 
 footer = '<footer class="doc-foot"><p>Fontes: IBGE (Censo), CTPE/CadÚnico, Datasus/Tabnet (SINASC, SIM), SISVAN, EPI/SVS-Rio, PNAD Contínua e Censo Escolar/INEP. Elaborado a partir do pipeline documentado em <code>analise.py</code> — Instituto Pereira Passos, Prefeitura da Cidade do Rio de Janeiro. Gráficos gerados pelo próprio notebook (matplotlib/seaborn), a partir das tabelas de <code>tabelas_finais/</code>.</p></footer>'
 
