@@ -3,6 +3,13 @@
 Critérios objetivos por bloco. Um bloco só é marcado `[x]` em `tasks.md`
 depois de passar aqui.
 
+**Status final: todos os critérios V1-V7 passaram.** Duas contagens do plan.md
+inicial precisaram de correção durante a implementação: o Bloco 6/7 cobre
+**32 mapas reais** (não 25 — a estimativa original contava call sites de
+`mapa_coropletico_bairros`, e alguns são loops que produzem várias imagens) e
+**73 visualizações totais** no HTML/PDF (25 mapas + 48 gráficos, contando tudo
+que já existia + tudo que `SPEC-maps-and-ibge` adicionou — não "~35 novas").
+
 ## V1 — Módulo de estilo compartilhado
 - Novas constantes (`_PALETA_CATEGORICA`, `_CORES_TEMA_MAPA`,
   `_LIMIAR_DESTAQUE_SERIES`, `_N_SERIES_DESTACADAS`, `_COR_SERIE_APAGADA`,
@@ -73,3 +80,27 @@ depois de passar aqui.
 - `relatorio/specs.md` tem uma entrada "v5" descrevendo a consolidação.
 - `README.md` e `feature_roadmap.md` refletem o estado final.
 - `tasks.md` só tem T8.5 (merge) em aberto ao final.
+
+## Resultado final (todas confirmadas)
+- V1: constantes/`_rodape_fonte`/destaque automático confirmados por teste
+  isolado (Bloco 1) e no notebook real (Bloco 5) — chart com 7 séries e chart
+  com 11 séries, ambos com 4 destacadas + "Outras (N)".
+- V2: 25/25 call sites com `cmap` (4 censo, 3 cadúnico, 3 natalidade, 15
+  mortalidade); 4 mapas (1 por tema) inspecionados visualmente, sem
+  regressão dos bugs de `SPEC-maps-and-ibge`.
+- V3: `grep -c "fonte_dados=" analise.py` = 78 = 73 call sites reais + 5
+  assinaturas de função com `=None`; verificação programática (script
+  parseando blocos de chamada) confirmou 0 sem fonte.
+- V4: notebook reexecutado do zero **duas vezes** nesta rodada (a 2ª após o
+  fix do eixo de ano fracionário, achado durante o Bloco 7) — 138 células, 0
+  erros nas duas.
+- V5: `relatorio/index.html` único, 73 gráficos + 32 mapas, sem erro de
+  console (Chrome headless, 2 bugs reais encontrados e corrigidos — `fmt`/
+  `pct` não expostos, categoria "Total" espúria no eixo dos SIDRA), tabela
+  "ver dados" confirmada em linha simples/múltipla/barra/barra agrupada/mapa
+  (mapas não têm toggle de tabela — são imagem estática, por design).
+- V6: PDF final com 95 páginas, ~50MB; amostra rasterizada (capa, meio,
+  mapas, rodapé) sem os modos de falha conhecidos, incluindo o eixo de ano
+  fracionário (achado e corrigido nesta mesma verificação).
+- V7: este arquivo, `relatorio/specs.md`, `README.md` e `feature_roadmap.md`
+  atualizados; `tasks.md` só com T8.5 (merge, gated) em aberto.

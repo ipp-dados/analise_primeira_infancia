@@ -19,10 +19,14 @@
 *   `tabelas_finais/`: Pasta de saída padronizada (CSV/Excel) para tabelas e agregados gerados pelo pipeline.
 *   `visualizacoes/`: Diretório para os gráficos exportados pelo notebook (PNG por padrão; exportação adicional em SVG disponível, mas comentada, em cada função de gráfico). Nomes de arquivo refletem a seção/tema da análise (ex.: `cobertura_vacinal_epi_ano.png`, `cadunico_criancas_por_idade.png`).
 *   `mapas/`: Imagens de mapas coropléticos, gerados dentro do próprio `analise.py` com `geopandas`/`contextily` pela função `mapa_coropletico_bairros`: basemap cartográfico (Esri Ocean Basemap), limite estadual sobreposto, municípios vizinhos rotulados, rosa dos ventos, escala gráfica, título em fonte serifada (Palatino Linotype), formato ~1,46:1 (próximo de A4 paisagem) e exportação a 300 DPI. Cobre hoje o Censo (bairro/AP/RP), mortalidade por causas evitáveis por CAP (grupo e subgrupo), e ~20 mapas por bairro no ano mais recente (CadÚnico, nascidos vivos, baixo peso, óbitos por raça, mortalidade neonatal, óbitos gravidez/puerpério) -- cada um com sua tabela-insumo gêmea em `tabelas_finais/tabela_mapa_*.csv`. `mapas/tabelas_bairros/` é o resquício do padrão anterior (Excel), mantido só para `dados_datasus_por_bairro.xlsx` e as tabelas do Censo (`tabela_mapa_0_4_*.xlsx`); nascidos vivos e baixo peso já migraram para o padrão CSV.
-*   `relatorio/`: Páginas HTML autocontidas com os gráficos do notebook renderizados de forma interativa (SVG, tooltip, tabela de dados), para compartilhamento com quem não abre o notebook. Três versões, mesmo conteúdo e mesma ordem de `analise.py`, variando só o tema visual:
-    *   `relatorio/index.html`: tema padrão (fundo em tom de pedra, paleta de cores plena nos gráficos).
-    *   `relatorio/lighter_index.html`: tema mais claro e paleta pastel nos gráficos, com uma seção adicional de mapas coropléticos por bairro (imagens de `mapas/`, redimensionadas e incorporadas na própria página).
-    *   `relatorio/white_index.html`: mesma base do `lighter_index.html`, mas com fundo branco puro e texto em tons de cinza neutro (sem matiz de cor no texto/fundo); os gráficos mantêm a paleta pastel.
+*   `relatorio/`: Um único `index.html` autocontido, gerado por
+    `.claude/skills/export_pdf_report/scripts/build_html_report.py`, com as visualizações do
+    notebook renderizadas de forma interativa (SVG, tooltip, tabela de dados) e todos os mapas
+    de `mapas/` (redimensionados/WebP), para compartilhamento com quem não abre o notebook.
+    Tema claro/escuro automático (`prefers-color-scheme`); cada visualização traz só título +
+    fonte + tabela opcional, sem a prosa/notas de método do notebook (essas ficam no notebook e
+    no PDF). Substitui as 3 variações antigas (`index`/`lighter`/`white_index.html`), que eram
+    montadas por scripts nunca salvos.
 *   `notebooks/`: Notebook(s) .ipynb sincronizados com `analise.py` via Jupytext (opcional).
 *   `.env.example`: Exemplo de variáveis de ambiente necessárias (ex.: credenciais DB).
 *   `scripts/`: Utilitários e conversores auxiliares (se presentes).
@@ -270,6 +274,42 @@ mortalidade por subgrupo evitável (`SPEC-maps-and-ibge/`):
   antes dela existir, e outra filtrava por `bairro` numa tabela onde `bairro` é o índice, não
   coluna -- ambas só "funcionavam" num kernel reexecutado fora de ordem.
 
+Notable code changes (2026-09-09) — identidade visual unificada e relatório HTML consolidado
+(`SPEC-visual-identity/`):
+- **Módulo de estilo compartilhado** em `analise.py`: paleta categórica de 11 cores (mesma do
+  relatório HTML) reaproveitada nas 4 funções de gráfico (`serie_temporal`, `grafico_barra`,
+  `grafico_barra_agrupado`, `serie_temporal_multipla`); título serifado (Palatino Linotype) e
+  rodapé "Fonte: ..." (novo parâmetro `fonte_dados`) em todos os 4 tipos; DPI 200 (era 100).
+  `serie_temporal_multipla` ganhou destaque automático para séries com mais de 6 linhas: só as
+  4 mais relevantes (maior valor no último ano) ficam coloridas/na legenda, o resto vira uma
+  linha cinza fina agrupada em "Outras (N)".
+- **Mapas por tema**: `mapa_coropletico_bairros` deixa de usar `'Oranges'` fixo -- cada um dos
+  25 call sites agora passa um `cmap` sequencial próprio por assunto (`_CORES_TEMA_MAPA`):
+  `BuGn` (natalidade), `RdPu` (mortalidade), `YlOrBr` (CadÚnico), `Blues` (censo/população).
+- **73 call sites com `fonte_dados`** (25 mapas + 48 gráficos) -- todas as visualizações do
+  notebook agora citam a fonte. `fonte_evitaveis_cap` consolidada em `fonte_evitaveis`, movida
+  para antes do primeiro uso e reaproveitada por toda a família de séries/mapas de causas
+  evitáveis (raça, grupo/subgrupo, CAP), não só a subseção por CAP.
+- **`relatorio/index.html` consolidado**: os 3 arquivos antigos (`index`/`lighter`/
+  `white_index.html`, montados por scripts nunca salvos) viram um único arquivo com tema
+  claro/escuro automático, gerado por um script persistido pela primeira vez
+  (`.claude/skills/export_pdf_report/scripts/build_html_report.py`). Cobre as ~73
+  visualizações do notebook e as 32 imagens reais de `mapas/*.png`; cada uma só com título +
+  fonte + alternância "ver tabela" (sem a prosa/notas de método que as versões anteriores
+  copiavam do notebook -- essas ficam só no notebook e no PDF). O motor de gráfico SVG próprio
+  (`lineChart`/`barChart`/`groupedBarChart`) ganhou a mesma lógica de destaque de séries do
+  `serie_temporal_multipla`.
+- **PDF atualizado**: `build_notebook_report.py` ganhou as seções que faltavam desde
+  `SPEC-maps-and-ibge` (SIDRA Censo/educação, causas evitáveis por CAP em todos os recortes,
+  raça sem "não informada") e a galeria de mapas foi de 5 para as 32 imagens reais, resolvidas
+  direto de `mapas/*.png` -- `extract_maps.py` foi descontinuado (não fazia mais sentido depois
+  que os mapas do HTML deixaram de ficar num array JS extraível).
+- Corrigido um bug pré-existente em `serie_temporal`/`serie_temporal_multipla`: o eixo `ano`
+  (numérico) podia cair em ticks fracionários (`"2007.5"`) dependendo do range de cada série --
+  séries antigas (1996-2025) coincidiam por acaso com intervalos redondos no locator automático
+  do matplotlib, séries novas (2006-2025, evitáveis por CAP) não. Corrigido com
+  `MaxNLocator(integer=True)`.
+
 ---
 
 ## Update Table
@@ -297,3 +337,4 @@ mortalidade por subgrupo evitável (`SPEC-maps-and-ibge/`):
 | 0.13.5  | 2026-09-08 | Rodapé deslocado mais à esquerda (`x=0.55`) para não encostar na escala gráfica com o texto mais longo do sistema de referência. |
 | 0.14.0  | 2026-09-08 | Óbitos por causas evitáveis na primeira infância por Área Programática de Saúde (CAP): nova planilha TabWin (`obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx`) extraída para 6 CSVs em `dados_locais/tratados/`; painel municipal (série por subgrupo CID e taxa por mil NV), séries por CAP e faixa etária (`< 1 ano`/`1-4 anos`/`< 5 anos`), e 6 mapas coropléticos por CAP em 2025 (absoluto em classes discretas, percentual em escala contínua), via novo nível `'cap'` em `mapa_coropletico_bairros` (`_NIVEIS_AGREGACAO`) e geometria oficial das CAPs (`dados_locais/geo/limite_ap_saude_rio.geojson`, Data.Rio). |
 | 0.15.0  | 2026-09-09 | Mapas por bairro para todo indicador com essa granularidade (11 indicadores, 18 mapas novos + `tabela_mapa_*.csv` gêmeas, migração de nascidos vivos/baixo peso do Excel legado para CSV); importação e visualização do IBGE SIDRA (Censo 2022 e frequência escolar, nível município, 6 tabelas + 6 gráficos); mortalidade por subgrupo evitável -- 2 mapas (gestação/parto, CAP, `< 1 ano`, 2025), painel municipal nas 3 faixas etárias, matriz de séries subgrupo×CAP (18 gráficos) e recorte gestação/parto×CAP (2 gráficos); versões dos gráficos de causas evitáveis por raça/cor sem `nao_informado`/1996. Dois bugs pré-existentes de ordenação de células corrigidos (`SPEC-maps-and-ibge/`). |
+| 0.16.0  | 2026-09-09 | Identidade visual unificada (`SPEC-visual-identity/`): paleta/tipografia/rodapé de fonte compartilhados pelas 4 funções de gráfico do notebook, destaque automático de séries com mais de 6 linhas, mapas com `cmap` por tema em vez de `'Oranges'` fixo, `fonte_dados` em todos os 73 call sites de visualização. `relatorio/index.html` consolidado (3 arquivos → 1, primeiro gerador HTML persistido, `build_html_report.py`, cobrindo as ~73 visualizações + 32 mapas). PDF (`build_notebook_report.py`) atualizado com as seções que faltavam desde `SPEC-maps-and-ibge` e a galeria de mapas completa. Corrigido bug pré-existente de eixo de ano fracionário em `serie_temporal`/`serie_temporal_multipla`. |

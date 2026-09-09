@@ -86,7 +86,9 @@ psycopg-binary==3.3.4
 pure_eval==0.2.3
 pycparser==3.0
 Pygments==2.20.0
+pymupdf==1.28.2
 pyogrio==0.13.0
+pypdf==6.18.0
 pyparsing==3.3.2
 pyproj==3.8.0
 python-dateutil==2.9.0.post0
