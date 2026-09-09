@@ -967,6 +967,43 @@ df_bairro_ate_4.sort_values(by='Primeira Inf. Cadúnico', ascending=True).head(1
 # %%
 df_bairro.loc[['Complexo do Alemão']]
 
+# %% [markdown]
+# #### 🗺️ Mapas por bairro
+
+# %%
+fonte_cadunico = 'CadÚnico (extração CTPE)'
+
+df_bairro_mapa.to_csv('tabelas_finais//tabela_mapa_cadunico_criancas_2026.csv', index=False)
+mapa_coropletico_bairros(
+    df_bairro_mapa, coluna_valor='Crianças', titulo='Crianças (0-6 anos) no CadÚnico, por bairro',
+    nome_arquivo='mapa_cadunico_criancas_bairro_2026', chave='codbairro',
+    bins=[250, 750, 1500, 3000], legenda_titulo='Crianças', fonte_dados=fonte_cadunico,
+)
+
+# %% [markdown]
+# **Nota:** o percentual abaixo tem um valor atípico (>500% num bairro pequeno) -- a base do
+# CadÚnico e a do Censo usam metodologias de contagem diferentes (registro administrativo x
+# recenseamento), e bairros com poucos residentes no Censo amplificam qualquer descompasso
+# nessa razão. Mantido sem ajuste (dado real, não erro de processamento); leia com cautela.
+
+# %%
+df_ate_4_mapa = df_bairro_ate_4[df_bairro_ate_4['bairro'] != 'Total'].copy()
+# coluna só para o mapa -- 'Primeira Inf. Cadúnico' é mantida como razão (sem x100), como já
+# usada nas células acima; o mapa segue a convenção do projeto de percentual em escala 0-100
+# (mesma de 'Percentual 0 a 4' do Censo)
+df_ate_4_mapa['Percentual Primeira Inf. Cadúnico'] = df_ate_4_mapa['Primeira Inf. Cadúnico'] * 100
+df_ate_4_mapa.to_csv('tabelas_finais//tabela_mapa_cadunico_primeira_infancia_2026.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_ate_4_mapa, coluna_valor='Crianças', titulo='Crianças (0-4 anos) no CadÚnico, por bairro',
+    nome_arquivo='mapa_cadunico_primeira_infancia_bairro_2026', chave='codbairro',
+    bins=[200, 500, 1000, 2000], legenda_titulo='Crianças', fonte_dados=fonte_cadunico,
+)
+mapa_coropletico_bairros(
+    df_ate_4_mapa, coluna_valor='Percentual Primeira Inf. Cadúnico', titulo='% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro',
+    nome_arquivo='mapa_percentual_cadunico_primeira_infancia_bairro_2026', chave='codbairro',
+    legenda_titulo='% CadÚnico/Censo', fonte_dados=fonte_cadunico,
+)
 
 # %% [markdown]
 # ### 🏥 DataSus - tabnet
@@ -988,9 +1025,22 @@ df_vivos = limpeza_tabnet_bairros(df_vivos,categoria='nascidos vivos')
 df_vivos.head()
 
 
+# %% [markdown]
+# ##### 🗺️ Mapa por bairro (2025)
+
 # %%
-#extracao para mapas
-df_vivos[df_vivos['ano']=='2025'].to_excel('mapas/tabelas_bairros/mapa_bairros_nascidos_vivos_bruto.xlsx')
+fonte_datasus_bairro = 'DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro'
+
+# 'EM BRANCO' (bairro não identificado) fica sem 'codigo' em limpeza_tabnet_bairros -- não
+# mapeável, mesmo tratamento de dado incompleto já usado noutras seções ('Ignorado' etc.)
+df_vivos_mapa = df_vivos[df_vivos['ano']=='2025'].dropna(subset=['codigo']).copy()
+df_vivos_mapa.to_csv('tabelas_finais//tabela_mapa_nascidos_vivos_2025.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_vivos_mapa, coluna_valor='nascidos vivos', titulo='Nascidos vivos por bairro (2025)',
+    nome_arquivo='mapa_nascidos_vivos_bairro_2025', chave='codigo',
+    bins=[200, 400, 800, 1500], legenda_titulo='Nascidos vivos', fonte_dados=fonte_datasus_bairro,
+)
 
 # %%
 #agrupamento por ano
@@ -1019,7 +1069,24 @@ df_baixo_peso.head()
 
 # %%
 df_baixo_peso['percentual abaixo do peso'] = (df_baixo_peso['nascidos abaixo peso']/df_vivos['nascidos vivos'])*100
-df_baixo_peso[df_baixo_peso['ano']=='2025'].to_excel('mapas/tabelas_bairros/mapa_bairros_nascidos_abaixo_peso.xlsx')
+
+# %% [markdown]
+# ##### 🗺️ Mapa por bairro (2025)
+
+# %%
+df_baixo_peso_mapa = df_baixo_peso[df_baixo_peso['ano']=='2025'].dropna(subset=['codigo']).copy()
+df_baixo_peso_mapa.to_csv('tabelas_finais//tabela_mapa_nascidos_baixo_peso_2025.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_baixo_peso_mapa, coluna_valor='nascidos abaixo peso', titulo='Nascidos com baixo peso por bairro (2025)',
+    nome_arquivo='mapa_nascidos_baixo_peso_bairro_2025', chave='codigo',
+    bins=[15, 30, 60, 120], legenda_titulo='Nascidos abaixo do peso', fonte_dados=fonte_datasus_bairro,
+)
+mapa_coropletico_bairros(
+    df_baixo_peso_mapa, coluna_valor='percentual abaixo do peso', titulo='% de nascidos com baixo peso por bairro (2025)',
+    nome_arquivo='mapa_percentual_baixo_peso_bairro_2025', chave='codigo',
+    legenda_titulo='% baixo peso', fonte_dados=fonte_datasus_bairro,
+)
 
 # %%
 df_baixo_ano = df_baixo_peso.loc[:,['ano','nascidos abaixo peso']].groupby(by='ano').sum()
@@ -1162,6 +1229,24 @@ serie_temporal_multipla(
     titulo='Percentual de óbitos (0-364 dias) em relação aos nascidos vivos por raça/cor - Rio de Janeiro (2011-2025)',
     nome_arquivo='percentual_mortalidade_raca_ano',
     ylabel='Percentual (%)'
+)
+
+# %% [markdown]
+# ##### 🗺️ Mapa por bairro (2025) — total de óbitos, todas as raças
+
+# %%
+df_raca_mapa_2025 = df_mortalidade_raca_bairro[df_mortalidade_raca_bairro['ano'].astype(str) == '2025'].copy()
+df_raca_mapa_2025.to_csv('tabelas_finais//tabela_mapa_obitos_raca_total_2025.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_raca_mapa_2025, coluna_valor='obitos_total', titulo='Óbitos de 0 a 364 dias por bairro (2025)',
+    nome_arquivo='mapa_obitos_raca_total_bairro_2025', chave='codigo',
+    bins=[2, 5, 10, 20], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+)
+mapa_coropletico_bairros(
+    df_raca_mapa_2025, coluna_valor='percentual_total', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
+    nome_arquivo='mapa_taxa_obitos_raca_total_bairro_2025', chave='codigo',
+    legenda_titulo='% s/ nascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
 
 # %%
@@ -1674,6 +1759,23 @@ df_obitos_gravidez_anual
 serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durante gravidez por ano',
                nome_arquivo='obitos_gravidez_por_ano')
 
+# %% [markdown]
+# ##### 🗺️ Mapa por bairro (2025)
+#
+# **Nota:** contagens muito pequenas por bairro (a maioria com 0 óbitos em 2025) -- leia como
+# indicador de onde há registro do evento, não como comparação robusta de magnitude entre
+# bairros.
+
+# %%
+df_obitos_gravidez_mapa = df_obitos_gravidez[df_obitos_gravidez['ano'].astype(str) == '2025'].dropna(subset=['codigo']).copy()
+df_obitos_gravidez_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_gravidez_2025.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_obitos_gravidez_mapa, coluna_valor='óbitos-gravidez', titulo='Óbitos durante a gravidez por bairro (2025)',
+    nome_arquivo='mapa_obitos_gravidez_bairro_2025', chave='codigo',
+    bins=[0, 1], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+)
+
 # %%
 df_obitos_puerperio = pd.read_csv('dados_locais\\mortalidade\\obitos_puerperio_bairro_2006_2025.csv')
 df_obitos_puerperio = limpa_dados_datasus(df_obitos_puerperio)
@@ -1690,6 +1792,22 @@ df_obitos_puerperio_anual
 # %%
 serie_temporal(df_obitos_puerperio_anual,'ano','óbitos-puerpério','Óbitos durante puerpério por ano',
                nome_arquivo='obitos_puerperio_por_ano')
+
+# %% [markdown]
+# ##### 🗺️ Mapa por bairro (2025)
+#
+# **Nota:** mesma ressalva do mapa de óbitos na gravidez acima -- contagens muito pequenas
+# por bairro.
+
+# %%
+df_obitos_puerperio_mapa = df_obitos_puerperio[df_obitos_puerperio['ano'].astype(str) == '2025'].dropna(subset=['codigo']).copy()
+df_obitos_puerperio_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_puerperio_2025.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_obitos_puerperio_mapa, coluna_valor='óbitos-puerpério', titulo='Óbitos durante o puerpério por bairro (2025)',
+    nome_arquivo='mapa_obitos_puerperio_bairro_2025', chave='codigo',
+    bins=[0, 1, 2], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+)
 
 # %% [markdown]
 # #### 🩺 Mortalidade Neonatal
@@ -1722,6 +1840,24 @@ serie_temporal(df_neonatal_precoce_anual,'ano','taxa_mortalidade_precoce','Taxa 
                nome_arquivo='taxa_mortalidade_precoce_ano')
 
 # %% [markdown]
+# ###### 🗺️ Mapa por bairro (2025)
+
+# %%
+df_neonatal_precoce_mapa = df_neonatal_precoce[df_neonatal_precoce['ano'].astype(str) == '2025'].dropna(subset=['codigo']).copy()
+df_neonatal_precoce_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_neonatal_precoce_2025.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_neonatal_precoce_mapa, coluna_valor='obitos precoces', titulo='Óbitos precoces (0-6 dias) por bairro (2025)',
+    nome_arquivo='mapa_obitos_neonatal_precoce_bairro_2025', chave='codigo',
+    bins=[1, 3, 6, 12], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+)
+mapa_coropletico_bairros(
+    df_neonatal_precoce_mapa, coluna_valor='taxa_mortalidade_precoce', titulo='Taxa de óbitos precoces (0-6 dias) por bairro (2025)',
+    nome_arquivo='mapa_taxa_mortalidade_precoce_bairro_2025', chave='codigo',
+    legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
+)
+
+# %% [markdown]
 # ##### Tardia (7 a 27 dias)
 
 # %%
@@ -1742,6 +1878,24 @@ df_neonatal_tardia_anual
 # %%
 serie_temporal(df_neonatal_tardia_anual,'ano','taxa_obitos_tardios','Taxa de óbitos tardios por ano',
                nome_arquivo='taxa_obitos_tardios_ano')
+
+# %% [markdown]
+# ###### 🗺️ Mapa por bairro (2025)
+
+# %%
+df_neonatal_tardia_mapa = df_neonatal_tardia[df_neonatal_tardia['ano'].astype(str) == '2025'].dropna(subset=['codigo']).copy()
+df_neonatal_tardia_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_neonatal_tardia_2025.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_neonatal_tardia_mapa, coluna_valor='obitos_tardios', titulo='Óbitos tardios (7-27 dias) por bairro (2025)',
+    nome_arquivo='mapa_obitos_neonatal_tardia_bairro_2025', chave='codigo',
+    bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+)
+mapa_coropletico_bairros(
+    df_neonatal_tardia_mapa, coluna_valor='taxa_obitos_tardios', titulo='Taxa de óbitos tardios (7-27 dias) por bairro (2025)',
+    nome_arquivo='mapa_taxa_obitos_tardios_bairro_2025', chave='codigo',
+    legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
+)
 
 # %% [markdown]
 # ##### Pós-neonatal (28 a 364 dias)
@@ -1795,11 +1949,44 @@ serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonata
                nome_arquivo='taxa_mortalidade_pos_neonatal_ano')
 
 # %% [markdown]
+# ###### 🗺️ Mapa por bairro (2025)
+
+# %%
+df_mortalidade_infantil_mapa = df_mortalidade_infantil[df_mortalidade_infantil['ano'].astype(str) == '2025'].copy()
+df_mortalidade_infantil_mapa.to_csv('tabelas_finais//tabela_mapa_mortalidade_infantil_2025.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_mortalidade_infantil_mapa, coluna_valor='obitos_28_364', titulo='Óbitos pós-neonatais (28-364 dias) por bairro (2025)',
+    nome_arquivo='mapa_obitos_pos_neonatal_bairro_2025', chave='codigo',
+    bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+)
+mapa_coropletico_bairros(
+    df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_pos_neonatal', titulo='Taxa de mortalidade pós-neonatal (28-364 dias) por bairro (2025)',
+    nome_arquivo='mapa_taxa_mortalidade_pos_neonatal_bairro_2025', chave='codigo',
+    legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
+)
+
+# %% [markdown]
 # ##### Total (0 a 364 dias)
 
 # %%
 serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','Taxa de mortalidade infantil (0-364 dias) por ano',
                nome_arquivo='taxa_mortalidade_infantil_ano')
+
+# %% [markdown]
+# ###### 🗺️ Mapa por bairro (2025)
+
+# %%
+mapa_coropletico_bairros(
+    df_mortalidade_infantil_mapa, coluna_valor='obitos_0_364', titulo='Óbitos infantis (0-364 dias) por bairro (2025)',
+    nome_arquivo='mapa_mortalidade_infantil_bairro_2025', chave='codigo',
+    bins=[2, 5, 10, 20], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+)
+mapa_coropletico_bairros(
+    df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_infantil', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
+    nome_arquivo='mapa_taxa_mortalidade_infantil_bairro_2025', chave='codigo',
+    legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
+)
 
 # %% [markdown]
 # ### 🥗 DataSus - SISVAN

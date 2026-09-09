@@ -45,7 +45,7 @@ funcionava" — por isso `V8` (regressão) é a seção mais pesada aqui.
 | V3.2 | Totais batem entre o corte "geral" e a soma dos cortes com dimensão | `tabela9606_populacao_geral` (coluna `Total`) == soma de `tabela9606_populacao_raca_cor` pelas 5 raças, por idade — mesma checagem para sexo (Homens+Mulheres) |
 | V3.3 | Valores `-` viram 0 | nenhum `NaN`/erro de conversão nas 6 tabelas tratadas |
 | V3.4 | 6 tabelas em `tabelas_finais/` | existem, formato largo, uma linha por idade (0-6 ou 0-5, + `Total`) |
-| V3.5 | 5 gráficos em `visualizacoes/` | existem, eixo x = idade simples (0-6), legenda = raça/sexo |
+| V3.5 | 6 gráficos em `visualizacoes/` | existem, eixo x = idade simples (0-6), legenda = raça/sexo (inclui `sidra_frequencia_escola_0_5_sexo_2022`, `plan.md` §4.3) |
 | V3.6 | Frequência 0-5 (tabela 10057) vs. taxa 0-6 (tabela 10056) não confundidas | os dois pares de gráficos citam a tabela/ano corretos no título; 10057 é contagem absoluta, 10056 é taxa % — nunca a mesma escala |
 
 ---
