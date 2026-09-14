@@ -16,11 +16,12 @@
 - Update dados de matrículas escolares for years 2021-2025
 
 ## Relatório interativo (SPEC-relatorio-interativo)
-- **Converter os ~30 mapas restantes de PNG para SVG interativo** — o pipeline
-  (geometria → paths, tooltip, outlier, download) já está implementado e provado
-  com 1 indicador (Censo 0-4/bairro); falta aplicar aos outros 3 temas
-  (natalidade/mortalidade/cadúnico) e aos níveis AP/RP (precisa do dissolve por
-  `area_plane`/`cod_rp`, ainda não escrito) — ver tasks.md Bloco 3
+- **Reduzir o peso de `relatorio/index.html` (~20MB)** — todos os ~32 mapas
+  agora são SVG interativo (concluído), mas cada instância embute sua própria
+  geometria como texto sem compartilhar paths entre mapas do mesmo nível
+  (ex.: os ~20 mapas de bairro repetem os mesmos 166 polígonos). Otimização:
+  compartilhar via `<defs>`/`<use>` ou um mapa `codigo→d` referenciado por id
+  em vez de inline em cada `<path>` — ver `relatorio/specs.md` v6.1.
 - **Confirmar URLs/e-mail reais do rodapé** (Transparência Rio, LGPD, contato) —
   hoje são placeholders copiados do site institucional principal — ver tasks.md T6.2
 - **Confirmar autorização de uso do logo oficial** da Prefeitura do Rio/IPP antes do
@@ -30,6 +31,9 @@
 - Medir formalmente o contraste do rodapé (WCAG AA) — inspeção visual feita, não
   uma medição real (tasks.md T5.6)
 - Testar responsividade em telas estreitas (~375-420px) — não testado nesta rodada
+- **Bloco "Principais achados" por seção** (callout editorial do mockup) — nunca
+  implementado; precisa de texto curado por alguém que analise os dados, não é
+  algo para gerar automaticamente a partir das tabelas (ver `relatorio/specs.md` v6.1)
 - Botão de "baixar tudo" (fora do escopo — só tem download por gráfico/mapa individual)
 - Persistir estado de collapse das seções entre sessões (localStorage), se vier a ser pedido
 - Basemap/contexto geográfico (satélite/desenho, UF, municípios vizinhos) nos mapas SVG

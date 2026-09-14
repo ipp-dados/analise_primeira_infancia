@@ -50,39 +50,57 @@
       rodada (ver T8.3).
 
 ## Bloco 3 — Mapas: geometria GeoJSON → paths SVG (plan.md §3, maior esforço)
-- [x] **T3.1** — `_carrega_bairros_geo()` escrita e funcionando — **só nível
-      bairro nesta rodada** (166 features confirmadas no mapa gerado). Dissolve
-      por `area_plane`/`cod_rp` (AP/RP) **não implementado** — escopo
-      explicitamente reduzido para caber nesta rodada (ver nota abaixo);
-      registrado como follow-up mecânico, não um problema de design.
-- [x] **T3.2** — `_geom_path_d` trata `MultiPolygon` (anéis exterior + buracos).
-      Testado indiretamente: o mapa renderizado (screenshot) mostra o
-      arquipélago/ilhas do Rio corretamente, sem polígono quebrado visível —
-      não isolei um bairro insular específico para um teste unitário dedicado.
-- [x] **T3.3** — `mapa_svg()` escrita: aplica `_CORES_TEMA_MAPA` (tema `censo`
-      → `Blues`), gera bins discretos (contagem) ou escala contínua (%),
-      confirmado visualmente com legenda correta em ambos os modos.
-- [~] **T3.4** — Aplicado a **1 indicador, nível bairro, tema `censo`** (Censo
-      0-4 anos, absoluto + percentual — as 2 variantes do mesmo indicador,
-      confirmando os dois modos de legenda). **Não** aplicado aos outros 3 temas
-      (natalidade/mortalidade/cadúnico) nem aos níveis AP/RP — ver "Escopo
-      reduzido" abaixo. Os ~30 mapas restantes continuam como PNG (`map_card`,
-      inalterado).
-- [x] **T3.5** — Confirmado visualmente: os 2 mapas SVG não têm basemap, UF, ou
-      labels de município vizinho — só polígonos + legenda + footnote de fonte,
-      como especificado.
-- [x] **T3.6** — Tooltip por região implementado (`initMapTooltips`, lê
-      `data-label`/`data-valor` de cada `<path>`) — confirmado por inspeção do
-      DOM gerado (atributos presentes e corretos); não testado com hover real
-      num navegador interativo nesta rodada.
+**Atualizado na rodada de fidelidade ao mockup — escopo completado, não mais
+reduzido.** `_geo_nivel(nivel)` generalizada para os 4 regimes de geometria
+que `analise.py` de fato usa (conferidos um a um em `mapa_coropletico_bairros`,
+não estimados): `bairro` (166, join direto `codbairro`/`codigo`), `ap`/`rp`
+(dissolve do geojson de bairros por `area_plane`/`cod_rp`, mesmas colunas de
+`agrega_bairros_por_nivel` em analise.py) e `cap` (geometria própria,
+`dados_locais/geo/limite_ap_saude_rio.geojson`, chave `cod_ap_sms` — as 10
+CAPs de saúde da SMS-Rio, confirmadas **diferentes** da AP/RP de planejamento
+urbano apesar da numeração parecida — checado no código-fonte antes de
+implementar, não assumido).
+- [x] **T3.1** — Geometria carregada para os 4 níveis: bairro (166), AP (5,
+      dissolve), RP (16, dissolve), CAP (10, geojson próprio).
+- [x] **T3.2** — `_geom_path_d` trata `MultiPolygon`; confirmado visualmente
+      nos 4 níveis (ilhas do bairro, e as formas de AP/RP/CAP) sem polígono
+      quebrado.
+- [x] **T3.3** — `mapa_svg()` aplica `_CORES_TEMA_MAPA` (4 temas: `censo`,
+      `natalidade`, `mortalidade`, `cadunico`), bins discretos ou escala
+      contínua conforme o indicador — confirmado visualmente nos 4 temas.
+- [x] **T3.4** — **Todos os ~32 mapas convertidos** (não mais 1 de prova de
+      conceito): 18 indicadores bairro, 4 Censo AP/RP (absoluto+percentual —
+      o denominador "Total" não vem exportado em `censo_por_bairro.csv`,
+      recuperado por álgebra exata a partir de `0 a 4 anos`/`Percentual 0 a 4`,
+      não por aproximação), 8 mapas CAP-saúde (6 grupo evitável + 2 subgrupo
+      gestação/parto, lidos direto de `tabelas_finais/mortalidade_evitaveis_cap_2025.csv`
+      e `tabela_mapa_obitos_evitaveis_{gestacao,parto}_menores_1_ano_cap_2025.csv`
+      — os mesmos exports que `analise.py` já gera para esses mapas, não uma
+      tabela derivada nova). Nenhum PNG de indicador restante;
+      `map_card`/`maps_block`/`check_maps` ficam só como fallback morto.
+- [x] **T3.5** — Confirmado visualmente nos 4 níveis: sem basemap/UF/labels de
+      município vizinho — só polígonos + legenda + footnote de fonte.
+- [x] **T3.6** — Tooltip por região implementado e confirmado por inspeção do
+      DOM (atributos `data-label`/`data-valor` presentes e corretos em todos
+      os 4 níveis); não testado com hover real num navegador interativo.
 
-**Escopo reduzido do Bloco 3 (decisão tomada durante a implementação, não
-prevista no plan.md original):** o pipeline geométrico funciona de ponta a
-ponta e está provado com um indicador real, mas convertê-lo para os ~30 mapas
-restantes (4 temas × 3 níveis × várias faixas etárias) é essencialmente um
-trabalho mecânico de call sites, não uma decisão de design nova. Dado o
-tamanho da rodada, ficou como próximo passo natural — não fica bloqueado por
-nenhuma decisão em aberto, só falta tempo de execução.
+**Bug real encontrado e corrigido nesta rodada**: `_carrega_bairros_geo`/
+`_geo_nivel` usavam a mesma chave de cache (`"bairro"`) para o GeoDataFrame
+bruto e para o resultado do nível `'bairro'` — o segundo sobrescrevia o
+primeiro, quebrando o dissolve de AP/RP (`TypeError: tuple indices must be
+integers`, já que o código tentava indexar uma tupla como se fosse o
+GeoDataFrame). Corrigido separando as chaves de cache (`_base_bairro` vs.
+`bairro`/`ap`/`rp`/`cap`). Também corrigido: uma linha de agregado
+("EM BRANCO", sem `codigo` numérico) numa das tabelas de mapa do DataSUS
+quebrava a conversão de chave — `mapa_svg` agora pula silenciosamente
+qualquer linha cuja chave não converte para o tipo esperado do nível, em vez
+de propagar a exceção.
+
+**Trade-off conhecido, não resolvido nesta rodada**: cada mapa embute sua
+geometria SVG como texto, sem compartilhar paths entre instâncias do mesmo
+nível — `relatorio/index.html` foi de ~5MB para ~20MB. Registrado em
+`feature_roadmap.md` como otimização futura (`<defs>`/`<use>`, ou um mapa
+`codigo→d` referenciado por id).
 
 ## Bloco 4 — Motor JS: novos controladores (plan.md §4)
 - [x] **T4.1** — Seletor de opção (`initPills`) — confirmado visualmente
@@ -117,9 +135,14 @@ nenhuma decisão em aberto, só falta tempo de execução.
       para `--accent`, que já é a variável usada para links em ambos os temas.
       Confirmado legível no tema escuro (screenshot real, ver T8.6).
 - [x] **T5.4** — Barra de espectro confirmada só no topo (1 ocorrência).
-- [x] **T5.5** — `.rsec`/`.option-card`/`.outlier-card`/chart-cards novos com
-      borda `2px solid var(--ink)`; cartões pré-existentes (`.out` original,
-      `.map-card` PNG) não tiveram sua borda alterada.
+- [x] **T5.5** — **Corrigido na rodada de fidelidade ao mockup**: o `.out`
+      original (todo chart-card, não só os componentes novos) ainda tinha
+      `border-radius:10px` + `box-shadow` — visivelmente diferente do mockup
+      aprovado, apesar de `.rsec`/`.option-card`/`.outlier-card` já estarem
+      corretos. `.out{border:2px solid var(--ink); border-radius:0;
+      box-shadow:none;}` agora vale para **todo** cartão do relatório, sem
+      exceção — confirmado visualmente em gráficos, mapas SVG e os cartões
+      de opção/outlier.
 - [ ] **T5.6** — Contraste do rodapé **não medido formalmente** (sem ferramenta
       de contraste neste ambiente) — inspeção visual do screenshot sugere
       legibilidade adequada, mas fica como pendência real, não confirmada.
