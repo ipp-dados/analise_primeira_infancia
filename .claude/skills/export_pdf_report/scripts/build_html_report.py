@@ -292,10 +292,15 @@ _LOREM_WORDS = (
     "aliquet nibh praesent tristique senectus netus fames turpis egestas"
 ).split()
 
-def _lorem(seed, palavras=500):
+def _lorem(seed, palavras=150):
     rng = random.Random(seed)
     corpo = " ".join(rng.choice(_LOREM_WORDS) for _ in range(palavras))
     return corpo[:1].upper() + corpo[1:] + "."
+
+def _lorem_bullets(seed, n=5, palavras=8):
+    """n frases curtas (placeholder) para o bloco 'principais achados' --
+    mesmo gerador deterministico do _lorem, seed derivado por indice."""
+    return [_lorem(f"{seed}-kt-{i}", palavras) for i in range(n)]
 
 def _eh_taxa_ou_percentual(s):
     """s: dict de serie ({'label','values','format',...}) ou a string do
@@ -425,8 +430,17 @@ LOGO_IMG = f'<img src="data:image/png;base64,{LOGO_B64}" alt="Prefeitura do Rio 
 # ver SPEC-relatorio-interativo/tasks.md T3.4) -- os demais ~30 mapas
 # continuam como PNG (map_card acima) ate uma rodada de conversao mecanica.
 
-_MAP_W, _MAP_H = 640, 560
-_CMAP_TEMA = {'censo': 'Blues', 'natalidade': 'BuGn', 'mortalidade': 'RdPu', 'cadunico': 'YlOrBr'}
+# altura reduzida ~20% (560->448, pedido explicito do usuario) -- checado
+# antes de aplicar: a altura de conteudo real do mapa (poligonos) e so
+# ~335px dentro dos 560px originais (a largura e o eixo que restringe a
+# escala, ja que a cidade e bem mais larga que alta), entao os 224px de
+# margem em branco (topo+base) absorvem o corte sem cortar poligono algum
+_MAP_W, _MAP_H = 640, 448
+# 'censo' era 'Blues' (igual analise.py) -- trocado pra 'Greys': azul agora e
+# reservado exclusivamente pro mar/agua no fundo do mapa (nunca terra/dado),
+# pedido explicito do usuario apos o fundo cartografico real confundir com o
+# choropleth azul do Censo
+_CMAP_TEMA = {'censo': 'Greys', 'natalidade': 'BuGn', 'mortalidade': 'RdPu', 'cadunico': 'YlOrBr'}
 _GEO_CACHE = {}
 
 def _bounds_project(gdf, width, height, pad_frac=0.03):
@@ -441,6 +455,10 @@ def _bounds_project(gdf, width, height, pad_frac=0.03):
         x = (lon - minx) * cos_lat * scale + off_x
         y = height - ((lat - miny) * scale + off_y)
         return x, y
+    # expostos para a barra de escala (metros reais) e o fundo cartografico
+    # (posicionar o mosaico de tiles no mesmo espaco de pixels dos poligonos)
+    project.bounds = (minx, miny, maxx, maxy)
+    project.scale = scale  # px por grau ajustado por cos(lat) ~= px por grau de latitude real
     return project
 
 def _ring_path(coords, project):
@@ -516,6 +534,52 @@ def _chave_norm(v, nivel):
         return str(float(v))
     raise ValueError(nivel)
 
+# ---- fundo dos mapas ----
+# Uma rodada anterior buscava tiles reais (Esri Ocean Basemap) pra tras dos
+# poligonos -- revertido: o usuario pediu explicitamente pra NUNCA usar
+# imagem de mapa/satelite pra representar TERRA, e o retalho de padding ao
+# redor da cidade (usado pra respiro visual) mistura terra (municipios
+# vizinhos) e agua (baia/oceano) sem uma camada de hidrografia disponivel
+# pra distinguir os dois -- sem forma segura de colorir so o mar de azul
+# sem arriscar colorir terra vizinha tambem. Fundo volta a ser neutro liso
+# (--surface-2, nao azul), sem tile algum.
+
+def _escala_legivel(distancia_m):
+    """Arredonda pra 1/2/5 x 10^n mais proximo -- convencao de barra de escala."""
+    if distancia_m <= 0:
+        return 100
+    exp = math.floor(math.log10(distancia_m))
+    base = distancia_m / (10 ** exp)
+    nice = 1 if base < 1.5 else 2 if base < 3.5 else 5 if base < 7.5 else 10
+    return nice * (10 ** exp)
+
+def _svg_barra_escala(project, x=16, y=None):
+    """Barra de escala SVG (canto inferior esquerdo), distancia real calculada a
+    partir de project.scale (px por grau ~= px por metro via 111.320m/grau)."""
+    y = _MAP_H - 14 if y is None else y
+    px_por_m = project.scale / 111320.0
+    nice_m = _escala_legivel(110 / px_por_m)
+    bar_px = nice_m * px_por_m
+    label = f"{nice_m / 1000:.0f} km" if nice_m >= 1000 else f"{nice_m:.0f} m"
+    return (
+        f'<g class="map-scalebar" transform="translate({x},{y})">'
+        f'<rect x="0" y="-4" width="{bar_px:.1f}" height="4" fill="#262626"></rect>'
+        f'<rect x="0" y="-4" width="{bar_px:.1f}" height="4" fill="none" stroke="#fff" stroke-width="0.6"></rect>'
+        f'<text x="{bar_px / 2:.1f}" y="-8" text-anchor="middle" class="map-scalebar-label">{label}</text>'
+        '</g>'
+    )
+
+def _svg_rosa_dos_ventos(x=None, y=30):
+    """Seta 'N' simples (rosa dos ventos), canto superior direito -- mesma ideia
+    de _adiciona_rosa_dos_ventos em analise.py."""
+    x = _MAP_W - 30 if x is None else x
+    return (
+        f'<g class="map-compass" transform="translate({x},{y})">'
+        '<path d="M0,-16 L6,6 L0,1.5 L-6,6 Z" fill="#262626" stroke="#fff" stroke-width="0.8"></path>'
+        '<text x="0" y="20" text-anchor="middle" class="map-compass-label">N</text>'
+        '</g>'
+    )
+
 def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro"):
     """df: 1 linha por unidade geografica (chave_col identifica a unidade no nivel
     escolhido: codbairro/area_plane/cod_rp/cod_ap_sms). bins: lista de limites
@@ -576,17 +640,27 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 v = vmin + (vmax - vmin) * frac
                 sw = _cor_sequencial(tema, frac)
                 legend_bits.append(f'<div class="map-legend-row"><span class="map-legend-sw" style="background:{sw}"></span>{_fmt_ptbr(v, 1)}{"%" if fmt == "pct1" else ""}</div>')
-        svg = f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg" id="{elem_id}">' + "".join(paths) + "</svg>"
+        overlay = _svg_rosa_dos_ventos() + _svg_barra_escala(project)
+        svg = (
+            f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg" id="{elem_id}">'
+            + "".join(paths) + overlay + "</svg>"
+        )
         csv = _csv_data_attr([_NIVEL_LABEL.get(nivel, "Bairro"), legenda_titulo or valor_col], rows)
+        # estilo cartografico (specification.md §7): fundo neutro (nunca imagem/mapa
+        # real -- azul fica reservado ao choropleth do mar em outros contextos, nunca
+        # a terra), rosa dos ventos + barra de escala, titulo serifado, legenda como
+        # overlay DENTRO do mapa (nao mais coluna lateral) + rodape com sistema de
+        # referencia (convencao do PNG).
+        ref_txt = "Sistema de referência: SIRGAS 2000, UTM - Fuso 23S"
         parts.append(
             f'<div class="out map-svg-card" data-csv="{csv}" data-filename="{_esc(titulo)}.csv">'
             '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>'
-            f'<div class="chart-subtitle">{_esc(titulo)}</div>'
-            '<div class="map-svg-row">'
+            f'<div class="map-title">{_esc(titulo)}</div>'
+            '<div class="map-svg-frame">'
             f'{svg}'
-            f'<div class="map-legend"><div class="eyebrow">{_esc(legenda_titulo or "")}</div>{"".join(legend_bits)}</div>'
+            f'<div class="map-legend-overlay"><div class="eyebrow map-legend-title">{_esc(legenda_titulo or "")}</div>{"".join(legend_bits)}</div>'
             '</div>'
-            f'<div class="out-src">{_esc(fonte_dados)}</div>'
+            f'<div class="map-ref">{ref_txt}<br>Fonte: {_esc(fonte_dados)}</div>'
             '</div>'
         )
         return elem_id
@@ -599,7 +673,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
 # ============================================================ NAVBAR/HEADER ==
 
 parts.append('<div class="topbar-accent"></div>')
-parts.append('<nav class="navbar">')
+parts.append('<nav class="navbar"><div class="navbar-inner">')
 parts.append(
     '<button type="button" class="navbar-burger" id="navbar-burger" aria-expanded="false" aria-controls="navbar-menu">'
     '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">'
@@ -607,7 +681,7 @@ parts.append(
     '</svg><span class="eyebrow navbar-label">NAVEGAÇÃO</span></button>'
 )
 parts.append(f'<div class="navbar-logo">{LOGO_IMG}</div>')
-parts.append('</nav>')
+parts.append('</div></nav>')
 parts.append('<div class="navbar-menu" id="navbar-menu" hidden><!--NAVBAR--></div>')
 
 parts.append('<header class="doc-head">')
@@ -675,25 +749,32 @@ NIVEIS_PLANEJAMENTO = {
     'ap': {'nome': 'Área de Planejamento', 'bins': [25000, 50000, 75000, 100000]},
     'rp': {'nome': 'Região de Planejamento', 'bins': [12000, 18000, 24000, 30000]},
 }
-_entries_mapas_censo = [
-    ("Bairro · Absoluto", lambda: mapa_svg(df_censo_bairro, "codbairro", "0 a 4 anos", "censo",
+_entries_mapas_censo_abs = [
+    ("Bairro", lambda: mapa_svg(df_censo_bairro, "codbairro", "0 a 4 anos", "censo",
         "Crianças de 0 a 4 anos, por bairro (Censo 2022)", "Crianças 0-4", FONTE_CENSO, bins=[1000, 2500, 5000, 10000]), "Bairro · Absoluto"),
-    ("Bairro · %", lambda: mapa_svg(df_censo_bairro, "codbairro", "Percentual 0 a 4", "censo",
+]
+_entries_mapas_censo_pct = [
+    ("Bairro", lambda: mapa_svg(df_censo_bairro, "codbairro", "Percentual 0 a 4", "censo",
         "% de crianças de 0 a 4 anos, por bairro (Censo 2022)", "% 0-4 anos", FONTE_CENSO, fmt='pct1'), "Bairro · %"),
 ]
 for _nivel, _info in NIVEIS_PLANEJAMENTO.items():
     df_censo_nivel = _agrega_censo_por_nivel(df_censo_bairro, _nivel)
-    _l1 = f"{_info['nome']} · Absoluto"
-    _entries_mapas_censo.append((_l1, lambda df=df_censo_nivel, nivel=_nivel, info=_info: mapa_svg(
+    _l1 = _info['nome']
+    _entries_mapas_censo_abs.append((_l1, lambda df=df_censo_nivel, nivel=_nivel, info=_info: mapa_svg(
         df, _NIVEL_COL[nivel], "0 a 4 anos", "censo",
         f"Crianças de 0 a 4 anos, por {info['nome']} (Censo 2022)", "Crianças 0-4",
-        FONTE_CENSO, bins=info['bins'], nivel=nivel), _l1))
-    _l2 = f"{_info['nome']} · %"
-    _entries_mapas_censo.append((_l2, lambda df=df_censo_nivel, nivel=_nivel, info=_info: mapa_svg(
+        FONTE_CENSO, bins=info['bins'], nivel=nivel), f"{_l1} · Absoluto"))
+    _l2 = _info['nome']
+    _entries_mapas_censo_pct.append((_l2, lambda df=df_censo_nivel, nivel=_nivel, info=_info: mapa_svg(
         df, _NIVEL_COL[nivel], "Percentual 0 a 4", "censo",
         f"% de crianças de 0 a 4 anos, por {info['nome']} (Censo 2022)", "% da população",
-        FONTE_CENSO, fmt='pct1', nivel=nivel), _l2))
-option_card(_entries_mapas_censo, 'mapa')
+        FONTE_CENSO, fmt='pct1', nivel=nivel), f"{_l2} · %"))
+# 6 mapas era demais numa unica fileira de pills -- dividido em 2 grupos
+# (Absoluto / %), specification.md §9 revisao
+h5('Valores absolutos')
+option_card(_entries_mapas_censo_abs, 'mapa')
+h5('Percentual')
+option_card(_entries_mapas_censo_pct, 'mapa')
 
 h3('Série temporal')
 df_censo_serie = read("censo_0_a_4_anos_por_ano.csv")
@@ -937,29 +1018,35 @@ FAIXAS_PRIMEIRA_INFANCIA = {
     'menores_5_anos': {'rotulo': 'menores de 5 anos',   'bins_absoluto': [20, 45, 70, 95]},
 }
 df_evitaveis_cap_2025 = read("mortalidade_evitaveis_cap_2025.csv")
-_entries_mapas_cap = []
+_entries_mapas_cap_faixa = []
 for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
     df_faixa_2025 = df_evitaveis_cap_2025[df_evitaveis_cap_2025["faixa_etaria"] == info['rotulo']]
     _l1 = f"{info['rotulo']} · Óbitos"
-    _entries_mapas_cap.append((_l1, lambda df=df_faixa_2025, info=info: mapa_svg(
+    _entries_mapas_cap_faixa.append((_l1, lambda df=df_faixa_2025, info=info: mapa_svg(
         df, "cod_ap_sms", "evitaveis", "mortalidade",
         f"Óbitos por causas evitáveis, {info['rotulo']}, por CAP (2025)", "Óbitos",
         FONTE_EVITAVEIS, bins=info['bins_absoluto'], nivel="cap"), _l1))
     _l2 = f"{info['rotulo']} · %"
-    _entries_mapas_cap.append((_l2, lambda df=df_faixa_2025, info=info: mapa_svg(
+    _entries_mapas_cap_faixa.append((_l2, lambda df=df_faixa_2025, info=info: mapa_svg(
         df, "cod_ap_sms", "percentual_evitaveis", "mortalidade",
         f"Percentual de óbitos evitáveis, {info['rotulo']}, por CAP (2025)", "% evitáveis",
         FONTE_EVITAVEIS, fmt="pct1", nivel="cap"), _l2))
 _SUBGRUPOS_COMPONENTE_C = {'gestacao': 'Gestação', 'parto': 'Parto'}
 _BINS_SUBGRUPO_COMPONENTE_C = {'gestacao': [10, 20, 30, 40], 'parto': [2, 4, 6, 8]}
+_entries_mapas_cap_subgrupo = []
 for slug, rotulo in _SUBGRUPOS_COMPONENTE_C.items():
     df_subgrupo_2025 = read(f"tabela_mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025.csv")
     _l3 = rotulo
-    _entries_mapas_cap.append((_l3, lambda df=df_subgrupo_2025, slug=slug, rotulo=rotulo: mapa_svg(
+    _entries_mapas_cap_subgrupo.append((_l3, lambda df=df_subgrupo_2025, slug=slug, rotulo=rotulo: mapa_svg(
         df, "cod_ap_sms", "obitos", "mortalidade",
         f"Óbitos evitáveis - {rotulo}, menores de 1 ano, por CAP (2025)", "Óbitos",
         FONTE_EVITAVEIS, bins=_BINS_SUBGRUPO_COMPONENTE_C[slug], nivel="cap"), _l3))
-option_card(_entries_mapas_cap, 'mapa')
+# 8 mapas era demais numa unica fileira de pills -- dividido em 2 grupos
+# (por faixa etaria / por subgrupo), specification.md §9 revisao
+h5('Por faixa etária')
+option_card(_entries_mapas_cap_faixa, 'mapa')
+h5('Por subgrupo (gestação e parto)')
+option_card(_entries_mapas_cap_subgrupo, 'mapa')
 
 # ==================================================== GRAVIDEZ/PUERPERIO ==
 
@@ -997,22 +1084,28 @@ viz('grafico', [
 df_map_neo_prec_2025 = read("mortalidade_neonatal_precoce_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
 df_map_neo_tard_2025 = read("mortalidade_neonatal_tardia_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
 df_map_pos_neo_2025 = read("mortalidade_infantil_pos_neonatal_total_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
+# 8 mapas era demais numa unica fileira de pills -- dividido em 2 grupos
+# (Óbitos / Taxa), specification.md §9 revisao
+h5('Óbitos')
 option_card([
-    ("Precoce · Óbitos", lambda: mapa_svg(df_map_neo_prec_2025, "codigo", "obitos precoces", "mortalidade",
+    ("Precoce", lambda: mapa_svg(df_map_neo_prec_2025, "codigo", "obitos precoces", "mortalidade",
         "Óbitos precoces (0-6 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 3, 6, 12]), "Precoce · Óbitos"),
-    ("Precoce · Taxa", lambda: mapa_svg(df_map_neo_prec_2025, "codigo", "taxa_mortalidade_precoce", "mortalidade",
-        "Taxa de óbitos precoces por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Precoce · Taxa"),
-    ("Tardia · Óbitos", lambda: mapa_svg(df_map_neo_tard_2025, "codigo", "obitos_tardios", "mortalidade",
+    ("Tardia", lambda: mapa_svg(df_map_neo_tard_2025, "codigo", "obitos_tardios", "mortalidade",
         "Óbitos tardios (7-27 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "Tardia · Óbitos"),
-    ("Tardia · Taxa", lambda: mapa_svg(df_map_neo_tard_2025, "codigo", "taxa_obitos_tardios", "mortalidade",
-        "Taxa de óbitos tardios por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Tardia · Taxa"),
-    ("Pós-neonatal · Óbitos", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_28_364", "mortalidade",
+    ("Pós-neonatal", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_28_364", "mortalidade",
         "Óbitos pós-neonatais (28-364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "Pós-neonatal · Óbitos"),
-    ("Pós-neonatal · Taxa", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_pos_neonatal", "mortalidade",
-        "Taxa de mortalidade pós-neonatal por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Pós-neonatal · Taxa"),
-    ("Total · Óbitos", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_0_364", "mortalidade",
+    ("Total", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_0_364", "mortalidade",
         "Óbitos infantis (0-364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "Total · Óbitos"),
-    ("Total · Taxa", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_infantil", "mortalidade",
+], 'mapa')
+h5('Taxa')
+option_card([
+    ("Precoce", lambda: mapa_svg(df_map_neo_prec_2025, "codigo", "taxa_mortalidade_precoce", "mortalidade",
+        "Taxa de óbitos precoces por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Precoce · Taxa"),
+    ("Tardia", lambda: mapa_svg(df_map_neo_tard_2025, "codigo", "taxa_obitos_tardios", "mortalidade",
+        "Taxa de óbitos tardios por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Tardia · Taxa"),
+    ("Pós-neonatal", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_pos_neonatal", "mortalidade",
+        "Taxa de mortalidade pós-neonatal por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Pós-neonatal · Taxa"),
+    ("Total", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_infantil", "mortalidade",
         "Taxa de mortalidade infantil por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Total · Taxa"),
 ], 'mapa')
 
@@ -1119,16 +1212,23 @@ if section_starts:
         end = section_starts[i + 1][0] if i + 1 < n_sections else _pre_footer_len
         heading_html = parts[start]
         body_html = "".join(parts[start + 1:end])
+        takeaways = "".join(f"<li>{b}</li>" for b in _lorem_bullets(sid))
+        takeaways_html = (
+            '<div class="key-takeaways">'
+            '<div class="eyebrow kt-label">PRINCIPAIS ACHADOS</div>'
+            f'<ul>{takeaways}</ul>'
+            '</div>'
+        )
         _wrapped.append(
             f'<section class="rsec" id="wrap-{sid}">'
             '<div class="rsec-head">'
-            f'<div class="rsec-head-l"><span class="eyebrow rsec-eyebrow">SEÇÃO {i + 1} DE {n_sections}</span>{heading_html}</div>'
+            f'<div class="rsec-head-l"><span class="eyebrow rsec-eyebrow">SEÇÃO {i + 1} DE {n_sections}</span><div class="rsec-head-title">{heading_html}</div></div>'
             '<button type="button" class="rsec-toggle" aria-expanded="true">'
             '<span class="rsec-toggle-label">RECOLHER</span>'
             '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><polyline points="6 9 12 15 18 9"></polyline></svg>'
             '</button>'
             '</div>'
-            f'<div class="section-body">{body_html}</div>'
+            f'<div class="section-body">{takeaways_html}{body_html}</div>'
             '</section>'
         )
     _wrapped.append(parts[_pre_footer_len])  # rodape, fora de qualquer secao
@@ -1180,17 +1280,22 @@ CSS = r"""
     --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   }
   *{box-sizing:border-box;}
+  /* +20% em toda fonte baseada em rem (praticamente tudo no relatorio) --
+     pedido explicito do usuario; os poucos rotulos SVG em px fixo (eixos/
+     rotulos de grafico, escala/rosa dos ventos do mapa) sao escalados a
+     mao logo abaixo, ja que nao herdam de font-size do root */
+  html{font-size:19.2px;}
   body{
     margin:0; background:var(--page); color:var(--ink);
-    font-family:var(--font-body); line-height:1.6; font-size:16px;
+    font-family:var(--font-body); line-height:1.6; font-size:19.2px;
     -webkit-font-smoothing:antialiased;
   }
   a{color:var(--accent);}
   code{font-family:var(--font-mono); font-size:.92em; background:var(--hairline-2); padding:.1em .35em; border-radius:3px;}
 
-  .doc{max-width:1200px; margin:0 auto; padding:64px 24px 110px;}
+  .doc{max-width:1200px; margin:0 auto; padding:0 24px 110px;}
 
-  header.doc-head{margin-bottom:8px;}
+  header.doc-head{margin-bottom:8px; padding-top:56px;}
   header.doc-head h1{
     font-family:var(--font-display); font-weight:600; font-size:clamp(1.9rem,4.4vw,2.7rem);
     margin:0 0 8px; line-height:1.12; text-wrap:balance; letter-spacing:-.01em;
@@ -1228,7 +1333,7 @@ CSS = r"""
   h2{
     font-family:var(--font-display); font-weight:600; font-size:clamp(1.5rem,3vw,1.85rem);
     margin:68px 0 4px; padding-top:32px; border-top:1px solid var(--hairline); line-height:1.2;
-    text-wrap:balance; scroll-margin-top:24px;
+    text-wrap:balance; scroll-margin-top:24px; color:var(--ink);
   }
   h2:first-of-type{margin-top:0; padding-top:0; border-top:none;}
   h3{
@@ -1248,8 +1353,11 @@ CSS = r"""
     margin:22px 0 8px; color:var(--ink-2); text-transform:uppercase; letter-spacing:.03em;
   }
 
+  /* sem contorno em graficos/tabelas -- o contorno agora e exclusivo do mapa
+     (.map-svg-card abaixo) e do texto que acompanha o mapa (specification.md
+     §7, pedido explicito do usuario) */
   .out{
-    margin:14px 0 8px; background:var(--surface); border:2px solid var(--ink); border-radius:0;
+    margin:14px 0 8px; background:var(--surface); border:none; border-radius:0;
     box-shadow:none; padding:22px 24px 16px;
   }
   .out-pair{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; margin:14px 0 8px;}
@@ -1276,9 +1384,9 @@ CSS = r"""
   .legend-item i{width:9px; height:9px; border-radius:50%; display:inline-block; flex:none;}
   .chart-svg{width:100%; height:auto; display:block; overflow:visible;}
   .grid-line{stroke:var(--hairline); stroke-width:1;}
-  .axis-label{font-family:var(--font-mono); font-size:9px; fill:var(--ink-3);}
-  .end-label{font-family:var(--font-mono); font-size:10.5px; font-weight:600; dominant-baseline:middle;}
-  .extreme-label{font-family:var(--font-mono); font-size:8.5px; font-weight:600;}
+  .axis-label{font-family:var(--font-mono); font-size:10.8px; fill:var(--ink-3);}
+  .end-label{font-family:var(--font-mono); font-size:12.6px; font-weight:600; dominant-baseline:middle;}
+  .extreme-label{font-family:var(--font-mono); font-size:10.2px; font-weight:600;}
   .hover-line{stroke:var(--ink-3); stroke-width:1; stroke-dasharray:2 3;}
   .hover-dot{stroke:var(--surface); stroke-width:2;}
   .chart-tooltip{
@@ -1331,10 +1439,16 @@ CSS = r"""
     margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
   }
   .navbar{
-    display:flex; align-items:center; justify-content:space-between; gap:16px;
-    height:56px; padding:0 24px; background:var(--page); border-bottom:2px solid var(--ink);
+    height:56px; background:var(--page); border-bottom:2px solid var(--ink);
     margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
     position:sticky; top:0; z-index:20;
+  }
+  /* max-width+margin:auto (nao so padding) pra alinhar com `.doc`/footer-cols em
+     telas largas -- o full-bleed do navbar media a partir da viewport, nao do
+     centro do body, entao so padding fixo desalinhava em telas >1248px */
+  .navbar-inner{
+    max-width:1200px; margin:0 auto; height:100%; padding:0 24px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
   }
   .navbar-burger{display:flex; align-items:center; gap:10px; background:none; border:none; cursor:pointer; color:var(--ink); padding:6px 0;}
   .navbar-label{color:var(--ink); font-weight:600;}
@@ -1353,7 +1467,10 @@ CSS = r"""
   }
   .navbar-link:hover{color:var(--accent);}
 
-  .doc-head-row{display:flex; justify-content:space-between; align-items:flex-end; gap:40px; flex-wrap:wrap;}
+  /* topo alinhado: eyebrow+titulo (esquerda) comecam na mesma linha que o
+     texto de descricao (direita) -- pedido explicito do usuario */
+  .doc-head-row{display:grid; grid-template-columns:1fr 420px; align-items:start; gap:40px;}
+  @media (max-width:760px){ .doc-head-row{grid-template-columns:1fr;} }
   .doc-eyebrow{color:var(--accent); font-weight:700; margin-bottom:10px;}
   .doc-head-desc{max-width:420px;}
   header.doc-head .doc-head-desc .meta{display:block; font-family:var(--font-mono); font-size:.72rem; color:var(--ink-3); padding-bottom:0; margin:8px 0 0;}
@@ -1362,10 +1479,12 @@ CSS = r"""
 
   /* ---- secoes retrateis, cartao brutalista ---- */
   .rsec{border:2px solid var(--ink); border-radius:0; margin:40px 0; background:var(--surface);}
+  .eyebrow{font-family:var(--font-mono); font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;}
   .rsec-head{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 22px; border-bottom:2px solid var(--ink);}
-  .rsec-head-l{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
-  .rsec-head-l h2{margin:0; padding:0; border:none;}
-  .rsec-eyebrow{color:var(--accent); font-weight:700;}
+  .rsec-head-l{display:flex; flex-direction:column; gap:4px; min-width:0;}
+  .rsec-head-title{color:var(--ink);}
+  .rsec-head-title h2{margin:0; padding:0; border:none; color:inherit;}
+  .rsec-eyebrow{color:var(--accent);}
   .rsec[data-collapsed="true"] .rsec-eyebrow{color:var(--ink-3); font-weight:400;}
   .rsec-toggle{
     display:flex; align-items:center; gap:8px; background:var(--ink); color:var(--page); border:none; border-radius:0;
@@ -1375,6 +1494,11 @@ CSS = r"""
   .section-body{padding:24px 22px 30px;}
   .rsec[data-collapsed="true"] .section-body{display:none;}
 
+  .key-takeaways{background:var(--surface-2); border:2px solid var(--ink); box-shadow:var(--shadow); padding:18px 22px; margin-bottom:28px;}
+  .kt-label{color:var(--ink-2); margin-bottom:10px;}
+  .key-takeaways ul{margin:0; padding:0 0 0 18px; display:grid; gap:8px;}
+  .key-takeaways li{font-family:var(--font-body); font-size:.92rem; color:var(--ink); line-height:1.5;}
+
   /* ---- 3 padroes de layout: grafico (texto abaixo), mapa (texto na 3a
      coluna), tabela (texto a esquerda) -- specification.md §3.13 ---- */
   .option-card{
@@ -1382,12 +1506,20 @@ CSS = r"""
   }
   .option-card-grafico{grid-template-columns:200px 1fr; grid-template-areas:"pills chart" "text text";}
   .option-card-grafico.option-card-single{grid-template-columns:1fr; grid-template-areas:"chart" "text";}
-  .option-card-mapa{grid-template-columns:200px 1fr 260px; grid-template-areas:"pills map text";}
-  .option-card-mapa.option-card-single{grid-template-columns:1fr 260px; grid-template-areas:"map text";}
+  /* mapa: pills numa fileira acima, mapa maior + texto ao lado (nao mais coluna de pills lateral) */
+  /* mapa+texto: sem gap na coluna (encostados, so o padding interno de cada
+     um separa visualmente) e align-items:stretch pra igualar a altura do
+     texto a do mapa (specification.md §7, pedido explicito do usuario) */
+  .option-card-mapa{grid-template-columns:1fr 280px; grid-template-areas:"pills pills" "map text"; gap:16px 0; align-items:stretch;}
+  .option-card-mapa.option-card-single{grid-template-columns:1fr 280px; grid-template-areas:"map text"; gap:16px 0; align-items:stretch;}
   .option-card .pill-col{grid-area:pills;}
   .option-card-grafico .opt-panes{grid-area:chart;}
   .option-card-mapa .opt-panes{grid-area:map;}
   .option-card .opt-texts{grid-area:text;}
+  .option-card-mapa .pill-col{
+    flex-direction:row; flex-wrap:wrap; max-height:none; overflow-y:visible; padding-right:0;
+  }
+  .option-card-mapa .opt-panes, .option-card-mapa .opt-texts, .option-card-mapa .opt-pane{height:100%;}
 
   .table-with-text{display:grid; grid-template-columns:260px 1fr; gap:20px; margin:14px 0 8px; align-items:start;}
 
@@ -1401,12 +1533,22 @@ CSS = r"""
   .opt-panes .out{margin-top:0;}
   .opt-text{
     font-family:var(--font-body); font-size:.86rem; color:var(--ink-2); line-height:1.7;
-    padding:16px 18px; border:2px solid var(--ink); min-width:0;
+    padding:16px 18px; border:none; min-width:0;
     max-height:240px; overflow-y:auto;
+  }
+  /* texto do mapa: unico opt-text que mantem contorno (+ sombra), igual
+     largura/altura do mapa ao lado -- specification.md §7 */
+  .option-card-mapa .opt-text{
+    border:2px solid var(--ink); box-shadow:var(--shadow); box-sizing:border-box;
+    height:100%; max-height:none;
   }
 
   /* ---- outliers ---- */
-  .outlier-toolbar{display:flex; justify-content:flex-end; margin-bottom:6px;}
+  /* botao de outlier fica sempre no mesmo nivel/lado do download CSV (pedido
+     explicito do usuario) -- posicionado absoluto sobre o card, a esquerda
+     do .dl-btn (que fica DENTRO do .out, top:14px;right:14px) */
+  .outlier-card{position:relative;}
+  .outlier-toolbar{position:absolute; top:14px; right:100px; z-index:3; margin:0;}
   .outlier-btn{
     display:flex; align-items:center; gap:6px; border:1.5px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
     font-family:var(--font-mono); font-size:.68rem; font-weight:600; padding:5px 10px; cursor:pointer;
@@ -1423,14 +1565,40 @@ CSS = r"""
   }
   .dl-btn:hover{background:var(--accent-soft);}
 
-  /* ---- mapas SVG interativos ---- */
-  .map-svg-row{display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;}
-  .map-svg{flex:1; min-width:260px; max-width:480px; height:auto;}
+  /* ---- mapas SVG interativos: estilo cartografico igual aos PNG de mapas/,
+     so com interatividade a mais (specification.md §7) ---- */
+  .map-title{
+    font-family:var(--font-display); font-weight:700; font-size:1.05rem; color:var(--ink);
+    margin:0 0 14px; text-wrap:balance;
+  }
+  /* mapa e o unico card com contorno + sombra (specification.md §7) -- mapa
+     ocupa a largura toda (legenda virou overlay, nao mais coluna lateral) */
+  .out.map-svg-card{border:2px solid var(--ink); box-shadow:var(--shadow);}
+  /* sem max-width -- e SVG vetorial (sem imagem raster), preenche a coluna
+     "map" toda ate encostar no texto do lado, sem vao entre os dois */
+  .map-svg-frame{
+    position:relative; background:var(--surface-2);
+  }
+  .map-svg{display:block; width:100%; height:auto;}
   .map-region{transition:filter .15s ease; cursor:pointer;}
   .map-region:hover{filter:brightness(1.08); stroke-width:1.6;}
-  .map-legend{width:170px; flex:none;}
-  .map-legend-row{display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:.7rem; color:var(--ink-2); margin:4px 0;}
-  .map-legend-sw{width:14px; height:14px; border:1px solid var(--ink); flex:none; display:inline-block;}
+  .map-scalebar-label{font-family:var(--font-mono); font-size:9.6px; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
+  .map-compass-label{font-family:var(--font-mono); font-size:13.2px; font-weight:700; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
+  /* legenda como overlay dentro do proprio mapa (specification.md §7) --
+     mesma convencao do matplotlib legend_kwds (canto sup. esquerdo,
+     framealpha .92, fundo branco) -- libera a largura toda do card pro mapa */
+  .map-legend-overlay{
+    position:absolute; top:14px; left:14px; max-width:180px;
+    background:rgba(255,255,255,.92); border:1px solid var(--hairline-2);
+    padding:10px 12px; box-shadow:var(--shadow);
+  }
+  .map-legend-title{color:var(--ink); margin-bottom:8px;}
+  .map-legend-row{display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:.68rem; font-weight:600; color:var(--ink-2); margin:5px 0;}
+  .map-legend-sw{width:12px; height:12px; border:1px solid var(--ink); flex:none; display:inline-block;}
+  .map-ref{
+    font-family:var(--font-mono); font-size:.68rem; font-style:italic; color:var(--ink-3);
+    line-height:1.6; margin-top:12px; padding-top:8px; border-top:1px solid var(--hairline-2);
+  }
 
   /* ---- rodape institucional ---- */
   footer.doc-foot{
@@ -1456,8 +1624,7 @@ CSS = r"""
     .option-card-mapa.option-card-single{grid-template-columns:1fr; grid-template-areas:"map" "text";}
     .table-with-text{grid-template-columns:1fr;}
     .pill-col{flex-direction:row; flex-wrap:wrap; max-height:none;}
-    .map-svg-row{flex-direction:column;}
-    .map-legend{width:auto;}
+    .map-legend-overlay{max-width:60%; padding:8px 10px;}
   }
   @media (max-width:520px){
     .bar-row{grid-template-columns:70px 1fr auto;}
@@ -1715,7 +1882,7 @@ ENGINE = r"""
 
     groups.forEach((g,gi)=>{
       const gx0 = padL + gi*groupW + groupW*barPad;
-      svgEl('text', {x: gx0 + innerW/2, y: H-38, class:'axis-label', 'text-anchor':'middle', 'font-size':10.5}, svg).textContent = g;
+      svgEl('text', {x: gx0 + innerW/2, y: H-38, class:'axis-label', 'text-anchor':'middle', 'font-size':12.6}, svg).textContent = g;
       series.forEach((s,si)=>{
         const v = s.values[gi];
         if (v == null) return;
