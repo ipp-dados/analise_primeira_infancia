@@ -15,6 +15,13 @@
 ## Matrículas
 - Update dados de matrículas escolares for years 2021-2025
 
+## Relatório interativo (SPEC-relatorio-interativo)
+- Botão de "baixar tudo" (fora do escopo — só tem download por gráfico/mapa individual)
+- Persistir estado de collapse das seções entre sessões (localStorage), se vier a ser pedido
+- Basemap/contexto geográfico (satélite/desenho, UF, municípios vizinhos) nos mapas SVG
+  interativos, se vier a ser pedido — não portado do pipeline PNG (`generate_map`), ver
+  SPEC-relatorio-interativo/specification.md §7
+
 ## Other (need to break down later)
 - Replace HTML visualization with proper Streamlit panel
 - Setup LaTeX final report
