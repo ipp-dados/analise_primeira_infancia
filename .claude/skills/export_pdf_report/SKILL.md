@@ -17,6 +17,17 @@ the visual style of the visualizations used in the notebook, not the
 html."** Do not go back to converting `relatorio/*.html` — build the
 document from `analise.py`'s own outputs instead, as described below.
 
+**Note:** `scripts/build_html_report.py` also lives in this skill's folder
+but is a separate pipeline, for `relatorio/index.html` (the interactive
+HTML report), not this PDF. As of `SPEC-relatorio-interativo` (v6,
+`relatorio/specs.md`) that report has its own visual identity — brutalist
+bordered cards, a pill-selector for cortes that used to repeat as separate
+charts, an outlier toggle, per-chart CSV download, and interactive SVG maps
+(`mapa_svg()`) replacing most of the old raster `mapas/*.png` — entirely
+independent of this skill's matplotlib/PNG-based PDF pipeline. Don't apply
+that report's styling conventions here; this PDF intentionally mirrors the
+notebook's own matplotlib rendering, per the rejection noted above.
+
 ## Pipeline
 
 Run every command from the project root.
@@ -45,11 +56,19 @@ Run every command from the project root.
    contract, not a generic tool. Read it before trusting it blindly.
 
 2. **Extract the 5 map images.** The choropleth maps in `mapas/` are ~6MB
-   PNGs (too big to embed directly at full size); `relatorio/*.html`
+   PNGs (too big to embed directly at full size); `relatorio/index.html`
    already ships them pre-resized to ~130KB WebP data URIs (see
-   `relatorio/specs.md`) — reuse that instead of re-encoding:
+   `relatorio/specs.md`) — reuse that instead of re-encoding. **Note (v6,
+   `SPEC-relatorio-interativo`):** most maps in `relatorio/index.html` are
+   no longer PNG/WebP at all — `build_html_report.py` now renders them as
+   inline interactive SVG (`mapa_svg()`), so `extract_maps.py`'s approach
+   (pulling a `const MAPS = [...]` JS array out of the HTML) only finds the
+   handful of maps still on the old path, if any remain. Check
+   `build_html_report.py` for the current map count before relying on this
+   step; `extract_maps.py` may need to read straight from `mapas/*.png`
+   instead of from the HTML if the JS array it expects is gone.
    ```
-   python .claude/skills/export_pdf_report/scripts/extract_maps.py relatorio/white_index.html <scratchpad>/maps.json
+   python .claude/skills/export_pdf_report/scripts/extract_maps.py relatorio/index.html <scratchpad>/maps.json
    ```
 
 3. **Build the report HTML.** `scripts/build_notebook_report.py` is a

@@ -4,18 +4,36 @@
 Replaces the old 3-file setup (index.html / lighter_index.html / white_index.html),
 which was hand-built by unsaved ad-hoc scripts (see relatorio/specs.md). This script
 is the first *persisted* generator: it reads tabelas_finais/*.csv (same source the
-PDF pipeline uses) and mapas/*.png, and renders interactive SVG charts via a small
-JS engine (lineChart/barChart/groupedBarChart, lifted from the old lighter_index.html
-and extended with the "many-series" highlight logic used in analise.py's
+PDF pipeline uses) and renders interactive SVG charts via a small JS engine
+(lineChart/barChart/groupedBarChart, lifted from the old lighter_index.html and
+extended with the "many-series" highlight logic used in analise.py's
 serie_temporal_multipla). Per SPEC-visual-identity decision B, this report is
 visualization-only: title + source + chart/map + optional data table, no prose/notes
 (those stay in the notebook and the PDF). Maps are interleaved in the same position
 they appear in analise.py (not grouped in one trailing section), and the page opens
-with a two-level table of contents (h2+h3) linking to every section.
+with a persistent navbar linking every h2 section.
 
 This is a direct transcription of analise.py's chart/map call sites, in the same
 order they appear there -- if analise.py's sections, column names, exported
 filenames, or cell order change, this needs matching edits.
+
+v6 (SPEC-relatorio-interativo) rebuilt the visual identity and interaction model to
+match a reviewed wireframe/mockup -- brutalist bordered cards (no shadow/radius),
+retractable h2 sections, a pill-selector (`option_card`) replacing what used to be a
+wall of near-identical repeated charts, an outlier toggle (Tukey fences, applied
+centrally in line_chart/bar_chart/grouped_bar_chart/mapa_svg -- not per call site),
+per-chart-card CSV download, fixed max/min/most-recent labels on every line chart, and
+institutional IPP/Prefeitura-do-Rio colors (navy/cyan) scoped to the navbar/footer
+chrome only, never the data palette. Maps are now inline interactive SVG (`mapa_svg()`
+-- GeoJSON/dissolve -> paths, tooltip per region) instead of the matplotlib PNGs in
+mapas/, covering bairro, AP/RP (dissolved from the bairro geojson, same as
+mapa_coropletico_bairros in analise.py) and CAP-saude (a separate geojson, see
+`_geo_nivel`) levels; `map_card`/`maps_block`/`check_maps` (the old PNG embedder) are
+kept only as a fallback for any future indicator that doesn't fit one of those 4
+geometry regimes. Known tradeoff: embedding real SVG geometry per map instance (166
+bairro paths, repeated per indicator) makes the output much heavier than the old
+base64-PNG version (~20MB vs ~5MB) -- not yet optimized (e.g. sharing paths via
+<defs>/<use>), tracked in SPEC-relatorio-interativo/feature_roadmap.md.
 
 Usage (from project root):
     python .claude/skills/export_pdf_report/scripts/build_html_report.py [out_path]
@@ -368,43 +386,94 @@ def _geom_path_d(geom, project):
             d.append(_ring_path(list(interior.coords), project))
     return " ".join(d)
 
-def _carrega_bairros_geo():
-    if "gdf" not in _GEO_CACHE:
+_NIVEL_COL = {"ap": "area_plane", "rp": "cod_rp"}
+_NIVEL_LABEL = {"ap": "AP", "rp": "RP", "cap": "CAP"}
+
+def _geo_base_bairros():
+    if "_base_bairro" not in _GEO_CACHE:
         import geopandas as gpd
         gdf = gpd.read_file("dados_locais/geo/limite_bairros_rio.geojson")
         gdf["codbairro"] = gdf["codbairro"].astype(int)
-        _GEO_CACHE["gdf"] = gdf
-        _GEO_CACHE["project"] = _bounds_project(gdf, _MAP_W, _MAP_H)
-    return _GEO_CACHE["gdf"], _GEO_CACHE["project"]
+        _GEO_CACHE["_base_bairro"] = gdf
+    return _GEO_CACHE["_base_bairro"]
+
+def _geo_nivel(nivel):
+    """nivel: 'bairro' | 'ap' | 'rp' | 'cap'. Retorna (gdf, project, nomes) cacheado.
+    gdf tem 1 linha por unidade; `nomes` mapeia chave -> rotulo legivel para o
+    tooltip. bairro/ap/rp vem do mesmo geojson de bairros (ap/rp via dissolve --
+    mesmas colunas area_plane/cod_rp que mapa_coropletico_bairros usa em
+    analise.py); cap tem geometria propria (limite_ap_saude_rio.geojson,
+    fronteiras de saude da SMS-Rio, DIFERENTES das AP/RP de planejamento
+    urbano do IPP apesar da numeracao parecida -- ver analise.py
+    _CAMINHO_GEO_CAP)."""
+    if nivel in _GEO_CACHE:
+        return _GEO_CACHE[nivel]
+    if nivel == "bairro":
+        base = _geo_base_bairros()
+        g = base.copy()
+        g["_chave"] = g["codbairro"]
+        nomes = dict(zip(g["_chave"], g["nome"]))
+    elif nivel in ("ap", "rp"):
+        base = _geo_base_bairros()
+        col = _NIVEL_COL[nivel]
+        g = base.dissolve(by=col, as_index=False)
+        g["_chave"] = g[col].astype(str) if nivel == "rp" else g[col].astype(int)
+        nomes = {c: f"{_NIVEL_LABEL[nivel]} {c}" for c in g["_chave"]}
+    elif nivel == "cap":
+        import geopandas as gpd
+        g = gpd.read_file("dados_locais/geo/limite_ap_saude_rio.geojson")
+        g["_chave"] = g["cod_ap_sms"].astype(float).astype(str)
+        nomes = {c: f"CAP {c}" for c in g["_chave"]}
+    else:
+        raise ValueError(f"nivel desconhecido: {nivel}")
+    result = (g, _bounds_project(g, _MAP_W, _MAP_H), nomes)
+    _GEO_CACHE[nivel] = result
+    return result
 
 def _cor_sequencial(tema, frac):
     import matplotlib
     r, g, b, _ = matplotlib.colormaps[_CMAP_TEMA[tema]](0.22 + 0.68 * max(0.0, min(1.0, frac)))
     return "#%02x%02x%02x" % (int(r * 255), int(g * 255), int(b * 255))
 
-def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int"):
-    """df: 1 linha por bairro (chave_col=codbairro int, valor_col numerico).
-    bins: lista de limites superiores (contagem absoluta, classes discretas) ou
-    None (percentual/taxa, escala continua) -- mesma convencao de
-    mapa_coropletico_bairros em analise.py. Emite 1 construto (option_card-
-    compativel) com SVG + legenda + tooltip por bairro + toggle de outliers +
-    download CSV."""
-    gdf, project = _carrega_bairros_geo()
-    valores = {int(r[chave_col]): (None if pd.isna(r[valor_col]) else float(r[valor_col])) for _, r in df.iterrows()}
-    nomes = {int(r["codbairro"]): r["nome"] for _, r in gdf.iterrows()}
+def _chave_norm(v, nivel):
+    if nivel == "bairro":
+        return int(v)
+    if nivel == "ap":
+        return int(v)
+    if nivel == "rp":
+        return str(v)
+    if nivel == "cap":
+        return str(float(v))
+    raise ValueError(nivel)
+
+def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro"):
+    """df: 1 linha por unidade geografica (chave_col identifica a unidade no nivel
+    escolhido: codbairro/area_plane/cod_rp/cod_ap_sms). bins: lista de limites
+    superiores (contagem absoluta, classes discretas) ou None (percentual/taxa,
+    escala continua) -- mesma convencao de mapa_coropletico_bairros em
+    analise.py. Emite 1 construto (option_card-compativel) com SVG + legenda +
+    tooltip por regiao + toggle de outliers + download CSV."""
+    gdf, project, nomes = _geo_nivel(nivel)
+    valores = {}
+    for _, r in df.iterrows():
+        try:
+            chave = _chave_norm(r[chave_col], nivel)
+        except (ValueError, TypeError):
+            continue  # linhas de agregado tipo "Em branco"/"Ignorado" (nao sao uma unidade geografica real)
+        valores[chave] = None if pd.isna(r[valor_col]) else float(r[valor_col])
     brutos = list(valores.values())
     limpos = remove_outliers_tukey(brutos)
     limpos_map = dict(zip(valores.keys(), limpos))
     has_outliers = limpos != brutos
 
-    def build(valor_por_bairro):
+    def build(valor_por_regiao):
         elem_id = new_id("m")
-        finitos = [v for v in valor_por_bairro.values() if v is not None]
+        finitos = [v for v in valor_por_regiao.values() if v is not None]
         vmin, vmax = (min(finitos), max(finitos)) if finitos else (0, 1)
         paths, rows = [], []
         for _, row in gdf.iterrows():
-            cod = int(row["codbairro"])
-            v = valor_por_bairro.get(cod)
+            chave = row["_chave"]
+            v = valor_por_regiao.get(chave)
             d = _geom_path_d(row.geometry, project)
             if v is None:
                 fill = "var(--surface-2)"
@@ -414,7 +483,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
             else:
                 frac = (v - vmin) / (vmax - vmin) if vmax > vmin else 0.5
                 fill = _cor_sequencial(tema, frac)
-            label = nomes.get(cod, str(cod))
+            label = nomes.get(chave, str(chave))
             val_txt = _fmt_ptbr(v, 1 if fmt == "pct1" else 0) + ("%" if fmt == "pct1" and v is not None else "")
             paths.append(
                 f'<path d="{d}" class="map-region" fill="{fill}" stroke="var(--page)" stroke-width="0.7" '
@@ -437,7 +506,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 sw = _cor_sequencial(tema, frac)
                 legend_bits.append(f'<div class="map-legend-row"><span class="map-legend-sw" style="background:{sw}"></span>{_fmt_ptbr(v, 1)}{"%" if fmt == "pct1" else ""}</div>')
         svg = f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg" id="{elem_id}">' + "".join(paths) + "</svg>"
-        csv = _csv_data_attr(["Bairro", legenda_titulo or valor_col], rows)
+        csv = _csv_data_attr([_NIVEL_LABEL.get(nivel, "Bairro"), legenda_titulo or valor_col], rows)
         parts.append(
             f'<div class="out map-svg-card" data-csv="{csv}" data-filename="{_esc(titulo)}.csv">'
             '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>'
@@ -511,24 +580,42 @@ sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
 grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO)
 
 h3('Mapas')
-# Bairro: SVG interativo (tooltip por bairro + toggle de outliers + download) --
-# prova de conceito do pipeline de SPEC-relatorio-interativo/plan.md §3. AP/RP
-# continuam como PNG nesta rodada (dissolve por area_plane/cod_rp fica para a
-# conversao mecanica dos demais mapas, ver tasks.md T3.4).
 mapa_svg(df_censo_bairro, "codbairro", "0 a 4 anos", "censo",
          "Crianças de 0 a 4 anos, por bairro (Censo 2022)", "Crianças 0-4",
          FONTE_CENSO, bins=[1000, 2500, 5000, 10000])
 mapa_svg(df_censo_bairro, "codbairro", "Percentual 0 a 4", "censo",
          "% de crianças de 0 a 4 anos, por bairro (Censo 2022)", "% 0-4 anos",
          FONTE_CENSO, fmt='pct1')
-_censo_maps = [
-    ("mapa_censo_0_4_absoluto_ap.png", "Crianças de 0 a 4 anos, por Área de Planejamento"),
-    ("mapa_censo_0_4_percentual_ap.png", "% de crianças de 0 a 4 anos, por Área de Planejamento"),
-    ("mapa_censo_0_4_absoluto_rp.png", "Crianças de 0 a 4 anos, por Região de Planejamento"),
-    ("mapa_censo_0_4_percentual_rp.png", "% de crianças de 0 a 4 anos, por Região de Planejamento"),
-]
-check_maps(_censo_maps)
-maps_block(_censo_maps)
+
+def _agrega_censo_por_nivel(df_bairro, nivel):
+    """Agrega censo por bairro para AP/RP, somando o absoluto e recompondo o
+    percentual a partir da soma (nao a media das taxas por bairro) -- mesma
+    logica de agrega_bairros_por_nivel em analise.py. 'Total' (denominador) nao
+    vem exportado em censo_por_bairro.csv; recuperado por algebra exata
+    (Total = absoluto / (percentual/100)) a partir das 2 colunas que ja
+    existem -- nao e uma aproximacao, e a mesma conta invertida."""
+    base = _geo_base_bairros()
+    col = _NIVEL_COL[nivel]
+    mapa_nivel = dict(zip(base["codbairro"], base[col]))
+    d = df_bairro.copy()
+    d["_nivel"] = d["codbairro"].map(mapa_nivel)
+    d["_total"] = d["0 a 4 anos"] / (d["Percentual 0 a 4"] / 100)
+    agg = d.groupby("_nivel", as_index=False)[["0 a 4 anos", "_total"]].sum()
+    agg["Percentual 0 a 4"] = agg["0 a 4 anos"] / agg["_total"] * 100
+    return agg.rename(columns={"_nivel": col})
+
+NIVEIS_PLANEJAMENTO = {
+    'ap': {'nome': 'Área de Planejamento', 'bins': [25000, 50000, 75000, 100000]},
+    'rp': {'nome': 'Região de Planejamento', 'bins': [12000, 18000, 24000, 30000]},
+}
+for _nivel, _info in NIVEIS_PLANEJAMENTO.items():
+    df_censo_nivel = _agrega_censo_por_nivel(df_censo_bairro, _nivel)
+    mapa_svg(df_censo_nivel, _NIVEL_COL[_nivel], "0 a 4 anos", "censo",
+             f"Crianças de 0 a 4 anos, por {_info['nome']} (Censo 2022)", "Crianças 0-4",
+             FONTE_CENSO, bins=_info['bins'], nivel=_nivel)
+    mapa_svg(df_censo_nivel, _NIVEL_COL[_nivel], "Percentual 0 a 4", "censo",
+             f"% de crianças de 0 a 4 anos, por {_info['nome']} (Censo 2022)", "% da população",
+             FONTE_CENSO, fmt='pct1', nivel=_nivel)
 
 h3('Série temporal')
 df_censo_serie = read("censo_0_a_4_anos_por_ano.csv")
@@ -563,13 +650,17 @@ out_pair(
 )
 
 h3('Mapas')
-_cadunico_maps = [
-    ("mapa_cadunico_criancas_bairro_2026.png", "Crianças (0-6 anos) no CadÚnico, por bairro"),
-    ("mapa_cadunico_primeira_infancia_bairro_2026.png", "Crianças (0-4 anos) no CadÚnico, por bairro"),
-    ("mapa_percentual_cadunico_primeira_infancia_bairro_2026.png", "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro"),
-]
-check_maps(_cadunico_maps)
-maps_block(_cadunico_maps)
+df_map_cadunico_criancas = read("tabela_mapa_cadunico_criancas_2026.csv")
+mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
+         "Crianças (0-6 anos) no CadÚnico, por bairro", "Crianças",
+         FONTE_CADUNICO, bins=[250, 750, 1500, 3000])
+df_map_cadunico_0_4 = read("tabela_mapa_cadunico_primeira_infancia_2026.csv")
+mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
+         "Crianças (0-4 anos) no CadÚnico, por bairro", "Crianças",
+         FONTE_CADUNICO, bins=[200, 500, 1000, 2000])
+mapa_svg(df_map_cadunico_0_4, "codbairro", "Percentual Primeira Inf. Cadúnico", "cadunico",
+         "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro", "% CadÚnico/Censo",
+         FONTE_CADUNICO, fmt="pct1")
 
 # ============================================================== DATASUS ===
 
@@ -577,15 +668,22 @@ h2('\U0001F3E5 DataSUS/Tabnet')
 FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro"
 
 h3('Nascidos vivos')
-maps_block([("mapa_nascidos_vivos_bairro_2025.png", "Nascidos vivos por bairro (2025)")])
+df_map_nv = read("tabela_mapa_bairros_nascidos_vivos_bruto.csv")
+mapa_svg(df_map_nv, "codigo", "value", "natalidade",
+         "Nascidos vivos por bairro (2025)", "Nascidos vivos",
+         FONTE_DATASUS, bins=[200, 400, 800, 1500])
 df_nv = read("nascidos_vivos_por_ano.csv")
 line_chart(df_nv["ano"], [{'label': 'Nascidos vivos', 'values': df_nv['nascidos vivos']}], opts={'height': 220, 'table': True}, fonte=FONTE_DATASUS)
 
 h3('Nascidos abaixo do peso')
-maps_block([
-    ("mapa_nascidos_baixo_peso_bairro_2025.png", "Nascidos com baixo peso por bairro (2025)"),
-    ("mapa_percentual_baixo_peso_bairro_2025.png", "% de nascidos com baixo peso por bairro (2025)"),
-])
+df_map_bp = read("tabela_mapa_bairros_nascidos_abaixo_peso.csv")
+df_map_bp_2025 = df_map_bp[df_map_bp["ano"] == 2025]
+mapa_svg(df_map_bp_2025, "codigo", "Nascidos abaixo peso", "natalidade",
+         "Nascidos com baixo peso por bairro (2025)", "Nascidos abaixo do peso",
+         FONTE_DATASUS, bins=[15, 30, 60, 120])
+mapa_svg(df_map_bp_2025, "codigo", "percentual abaixo do peso", "natalidade",
+         "% de nascidos com baixo peso por bairro (2025)", "% baixo peso",
+         FONTE_DATASUS, fmt="pct1")
 df_bp = read("nascidos_abaixo_peso_por_ano.csv")
 line_chart(df_bp["ano"], [{'label': '% abaixo do peso', 'values': df_bp['percentual abaixo do peso'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
 
@@ -595,10 +693,14 @@ RACAS = list(RACA_LABEL)
 df_raca = read("mortalidade_raca_municipio_ano.csv")
 line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS)
 line_chart(df_raca["ano"], series_from_cols(df_raca, [f"percentual_{r}" for r in RACAS], {f"percentual_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([
-    ("mapa_obitos_raca_total_bairro_2025.png", "Óbitos de 0 a 364 dias por bairro (2025)"),
-    ("mapa_taxa_obitos_raca_total_bairro_2025.png", "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)"),
-])
+df_map_raca = read("mortalidade_raca_bairro_ano.csv")
+df_map_raca_2025 = df_map_raca[df_map_raca["ano"] == 2025]
+mapa_svg(df_map_raca_2025, "codigo", "obitos_total", "mortalidade",
+         "Óbitos de 0 a 364 dias por bairro (2025)", "Óbitos",
+         FONTE_DATASUS, bins=[2, 5, 10, 20])
+mapa_svg(df_map_raca_2025, "codigo", "percentual_total", "mortalidade",
+         "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)", "% s/ nascidos vivos",
+         FONTE_DATASUS, fmt="pct1")
 
 # ============================================================ EVITAVEIS ===
 
@@ -737,28 +839,45 @@ df_taxa_m5 = read("taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv")
 line_chart(df_taxa_m5["ano"], [{'label': 'Taxa por mil NV', 'values': df_taxa_m5['taxa_por_mil'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)
 
 h4('Mapas')
-_cap_grupo_maps = [
-    ("mapa_obitos_evitaveis_menores_1_ano_cap_2025.png", "Óbitos evitáveis, menores de 1 ano, por CAP"),
-    ("mapa_percentual_evitaveis_menores_1_ano_cap_2025.png", "% de óbitos evitáveis, menores de 1 ano, por CAP"),
-    ("mapa_obitos_evitaveis_1_a_4_anos_cap_2025.png", "Óbitos evitáveis, de 1 a 4 anos, por CAP"),
-    ("mapa_percentual_evitaveis_1_a_4_anos_cap_2025.png", "% de óbitos evitáveis, de 1 a 4 anos, por CAP"),
-    ("mapa_obitos_evitaveis_menores_5_anos_cap_2025.png", "Óbitos evitáveis, menores de 5 anos, por CAP"),
-    ("mapa_percentual_evitaveis_menores_5_anos_cap_2025.png", "% de óbitos evitáveis, menores de 5 anos, por CAP"),
-    ("mapa_obitos_evitaveis_gestacao_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Gestação, menores de 1 ano, por CAP"),
-    ("mapa_obitos_evitaveis_parto_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Parto, menores de 1 ano, por CAP"),
-]
-check_maps(_cap_grupo_maps)
-maps_block(_cap_grupo_maps)
+FAIXAS_PRIMEIRA_INFANCIA = {
+    'menores_1_ano':  {'rotulo': 'menores de 1 ano',   'bins_absoluto': [20, 40, 60, 80]},
+    '1_a_4_anos':     {'rotulo': 'de 1 a 4 anos',       'bins_absoluto': [2, 4, 7, 10]},
+    'menores_5_anos': {'rotulo': 'menores de 5 anos',   'bins_absoluto': [20, 45, 70, 95]},
+}
+df_evitaveis_cap_2025 = read("mortalidade_evitaveis_cap_2025.csv")
+for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
+    df_faixa_2025 = df_evitaveis_cap_2025[df_evitaveis_cap_2025["faixa_etaria"] == info['rotulo']]
+    mapa_svg(df_faixa_2025, "cod_ap_sms", "evitaveis", "mortalidade",
+             f"Óbitos por causas evitáveis, {info['rotulo']}, por CAP (2025)", "Óbitos",
+             FONTE_EVITAVEIS, bins=info['bins_absoluto'], nivel="cap")
+    mapa_svg(df_faixa_2025, "cod_ap_sms", "percentual_evitaveis", "mortalidade",
+             f"Percentual de óbitos evitáveis, {info['rotulo']}, por CAP (2025)", "% evitáveis",
+             FONTE_EVITAVEIS, fmt="pct1", nivel="cap")
+_SUBGRUPOS_COMPONENTE_C = {'gestacao': 'Gestação', 'parto': 'Parto'}
+_BINS_SUBGRUPO_COMPONENTE_C = {'gestacao': [10, 20, 30, 40], 'parto': [2, 4, 6, 8]}
+for slug, rotulo in _SUBGRUPOS_COMPONENTE_C.items():
+    df_subgrupo_2025 = read(f"tabela_mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025.csv")
+    mapa_svg(df_subgrupo_2025, "cod_ap_sms", "obitos", "mortalidade",
+             f"Óbitos evitáveis - {rotulo}, menores de 1 ano, por CAP (2025)", "Óbitos",
+             FONTE_EVITAVEIS, bins=_BINS_SUBGRUPO_COMPONENTE_C[slug], nivel="cap")
 
 # ==================================================== GRAVIDEZ/PUERPERIO ==
 
 h2('\U0001F930 Gravidez e puerpério')
 df_grav = read("obitos_gravidez_por_ano.csv")
 line_chart(df_grav["ano"], [{'label': 'Óbitos', 'values': df_grav['óbitos-gravidez']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([("mapa_obitos_gravidez_bairro_2025.png", "Óbitos durante a gravidez por bairro (2025)")])
+df_map_grav = read("obitos_gravidez_bairro_ano.csv")
+df_map_grav_2025 = df_map_grav[df_map_grav["ano"] == 2025]
+mapa_svg(df_map_grav_2025, "codigo", "óbitos-gravidez", "mortalidade",
+         "Óbitos durante a gravidez por bairro (2025)", "Óbitos",
+         FONTE_DATASUS, bins=[0, 1])
 df_puerp = read("obitos_puerperio_por_ano.csv")
 line_chart(df_puerp["ano"], [{'label': 'Óbitos', 'values': df_puerp['óbitos-puerpério']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([("mapa_obitos_puerperio_bairro_2025.png", "Óbitos durante o puerpério por bairro (2025)")])
+df_map_puerp = read("obitos_puerperio_bairro_ano.csv")
+df_map_puerp_2025 = df_map_puerp[df_map_puerp["ano"] == 2025]
+mapa_svg(df_map_puerp_2025, "codigo", "óbitos-puerpério", "mortalidade",
+         "Óbitos durante o puerpério por bairro (2025)", "Óbitos",
+         FONTE_DATASUS, bins=[0, 1, 2])
 
 # ======================================================== NEONATAL ========
 
@@ -766,33 +885,47 @@ h2('\U0001FA7A Mortalidade neonatal')
 h3('Precoce (0-6 dias)')
 df_prec = read("mortalidade_neonatal_precoce_por_ano.csv")
 line_chart(df_prec["ano"], [{'label': 'Taxa (‰)', 'values': df_prec['taxa_mortalidade_precoce'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([
-    ("mapa_obitos_neonatal_precoce_bairro_2025.png", "Óbitos precoces (0-6 dias) por bairro (2025)"),
-    ("mapa_taxa_mortalidade_precoce_bairro_2025.png", "Taxa de óbitos precoces por bairro (2025)"),
-])
+df_map_neo_prec = read("mortalidade_neonatal_precoce_bairro_ano.csv")
+df_map_neo_prec_2025 = df_map_neo_prec[df_map_neo_prec["ano"] == 2025]
+mapa_svg(df_map_neo_prec_2025, "codigo", "obitos precoces", "mortalidade",
+         "Óbitos precoces (0-6 dias) por bairro (2025)", "Óbitos",
+         FONTE_DATASUS, bins=[1, 3, 6, 12])
+mapa_svg(df_map_neo_prec_2025, "codigo", "taxa_mortalidade_precoce", "mortalidade",
+         "Taxa de óbitos precoces por bairro (2025)", "Taxa por mil NV",
+         FONTE_DATASUS, fmt="pct1")
 
 h3('Tardia (7-27 dias)')
 df_tard = read("mortalidade_neonatal_tardia_por_ano.csv")
 line_chart(df_tard["ano"], [{'label': 'Taxa (‰)', 'values': df_tard['taxa_obitos_tardios'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([
-    ("mapa_obitos_neonatal_tardia_bairro_2025.png", "Óbitos tardios (7-27 dias) por bairro (2025)"),
-    ("mapa_taxa_obitos_tardios_bairro_2025.png", "Taxa de óbitos tardios por bairro (2025)"),
-])
+df_map_neo_tard = read("mortalidade_neonatal_tardia_bairro_ano.csv")
+df_map_neo_tard_2025 = df_map_neo_tard[df_map_neo_tard["ano"] == 2025]
+mapa_svg(df_map_neo_tard_2025, "codigo", "obitos_tardios", "mortalidade",
+         "Óbitos tardios (7-27 dias) por bairro (2025)", "Óbitos",
+         FONTE_DATASUS, bins=[1, 2, 4, 8])
+mapa_svg(df_map_neo_tard_2025, "codigo", "taxa_obitos_tardios", "mortalidade",
+         "Taxa de óbitos tardios por bairro (2025)", "Taxa por mil NV",
+         FONTE_DATASUS, fmt="pct1")
 
 h3('Pós-neonatal (28-364 dias)')
 df_inf = read("mortalidade_infantil_pos_neonatal_total_por_ano.csv")
 line_chart(df_inf["ano"], [{'label': 'Taxa pós-neonatal (‰)', 'values': df_inf['taxa_mortalidade_pos_neonatal'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([
-    ("mapa_obitos_pos_neonatal_bairro_2025.png", "Óbitos pós-neonatais (28-364 dias) por bairro (2025)"),
-    ("mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png", "Taxa de mortalidade pós-neonatal por bairro (2025)"),
-])
+df_map_pos_neo = read("mortalidade_infantil_pos_neonatal_total_bairro_ano.csv")
+df_map_pos_neo_2025 = df_map_pos_neo[df_map_pos_neo["ano"] == 2025]
+mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_28_364", "mortalidade",
+         "Óbitos pós-neonatais (28-364 dias) por bairro (2025)", "Óbitos",
+         FONTE_DATASUS, bins=[1, 2, 4, 8])
+mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_pos_neonatal", "mortalidade",
+         "Taxa de mortalidade pós-neonatal por bairro (2025)", "Taxa por mil NV",
+         FONTE_DATASUS, fmt="pct1")
 
 h3('Total (0-364 dias)')
 line_chart(df_inf["ano"], [{'label': 'Taxa infantil total (‰)', 'values': df_inf['taxa_mortalidade_infantil'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([
-    ("mapa_mortalidade_infantil_bairro_2025.png", "Óbitos infantis (0-364 dias) por bairro (2025)"),
-    ("mapa_taxa_mortalidade_infantil_bairro_2025.png", "Taxa de mortalidade infantil por bairro (2025)"),
-])
+mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_0_364", "mortalidade",
+         "Óbitos infantis (0-364 dias) por bairro (2025)", "Óbitos",
+         FONTE_DATASUS, bins=[2, 5, 10, 20])
+mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_infantil", "mortalidade",
+         "Taxa de mortalidade infantil por bairro (2025)", "Taxa por mil NV",
+         FONTE_DATASUS, fmt="pct1")
 
 # ============================================================== SISVAN ====
 
@@ -1057,8 +1190,8 @@ CSS = r"""
   }
 
   .out{
-    margin:14px 0 8px; background:var(--surface); border:1px solid var(--hairline); border-radius:10px;
-    box-shadow:var(--shadow); padding:22px 24px 16px;
+    margin:14px 0 8px; background:var(--surface); border:2px solid var(--ink); border-radius:0;
+    box-shadow:none; padding:22px 24px 16px;
   }
   .out-pair{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; margin:14px 0 8px;}
   .chart-subtitle{

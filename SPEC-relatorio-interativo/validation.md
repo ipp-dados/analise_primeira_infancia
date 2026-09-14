@@ -10,19 +10,29 @@ o resultado (os critérios abaixo não foram editados após a implementação).
   não eram, na prática, paredes de gráficos repetidos; ver `tasks.md` T1.2).
   Outliers aplicados centralmente, confirmados por geração real (73→122
   chart-renders).
-- **V3 (mapas SVG)**: pipeline passou, **escopo reduzido** — só bairro (não
-  AP/RP) e só 1 indicador (Censo 0-4 anos, não os 4 temas) como prova de
-  conceito real. Os ~30 mapas restantes continuam PNG. Não é uma falha do
-  critério, é uma redução de escopo deliberada tomada durante a
-  implementação — ver `tasks.md` Bloco 3 e `feature_roadmap.md`.
+- **V3 (mapas SVG)**: **atualizado numa 2ª rodada** (fidelidade estrita ao
+  mockup) — passou por completo, não mais reduzido. Todos os ~32 mapas
+  (bairro/AP/RP/CAP-saúde, 4 temas) convertidos, geometria conferida contra
+  `analise.py` (não estimada), incluindo a descoberta de que "CAP" usa um
+  geojson próprio (`limite_ap_saude_rio.geojson`), diferente da AP/RP de
+  planejamento urbano. 2 bugs reais encontrados e corrigidos: colisão de
+  chave de cache entre o GeoDataFrame bruto e o resultado do nível `'bairro'`
+  (quebrava o dissolve de AP/RP), e uma linha de agregado ("Em branco") numa
+  tabela do DataSUS sem `codigo` numérico (quebrava a conversão de chave).
+  Trade-off não resolvido: `relatorio/index.html` foi de ~5MB para ~20MB
+  (geometria não compartilhada entre instâncias) — ver `feature_roadmap.md`.
 - **V4 (motor JS)**: passou por inspeção estrutural do DOM e screenshots reais
   (Edge headless). **Não testado**: clique interativo real (pill/outlier
   toggle/collapse/download) — só o estado inicial foi observado. Um bug real
   foi encontrado e corrigido nesta validação (rótulo de extremo duplicado no
   1º ponto de séries curtas, T4.5).
-- **V5 (CSS institucional)**: passou, com 1 bug real encontrado e corrigido
-  (`--accent-ink` ilegível no tema escuro — trocado por `--accent`, T5.3).
-  Contraste do rodapé (T5.6) não foi medido formalmente.
+- **V5 (CSS institucional)**: passou, com 2 bugs reais encontrados e
+  corrigidos: `--accent-ink` ilegível no tema escuro (trocado por `--accent`,
+  T5.3), e **na 2ª rodada** — o `.out` original (todo chart-card) ainda tinha
+  sombra/canto arredondado, destoando visivelmente do mockup apesar dos
+  componentes novos já estarem corretos; agora nenhum cartão do relatório
+  tem sombra ou canto arredondado. Contraste do rodapé (T5.6) não foi medido
+  formalmente.
 - **V6 (rodapé)**: estrutura/escopo passaram; URLs e e-mail **não
   confirmados** (T6.2) — continuam placeholders.
 - **V7 (navbar)**: passou (contagem 1:1 de links/seções/âncoras no DOM).

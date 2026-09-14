@@ -197,11 +197,53 @@ Motivo: o relatório v5.1 tinha paredes de 6-18 gráficos quase idênticos
   Pages — GitHub Pages ainda não habilitado nas configurações do repositório
   (passo manual fora do alcance desta sessão).
 
+### v6.1 — fidelidade estrita ao mockup: cartões brutalistas em todo lugar,
+todos os mapas em SVG
+
+A v6 tinha aplicado o estilo brutalista só aos componentes novos (seção,
+option-card, outlier-card) — os cartões de gráfico/mapa em si (`.out`)
+continuaram com a borda fina + sombra + canto arredondado antigos,
+destoando visivelmente do mockup aprovado. Corrigido: `.out{border:2px
+solid var(--ink); border-radius:0; box-shadow:none;}` — sem sombra/raio em
+nenhum cartão do relatório.
+
+**Conversão de mapas completada** (v6 tinha só 1 indicador como prova de
+conceito): todos os ~32 mapas agora são SVG interativo, não só o Censo por
+bairro. Isso exigiu generalizar `mapa_svg()`/`_geo_nivel()` para os 4
+regimes de geometria que `analise.py` de fato usa (conferido linha a linha
+em `mapa_coropletico_bairros`, não estimado): `bairro` (join direto,
+`codbairro`/`codigo`), `ap`/`rp` (dissolve do geojson de bairros pelas
+mesmas colunas `area_plane`/`cod_rp` — `agrega_bairros_por_nivel`, com o
+Censo precisando reconstruir a coluna `Total` por álgebra exata a partir de
+`0 a 4 anos`/`Percentual 0 a 4`, já que `censo_por_bairro.csv` não exporta
+o denominador) e `cap` (geometria **própria**,
+`dados_locais/geo/limite_ap_saude_rio.geojson`, chave `cod_ap_sms` — as 10
+Áreas Programáticas de Saúde da SMS-Rio, **diferentes** das AP/RP de
+planejamento urbano do IPP apesar da numeração parecida). Nenhum PNG de
+indicador restou; `map_card`/`maps_block` (embed de PNG) ficam só como
+fallback morto no script, não usados por nenhum call site.
+
+**Trade-off conhecido, não resolvido**: cada mapa embute a geometria SVG
+como texto puro, repetida por instância — a geometria de bairro (166
+polígonos) não é compartilhada entre os ~20 mapas nesse nível. Resultado:
+`relatorio/index.html` foi de ~5MB para ~20MB. Funciona, mas é pesado;
+compartilhar path via `<defs>`/`<use>` (ou por um mapa de
+`codigo→d` em JS, referenciado por id) é a otimização óbvia, registrada em
+`feature_roadmap.md`, não feita nesta rodada por tempo.
+
+**Gap de conteúdo, não visual**: o mockup mostrava um bloco "Principais
+achados" (callout editorial por seção) — nunca implementado no gerador
+real, em nenhuma das duas rodadas. Não é um defeito de CSS/JS: exigiria
+texto analítico curado por seção que ninguém validou ainda, e inventar
+esse texto a partir dos dados seria fabricar uma leitura editorial sem
+base — deliberadamente deixado de fora até haver conteúdo real para esses
+blocos.
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
 | :--- | :--- | :--- | :--- |
-| `index.html` | Claro/escuro automático | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Sim — Censo 0-4/bairro em SVG interativo; demais mapas em PNG, intercalados no fluxo |
+| `index.html` | Claro/escuro automático | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), intercalados no fluxo |
 
 ## Limitações conhecidas
 
@@ -211,10 +253,10 @@ Motivo: o relatório v5.1 tinha paredes de 6-18 gráficos quase idênticos
 - Algumas seções de `analise.py` sem saída visual (funções auxiliares,
   junção de tabelas por bairro) não têm equivalente no relatório, por não
   gerarem gráfico algum no notebook.
-- (v6) Só o mapa do Censo 0-4/bairro é SVG interativo — os demais ~30 mapas
-  continuam PNG estático (sem tooltip por região), conversão mecânica
-  planejada para uma rodada seguinte (ver `SPEC-relatorio-interativo/tasks.md`
-  Bloco 3).
+- (v6.1) `relatorio/index.html` ficou ~20MB (geometria SVG repetida por
+  mapa, sem compartilhamento) — ver v6.1 acima e `feature_roadmap.md`.
+- (v6) Nenhum bloco "Principais achados" por seção — gap de conteúdo
+  editorial, não de visual (ver v6.1 acima).
 - (v6) URLs de Transparência Rio/LGPD e e-mail de contato no rodapé são
   placeholders, não confirmados para este relatório especificamente.
 - (v6) Autorização de uso do logo oficial da Prefeitura do Rio/IPP ainda não
