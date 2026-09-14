@@ -205,3 +205,138 @@ agrupamento — **implementado e validado**
   início de linha, ou seja, todas passam por um wrapper).
 - Console do navegador (Edge headless, DOM dump + log) sem erro de
   JavaScript da página após todas as mudanças deste bloco.
+
+## V12 — Ajustes finos pós-mockup: header, navbar, mapas, achados
+
+- `_lorem(seed, palavras=200)` — confirmado por leitura do código; texto
+  visível no screenshot é visivelmente mais curto que antes.
+- Header: screenshot real (1400×1200, Edge headless) mostra título "Análise
+  Primeira Infância Carioca" à esquerda e o parágrafo de descrição à
+  direita, lado a lado, sem empilhar — confirmado visualmente. Grid
+  `1fr 420px` não testado abaixo de 760px nesta rodada (herda o breakpoint
+  já existente, não alterado).
+- Navbar: screenshot mostra a barra de navegação (☰ NAVEGAÇÃO + logo)
+  colada no topo do viewport, sem vão acima — confirmado visualmente
+  (era o bug reportado: "começa abaixo do início da página").
+- Mapas: screenshot da seção Censo → "Mapas" → "Valores absolutos"/
+  "Percentual" mostra pills numa fileira horizontal acima do mapa (não
+  mais coluna lateral), mapa visivelmente maior, texto como coluna à
+  direita — confirmado visualmente para ambos os grupos divididos.
+- Bloco "Principais achados": screenshot mostra a caixa cinza clara logo
+  abaixo do título "Censo 2022" (antes de "Por bairro"), rótulo
+  "PRINCIPAIS ACHADOS" + exatamente 5 bullets — confirmado visualmente e
+  por contagem manual dos `<li>` no screenshot.
+- Título de seção preto: screenshot confirma "Censo 2022" em preto
+  (`--ink`), com o eyebrow "SEÇÃO 1 DE 9" verde (`--accent`) **acima**, em
+  linha separada — não mais na mesma linha de base do título. Causa raiz
+  documentada em tasks.md T12.6 (eyebrow inline sem diferenciação
+  tipográfica lia como parte do título).
+- Grupos de mapas divididos: confirmado por leitura do código gerado —
+  Censo (2 `option_card` de 3 entradas cada, rotulados "Valores absolutos"/
+  "Percentual" via `h5`), CAP evitável e Mortalidade neonatal idem (não
+  capturado em screenshot separado nesta rodada, só Censo foi
+  fotografado — os outros 2 seguem a mesma função/CSS, risco de regressão
+  visual específica a eles é baixo mas não zero).
+- Estilo cartográfico: screenshot mostra título do mapa em serifa (Fraunces,
+  negrito), legenda numa caixa com borda e título em destaque, rodapé de 2
+  linhas "Sistema de referência: SIRGAS 2000, UTM - Fuso 23S" / "Fonte:
+  Censo Demográfico 2022 (IBGE/Data.Rio)" abaixo do mapa, fundo cinza claro
+  atrás do SVG — confirmado visualmente, sem basemap real (conforme
+  decisão).
+- Geração: `relatorio/index.html` = 17.234.906 bytes (17,2MB), 83 gráficos,
+  9 `h2`/13 `h3` — sem erro na geração (stdout confirma contagens
+  esperadas). Console do Edge headless (DOM dump + log) sem erro de
+  JavaScript. **Não testado**: clique real em pill (mapas/gráficos) e
+  breakpoints móveis (mesma limitação já registrada em rodadas
+  anteriores — sem interação real de browser disponível nesta sessão).
+
+## V13 — Fundo cartográfico real, rosa dos ventos, escala, legenda dentro
+## do mapa, alinhamento da navbar
+
+- Navbar: screenshot em 1400px de largura mostra "☰ NAVEGAÇÃO" (canto
+  esquerdo do navbar) e "PROJETO · RELATÓRIO INTERATIVO" (eyebrow do
+  header, logo abaixo) começando na mesma coordenada x — confirmado
+  visualmente (era o bug: antes o navbar usava só padding fixo a partir
+  da viewport, sem `max-width`+`margin:auto` como `.doc`, desalinhando em
+  telas largas).
+- Rosa dos ventos e barra de escala: screenshot do mapa "Crianças de 0 a
+  4 anos, por bairro" mostra a seta "N" no canto superior direito e uma
+  barra rotulada "10 km" no canto inferior esquerdo do mapa — confirmado
+  visualmente, presentes em todo mapa (gerados dentro de `build()`,
+  chamado por toda invocação de `mapa_svg`).
+- Fundo cartográfico real: **bug real encontrado e corrigido durante a
+  validação** — a primeira tentativa (zoom 12) mostrava um tile
+  placeholder cinza-azulado com o texto "Map data not yet available"
+  cobrindo toda a área terrestre do mapa, só a franja litorânea/oceano
+  tinha alguma variação de cor. Diagnosticado com um probe manual dos
+  tiles (`curl` direto na URL do tile do Esri Ocean Basemap pras
+  coordenadas de zoom 11/12/13 do centro do Rio — todos devolviam o mesmo
+  placeholder de 14.226 bytes; zoom 8/9/10 devolviam tiles com conteúdo
+  real de terreno/relevo, tamanhos diferentes entre si). Corrigido
+  fixando `zoom=10`. Novo screenshot confirma relevo/rodovias reais atrás
+  dos polígonos, visualmente equivalente ao fundo do PNG de referência
+  (`mapas/mapa_censo_0_4_absoluto.png`, comparado lado a lado).
+- Legenda dentro do mapa: screenshot confirma a caixa de legenda
+  (fundo branco, borda) sobreposta no canto superior esquerdo do próprio
+  mapa, não mais numa coluna separada — o mapa ocupa visivelmente mais
+  largura do card agora.
+- Geração: 17.296.104 bytes (17,3MB) — aumento de ~20KB sobre a rodada
+  anterior (imagem de fundo compartilhada, 1 única cópia reaproveitada
+  por todos os 44 mapas via classe CSS, confirmado por grep: só existe 1
+  `background-image` no HTML gerado). Console do Edge headless (DOM dump
+  + log) sem erro de JavaScript. **Não testado**: mapas do nível CAP
+  especificamente (reusam a mesma classe de fundo que bairro/AP/RP por
+  coincidência de bbox — não fotografados em separado nesta rodada),
+  clique real em pill, breakpoints móveis.
+
+## V14 — Reversão do fundo real, fontes +20%, contorno só no mapa, sombra,
+## alinhamento do topo, mapa menor
+
+- Fundo dos mapas: `grep -c "background-image"` no HTML gerado = 0
+  (confirmado — a máquina de fetch de tile foi removida por completo, não
+  só desativada). Screenshot confirma fundo liso neutro atrás dos
+  polígonos, sem imagem de satélite/terreno.
+- Cor do choropleth do Censo: screenshot mostra a escala "Crianças 0-4"/
+  "% 0-4 anos" em tons de cinza (branco → preto), não mais azul —
+  confirmado visualmente pros 2 mapas de bairro (absoluto e percentual).
+- Botão de outlier ao lado do CSV: screenshot do mapa "% de crianças de 0
+  a 4 anos, por bairro" mostra "× Remover outliers" e "⭳ CSV" na mesma
+  linha, um ao lado do outro, ambos no canto superior direito do card —
+  confirmado visualmente.
+- Fontes maiores: comparação visual direta com o screenshot da rodada
+  anterior confirma texto perceptivelmente maior no título, eyebrow,
+  parágrafos e rótulos do gráfico — sem quebra de layout observada no
+  header/navbar/pills nesta largura (1400px).
+- Lorem ipsum mais curto: confirmado por leitura do código
+  (`_lorem(seed, palavras=150)`); blocos de texto no screenshot são
+  visivelmente mais curtos que a rodada anterior.
+- Contorno só no mapa: screenshot confirma gráfico de barras
+  ("População 0-6 por idade/raça/sexo") e a tabela ("Por bairro") SEM
+  nenhuma borda visível, enquanto o cartão de mapa e seu texto pareado
+  mantêm um contorno preto de 2px nítido — confirmado visualmente em
+  múltiplos exemplos (gráfico de barras, tabela, 2 grupos de mapas do
+  Censo).
+- Sombra: screenshot mostra uma sombra sutil no cartão de mapa, no texto
+  ao lado do mapa e no bloco "Principais achados" — confirmado
+  visualmente (mais perceptível no bloco de achados, por ter fundo cinza
+  claro contra o branco da página).
+- Mapa e texto encostados: screenshot confirma a borda direita do cartão
+  de mapa tocando diretamente a borda esquerda do texto pareado, sem vão
+  visível entre os dois (era um bug real na primeira tentativa desta
+  rodada — o `max-width:760px` do `.map-svg-frame` deixava um vão de
+  ~300px antes do texto em telas largas; corrigido removendo o
+  `max-width`, novo screenshot confirma o encaixe).
+- Alinhamento do topo do header: screenshot confirma o eyebrow "PROJETO ·
+  RELATÓRIO INTERATIVO" e o primeiro parágrafo de descrição começando na
+  mesma coordenada y — confirmado visualmente.
+- Altura do mapa: screenshot confirma um mapa visivelmente mais baixo/
+  compacto que a rodada anterior, sem nenhum polígono cortado nas bordas
+  — consistente com o cálculo prévio (margem em branco > corte
+  aplicado).
+- Geração: 17.153.308 bytes (17,15MB, menor que a rodada anterior — texto
+  mais curto + sem imagem de fundo), 5,8s (bem mais rápido — sem busca de
+  rede). Console do Edge headless (DOM dump + log) sem erro de
+  JavaScript. **Não testado**: clique real em pill, breakpoints móveis,
+  mapas do nível CAP especificamente fotografados em separado (mesma
+  lógica de fundo neutro que bairro/AP/RP, risco de regressão específica
+  baixo mas não zero).

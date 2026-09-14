@@ -16,7 +16,7 @@
 - Update dados de matrículas escolares for years 2021-2025
 
 ## Relatório interativo (SPEC-relatorio-interativo)
-- **Reduzir o peso de `relatorio/index.html` (~20MB)** — todos os ~32 mapas
+- **Reduzir o peso de `relatorio/index.html` (~17MB)** — todos os ~32 mapas
   agora são SVG interativo (concluído), mas cada instância embute sua própria
   geometria como texto sem compartilhar paths entre mapas do mesmo nível
   (ex.: os ~20 mapas de bairro repetem os mesmos 166 polígonos). Otimização:
@@ -31,19 +31,25 @@
 - Medir formalmente o contraste do rodapé (WCAG AA) — inspeção visual feita, não
   uma medição real (tasks.md T5.6)
 - Testar responsividade em telas estreitas (~375-420px) — não testado nesta rodada
-- **Bloco "Principais achados" por seção** (callout editorial do mockup) — nunca
-  implementado; precisa de texto curado por alguém que analise os dados, não é
-  algo para gerar automaticamente a partir das tabelas (ver `relatorio/specs.md` v6.1)
+- **Bloco "Principais achados" por seção** — layout implementado (v6.3, caixa cinza
+  clara + 5 bullets no início de cada `h2`), mas o texto ainda é placeholder (lorem
+  ipsum); precisa de texto curado por alguém que analise os dados, não é algo para
+  gerar automaticamente a partir das tabelas (ver `relatorio/specs.md` v6.3)
 - **Substituir o lorem ipsum dos blocos de análise por texto real** (por opção do
   seletor, não por card — ver v6.2) — nesta rodada o objetivo era só validar o
-  layout/espaço reservado, não o conteúdo. A caixa de texto tem altura fixa
-  (240px) com rolagem interna; revisitar esse limite quando o texto real entrar,
-  pode não ser o tamanho certo para prosa de verdade.
+  layout/espaço reservado, não o conteúdo. Fora do padrão mapa (onde o texto
+  acompanha a altura real do mapa, `height:100%`), a caixa de texto tem altura
+  fixa (240px) com rolagem interna; revisitar esse limite quando o texto real
+  entrar, pode não ser o tamanho certo para prosa de verdade.
 - Botão de "baixar tudo" (fora do escopo — só tem download por gráfico/mapa individual)
 - Persistir estado de collapse das seções entre sessões (localStorage), se vier a ser pedido
-- Basemap/contexto geográfico (satélite/desenho, UF, municípios vizinhos) nos mapas SVG
-  interativos, se vier a ser pedido — não portado do pipeline PNG (`generate_map`), ver
-  SPEC-relatorio-interativo/specification.md §7
+- **Basemap/contexto geográfico real nos mapas SVG** — tentado e revertido na v6.4/v6.5
+  (buscava tiles do Esri Ocean Basemap, mas a margem de contexto ao redor da cidade
+  mistura terra e água sem uma camada de hidrografia pra separar os dois, e o usuário
+  pediu explicitamente pra nunca representar terra com imagem de mapa/satélite). Se
+  vier a ser retomado, precisa de uma camada de água/costa própria (não só o bbox da
+  cidade) pra colorir/texturizar somente o mar com segurança — ver
+  `relatorio/specs.md` v6.4/v6.5.
 
 ## Other (need to break down later)
 - Replace HTML visualization with proper Streamlit panel

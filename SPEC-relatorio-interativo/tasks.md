@@ -271,3 +271,206 @@ taxas, agrupamento (plan.md §10) — **implementado e validado nesta rodada**
       de JavaScript da página (só ruído interno do browser). **Não
       testado**: troca de pill real via clique interativo (mesma limitação
       já registrada em T8.3 — só o estado inicial foi observado).
+
+## Bloco 12 — Ajustes finos pós-mockup: header, navbar, mapas, achados
+
+- [x] **T12.1** — Lorem ipsum reduzido de 500 para 200 palavras
+      (`_lorem(seed, palavras=200)`).
+- [x] **T12.2** — `.doc-head-row` trocado de `flex;flex-wrap:wrap` para
+      `grid;grid-template-columns:1fr 420px` — título e descrição não
+      empilham mais mesmo quando a largura combinada excede o container
+      (o flex antigo permitia isso via `flex-wrap`). Breakpoint
+      `max-width:760px` volta para coluna única.
+- [x] **T12.3** — Gap do navbar no topo da página corrigido: `.doc` perdeu
+      o `padding-top:64px` (motivo real do gap — navbar/topbar-accent são
+      os primeiros filhos de `.doc`, então o padding do container os
+      empurrava para baixo do topo real do viewport). O respiro voltou como
+      `header.doc-head{padding-top:56px}`, que não afeta a posição do
+      navbar (elemento irmão anterior).
+- [x] **T12.4** — Mapas: coluna de pills lateral (200px) removida do
+      padrão `option-card-mapa`; pills agora ficam numa fileira acima do
+      mapa (`grid-template-areas:"pills pills" "map text"`,
+      `.option-card-mapa .pill-col{flex-direction:row}`). Mapa ganhou mais
+      espaço (`max-width` de 480px → 620px, container com fundo
+      `--surface-2` + borda). Breakpoint mobile (≤720px) já empilhava tudo
+      em 1 coluna e continua correto sem alteração.
+- [x] **T12.5** — Bloco "Principais achados" adicionado ao início de cada
+      seção `h2` (dentro de `.section-body`, antes do conteúdo real) —
+      fundo cinza claro (`--surface-2`), rótulo eyebrow + 5 bullets
+      placeholder (`_lorem_bullets`, 8 palavras cada, seed determinístico
+      por seção). Texto ainda é lorem ipsum — fica registrado em
+      `feature_roadmap.md` que isso precisa de curadoria real depois.
+- [x] **T12.6** — Auditoria de cor do título de seção: o `<h2>` já herdava
+      `--ink` (preto) do `body` — não havia regra verde nele. O que
+      provavelmente lia como "título verde" era o eyebrow
+      (`SEÇÃO N DE M`, cor `--accent`) ficar *inline* com o `<h2>` na mesma
+      linha de base (`.rsec-head-l{align-items:baseline}`), sem diferença
+      de fonte/tamanho — os dois liam como uma unidade colorida. Corrigido
+      reestruturando para empilhado (eyebrow acima, título abaixo, como no
+      cabeçalho principal) e adicionando a regra base `.eyebrow{}` que
+      faltava (mono, uppercase, letter-spacing, tamanho pequeno) — antes
+      cada `.eyebrow` dependia só de classes compostas (`.doc-eyebrow`,
+      `.rsec-eyebrow`) para cor, sem tipografia própria, então o rótulo
+      "SEÇÃO N DE M" tinha o mesmo tamanho/peso do texto do corpo. `h2`
+      também ganhou `color:var(--ink)` explícito por robustez.
+- [x] **T12.7** — Grupos de mapas com "muitas" opções (limiar: 6+)
+      divididos em 2 subgrupos com um `h5` rotulando cada um: Censo
+      (6→3+3, Absoluto/Percentual), Óbitos evitáveis por CAP (8→6+2, por
+      faixa etária/por subgrupo gestação-parto), Mortalidade neonatal
+      (8→4+4, Óbitos/Taxa). DataSUS (5) e CadÚnico (3) ficaram como
+      estavam — não "muitos" o bastante para justificar a divisão.
+- [x] **T12.8** — Estilo cartográfico dos mapas SVG alinhado ao padrão dos
+      PNG de `mapas/` (`analise.py::mapa_coropletico_bairros`), só sem
+      basemap real (decisão via AskUserQuestion: "estilo cartográfico
+      apenas, sem tiles reais" — projeção lon/lat simplificada usada nos
+      SVGs não é Web Mercator, alinhar tiles reais exigiria re-derivar a
+      projeção sem poder validar no browser real). Mudanças: título do
+      mapa em serifa (`--font-display`, antes usava a mesma classe sans
+      dos gráficos), legenda agora numa caixa com borda/fundo (antes
+      flutuava sem chrome), rodapé de 2 linhas "Sistema de referência:
+      SIRGAS 2000, UTM - Fuso 23S" + "Fonte: ..." (convenção do PNG,
+      `ax.annotate` em `analise.py`), fundo neutro (`--surface-2`) atrás do
+      SVG do mapa (contexto visual sem ser um basemap real).
+- [x] **T12.9** — Geração completa (17,2MB, 83 gráficos, 9 h2/13 h3) +
+      validação visual via Edge headless (header, navbar, seção Censo
+      completa incl. achados + os 2 grupos de mapas divididos). DOM dump +
+      log sem erros de JS. **Não testado**: clique real em pill (mesma
+      limitação de sempre — só o estado inicial renderizado é observável
+      sem interação real no browser).
+
+## Bloco 13 — Fundo cartográfico real, rosa dos ventos, escala, legenda
+## dentro do mapa, alinhamento da navbar
+
+- [x] **T13.1** — Navbar: `.navbar` (full-bleed) perdeu o `padding:0 24px`
+      direto — o padding/flex foi movido pra um `.navbar-inner` novo
+      (`max-width:1200px;margin:0 auto;padding:0 24px`), o mesmo padrão
+      já usado por `.navbar-link`/`.footer-cols`. Causa raiz do
+      desalinhamento: `.navbar` tinha só `padding:24px` fixo a partir da
+      viewport (sem `max-width`+`margin:auto`), então em telas >1248px de
+      largura o conteúdo do navbar ficava mais perto da borda da tela do
+      que o conteúdo de `.doc` (que é 1200px centralizado) — confirmado
+      visualmente (screenshot 1400px: burger e eyebrow do header alinham
+      na mesma coluna x agora).
+- [x] **T13.2** — Rosa dos ventos (seta "N", `_svg_rosa_dos_ventos`) e
+      barra de escala (`_svg_barra_escala`) adicionadas a todo mapa SVG,
+      desenhadas como `<g>` dentro do próprio SVG (não dependem de
+      biblioteca externa). A escala usa `project.scale` (px por grau,
+      exposto via atributo na função `project` — refactor mínimo, não
+      mudou a assinatura usada em nenhum outro call site) convertido pra
+      metros reais (111.320 m/grau) e arredondado pro múltiplo "legível"
+      mais próximo (1/2/5 × 10ⁿ), igual convenção de barra de escala
+      cartográfica.
+- [x] **T13.3** — Fundo cartográfico REAL adicionado (revertendo a decisão
+      da rodada anterior de "só estilo, sem tile"): mesmo provedor do PNG
+      (`Esri.OceanBasemap`, via `contextily.bounds2img`), buscado 1x por
+      bbox único e reamostrado pra caber exatamente no espaço de pixels
+      do SVG (mesma bbox/projeção dos polígonos) — resultado aplicado como
+      1 classe CSS compartilhada (`map-bg-N`), não 1 cópia de imagem por
+      mapa. **Bug real encontrado e corrigido**: zoom 12 (primeira
+      tentativa) devolvia um tile placeholder cinza-azulado ("Map data not
+      yet available") pra área terrestre do Rio — confirmado por probe
+      manual dos tiles (bytes idênticos em zoom 11 e 13, tile de zoom 12
+      pra coordenada central do Rio = placeholder). O Ocean Basemap da
+      Esri é voltado a contexto oceânico/costeiro; cobertura terrestre em
+      alta resolução não acompanha o `max_zoom:13` anunciado pelo
+      provedor. Corrigido fixando `zoom=10` (checado manualmente: mostra
+      relevo/rodovias reais, igual ao PNG). Apenas **1 fetch único**
+      aconteceu na prática — bairro/AP/RP/CAP-saúde acabaram
+      arredondando pro mesmo bbox (4 casas decimais), já que todos os 4
+      recortes cobrem o mesmo contorno do município, só particionado
+      diferente — achado, não assumido de antemão.
+- [x] **T13.4** — Legenda movida de coluna lateral (`.map-legend`, 190px)
+      pra overlay absoluto DENTRO do mapa (`.map-legend-overlay`, canto
+      superior esquerdo, fundo branco 92% opaco com borda — mesma
+      convenção do `legend_kwds` do matplotlib em `analise.py`). Área do
+      mapa ganhou o espaço todo que a coluna lateral ocupava
+      (`.map-svg-frame` max-width 620px → 760px). `.map-region` ganhou
+      `fill-opacity:.88` (não mais opaco 100%) pra o fundo aparecer
+      sutilmente através dos polígonos, igual ao `alpha=0.82` usado no
+      PNG quando `usa_fundo=True`.
+- [x] **T13.5** — Geração completa (17,3MB — +~20KB pela imagem de fundo
+      compartilhada, negligível frente aos ~17MB de geometria SVG já
+      existente) + validação visual via Edge headless (seção Censo →
+      Mapas: fundo real com relevo/rodovias visível, rosa dos ventos,
+      barra de escala "10 km", legenda dentro do mapa, mapa bem maior).
+      DOM dump + log sem erro de JS. **Não testado**: mapas CAP
+      especificamente (mesma classe de fundo que bairro/AP/RP, não
+      fotografado em separado — risco de regressão específica a eles é
+      baixo mas não zero), clique real em pill, breakpoints móveis.
+
+## Bloco 14 — Reversão do fundo real, fontes +20%, contorno só no mapa,
+## sombra, alinhamento do topo, mapa menor
+
+- [x] **T14.1** — **Reversão parcial do fundo cartográfico** (T13.3):
+      removida a busca de tiles reais (Esri Ocean Basemap via
+      `contextily`) — o usuário pediu explicitamente pra nunca usar
+      imagem de mapa/satélite representando TERRA nos mapas, e o retalho
+      de padding ao redor da cidade mistura terra (municípios vizinhos) e
+      água (baía/oceano) sem uma camada de hidrografia disponível pra
+      separar os dois — não havia forma seguro de mostrar só o mar em
+      azul sem arriscar colorir terra vizinha também. Fundo voltou a ser
+      liso neutro (`--surface-2`), sem tile. Função `_basemap_css_class`
+      (e toda a máquina de fetch/cache/CSS associada) removida por
+      completo — `contextily`/`numpy` deixaram de ser importados pelo
+      gerador.
+- [x] **T14.2** — Colormap do tema 'censo' trocado de `Blues` pra `Greys`
+      — o choropleth do Censo usava tons de azul pra dado de TERRA
+      (população por bairro), o que o usuário também pediu pra nunca
+      fazer (azul reservado só pro mar, nunca terra/dado). `natalidade`
+      (BuGn), `mortalidade` (RdPu) e `cadunico` (YlOrBr) não mudaram —
+      não são lidos como azul puro.
+- [x] **T14.3** — Botão de remover outliers movido para o mesmo
+      nível/lado do botão de download CSV — antes ficava numa barra
+      separada ACIMA do card (`.outlier-toolbar` com
+      `display:flex;justify-content:flex-end;margin-bottom:6px`); agora é
+      `position:absolute;top:14px;right:100px` sobre `.outlier-card`,
+      alinhado ao lado esquerdo do `.dl-btn` (`top:14px;right:14px`,
+      inalterado).
+- [x] **T14.4** — Todas as fontes ~20% maiores: `html{font-size:19.2px}`
+      (era o padrão do browser, 16px) escala automaticamente toda
+      unidade `rem` do relatório (praticamente tudo). Os poucos rótulos
+      SVG com `px` fixo (não herdam de rem) foram escalados a mão:
+      `.axis-label` 9→10.8px, `.end-label` 10.5→12.6px, `.extreme-label`
+      8.5→10.2px, `.map-scalebar-label` 8→9.6px, `.map-compass-label`
+      11→13.2px, e o rótulo inline do eixo X do grafico de barras
+      agrupadas (JS) 10.5→12.6.
+- [x] **T14.5** — Lorem ipsum reduzido de 200 pra 150 palavras
+      (`_lorem(seed, palavras=150)`).
+- [x] **T14.6** — Contorno removido de gráficos/tabelas/texto em geral
+      (`.out{border:none}`, `.opt-text{border:none}`) — contorno (+ nova
+      sombra) agora é exclusivo do cartão de mapa
+      (`.out.map-svg-card{border:2px solid var(--ink);box-shadow:var(--shadow)}`)
+      e do texto que acompanha um mapa
+      (`.option-card-mapa .opt-text{border:2px solid var(--ink);box-shadow:var(--shadow)}`).
+- [x] **T14.7** — Mapa e seu texto lado a lado sem vão entre os dois: (a)
+      `.option-card-mapa` ganhou `gap:16px 0` (column-gap zerado — antes
+      20px) e `align-items:stretch` (era `start`, herdado de
+      `.option-card`); (b) `.map-svg-frame` perdeu o `max-width:760px` —
+      sem essa trava, o mapa (SVG vetorial, sem imagem raster desde
+      T14.1) preenche 100% da coluna "map" do grid, encostando
+      diretamente no texto ao lado; (c) `.option-card-mapa .opt-text`
+      ganhou `height:100%;max-height:none` (era `max-height:240px`) pra
+      acompanhar a altura real do mapa em vez de um limite fixo.
+- [x] **T14.8** — Sombra sutil (`var(--shadow)`, já definida no `:root`)
+      adicionada ao cartão de mapa, ao texto que acompanha o mapa (ambos
+      em T14.6) e ao bloco "Principais achados" (`.key-takeaways`) —
+      pedido explicito citando a Page 1 do PDF de referência como
+      inspiração visual.
+- [x] **T14.9** — Header: `.doc-head-row` trocado de `align-items:end`
+      pra `align-items:start` — eyebrow+título (coluna esquerda) e o
+      texto de descrição (coluna direita) agora começam na mesma linha
+      do topo, em vez de terminarem alinhados na base.
+- [x] **T14.10** — Altura dos mapas reduzida ~20% (`_MAP_H` 560→448) —
+      checado antes de aplicar que a margem em branco topo+base (~225px
+      dos 560px originais, já que a largura é o eixo que limita a escala
+      do Rio, mais largo que alto) absorve o corte inteiro sem cortar
+      nenhum polígono real.
+- [x] **T14.11** — Geração completa (17,15MB, mais rápida que a rodada
+      anterior — 5,8s vs ~9-27s, já que não há mais busca de tile por
+      rede) + validação visual via Edge headless: header top-alinhado,
+      fontes visivelmente maiores, gráfico/tabela sem contorno, mapa
+      cinza (não azul) com contorno+sombra encostado no texto (também
+      com contorno+sombra), botão de outlier ao lado do CSV. DOM dump +
+      log sem erro de JS. **Não testado**: clique real em pill,
+      breakpoints móveis, mapas CAP especificamente (mesma lógica de
+      fundo neutro que bairro/AP/RP, não fotografados em separado).
