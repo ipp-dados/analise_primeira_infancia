@@ -294,6 +294,39 @@ rodapé completo do site institucional (decisão §4-M):
 - Tipografia mantida (IBM Plex Sans/Mono) — só a cor de fundo/texto muda
   para o esquema navy.
 
+### 3.12 Bloco de título — "barra de espectro" + consistência nos cabeçalhos de seção
+
+O bloco de título/descrição (topo da página, antes da primeira seção)
+ganhou um tratamento específico, escolhido entre 3 opções sketch (ver canvas
+de design, artboard `HeaderOptions`):
+
+- **Eyebrow do título** ("PROJETO · RELATÓRIO INTERATIVO") passa de cinza
+  neutro (`--ink-3`, o padrão de qualquer legenda mono) para `--accent-ink`
+  (verde-escuro do próprio `--accent` do relatório) + peso 700 — não usa
+  nenhuma cor institucional nova, só a que já existe.
+- **Barra de espectro**: uma faixa de 6px logo abaixo do bloco de
+  título/descrição, dividida em 11 segmentos iguais, um por cor categórica
+  (`--c1`…`--c11`) — assinatura visual única da página (não se repete em
+  mais nenhum lugar do relatório), sinalizando "isto contém muitas séries de
+  dado diferentes" sem introduzir nenhuma cor nova.
+- **Descartadas nesta escolha** (registradas no canvas, não implementadas):
+  bloco navy assimétrico atrás da descrição (reabriria a decisão §4-L de
+  manter o navy só em linha/rodapé) e moldura com cantos em `--accent`
+  (mais "decorada" do que o pedido pedia).
+
+**Consistência nos cabeçalhos de seção (`h2`)** — extensão do mesmo
+princípio, não uma cor nova:
+- O eyebrow "SEÇÃO N DE 9" de uma seção **expandida** usa o mesmo tratamento
+  do eyebrow do título (`--accent-ink`, peso 700) — mesma linguagem visual
+  do topo da página aplicada a cada cabeçalho de seção.
+- O eyebrow de uma seção **recolhida** continua no cinza padrão (`--ink-3`,
+  sem negrito) — a cor faz parte do próprio sinal de estado: expandido =
+  destacado, recolhido = neutro. Não é uma inconsistência a corrigir, é a
+  hierarquia visual do collapse (§3.1) reforçada pela cor.
+- A barra de espectro **não se repete** nos cabeçalhos de seção — fica
+  exclusiva do topo da página, como uma "vinheta" única, para não virar um
+  padrão repetitivo a cada seção (eram 9 repetições).
+
 ## 4. Tabela de decisões (formato igual a `SPEC-visual-identity/specs.md` §4)
 
 | # | Pergunta | Decisão (confirmada com o usuário nesta rodada) |
@@ -311,6 +344,7 @@ rodapé completo do site institucional (decisão §4-M):
 | K | Logo institucional: real ou lockup em texto? | **Logo real** (reverte a decisão anterior de `relatorio/specs.md` que evitava isso) — pendência de confirmar autorização antes do deploy público, ver §3.10 |
 | L | Intensidade de aplicação das cores institucionais | Navy só em: barra de 4px no topo + rodapé + chip do logo no navbar. Corpo do relatório e paleta de dados não mudam (§3.10) |
 | M | Escopo do conteúdo do rodapé | Enxuto — fontes de dados, 3 links (IPP, Transparência Rio, LGPD), contato, data de atualização. Sem endereço/telefone/redes sociais (§3.11) |
+| N | Tratamento do bloco de título/descrição | Opção A ("barra de espectro") — eyebrow em `--accent-ink` + faixa de 6px com as 11 cores categóricas; mesma cor de eyebrow estendida aos cabeçalhos de seção expandidos, por consistência (§3.12) |
 
 ## 5. Stack técnica
 
