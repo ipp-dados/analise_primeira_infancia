@@ -340,3 +340,17 @@ agrupamento — **implementado e validado**
   mapas do nível CAP especificamente fotografados em separado (mesma
   lógica de fundo neutro que bairro/AP/RP, risco de regressão específica
   baixo mas não zero).
+
+## V15 — Fechamento desta rodada da spec
+
+- Código (Blocos 0-14) implementado e validado visualmente em todas as
+  rodadas registradas acima — sem erro de JavaScript em nenhuma
+  validação via Edge headless.
+- Lacunas conhecidas e não resolvidas nesta rodada, todas já registradas
+  em `feature_roadmap.md` (não bloqueiam o merge do código): URLs/e-mail
+  reais do rodapé, autorização do logo oficial, `mobile_version`
+  (breakpoints existem no CSS mas nunca foram vistos numa viewport
+  estreita real), habilitar GitHub Pages, texto real substituindo o lorem
+  ipsum, peso do arquivo (~17MB de geometria SVG sem compartilhamento).
+- Merge em `staging_main`: **gated**, só após aval explícito do usuário
+  (mesma regra desde o Bloco 10/T10.5).

@@ -474,3 +474,21 @@ taxas, agrupamento (plan.md §10) — **implementado e validado nesta rodada**
       log sem erro de JS. **Não testado**: clique real em pill,
       breakpoints móveis, mapas CAP especificamente (mesma lógica de
       fundo neutro que bairro/AP/RP, não fotografados em separado).
+
+## Bloco 15 — Fechamento desta rodada da spec
+
+- [x] **T15.1** — `feature_roadmap.md` atualizado: item de responsividade
+      (antes uma linha solta, nunca testada) reescrito como iniciativa
+      própria — `mobile_version` — cobrindo o que falta validar de fato
+      (breakpoints existem no CSS desde o Bloco 8 mas nunca foram vistos
+      numa viewport estreita real: navbar/burger, os 3 padrões de layout
+      empilhados, mapa+legenda overlay, tabelas largas).
+- [x] **T15.2** — `relatorio/specs.md` fechado até v6.5; `tasks.md` e
+      `validation.md` (este arquivo e o par) fechados até Bloco/V14.
+- [ ] **T15.3** — **Merge em `staging_main` (só após aval explícito do
+      usuário)** — todo o trabalho de código desta spec (Blocos 0-14)
+      está implementado e validado visualmente; o que resta em aberto
+      (rodapé com URLs reais, autorização do logo, `mobile_version`,
+      GitHub Pages) está todo registrado em `feature_roadmap.md` e não
+      bloqueia o merge do código em si, só o deploy público específico
+      (ver T0.4/T9.4/T9.5, já detalhado nos Blocos anteriores).
