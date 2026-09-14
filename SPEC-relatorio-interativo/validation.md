@@ -163,3 +163,22 @@ o resultado (os critérios abaixo não foram editados após a implementação).
 - `feature_roadmap.md` reflete o estado final: itens resolvidos
   removidos, deferidos mantidos.
 - `tasks.md` só tem T10.5 (merge) em aberto ao final.
+
+## V11 — Replanejamento: texto por opção, tema único, outliers só em taxas,
+agrupamento (prospectivo — critérios para quando o Bloco 11 for implementado)
+- Todo `option_card` (novo ou existente) tem texto em toda opção — nenhuma
+  pill sem painel de texto correspondente.
+- Trocar de pill troca **os 2 painéis juntos** (gráfico/mapa E texto) — testar
+  clicando numa pill e conferindo que o texto muda, não só o gráfico.
+- Padrão gráfico: texto ocupa a largura de pills+gráfico juntos, abaixo.
+  Padrão mapa: texto é a 3ª coluna, ao lado do mapa, não abaixo. Padrão
+  tabela: texto à esquerda, tabela à direita, sem pills.
+- Nenhum outlier-card aparece em cima de uma série de contagem absoluta —
+  só séries/mapas com `format`/`fmt` percentual/taxa têm o toggle.
+- CSS gerado não contém `prefers-color-scheme: dark` nem
+  `data-theme="dark"` em lugar nenhum.
+- `.doc` renderiza a `max-width:1200px` (checar via inspeção do CSS
+  gerado ou medindo o elemento no navegador).
+- Cada uma das ~9 linhas da tabela de agrupamento (`specification.md` §9)
+  vira exatamente 1 `option_card` com o número de pills esperado (conferir
+  a contagem por grupo, não só que "existe algum agrupamento").
