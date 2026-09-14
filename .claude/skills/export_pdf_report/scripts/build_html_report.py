@@ -436,11 +436,10 @@ LOGO_IMG = f'<img src="data:image/png;base64,{LOGO_B64}" alt="Prefeitura do Rio 
 # escala, ja que a cidade e bem mais larga que alta), entao os 224px de
 # margem em branco (topo+base) absorvem o corte sem cortar poligono algum
 _MAP_W, _MAP_H = 640, 448
-# 'censo' era 'Blues' (igual analise.py) -- trocado pra 'Greys': azul agora e
-# reservado exclusivamente pro mar/agua no fundo do mapa (nunca terra/dado),
-# pedido explicito do usuario apos o fundo cartografico real confundir com o
-# choropleth azul do Censo
-_CMAP_TEMA = {'censo': 'Greys', 'natalidade': 'BuGn', 'mortalidade': 'RdPu', 'cadunico': 'YlOrBr'}
+# 'censo' era 'Blues' (igual analise.py), depois 'Greys' -- agora 'Purples':
+# azul e reservado exclusivamente pro mar/agua no fundo do mapa (nunca
+# terra/dado), e o usuario pediu uma cor propria em vez de cinza tambem
+_CMAP_TEMA = {'censo': 'Purples', 'natalidade': 'BuGn', 'mortalidade': 'RdPu', 'cadunico': 'YlOrBr'}
 _GEO_CACHE = {}
 
 def _bounds_project(gdf, width, height, pad_frac=0.03):
@@ -1590,16 +1589,16 @@ CSS = r"""
     padding:16px 18px; border:none; min-width:0;
     max-height:240px; overflow-y:auto;
   }
-  /* texto do mapa: unico opt-text que mantem contorno (+ sombra), igual
-     largura/altura do mapa ao lado -- specification.md §7. min-height:0 por
-     si so NAO limita a altura aqui: uma linha "auto" de grid/flex sem altura
-     de container definida cresce pro maior max-content dos 2 lados (testado
-     isoladamente -- nem grid nem flexbox escapam disso so com min-height:0).
-     Fix real: o conteudo de texto vai pra um filho `position:absolute`
-     (`.opt-text-inner`), que sai do calculo de altura intrinseca do pai --
-     a linha do grid passa a ser guiada só pela altura real do mapa. */
+  /* texto do mapa: sem contorno (so sombra), igual largura/altura do mapa
+     ao lado -- specification.md §7. min-height:0 por si so NAO limita a
+     altura aqui: uma linha "auto" de grid/flex sem altura de container
+     definida cresce pro maior max-content dos 2 lados (testado isoladamente
+     -- nem grid nem flexbox escapam disso so com min-height:0). Fix real: o
+     conteudo de texto vai pra um filho `position:absolute` (`.opt-text-
+     inner`), que sai do calculo de altura intrinseca do pai -- a linha do
+     grid passa a ser guiada só pela altura real do mapa. */
   .option-card-mapa .opt-text{
-    border:2px solid var(--ink); box-shadow:var(--shadow); box-sizing:border-box;
+    border:none; box-shadow:var(--shadow); box-sizing:border-box;
     height:100%; min-height:0; max-height:none; padding:0;
     position:relative; overflow:hidden;
   }

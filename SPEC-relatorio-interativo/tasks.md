@@ -538,3 +538,22 @@ taxas, agrupamento (plan.md §10) — **implementado e validado nesta rodada**
       todos os outros ~42 mapas individualmente (mesma classe de fundo e
       mesma técnica de CSS, risco de regressão específica baixo mas não
       zero).
+
+## Bloco 17 — Ajustes finos: sem contorno no texto do mapa, cor do
+## Censo trocada de cinza pra roxo
+
+- [x] **T17.1** — Contorno removido do texto ao lado do mapa
+      (`.option-card-mapa .opt-text{border:none}`, mantendo a sombra) —
+      o texto do mapa era o único `.opt-text` do relatório que ainda
+      tinha borda (desde o Bloco 14); agora nenhum bloco de texto de
+      análise tem contorno, só os cartões de mapa em si.
+- [x] **T17.2** — Colormap do tema 'censo' trocado de `Greys` pra
+      `Purples` — pedido explícito do usuário por uma cor própria em vez
+      de cinza (mantendo a regra de nunca usar azul, que fica reservado
+      ao mar/água do fundo cartográfico).
+- [x] **T17.3** — Geração completa (17,19MB) + validação visual via Edge
+      headless: choropleth do Censo em tons de roxo (não cinza, não
+      azul), texto ao lado do mapa sem borda visível, mapa/texto ainda
+      encostados e com altura igual (Bloco 16 preservado). DOM dump + log
+      sem erro de JS. **Não testado**: clique real em pill, breakpoints
+      móveis.
