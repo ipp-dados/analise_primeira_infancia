@@ -34,6 +34,11 @@
 - **Bloco "Principais achados" por seção** (callout editorial do mockup) — nunca
   implementado; precisa de texto curado por alguém que analise os dados, não é
   algo para gerar automaticamente a partir das tabelas (ver `relatorio/specs.md` v6.1)
+- **Substituir o lorem ipsum dos blocos de análise por texto real** (por opção do
+  seletor, não por card — ver v6.2) — nesta rodada o objetivo era só validar o
+  layout/espaço reservado, não o conteúdo. A caixa de texto tem altura fixa
+  (240px) com rolagem interna; revisitar esse limite quando o texto real entrar,
+  pode não ser o tamanho certo para prosa de verdade.
 - Botão de "baixar tudo" (fora do escopo — só tem download por gráfico/mapa individual)
 - Persistir estado de collapse das seções entre sessões (localStorage), se vier a ser pedido
 - Basemap/contexto geográfico (satélite/desenho, UF, municípios vizinhos) nos mapas SVG

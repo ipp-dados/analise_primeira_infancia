@@ -41,6 +41,7 @@ Usage (from project root):
 import base64
 import io
 import json
+import random
 import math
 import os
 import re
@@ -135,7 +136,8 @@ def line_chart(x, series, opts=None, fonte=None, titulo=None):
     opts = dict(opts or {})
     x_list = list(x)
     norm = [_normaliza(s['values']) for s in series]
-    limpos = [remove_outliers_tukey(v) for v in norm]
+    # outliers so em series percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
+    limpos = [remove_outliers_tukey(v) if _eh_taxa_ou_percentual(s) else v for s, v in zip(series, norm)]
     has_outliers = any(c != n for c, n in zip(limpos, norm))
 
     def build(valores_por_serie):
@@ -161,15 +163,17 @@ def line_chart(x, series, opts=None, fonte=None, titulo=None):
     else:
         build(norm)
 
-def bar_chart(items, fonte=None, titulo=None):
+def bar_chart(items, fonte=None, titulo=None, fmt='int'):
     norm = _normaliza([it['value'] for it in items])
-    limpos = remove_outliers_tukey(norm)
+    # outliers so em percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
+    limpos = remove_outliers_tukey(norm) if _eh_taxa_ou_percentual(fmt) else norm
     has_outliers = limpos != norm
 
     def build(valores):
         elem_id = new_id('c')
+        fmt_fn = FMT_MAP.get(fmt, FMT_MAP['int'])
         js_items = [
-            "{label:%s, value:%s}" % (json.dumps(str(it['label']), ensure_ascii=False), json.dumps(v))
+            "{label:%s, value:%s, format:%s}" % (json.dumps(str(it['label']), ensure_ascii=False), json.dumps(v), fmt_fn)
             for it, v in zip(items, valores) if v is not None
         ]
         scripts.append("barChart(byId(%s), {items:[%s]});" % (json.dumps(elem_id), ",".join(js_items)))
@@ -187,7 +191,8 @@ def grouped_bar_chart(groups, series, opts=None, fonte=None, titulo=None):
     opts.setdefault('table', True)
     groups_list = [str(g) for g in groups]
     norm = [_normaliza(s['values']) for s in series]
-    limpos = [remove_outliers_tukey(v) for v in norm]
+    # outliers so em series percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
+    limpos = [remove_outliers_tukey(v) if _eh_taxa_ou_percentual(s) else v for s, v in zip(series, norm)]
     has_outliers = any(c != n for c, n in zip(limpos, norm))
 
     def build(valores_por_serie):
@@ -270,6 +275,35 @@ def _fmt_ptbr(v, dec=0):
     s = s.replace(",", "\x00").replace(".", ",").replace("\x00", ".")
     return s
 
+# ---- texto de analise: lorem ipsum, por opcao (SPEC-relatorio-interativo/plan.md §10.3) --
+# Placeholder deliberado (specification.md §3.4/§3.13): marca onde o texto real
+# vai entrar depois, sem fabricar uma leitura analitica dos dados que ninguem
+# validou. Deterministico por `seed` (o label da opcao) para o texto nao mudar
+# a cada rodada de geracao -- facilita revisar diffs.
+_LOREM_WORDS = (
+    "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod "
+    "tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam "
+    "quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo "
+    "consequat duis aute irure in reprehenderit voluptate velit esse cillum "
+    "eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident "
+    "sunt culpa qui officia deserunt mollit anim id est laborum curabitur "
+    "vitae purus eget nunc porttitor sollicitudin nec eget metus vestibulum "
+    "ante primis faucibus orci luctus posuere cubilia curae mauris blandit "
+    "aliquet nibh praesent tristique senectus netus fames turpis egestas"
+).split()
+
+def _lorem(seed, palavras=500):
+    rng = random.Random(seed)
+    corpo = " ".join(rng.choice(_LOREM_WORDS) for _ in range(palavras))
+    return corpo[:1].upper() + corpo[1:] + "."
+
+def _eh_taxa_ou_percentual(s):
+    """s: dict de serie ({'label','values','format',...}) ou a string do
+    formato direto. Outliers so se aplicam a percentual/taxa, nao a
+    contagem absoluta (specification.md §3.3, decisao O)."""
+    fmt = s.get('format', 'int') if isinstance(s, dict) else s
+    return fmt in ('pct', 'pct1')
+
 def remove_outliers_tukey(valores):
     """valores: list[float|None]. Retorna list[float|None] do mesmo tamanho,
     outliers substituidos por None (mantem o eixo alinhado -- nao remove o
@@ -319,25 +353,61 @@ def with_outliers_toggle(build_full, build_clean, has_outliers):
         '</div>'
     )
 
-def option_card(entries):
-    """entries: list de (label, build_fn). build_fn emite exatamente 1 construto
-    (pode por sua vez conter um outlier-card). len==1 -> renderiza direto, sem
-    coluna de pills (specification.md §3.2)."""
+def option_card(entries, padrao='grafico'):
+    """entries: list de (label, build_fn, seed_texto). build_fn emite
+    exatamente 1 construto (pode por sua vez conter um outlier-card). Cada
+    opcao ganha seu proprio bloco de texto (lorem ipsum, seed=seed_texto --
+    determinístico, nao muda a cada geracao), que troca junto quando a pill
+    muda (specification.md §3.13). padrao: 'grafico' (texto abaixo, largura
+    total) | 'mapa' (texto na 3a coluna, ao lado). len==1 -> sem coluna de
+    pills, texto ainda emitido (so nao ha nada para trocar)."""
     if len(entries) == 1:
-        entries[0][1]()
+        label, build_fn, seed = entries[0]
+        start = len(parts)
+        build_fn()
+        html = "".join(parts[start:]); del parts[start:]
+        parts.append(
+            f'<div class="option-card option-card-{padrao} option-card-single">'
+            f'<div class="opt-panes">{html}</div>'
+            f'<div class="opt-texts"><div class="opt-text">{_lorem(seed)}</div></div>'
+            '</div>'
+        )
         return
-    panes, pills = [], []
-    for i, (label, build_fn) in enumerate(entries):
+    panes, texts, pills = [], [], []
+    for i, (label, build_fn, seed) in enumerate(entries):
         start = len(parts)
         build_fn()
         html = "".join(parts[start:]); del parts[start:]
         panes.append(f'<div class="opt-pane"{" hidden" if i else ""}>{html}</div>')
+        texts.append(f'<div class="opt-text"{" hidden" if i else ""}>{_lorem(seed)}</div>')
         active = ' data-active="true"' if i == 0 else ''
         pills.append(f'<button type="button" class="pill"{active}>{_esc(label)}</button>')
     parts.append(
-        '<div class="option-card">'
+        f'<div class="option-card option-card-{padrao}">'
         '<div class="pill-col">' + "".join(pills) + '</div>'
         '<div class="opt-panes">' + "".join(panes) + '</div>'
+        '<div class="opt-texts">' + "".join(texts) + '</div>'
+        '</div>'
+    )
+
+def viz(padrao, entries):
+    """Acucar sintatico sobre option_card: aceita (label, build_fn) e usa o
+    proprio label como seed do texto -- e o caso comum (todo call site que
+    nao precisa de um seed de texto diferente do label)."""
+    option_card([(label, build_fn, label) for label, build_fn in entries], padrao)
+
+def tabela_com_texto(build_fn, seed):
+    """Padrao C (specification.md §3.13): texto a esquerda, tabela a
+    direita -- unica ordem invertida em relacao aos padroes grafico/mapa.
+    Sem pills nesta rodada (nenhuma tabela do relatorio tem corte
+    alternativo ainda)."""
+    start = len(parts)
+    build_fn()
+    html = "".join(parts[start:]); del parts[start:]
+    parts.append(
+        '<div class="table-with-text">'
+        f'<div class="opt-text">{_lorem(seed)}</div>'
+        f'<div class="opt-panes">{html}</div>'
         '</div>'
     )
 
@@ -462,7 +532,8 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
             continue  # linhas de agregado tipo "Em branco"/"Ignorado" (nao sao uma unidade geografica real)
         valores[chave] = None if pd.isna(r[valor_col]) else float(r[valor_col])
     brutos = list(valores.values())
-    limpos = remove_outliers_tukey(brutos)
+    # outliers so em percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
+    limpos = remove_outliers_tukey(brutos) if _eh_taxa_ou_percentual(fmt) else brutos
     limpos_map = dict(zip(valores.keys(), limpos))
     has_outliers = limpos != brutos
 
@@ -563,7 +634,7 @@ top10 = df_censo_bairro.sort_values("0 a 4 anos", ascending=False).head(10)[["ba
 top10 = top10.rename(columns={"bairro": "Bairro", "0 a 4 anos": "Crianças 0-4", "Percentual 0 a 4": "% do bairro"})
 top10["% do bairro"] = top10["% do bairro"].map(lambda v: f"{v:.1f}%".replace(".", ","))
 FONTE_CENSO = "Censo Demográfico 2022 (IBGE/Data.Rio)"
-plain_table(top10, fonte=FONTE_CENSO)
+tabela_com_texto(lambda: plain_table(top10, fonte=FONTE_CENSO), "Top 10 bairros por população 0-4 anos")
 
 h3('População 0-6 por idade/raça/sexo (IBGE SIDRA, 2022)')
 FONTE_SIDRA_CENSO = "Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)"
@@ -574,18 +645,14 @@ def _ordenar_idade(df, ordem):
 
 df_censo_raca = _ordenar_idade(read("censo_sidra_populacao_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
 raca_cols = [c for c in df_censo_raca.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO)
 df_censo_sexo = _ordenar_idade(read("censo_sidra_populacao_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
 sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO)
+viz('grafico', [
+    ("Por raça", lambda: grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO)),
+    ("Por sexo", lambda: grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO)),
+])
 
 h3('Mapas')
-mapa_svg(df_censo_bairro, "codbairro", "0 a 4 anos", "censo",
-         "Crianças de 0 a 4 anos, por bairro (Censo 2022)", "Crianças 0-4",
-         FONTE_CENSO, bins=[1000, 2500, 5000, 10000])
-mapa_svg(df_censo_bairro, "codbairro", "Percentual 0 a 4", "censo",
-         "% de crianças de 0 a 4 anos, por bairro (Censo 2022)", "% 0-4 anos",
-         FONTE_CENSO, fmt='pct1')
 
 def _agrega_censo_por_nivel(df_bairro, nivel):
     """Agrega censo por bairro para AP/RP, somando o absoluto e recompondo o
@@ -608,99 +675,107 @@ NIVEIS_PLANEJAMENTO = {
     'ap': {'nome': 'Área de Planejamento', 'bins': [25000, 50000, 75000, 100000]},
     'rp': {'nome': 'Região de Planejamento', 'bins': [12000, 18000, 24000, 30000]},
 }
+_entries_mapas_censo = [
+    ("Bairro · Absoluto", lambda: mapa_svg(df_censo_bairro, "codbairro", "0 a 4 anos", "censo",
+        "Crianças de 0 a 4 anos, por bairro (Censo 2022)", "Crianças 0-4", FONTE_CENSO, bins=[1000, 2500, 5000, 10000]), "Bairro · Absoluto"),
+    ("Bairro · %", lambda: mapa_svg(df_censo_bairro, "codbairro", "Percentual 0 a 4", "censo",
+        "% de crianças de 0 a 4 anos, por bairro (Censo 2022)", "% 0-4 anos", FONTE_CENSO, fmt='pct1'), "Bairro · %"),
+]
 for _nivel, _info in NIVEIS_PLANEJAMENTO.items():
     df_censo_nivel = _agrega_censo_por_nivel(df_censo_bairro, _nivel)
-    mapa_svg(df_censo_nivel, _NIVEL_COL[_nivel], "0 a 4 anos", "censo",
-             f"Crianças de 0 a 4 anos, por {_info['nome']} (Censo 2022)", "Crianças 0-4",
-             FONTE_CENSO, bins=_info['bins'], nivel=_nivel)
-    mapa_svg(df_censo_nivel, _NIVEL_COL[_nivel], "Percentual 0 a 4", "censo",
-             f"% de crianças de 0 a 4 anos, por {_info['nome']} (Censo 2022)", "% da população",
-             FONTE_CENSO, fmt='pct1', nivel=_nivel)
+    _l1 = f"{_info['nome']} · Absoluto"
+    _entries_mapas_censo.append((_l1, lambda df=df_censo_nivel, nivel=_nivel, info=_info: mapa_svg(
+        df, _NIVEL_COL[nivel], "0 a 4 anos", "censo",
+        f"Crianças de 0 a 4 anos, por {info['nome']} (Censo 2022)", "Crianças 0-4",
+        FONTE_CENSO, bins=info['bins'], nivel=nivel), _l1))
+    _l2 = f"{_info['nome']} · %"
+    _entries_mapas_censo.append((_l2, lambda df=df_censo_nivel, nivel=_nivel, info=_info: mapa_svg(
+        df, _NIVEL_COL[nivel], "Percentual 0 a 4", "censo",
+        f"% de crianças de 0 a 4 anos, por {info['nome']} (Censo 2022)", "% da população",
+        FONTE_CENSO, fmt='pct1', nivel=nivel), _l2))
+option_card(_entries_mapas_censo, 'mapa')
 
 h3('Série temporal')
 df_censo_serie = read("censo_0_a_4_anos_por_ano.csv")
-line_chart(df_censo_serie["ano"], [
-    {'label': 'Total 0–4 anos', 'values': df_censo_serie['0 a 4 anos']},
-    {'label': 'Feminino', 'values': df_censo_serie['Sexo feminino, 0 a 4 anos']},
-    {'label': 'Masculino', 'values': df_censo_serie['Sexo masculino, 0 a 4 anos']},
-], opts={'height': 230, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)")
-line_chart(df_censo_serie["ano"], [
-    {'label': 'Percentual 0–4 anos', 'values': df_censo_serie['Percentual 0 a 4 anos'], 'format': 'pct1'},
-], opts={'height': 200, 'zeroBase': False, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)")
+viz('grafico', [
+    ("Total/Feminino/Masculino", lambda: line_chart(df_censo_serie["ano"], [
+        {'label': 'Total 0–4 anos', 'values': df_censo_serie['0 a 4 anos']},
+        {'label': 'Feminino', 'values': df_censo_serie['Sexo feminino, 0 a 4 anos']},
+        {'label': 'Masculino', 'values': df_censo_serie['Sexo masculino, 0 a 4 anos']},
+    ], opts={'height': 230, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)")),
+    ("% 0-4 anos", lambda: line_chart(df_censo_serie["ano"], [
+        {'label': 'Percentual 0–4 anos', 'values': df_censo_serie['Percentual 0 a 4 anos'], 'format': 'pct1'},
+    ], opts={'height': 200, 'zeroBase': False, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)")),
+])
 
 # ================================================================ CADUNICO ==
 
 h2('\U0001F5C2️ CadÚnico')
 FONTE_CADUNICO = "CadÚnico (extração CTPE)"
 
-h3('Por faixa de renda')
+h3('Por faixa de renda e idade')
 df_renda = read("cadunico_por_faixa_etaria_2026.csv")
 df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"]
-out_pair(
-    lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Crianças"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
-    lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Famílias"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
-)
-
-h3('Por idade')
 df_idade = read("cadunico_por_idade_2026.csv")
 df_idade["idade_lbl"] = df_idade["idade"].astype(int).map(lambda i: f"{i} ano" if i == 1 else f"{i} anos")
-out_pair(
-    lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Crianças"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
-    lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Famílias"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
-)
+viz('grafico', [
+    ("Por faixa de renda", lambda: out_pair(
+        lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Crianças"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
+        lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Famílias"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
+    )),
+    ("Por idade", lambda: out_pair(
+        lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Crianças"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
+        lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Famílias"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
+    )),
+])
 
 h3('Mapas')
 df_map_cadunico_criancas = read("tabela_mapa_cadunico_criancas_2026.csv")
-mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
-         "Crianças (0-6 anos) no CadÚnico, por bairro", "Crianças",
-         FONTE_CADUNICO, bins=[250, 750, 1500, 3000])
 df_map_cadunico_0_4 = read("tabela_mapa_cadunico_primeira_infancia_2026.csv")
-mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
-         "Crianças (0-4 anos) no CadÚnico, por bairro", "Crianças",
-         FONTE_CADUNICO, bins=[200, 500, 1000, 2000])
-mapa_svg(df_map_cadunico_0_4, "codbairro", "Percentual Primeira Inf. Cadúnico", "cadunico",
-         "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro", "% CadÚnico/Censo",
-         FONTE_CADUNICO, fmt="pct1")
+option_card([
+    ("Crianças 0-6", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
+        "Crianças (0-6 anos) no CadÚnico, por bairro", "Crianças", FONTE_CADUNICO, bins=[250, 750, 1500, 3000]), "Crianças 0-6"),
+    ("Crianças 0-4", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
+        "Crianças (0-4 anos) no CadÚnico, por bairro", "Crianças", FONTE_CADUNICO, bins=[200, 500, 1000, 2000]), "Crianças 0-4"),
+    ("% s/ Censo", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Percentual Primeira Inf. Cadúnico", "cadunico",
+        "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro", "% CadÚnico/Censo", FONTE_CADUNICO, fmt="pct1"), "% s/ Censo"),
+], 'mapa')
 
 # ============================================================== DATASUS ===
 
 h2('\U0001F3E5 DataSUS/Tabnet')
 FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro"
 
-h3('Nascidos vivos')
-df_map_nv = read("tabela_mapa_bairros_nascidos_vivos_bruto.csv")
-mapa_svg(df_map_nv, "codigo", "value", "natalidade",
-         "Nascidos vivos por bairro (2025)", "Nascidos vivos",
-         FONTE_DATASUS, bins=[200, 400, 800, 1500])
-df_nv = read("nascidos_vivos_por_ano.csv")
-line_chart(df_nv["ano"], [{'label': 'Nascidos vivos', 'values': df_nv['nascidos vivos']}], opts={'height': 220, 'table': True}, fonte=FONTE_DATASUS)
-
-h3('Nascidos abaixo do peso')
-df_map_bp = read("tabela_mapa_bairros_nascidos_abaixo_peso.csv")
-df_map_bp_2025 = df_map_bp[df_map_bp["ano"] == 2025]
-mapa_svg(df_map_bp_2025, "codigo", "Nascidos abaixo peso", "natalidade",
-         "Nascidos com baixo peso por bairro (2025)", "Nascidos abaixo do peso",
-         FONTE_DATASUS, bins=[15, 30, 60, 120])
-mapa_svg(df_map_bp_2025, "codigo", "percentual abaixo do peso", "natalidade",
-         "% de nascidos com baixo peso por bairro (2025)", "% baixo peso",
-         FONTE_DATASUS, fmt="pct1")
-df_bp = read("nascidos_abaixo_peso_por_ano.csv")
-line_chart(df_bp["ano"], [{'label': '% abaixo do peso', 'values': df_bp['percentual abaixo do peso'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-
-h3('Mortalidade por raça/cor (0-364 dias)')
 RACA_LABEL = {"amarela": "Amarela", "branca": "Branca", "indigena": "Indígena", "parda": "Parda", "preta": "Preta", "nao_informado": "Não informado"}
 RACAS = list(RACA_LABEL)
+df_nv = read("nascidos_vivos_por_ano.csv")
+df_bp = read("nascidos_abaixo_peso_por_ano.csv")
 df_raca = read("mortalidade_raca_municipio_ano.csv")
-line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS)
-line_chart(df_raca["ano"], series_from_cols(df_raca, [f"percentual_{r}" for r in RACAS], {f"percentual_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-df_map_raca = read("mortalidade_raca_bairro_ano.csv")
-df_map_raca_2025 = df_map_raca[df_map_raca["ano"] == 2025]
-mapa_svg(df_map_raca_2025, "codigo", "obitos_total", "mortalidade",
-         "Óbitos de 0 a 364 dias por bairro (2025)", "Óbitos",
-         FONTE_DATASUS, bins=[2, 5, 10, 20])
-mapa_svg(df_map_raca_2025, "codigo", "percentual_total", "mortalidade",
-         "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)", "% s/ nascidos vivos",
-         FONTE_DATASUS, fmt="pct1")
+
+h3('Séries temporais')
+viz('grafico', [
+    ("Nascidos vivos", lambda: line_chart(df_nv["ano"], [{'label': 'Nascidos vivos', 'values': df_nv['nascidos vivos']}], opts={'height': 220, 'table': True}, fonte=FONTE_DATASUS)),
+    ("% abaixo do peso", lambda: line_chart(df_bp["ano"], [{'label': '% abaixo do peso', 'values': df_bp['percentual abaixo do peso'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
+    ("Óbitos raça · Absoluto", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS)),
+    ("Óbitos raça · %", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"percentual_{r}" for r in RACAS], {f"percentual_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
+])
+
+h3('Mapas')
+df_map_nv = read("tabela_mapa_bairros_nascidos_vivos_bruto.csv")
+df_map_bp_2025 = read("tabela_mapa_bairros_nascidos_abaixo_peso.csv").pipe(lambda d: d[d["ano"] == 2025])
+df_map_raca_2025 = read("mortalidade_raca_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
+option_card([
+    ("Nascidos vivos", lambda: mapa_svg(df_map_nv, "codigo", "value", "natalidade",
+        "Nascidos vivos por bairro (2025)", "Nascidos vivos", FONTE_DATASUS, bins=[200, 400, 800, 1500]), "Nascidos vivos"),
+    ("Baixo peso · Absoluto", lambda: mapa_svg(df_map_bp_2025, "codigo", "Nascidos abaixo peso", "natalidade",
+        "Nascidos com baixo peso por bairro (2025)", "Nascidos abaixo do peso", FONTE_DATASUS, bins=[15, 30, 60, 120]), "Baixo peso · Absoluto"),
+    ("Baixo peso · %", lambda: mapa_svg(df_map_bp_2025, "codigo", "percentual abaixo do peso", "natalidade",
+        "% de nascidos com baixo peso por bairro (2025)", "% baixo peso", FONTE_DATASUS, fmt="pct1"), "Baixo peso · %"),
+    ("Óbitos 0-364 dias", lambda: mapa_svg(df_map_raca_2025, "codigo", "obitos_total", "mortalidade",
+        "Óbitos de 0 a 364 dias por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "Óbitos 0-364 dias"),
+    ("Taxa mortalidade infantil", lambda: mapa_svg(df_map_raca_2025, "codigo", "percentual_total", "mortalidade",
+        "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)", "% s/ nascidos vivos", FONTE_DATASUS, fmt="pct1"), "Taxa mortalidade infantil"),
+], 'mapa')
 
 # ============================================================ EVITAVEIS ===
 
@@ -709,24 +784,27 @@ FONTE_EVITAVEIS = "SIM/SVS-Rio (TabWin), óbitos de residentes no município do 
 
 h3('Por raça/cor (0-364 dias)')
 df_evit_raca = read("mortalidade_causas_evitaveis_raca_municipio_ano.csv")
-line_chart(df_evit_raca["ano"], series_from_cols(df_evit_raca, [f"obitos_evitaveis_{r}" for r in RACAS], {f"obitos_evitaveis_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
-line_chart(df_evit_raca["ano"], series_from_cols(df_evit_raca, [f"percentual_evitaveis_{r}" for r in RACAS], {f"percentual_evitaveis_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)
-
-h4('Sem "não informada" (a partir de 1997)')
 RACAS_SEM_NI = [r for r in RACAS if r != "nao_informado"]
 df_evit_raca_sem = df_evit_raca[df_evit_raca["ano"] > 1996]
-line_chart(df_evit_raca_sem["ano"], series_from_cols(df_evit_raca_sem, [f"obitos_evitaveis_{r}" for r in RACAS_SEM_NI], {f"obitos_evitaveis_{r}": RACA_LABEL[r] for r in RACAS_SEM_NI}), opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
-line_chart(df_evit_raca_sem["ano"], series_from_cols(df_evit_raca_sem, [f"percentual_evitaveis_{r}" for r in RACAS_SEM_NI], {f"percentual_evitaveis_{r}": RACA_LABEL[r] for r in RACAS_SEM_NI}, fmt='pct1'), opts={'height': 240, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)
+viz('grafico', [
+    ("Absoluto", lambda: line_chart(df_evit_raca["ano"], series_from_cols(df_evit_raca, [f"obitos_evitaveis_{r}" for r in RACAS], {f"obitos_evitaveis_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)),
+    ("%", lambda: line_chart(df_evit_raca["ano"], series_from_cols(df_evit_raca, [f"percentual_evitaveis_{r}" for r in RACAS], {f"percentual_evitaveis_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)),
+    ("Absoluto, sem \"não informada\" (a partir de 1997)", lambda: line_chart(df_evit_raca_sem["ano"], series_from_cols(df_evit_raca_sem, [f"obitos_evitaveis_{r}" for r in RACAS_SEM_NI], {f"obitos_evitaveis_{r}": RACA_LABEL[r] for r in RACAS_SEM_NI}), opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)),
+    ("%, sem \"não informada\" (a partir de 1997)", lambda: line_chart(df_evit_raca_sem["ano"], series_from_cols(df_evit_raca_sem, [f"percentual_evitaveis_{r}" for r in RACAS_SEM_NI], {f"percentual_evitaveis_{r}": RACA_LABEL[r] for r in RACAS_SEM_NI}, fmt='pct1'), opts={'height': 240, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)),
+])
 
 h3('Por grupo/subgrupo de causa (CID-10)')
+_entries_cid10 = []
 for faixa_id, faixa_titulo in [("", "0-364 dias"), ("_0_6", "0-6 dias"), ("_7_27", "7-27 dias"), ("_28_364", "28-364 dias")]:
-    h5(faixa_titulo)
     df_g = read(f"mortalidade_causas_evitaveis_grupo{faixa_id}_ano.csv")
     gcols = [c for c in df_g.columns if c != "ano"]
-    line_chart(df_g["ano"], series_from_cols(df_g, gcols, {c: clean_causa(c) for c in gcols}), opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
+    _lg = f"{faixa_titulo} · Grupo"
+    _entries_cid10.append((_lg, lambda df=df_g, cols=gcols: line_chart(df["ano"], series_from_cols(df, cols, {c: clean_causa(c) for c in cols}), opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _lg))
     df_s = read(f"mortalidade_causas_evitaveis_subgrupo{faixa_id}_ano.csv")
     scols = [c for c in df_s.columns if c != "ano"]
-    line_chart(df_s["ano"], series_from_cols(df_s, scols, {c: clean_causa(c) for c in scols}), opts={'height': 280, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
+    _ls = f"{faixa_titulo} · Subgrupo"
+    _entries_cid10.append((_ls, lambda df=df_s, cols=scols: line_chart(df["ano"], series_from_cols(df, cols, {c: clean_causa(c) for c in cols}), opts={'height': 280, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _ls))
+option_card(_entries_cid10, 'grafico')
 
 h4('Comparação entre faixas etárias (2025)')
 df_faixa2025 = read("mortalidade_causas_evitaveis_subgrupo_faixa_2025.csv")
@@ -739,15 +817,16 @@ for sg in subgrupos_2025:
         row = df_faixa2025[(df_faixa2025["subgrupo"] == sg) & (df_faixa2025["faixa_etaria"] == fx)]
         vals.append(float(row["obitos"].iloc[0]) if len(row) else None)
     series_2025.append({'label': clean_causa(sg), 'values': vals})
-grouped_bar_chart(faixas_2025, series_2025, fonte=FONTE_EVITAVEIS)
+# Solo -- nao e um corte comparavel aos outros grupos desta secao (specification.md §9)
+viz('grafico', [("Comparação entre faixas etárias (2025)", lambda: grouped_bar_chart(faixas_2025, series_2025, fonte=FONTE_EVITAVEIS))])
 
 h3('Primeira infância, por Área Programática de Saúde (CAP)')
 df_cap_faixa = read("mortalidade_evitaveis_cap_faixa_ano.csv")
 df_grupo_cap_faixa = read("mortalidade_evitaveis_grupo_cap_faixa_ano.csv")
 
 h4('Panorama municipal, por subgrupo')
+_entries_panorama_cap = []
 for faixa in ['menores de 1 ano', 'de 1 a 4 anos', 'menores de 5 anos']:
-    h5(faixa.capitalize())
     sub = df_cap_faixa[df_cap_faixa["faixa_etaria"] == faixa].groupby(["subgrupo", "ano"], as_index=False)["obitos"].sum()
     subgrupos = list(dict.fromkeys(sub["subgrupo"]))
     anos = sorted(sub["ano"].unique().tolist())
@@ -755,7 +834,9 @@ for faixa in ['menores de 1 ano', 'de 1 a 4 anos', 'menores de 5 anos']:
     for sg in subgrupos:
         d = sub[sub["subgrupo"] == sg].set_index("ano")["obitos"]
         series.append({'label': clean_causa(sg), 'values': [d.get(a) for a in anos]})
-    line_chart(anos, series, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
+    _lbl = faixa.capitalize()
+    _entries_panorama_cap.append((_lbl, lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _lbl))
+option_card(_entries_panorama_cap, 'grafico')
 
 h4('Por CAP e faixa etária')
 # 18 combinacoes (3 faixas x 6 subgrupos) -- antes eram 18 line_chart em sequencia
@@ -781,16 +862,18 @@ for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 an
         for cap in caps:
             d = sub[sub["cod_ap_sms"] == cap].set_index("ano")["obitos"]
             series.append({'label': f"CAP {cap}", 'values': [d.get(a) for a in anos]})
+        _label = f"{faixa_lbl} · {subgrupo_lbl}"
         _entries_cap_faixa.append((
-            f"{faixa_lbl} · {subgrupo_lbl}",
-            lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'legendTitle': 'CAP', 'table': True}, fonte=FONTE_EVITAVEIS)
+            _label,
+            lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'legendTitle': 'CAP', 'table': True}, fonte=FONTE_EVITAVEIS),
+            _label,
         ))
-option_card(_entries_cap_faixa)
+option_card(_entries_cap_faixa, 'grafico')
 
-h4('Grupo evitável, por CAP')
-# 3 faixas, cada uma com o par absoluto+percentual (antes h5 por faixa com 2
-# line_chart cada) -- viram 1 chart-card, pill = faixa, cada opcao mostra o
-# par lado a lado (out_pair).
+h4('Grupo evitável e subgrupos (gestação/parto), por CAP')
+# specification.md §9: merge de "Grupo evitável por CAP" (3 faixas, par
+# abs+pct) com "Gestação e parto por CAP" (2 subgrupos) num so grupo de 5
+# pills -- eram 2 option_card separados numa rodada anterior.
 GRUPO1_COL = "1. Causas evitáveis"
 _entries_grupo_cap = []
 for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 anos', 'De 1 a 4 anos'), ('menores de 5 anos', 'Menores de 5 anos')]:
@@ -807,11 +890,9 @@ for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 an
         lambda anos=anos, series_abs=series_abs, series_pct=series_pct: out_pair(
             lambda: line_chart(anos, series_abs, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS, titulo="Óbitos (absoluto)"),
             lambda: line_chart(anos, series_pct, opts={'height': 240, 'maxXLabels': 6, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS, titulo="% do total evitável"),
-        )
+        ),
+        faixa_lbl,
     ))
-option_card(_entries_grupo_cap)
-
-h4('Gestação e parto, menores de 1 ano, por CAP')
 for subgrupo_full, subgrupo_lbl in [
     ('1.2.1. Red por at à mulher na gestação', 'Gestação'),
     ('1.2.2. Red por at à mulher no parto', 'Parto'),
@@ -823,8 +904,13 @@ for subgrupo_full, subgrupo_lbl in [
     for cap in caps:
         d = sub[sub["cod_ap_sms"] == cap].set_index("ano")["obitos"]
         series.append({'label': f"CAP {cap}", 'values': [d.get(a) for a in anos]})
-    h5(subgrupo_lbl)
-    line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
+    _label = f"{subgrupo_lbl} (menores de 1 ano)"
+    _entries_grupo_cap.append((
+        _label,
+        lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS),
+        _label,
+    ))
+option_card(_entries_grupo_cap, 'grafico')
 
 h4('Panorama municipal (< 5 anos) e taxa')
 df_menores5_sub = read("obitos_evitaveis_menores_5_subgrupo_municipio_ano.csv")
@@ -834,108 +920,113 @@ series_m5 = []
 for sg in sgs:
     d = df_menores5_sub[df_menores5_sub["subgrupo"] == sg].set_index("ano")["obitos"]
     series_m5.append({'label': clean_causa(sg), 'values': [d.get(a) for a in anos_m5]})
-line_chart(anos_m5, series_m5, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
 df_taxa_m5 = read("taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv")
-line_chart(df_taxa_m5["ano"], [{'label': 'Taxa por mil NV', 'values': df_taxa_m5['taxa_por_mil'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)
+viz('grafico', [
+    ("Óbitos por subgrupo", lambda: line_chart(anos_m5, series_m5, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)),
+    ("Taxa por mil NV", lambda: line_chart(df_taxa_m5["ano"], [{'label': 'Taxa por mil NV', 'values': df_taxa_m5['taxa_por_mil'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)),
+])
 
 h4('Mapas')
+# specification.md §9: os 8 mapas por CAP viravam uma grade solta (decisao
+# anterior, especifica pra galeria); revertido nesta rodada para pills, como
+# o resto do relatorio -- seções mais curtas pesou mais que comparação
+# lado a lado (registrado como reversão explícita, não descuido).
 FAIXAS_PRIMEIRA_INFANCIA = {
     'menores_1_ano':  {'rotulo': 'menores de 1 ano',   'bins_absoluto': [20, 40, 60, 80]},
     '1_a_4_anos':     {'rotulo': 'de 1 a 4 anos',       'bins_absoluto': [2, 4, 7, 10]},
     'menores_5_anos': {'rotulo': 'menores de 5 anos',   'bins_absoluto': [20, 45, 70, 95]},
 }
 df_evitaveis_cap_2025 = read("mortalidade_evitaveis_cap_2025.csv")
+_entries_mapas_cap = []
 for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
     df_faixa_2025 = df_evitaveis_cap_2025[df_evitaveis_cap_2025["faixa_etaria"] == info['rotulo']]
-    mapa_svg(df_faixa_2025, "cod_ap_sms", "evitaveis", "mortalidade",
-             f"Óbitos por causas evitáveis, {info['rotulo']}, por CAP (2025)", "Óbitos",
-             FONTE_EVITAVEIS, bins=info['bins_absoluto'], nivel="cap")
-    mapa_svg(df_faixa_2025, "cod_ap_sms", "percentual_evitaveis", "mortalidade",
-             f"Percentual de óbitos evitáveis, {info['rotulo']}, por CAP (2025)", "% evitáveis",
-             FONTE_EVITAVEIS, fmt="pct1", nivel="cap")
+    _l1 = f"{info['rotulo']} · Óbitos"
+    _entries_mapas_cap.append((_l1, lambda df=df_faixa_2025, info=info: mapa_svg(
+        df, "cod_ap_sms", "evitaveis", "mortalidade",
+        f"Óbitos por causas evitáveis, {info['rotulo']}, por CAP (2025)", "Óbitos",
+        FONTE_EVITAVEIS, bins=info['bins_absoluto'], nivel="cap"), _l1))
+    _l2 = f"{info['rotulo']} · %"
+    _entries_mapas_cap.append((_l2, lambda df=df_faixa_2025, info=info: mapa_svg(
+        df, "cod_ap_sms", "percentual_evitaveis", "mortalidade",
+        f"Percentual de óbitos evitáveis, {info['rotulo']}, por CAP (2025)", "% evitáveis",
+        FONTE_EVITAVEIS, fmt="pct1", nivel="cap"), _l2))
 _SUBGRUPOS_COMPONENTE_C = {'gestacao': 'Gestação', 'parto': 'Parto'}
 _BINS_SUBGRUPO_COMPONENTE_C = {'gestacao': [10, 20, 30, 40], 'parto': [2, 4, 6, 8]}
 for slug, rotulo in _SUBGRUPOS_COMPONENTE_C.items():
     df_subgrupo_2025 = read(f"tabela_mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025.csv")
-    mapa_svg(df_subgrupo_2025, "cod_ap_sms", "obitos", "mortalidade",
-             f"Óbitos evitáveis - {rotulo}, menores de 1 ano, por CAP (2025)", "Óbitos",
-             FONTE_EVITAVEIS, bins=_BINS_SUBGRUPO_COMPONENTE_C[slug], nivel="cap")
+    _l3 = rotulo
+    _entries_mapas_cap.append((_l3, lambda df=df_subgrupo_2025, slug=slug, rotulo=rotulo: mapa_svg(
+        df, "cod_ap_sms", "obitos", "mortalidade",
+        f"Óbitos evitáveis - {rotulo}, menores de 1 ano, por CAP (2025)", "Óbitos",
+        FONTE_EVITAVEIS, bins=_BINS_SUBGRUPO_COMPONENTE_C[slug], nivel="cap"), _l3))
+option_card(_entries_mapas_cap, 'mapa')
 
 # ==================================================== GRAVIDEZ/PUERPERIO ==
 
 h2('\U0001F930 Gravidez e puerpério')
 df_grav = read("obitos_gravidez_por_ano.csv")
-line_chart(df_grav["ano"], [{'label': 'Óbitos', 'values': df_grav['óbitos-gravidez']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)
+df_puerp = read("obitos_puerperio_por_ano.csv")
+viz('grafico', [
+    ("Gravidez", lambda: line_chart(df_grav["ano"], [{'label': 'Óbitos', 'values': df_grav['óbitos-gravidez']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)),
+    ("Puerpério", lambda: line_chart(df_puerp["ano"], [{'label': 'Óbitos', 'values': df_puerp['óbitos-puerpério']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)),
+])
 df_map_grav = read("obitos_gravidez_bairro_ano.csv")
 df_map_grav_2025 = df_map_grav[df_map_grav["ano"] == 2025]
-mapa_svg(df_map_grav_2025, "codigo", "óbitos-gravidez", "mortalidade",
-         "Óbitos durante a gravidez por bairro (2025)", "Óbitos",
-         FONTE_DATASUS, bins=[0, 1])
-df_puerp = read("obitos_puerperio_por_ano.csv")
-line_chart(df_puerp["ano"], [{'label': 'Óbitos', 'values': df_puerp['óbitos-puerpério']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)
 df_map_puerp = read("obitos_puerperio_bairro_ano.csv")
 df_map_puerp_2025 = df_map_puerp[df_map_puerp["ano"] == 2025]
-mapa_svg(df_map_puerp_2025, "codigo", "óbitos-puerpério", "mortalidade",
-         "Óbitos durante o puerpério por bairro (2025)", "Óbitos",
-         FONTE_DATASUS, bins=[0, 1, 2])
+option_card([
+    ("Gravidez", lambda: mapa_svg(df_map_grav_2025, "codigo", "óbitos-gravidez", "mortalidade",
+        "Óbitos durante a gravidez por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[0, 1]), "Gravidez"),
+    ("Puerpério", lambda: mapa_svg(df_map_puerp_2025, "codigo", "óbitos-puerpério", "mortalidade",
+        "Óbitos durante o puerpério por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[0, 1, 2]), "Puerpério"),
+], 'mapa')
 
 # ======================================================== NEONATAL ========
 
 h2('\U0001FA7A Mortalidade neonatal')
-h3('Precoce (0-6 dias)')
 df_prec = read("mortalidade_neonatal_precoce_por_ano.csv")
-line_chart(df_prec["ano"], [{'label': 'Taxa (‰)', 'values': df_prec['taxa_mortalidade_precoce'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-df_map_neo_prec = read("mortalidade_neonatal_precoce_bairro_ano.csv")
-df_map_neo_prec_2025 = df_map_neo_prec[df_map_neo_prec["ano"] == 2025]
-mapa_svg(df_map_neo_prec_2025, "codigo", "obitos precoces", "mortalidade",
-         "Óbitos precoces (0-6 dias) por bairro (2025)", "Óbitos",
-         FONTE_DATASUS, bins=[1, 3, 6, 12])
-mapa_svg(df_map_neo_prec_2025, "codigo", "taxa_mortalidade_precoce", "mortalidade",
-         "Taxa de óbitos precoces por bairro (2025)", "Taxa por mil NV",
-         FONTE_DATASUS, fmt="pct1")
-
-h3('Tardia (7-27 dias)')
 df_tard = read("mortalidade_neonatal_tardia_por_ano.csv")
-line_chart(df_tard["ano"], [{'label': 'Taxa (‰)', 'values': df_tard['taxa_obitos_tardios'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-df_map_neo_tard = read("mortalidade_neonatal_tardia_bairro_ano.csv")
-df_map_neo_tard_2025 = df_map_neo_tard[df_map_neo_tard["ano"] == 2025]
-mapa_svg(df_map_neo_tard_2025, "codigo", "obitos_tardios", "mortalidade",
-         "Óbitos tardios (7-27 dias) por bairro (2025)", "Óbitos",
-         FONTE_DATASUS, bins=[1, 2, 4, 8])
-mapa_svg(df_map_neo_tard_2025, "codigo", "taxa_obitos_tardios", "mortalidade",
-         "Taxa de óbitos tardios por bairro (2025)", "Taxa por mil NV",
-         FONTE_DATASUS, fmt="pct1")
-
-h3('Pós-neonatal (28-364 dias)')
 df_inf = read("mortalidade_infantil_pos_neonatal_total_por_ano.csv")
-line_chart(df_inf["ano"], [{'label': 'Taxa pós-neonatal (‰)', 'values': df_inf['taxa_mortalidade_pos_neonatal'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-df_map_pos_neo = read("mortalidade_infantil_pos_neonatal_total_bairro_ano.csv")
-df_map_pos_neo_2025 = df_map_pos_neo[df_map_pos_neo["ano"] == 2025]
-mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_28_364", "mortalidade",
-         "Óbitos pós-neonatais (28-364 dias) por bairro (2025)", "Óbitos",
-         FONTE_DATASUS, bins=[1, 2, 4, 8])
-mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_pos_neonatal", "mortalidade",
-         "Taxa de mortalidade pós-neonatal por bairro (2025)", "Taxa por mil NV",
-         FONTE_DATASUS, fmt="pct1")
+viz('grafico', [
+    ("Precoce (0-6 dias)", lambda: line_chart(df_prec["ano"], [{'label': 'Taxa (‰)', 'values': df_prec['taxa_mortalidade_precoce'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
+    ("Tardia (7-27 dias)", lambda: line_chart(df_tard["ano"], [{'label': 'Taxa (‰)', 'values': df_tard['taxa_obitos_tardios'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
+    ("Pós-neonatal (28-364 dias)", lambda: line_chart(df_inf["ano"], [{'label': 'Taxa pós-neonatal (‰)', 'values': df_inf['taxa_mortalidade_pos_neonatal'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
+    ("Total (0-364 dias)", lambda: line_chart(df_inf["ano"], [{'label': 'Taxa infantil total (‰)', 'values': df_inf['taxa_mortalidade_infantil'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
+])
 
-h3('Total (0-364 dias)')
-line_chart(df_inf["ano"], [{'label': 'Taxa infantil total (‰)', 'values': df_inf['taxa_mortalidade_infantil'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_0_364", "mortalidade",
-         "Óbitos infantis (0-364 dias) por bairro (2025)", "Óbitos",
-         FONTE_DATASUS, bins=[2, 5, 10, 20])
-mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_infantil", "mortalidade",
-         "Taxa de mortalidade infantil por bairro (2025)", "Taxa por mil NV",
-         FONTE_DATASUS, fmt="pct1")
+df_map_neo_prec_2025 = read("mortalidade_neonatal_precoce_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
+df_map_neo_tard_2025 = read("mortalidade_neonatal_tardia_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
+df_map_pos_neo_2025 = read("mortalidade_infantil_pos_neonatal_total_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
+option_card([
+    ("Precoce · Óbitos", lambda: mapa_svg(df_map_neo_prec_2025, "codigo", "obitos precoces", "mortalidade",
+        "Óbitos precoces (0-6 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 3, 6, 12]), "Precoce · Óbitos"),
+    ("Precoce · Taxa", lambda: mapa_svg(df_map_neo_prec_2025, "codigo", "taxa_mortalidade_precoce", "mortalidade",
+        "Taxa de óbitos precoces por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Precoce · Taxa"),
+    ("Tardia · Óbitos", lambda: mapa_svg(df_map_neo_tard_2025, "codigo", "obitos_tardios", "mortalidade",
+        "Óbitos tardios (7-27 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "Tardia · Óbitos"),
+    ("Tardia · Taxa", lambda: mapa_svg(df_map_neo_tard_2025, "codigo", "taxa_obitos_tardios", "mortalidade",
+        "Taxa de óbitos tardios por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Tardia · Taxa"),
+    ("Pós-neonatal · Óbitos", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_28_364", "mortalidade",
+        "Óbitos pós-neonatais (28-364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "Pós-neonatal · Óbitos"),
+    ("Pós-neonatal · Taxa", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_pos_neonatal", "mortalidade",
+        "Taxa de mortalidade pós-neonatal por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Pós-neonatal · Taxa"),
+    ("Total · Óbitos", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_0_364", "mortalidade",
+        "Óbitos infantis (0-364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "Total · Óbitos"),
+    ("Total · Taxa", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_infantil", "mortalidade",
+        "Taxa de mortalidade infantil por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Total · Taxa"),
+], 'mapa')
 
 # ============================================================== SISVAN ====
 
 h2('\U0001F957 SISVAN')
 FONTE_SISVAN = "SISVAN/DATASUS"
 df_desn = read("sisvan_desnutricao_por_ano.csv")
-line_chart(df_desn["ano"], [{'label': '% baixo peso', 'values': df_desn['Percent. baixo peso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)
 df_sobre = read("sisvan_sobrepeso_por_ano.csv")
-line_chart(df_sobre["ano"], [{'label': '% sobrepeso', 'values': df_sobre['Percent. sobrepeso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)
-line_chart(df_sobre["ano"], [{'label': '% obesidade', 'values': df_sobre['obesidade_percentual'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)
+viz('grafico', [
+    ("Baixo peso", lambda: line_chart(df_desn["ano"], [{'label': '% baixo peso', 'values': df_desn['Percent. baixo peso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)),
+    ("Sobrepeso", lambda: line_chart(df_sobre["ano"], [{'label': '% sobrepeso', 'values': df_sobre['Percent. sobrepeso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)),
+    ("Obesidade", lambda: line_chart(df_sobre["ano"], [{'label': '% obesidade', 'values': df_sobre['obesidade_percentual'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)),
+])
 
 # ======================================================== VACINACAO =======
 
@@ -943,44 +1034,46 @@ h2('\U0001F489 Cobertura vacinal (EPI)')
 FONTE_EPI = "EPI/SVS-Rio, cobertura vacinal por imunobiológico"
 df_vac = read("cobertura_vacinal_epi_por_ano.csv")
 vac_cols = [c for c in df_vac.columns if c != "ano"]
-line_chart(df_vac["ano"], series_from_cols(df_vac, vac_cols, fmt='pct1'), opts={'height': 280, 'maxXLabels': 8, 'table': True}, fonte=FONTE_EPI)
-
 df_vac_comp = read("cobertura_vacinal_epi_comparativo_anos.csv")
 df_vac_comp_wide = df_vac_comp.pivot(index="ano", columns="imunobiologico", values="cobertura").reset_index()
 comp_cols = [c for c in df_vac_comp_wide.columns if c != "ano"]
-grouped_bar_chart(df_vac_comp_wide["ano"], series_from_cols(df_vac_comp_wide, comp_cols, fmt='pct1'), opts={'height': 320}, fonte=FONTE_EPI)
+viz('grafico', [
+    ("Série temporal por imunobiológico", lambda: line_chart(df_vac["ano"], series_from_cols(df_vac, vac_cols, fmt='pct1'), opts={'height': 280, 'maxXLabels': 8, 'table': True}, fonte=FONTE_EPI)),
+    ("Comparativo por ano", lambda: grouped_bar_chart(df_vac_comp_wide["ano"], series_from_cols(df_vac_comp_wide, comp_cols, fmt='pct1'), opts={'height': 320}, fonte=FONTE_EPI)),
+])
 
 # ========================================================= EDUCACAO =======
 
 h2('\U0001F393 Educação')
 FONTE_SIDRA_EDU = "Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)"
-
-h3('Frequência escolar 0-5 anos (IBGE SIDRA)')
 _ORDEM_IDADE_SIDRA_0_5 = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
 _ORDEM_IDADE_SIDRA_0_6_EDU = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
 
 df_freq_raca = _ordenar_idade(read("sidra_frequencia_escola_0_5_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
 fr_cols = [c for c in df_freq_raca.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_freq_raca["idade"], series_from_cols(df_freq_raca, fr_cols), fonte=FONTE_SIDRA_EDU)
 df_freq_sexo = _ordenar_idade(read("sidra_frequencia_escola_0_5_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
 fs_cols = [c for c in df_freq_sexo.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_freq_sexo["idade"], series_from_cols(df_freq_sexo, fs_cols), fonte=FONTE_SIDRA_EDU)
-
-h3('Taxa de frequência escolar 0-6 anos (IBGE SIDRA)')
 df_taxa_raca = _ordenar_idade(read("sidra_taxa_frequencia_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
 tr_cols = [c for c in df_taxa_raca.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_taxa_raca["idade"], series_from_cols(df_taxa_raca, tr_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU)
 df_taxa_sexo = _ordenar_idade(read("sidra_taxa_frequencia_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
 ts_cols = [c for c in df_taxa_sexo.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU)
+viz('grafico', [
+    ("Frequência 0-5, por raça", lambda: grouped_bar_chart(df_freq_raca["idade"], series_from_cols(df_freq_raca, fr_cols), fonte=FONTE_SIDRA_EDU)),
+    ("Frequência 0-5, por sexo", lambda: grouped_bar_chart(df_freq_sexo["idade"], series_from_cols(df_freq_sexo, fs_cols), fonte=FONTE_SIDRA_EDU)),
+    ("Taxa 0-6, por raça", lambda: grouped_bar_chart(df_taxa_raca["idade"], series_from_cols(df_taxa_raca, tr_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU)),
+    ("Taxa 0-6, por sexo", lambda: grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU)),
+])
 
 h3('Frequência escolar por idade (PNAD Contínua)')
 df_pnad = read("frequencia_escolar_pnad_por_idade.csv")
-bar_chart([{'label': r["Idade"], 'value': r["Total"] * 100} for _, r in df_pnad.iterrows()], fonte="PNAD Contínua (IBGE)")
+# PNAD e Matrículas ficam soltos -- indicadores/fontes diferentes entre si,
+# nao um corte do mesmo dado (specification.md §9, mesmo criterio ja usado
+# para nao forcar pills na "Comparação entre faixas etárias" de evitáveis)
+viz('grafico', [("Frequência por idade", lambda: bar_chart([{'label': r["Idade"], 'value': r["Total"] * 100} for _, r in df_pnad.iterrows()], fonte="PNAD Contínua (IBGE)", fmt='pct1'))])
 
 h3('Matrículas 0 a 6 anos')
 df_mat = read("matriculas_0_a_6_por_ano.csv").sort_values("ano")
-line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}], opts={'height': 200, 'table': True}, fonte="Censo Escolar/INEP")
+viz('grafico', [("Matrículas 0 a 6 anos", lambda: line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}], opts={'height': 200, 'table': True}, fonte="Censo Escolar/INEP"))])
 
 # ============================================================== ASSEMBLE ==
 
@@ -1054,6 +1147,7 @@ CSS = r"""
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
   :root{
+    color-scheme: light;
     --page:        #FFFFFF;
     --surface:     #FFFFFF;
     --surface-2:   #F7F8F8;
@@ -1085,41 +1179,6 @@ CSS = r"""
     --font-body: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --page:        #14201C;
-      --surface:     #1B2925;
-      --surface-2:   #21302B;
-      --ink:         #EDEEE9;
-      --ink-2:       #B7C0BB;
-      --ink-3:       #7C8985;
-      --hairline:    rgba(255,255,255,0.13);
-      --hairline-2:  rgba(255,255,255,0.07);
-      --accent:      #88b4aa;
-      --accent-ink:  #10201b;
-      --accent-soft: #1D302B;
-      --shadow:      0 1px 2px rgba(0,0,0,.4), 0 8px 26px -12px rgba(0,0,0,.6);
-      --shadow-hover:0 4px 12px rgba(0,0,0,.5), 0 20px 44px -16px rgba(0,0,0,.7);
-      --c1:var(--c1d);--c2:var(--c2d);--c3:var(--c3d);--c4:var(--c4d);--c5:var(--c5d);--c6:var(--c6d);--c7:var(--c7d);--c8:var(--c8d);--c9:var(--c9d);--c10:var(--c10d);--c11:var(--c11d);--c-muted:var(--c-muted-d);
-    }
-  }
-  :root[data-theme="dark"]{
-    --page:        #14201C;
-    --surface:     #1B2925;
-    --surface-2:   #21302B;
-    --ink:         #EDEEE9;
-    --ink-2:       #B7C0BB;
-    --ink-3:       #7C8985;
-    --hairline:    rgba(255,255,255,0.13);
-    --hairline-2:  rgba(255,255,255,0.07);
-    --accent:      #88b4aa;
-    --accent-ink:  #10201b;
-    --accent-soft: #1D302B;
-    --shadow:      0 1px 2px rgba(0,0,0,.4), 0 8px 26px -12px rgba(0,0,0,.6);
-    --shadow-hover:0 4px 12px rgba(0,0,0,.5), 0 20px 44px -16px rgba(0,0,0,.7);
-    --c1:var(--c1d);--c2:var(--c2d);--c3:var(--c3d);--c4:var(--c4d);--c5:var(--c5d);--c6:var(--c6d);--c7:var(--c7d);--c8:var(--c8d);--c9:var(--c9d);--c10:var(--c10d);--c11:var(--c11d);--c-muted:var(--c-muted-d);
-  }
-
   *{box-sizing:border-box;}
   body{
     margin:0; background:var(--page); color:var(--ink);
@@ -1129,7 +1188,7 @@ CSS = r"""
   a{color:var(--accent);}
   code{font-family:var(--font-mono); font-size:.92em; background:var(--hairline-2); padding:.1em .35em; border-radius:3px;}
 
-  .doc{max-width:880px; margin:0 auto; padding:64px 24px 110px;}
+  .doc{max-width:1200px; margin:0 auto; padding:64px 24px 110px;}
 
   header.doc-head{margin-bottom:8px;}
   header.doc-head h1{
@@ -1288,7 +1347,7 @@ CSS = r"""
   }
   .navbar-menu[hidden]{display:none;}
   .navbar-link{
-    display:block; max-width:880px; margin:0 auto; padding:10px 24px;
+    display:block; max-width:1200px; margin:0 auto; padding:10px 24px;
     font-family:var(--font-mono); font-size:.85rem; color:var(--ink); text-decoration:none;
     border-bottom:1px solid var(--hairline);
   }
@@ -1316,16 +1375,35 @@ CSS = r"""
   .section-body{padding:24px 22px 30px;}
   .rsec[data-collapsed="true"] .section-body{display:none;}
 
-  /* ---- seletor de opcoes (pills) ---- */
-  .option-card{display:flex; gap:16px; align-items:stretch; margin:14px 0 8px;}
-  .pill-col{display:flex; flex-direction:column; gap:8px; width:200px; flex:none; max-height:460px; overflow-y:auto; padding-right:2px;}
+  /* ---- 3 padroes de layout: grafico (texto abaixo), mapa (texto na 3a
+     coluna), tabela (texto a esquerda) -- specification.md §3.13 ---- */
+  .option-card{
+    display:grid; gap:16px 20px; margin:14px 0 8px; align-items:start;
+  }
+  .option-card-grafico{grid-template-columns:200px 1fr; grid-template-areas:"pills chart" "text text";}
+  .option-card-grafico.option-card-single{grid-template-columns:1fr; grid-template-areas:"chart" "text";}
+  .option-card-mapa{grid-template-columns:200px 1fr 260px; grid-template-areas:"pills map text";}
+  .option-card-mapa.option-card-single{grid-template-columns:1fr 260px; grid-template-areas:"map text";}
+  .option-card .pill-col{grid-area:pills;}
+  .option-card-grafico .opt-panes{grid-area:chart;}
+  .option-card-mapa .opt-panes{grid-area:map;}
+  .option-card .opt-texts{grid-area:text;}
+
+  .table-with-text{display:grid; grid-template-columns:260px 1fr; gap:20px; margin:14px 0 8px; align-items:start;}
+
+  .pill-col{display:flex; flex-direction:column; gap:8px; max-height:460px; overflow-y:auto; padding-right:2px;}
   .pill{
     text-align:left; padding:9px 12px; border:2px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
     font-family:var(--font-mono); font-size:.72rem; font-weight:600; cursor:pointer;
   }
   .pill[data-active="true"]{background:var(--ink); color:var(--page);}
-  .opt-panes{flex:1; min-width:0;}
+  .opt-panes{min-width:0;}
   .opt-panes .out{margin-top:0;}
+  .opt-text{
+    font-family:var(--font-body); font-size:.86rem; color:var(--ink-2); line-height:1.7;
+    padding:16px 18px; border:2px solid var(--ink); min-width:0;
+    max-height:240px; overflow-y:auto;
+  }
 
   /* ---- outliers ---- */
   .outlier-toolbar{display:flex; justify-content:flex-end; margin-bottom:6px;}
@@ -1359,7 +1437,7 @@ CSS = r"""
     margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
     background:var(--ipp-navy); color:#EAF2F8; padding:36px 24px 24px; margin-top:60px;
   }
-  .footer-cols{max-width:880px; margin:0 auto; display:flex; gap:40px; flex-wrap:wrap; padding-bottom:20px;}
+  .footer-cols{max-width:1200px; margin:0 auto; display:flex; gap:40px; flex-wrap:wrap; padding-bottom:20px;}
   .footer-col{min-width:180px; flex:1;}
   .footer-col-logo{min-width:220px; flex:1.4;}
   .footer-col-logo .ipp-logo{height:24px; width:auto; display:block; margin-bottom:12px;}
@@ -1368,12 +1446,16 @@ CSS = r"""
   .footer-col > div{font-size:.76rem; color:#DCE9F2; line-height:1.9;}
   .footer-col a{color:#DCE9F2;}
   .footer-col a:hover{color:#fff;}
-  .footer-rule{max-width:880px; margin:0 auto; height:1px; background:var(--ipp-cyan); opacity:.4;}
-  .footer-credit{max-width:880px; margin:0 auto; padding-top:14px; font-family:var(--font-mono); font-size:.66rem; color:#7FA9C6;}
+  .footer-rule{max-width:1200px; margin:0 auto; height:1px; background:var(--ipp-cyan); opacity:.4;}
+  .footer-credit{max-width:1200px; margin:0 auto; padding-top:14px; font-family:var(--font-mono); font-size:.66rem; color:#7FA9C6;}
 
   @media (max-width:720px){
-    .option-card{flex-direction:column;}
-    .pill-col{flex-direction:row; flex-wrap:wrap; width:auto; max-height:none;}
+    .option-card-grafico{grid-template-columns:1fr; grid-template-areas:"pills" "chart" "text";}
+    .option-card-grafico.option-card-single{grid-template-columns:1fr; grid-template-areas:"chart" "text";}
+    .option-card-mapa{grid-template-columns:1fr; grid-template-areas:"pills" "map" "text";}
+    .option-card-mapa.option-card-single{grid-template-columns:1fr; grid-template-areas:"map" "text";}
+    .table-with-text{grid-template-columns:1fr;}
+    .pill-col{flex-direction:row; flex-wrap:wrap; max-height:none;}
     .map-svg-row{flex-direction:column;}
     .map-legend{width:auto;}
   }

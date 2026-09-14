@@ -239,11 +239,42 @@ esse texto a partir dos dados seria fabricar uma leitura editorial sem
 base — deliberadamente deixado de fora até haver conteúdo real para esses
 blocos.
 
+### v6.2 — texto de análise por opção, tema único, outliers só em taxas,
+agrupamento mais agressivo
+
+- **Todo chart-card/map-card/tabela ganhou um bloco de texto de análise**
+  (lorem ipsum, ~500 palavras, placeholder deliberado — ver v6.1 sobre o
+  bloco "Principais achados" continuar de fora por motivo diferente) — e o
+  texto **troca junto com a opção ativa do seletor**, não fica fixo por
+  card. 3 padrões de posição: gráfico (texto abaixo, largura total), mapa
+  (texto na 3ª coluna, ao lado), tabela (texto à esquerda — padrão novo,
+  não existia antes). Bug real corrigido na validação: sem limite de
+  altura, 500 palavras numa coluna estreita ficavam ~15 telas mais altas
+  que o gráfico/tabela ao lado — corrigido com caixa de altura fixa e
+  rolagem interna.
+- **Outliers restritos a percentuais/taxas** — números absolutos (óbitos,
+  nascidos vivos, crianças no CadÚnico...) não têm mais o toggle de
+  outliers. Motivo: um pico real numa contagem costuma ser o dado mais
+  relevante da série; um percentual/taxa anômalo tem mais chance de
+  refletir um denominador pequeno ou problema de base (caso do outlier de
+  >500% já documentado no CadÚnico/Censo). Reduziu de 51 para 22
+  outlier-cards no relatório.
+- **Tema escuro removido** — só tema claro a partir de agora.
+- **Corpo mais largo**: 880px → 1200px.
+- **Agrupamento estendido a praticamente todo o relatório** (antes só 2
+  casos tinham seletor de opções): Censo, CadÚnico, DataSUS, evitáveis
+  (raça, CID-10, panorama por subgrupo, CAP), gravidez/puerpério, neonatal,
+  SISVAN, cobertura vacinal e Educação — cada um virou 1-2 chart-cards com
+  pills em vez de vários cards/subseções soltos. A galeria de 8 mapas do
+  CAP evitável, que uma decisão anterior mantinha como grade solta
+  (comparação lado a lado), voltou a ser pills — seções mais curtas pesou
+  mais desta vez.
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
 | :--- | :--- | :--- | :--- |
-| `index.html` | Claro/escuro automático | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), intercalados no fluxo |
+| `index.html` | Claro (único, v6.2) | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), intercalados no fluxo |
 
 ## Limitações conhecidas
 

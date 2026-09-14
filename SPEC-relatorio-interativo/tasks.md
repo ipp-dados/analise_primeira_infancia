@@ -217,32 +217,57 @@ nível — `relatorio/index.html` foi de ~5MB para ~20MB. Registrado em
       do código em si não depende desses três.
 
 ## Bloco 11 — Replanejamento: texto por opção, tema único, outliers só em
-taxas, agrupamento (plan.md §10) — **prospectivo, nada implementado ainda**
-- [ ] **T11.1** — `option_card` ganha `texto` por opção (plan.md §10.1) — os
-      2 grupos já existentes ("Por CAP e faixa etária", "Grupo evitável por
-      CAP") precisam de texto também, não só os grupos novos do Bloco 11.4.
-- [ ] **T11.2** — 3 padrões de CSS (grid) — gráfico (texto abaixo, largura
-      total), mapa (texto na 3ª coluna), tabela (texto à esquerda, novo,
-      sem pills) — plan.md §10.2.
-- [ ] **T11.3** — Gerador de lorem ipsum determinístico por label
-      (`_lorem(seed, palavras=500)`) — plan.md §10.3.
-- [ ] **T11.4** — Aplicar a proposta de agrupamento de `specification.md` §9
-      aos ~9 grupos novos (Censo população/série, CadÚnico renda/idade,
-      DataSUS séries/mapas, evitáveis raça/CID-10/panorama/mapas-CAP,
-      gravidez-puerpério gráfico/mapa, neonatal taxa/mapas, SISVAN, EPI,
-      Educação SIDRA) + reverter a galeria de mapas do CAP evitável (8) de
-      grade solta para pills.
-- [ ] **T11.5** — Outliers com gate por formato (`_eh_taxa_ou_percentual`) —
-      aplicado em `line_chart`/`bar_chart`/`grouped_bar_chart`/`mapa_svg`
-      (plan.md §10.4). Confirmar que a contagem de outlier-cards cai bastante
-      em relação aos 51 da rodada anterior (só séries/mapas percentual/taxa
-      devem restar).
-- [ ] **T11.6** — Remover o bloco CSS de tema escuro inteiro (`@media
-      (prefers-color-scheme: dark)` + `:root[data-theme="dark"]`) — plan.md
-      §10.5. Confirmar visualmente que não sobra nenhuma referência a cor
-      "dark" morta no CSS gerado.
-- [ ] **T11.7** — `.doc{max-width:1200px}` (era 880px) — plan.md §10.6.
-- [ ] **T11.8** — Geração completa + validação visual (screenshot único
-      tema, já que dark deixou de existir) dos 3 padrões de layout em pelo
-      menos 1 instância cada (gráfico, mapa, tabela) e de pelo menos 2 dos
-      novos grupos de §11.4.
+taxas, agrupamento (plan.md §10) — **implementado e validado nesta rodada**
+- [x] **T11.1** — `option_card` ganha `texto` por opção (`(label, build_fn,
+      seed)`, plan.md §10.1). Os 2 grupos já existentes ("Por CAP e faixa
+      etária", "Grupo evitável por CAP" — este último fundido com
+      "Gestação/parto por CAP" nesta rodada, ver T11.4) também ganharam
+      texto, não só os grupos novos. `viz()` (açúcar sintático sobre
+      `option_card`, seed=label) criado para os ~25 call sites que não
+      precisavam de um seed diferente do label.
+- [x] **T11.2** — 3 padrões de CSS (grid) implementados —
+      `.option-card-grafico` (texto abaixo, largura total),
+      `.option-card-mapa` (texto na 3ª coluna), `.table-with-text` (texto à
+      esquerda, tabela à direita, sem pills) — confirmados visualmente nos
+      3, incluindo a variante `.option-card-single` (sem pills, 1 opção só).
+- [x] **T11.3** — `_lorem(seed, palavras=500)` escrita e usada em todo card —
+      **bug real encontrado e corrigido na validação**: 500 palavras sem
+      limite de altura estourava o layout (a coluna de texto da Censo
+      "Top 10 bairros" ficava ~15 telas mais alta que a tabela ao lado,
+      deixando um vão em branco enorme). Corrigido com `.opt-text{max-height:
+      240px; overflow-y:auto;}` — a caixa de texto agora tem altura fixa e
+      rola internamente, em todo os 3 padrões (não só a tabela).
+- [x] **T11.4** — Agrupamento aplicado seção por seção (Censo: tabela
+      →padrão C, população raça/sexo→2 pills, mapas→6 pills, série
+      temporal→2 pills; CadÚnico: renda/idade→2 pills, mapas→3 pills;
+      DataSUS: séries→4 pills, mapas→5 pills; evitáveis: raça→4 pills,
+      CID-10→8 pills, panorama-por-subgrupo→3 pills (não estava na proposta
+      original de §9, adicionado ao notar o mesmo padrão de repetição),
+      "Grupo evitável"+"Gestação/parto"→fundidos em 5 pills, mapas
+      CAP→revertido de grade solta para 8 pills; gravidez/puerpério→2+2
+      pills; neonatal→4 pills (gráfico) + 8 pills (mapa); SISVAN→3 pills;
+      EPI→2 pills; Educação SIDRA→4 pills, PNAD/Matrículas mantidos soltos
+      por decisão explícita (fontes diferentes, não um corte comparável,
+      mesmo critério de "Comparação entre faixas etárias"). Nenhuma chamada
+      solta de `line_chart`/`bar_chart`/`grouped_bar_chart`/`mapa_svg`/
+      `plain_table` ficou fora de `option_card`/`viz`/`tabela_com_texto` —
+      confirmado por grep (0 resultados para chamada no início de linha).
+- [x] **T11.5** — Outliers com gate por formato (`_eh_taxa_ou_percentual`)
+      aplicado nas 4 funções. Contagem de outlier-cards caiu de 51 (rodada
+      anterior) para 22 — confirmado, só séries/mapas percentual/taxa
+      restaram.
+- [x] **T11.6** — Bloco CSS de tema escuro removido por completo (`@media
+      (prefers-color-scheme: dark)` + `:root[data-theme="dark"]`), `:root`
+      ganhou `color-scheme:light` explícito. `grep -c "prefers-color-scheme:
+      dark"`/`data-theme="dark"` no HTML gerado = 0/0, confirmado.
+- [x] **T11.7** — `.doc{max-width:1200px}` — e os outros 4 lugares que
+      hardcodavam `880px` (navbar-link, footer-cols, footer-rule,
+      footer-credit) também atualizados para consistência, não previsto
+      explicitamente no plan.md original mas necessário para o rodapé/navbar
+      não ficarem mais estreitos que o corpo.
+- [x] **T11.8** — Geração completa + validação visual (Edge headless,
+      screenshot real de ~20000px) confirmando os 3 padrões, o agrupamento,
+      tema único e o corpo mais largo. DOM dump + log de console sem erros
+      de JavaScript da página (só ruído interno do browser). **Não
+      testado**: troca de pill real via clique interativo (mesma limitação
+      já registrada em T8.3 — só o estado inicial foi observado).
