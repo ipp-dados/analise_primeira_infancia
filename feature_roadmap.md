@@ -51,13 +51,14 @@
   entrar, pode não ser o tamanho certo para prosa de verdade.
 - Botão de "baixar tudo" (fora do escopo — só tem download por gráfico/mapa individual)
 - Persistir estado de collapse das seções entre sessões (localStorage), se vier a ser pedido
-- **Basemap/contexto geográfico real nos mapas SVG** — tentado e revertido na v6.4/v6.5
-  (buscava tiles do Esri Ocean Basemap, mas a margem de contexto ao redor da cidade
-  mistura terra e água sem uma camada de hidrografia pra separar os dois, e o usuário
-  pediu explicitamente pra nunca representar terra com imagem de mapa/satélite). Se
-  vier a ser retomado, precisa de uma camada de água/costa própria (não só o bbox da
-  cidade) pra colorir/texturizar somente o mar com segurança — ver
-  `relatorio/specs.md` v6.4/v6.5.
+- **Camada própria de água/costa pros mapas** — o fundo cartográfico real (Esri Ocean
+  Basemap, restaurado na v6.6 após um mal-entendido na v6.5 que o removeu por
+  completo) hoje é só o tile do provedor; não há uma camada de hidrografia própria do
+  projeto pra separar terra e água com certeza dentro do bbox de contexto ao redor da
+  cidade. Não bloqueia nada hoje (o choropleth dos dados nunca usa azul, só o
+  basemap), mas seria necessário se algum dia quiser colorir/texturizar
+  especificamente o mar por conta própria (sem depender do tile) — ver
+  `relatorio/specs.md` v6.4/v6.5/v6.6.
 
 ## Other (need to break down later)
 - Replace HTML visualization with proper Streamlit panel

@@ -376,11 +376,30 @@ sombra, alinhamento do topo, mapa menor
 - **Mapas ~20% mais baixos** (altura interna 560→448px) — só cortou
   margem em branco, nenhum polígono real.
 
+### v6.6 — fundo real de volta (esclarecido: o problema era o choropleth
+azul, não o basemap), texto do mapa de verdade limitado à altura do mapa
+
+- **Fundo cartográfico real restaurado**: a v6.5 tinha removido por
+  engano o basemap de satélite/relevo inteiro, quando o pedido original
+  era só nunca deixar os DADOS (choropleth) aparecerem em azul sobre
+  terra — isso já tinha sido corrigido separadamente (censo em `Greys`
+  desde a v6.5). Com o esclarecimento, o fundo real (Esri Ocean Basemap,
+  mesmo provedor do PNG) voltou; azul agora só aparece no mar/água do
+  basemap, nunca no choropleth dos dados.
+- **Bug real corrigido**: o texto ao lado do mapa não estava de fato
+  limitado à altura do mapa (`min-height:0` sozinho não resolve isso em
+  CSS Grid nem Flexbox quando o container não tem altura própria
+  definida — confirmado isolando o problema fora do gerador antes de
+  corrigir). Corrigido tirando o texto do cálculo de altura do
+  container-pai (filho `position:absolute` que rola por dentro) — agora
+  a caixa de texto termina exatamente na mesma altura do mapa, com
+  scrollbar interna pro que não cabe.
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
 | :--- | :--- | :--- | :--- |
-| `index.html` | Claro (único, v6.2) | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), fundo neutro + rosa dos ventos + escala + legenda interna (v6.5), intercalados no fluxo |
+| `index.html` | Claro (único, v6.2) | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), fundo cartográfico real + rosa dos ventos + escala + legenda interna (v6.6), intercalados no fluxo |
 
 ## Limitações conhecidas
 
@@ -390,14 +409,15 @@ sombra, alinhamento do topo, mapa menor
 - Algumas seções de `analise.py` sem saída visual (funções auxiliares,
   junção de tabelas por bairro) não têm equivalente no relatório, por não
   gerarem gráfico algum no notebook.
-- (v6.1) `relatorio/index.html` ficou ~17,15MB (geometria SVG repetida por
-  mapa, sem compartilhamento) — ver v6.1 acima e `feature_roadmap.md`.
+- (v6.1) `relatorio/index.html` ficou ~17,19MB (geometria SVG repetida por
+  mapa, sem compartilhamento; o fundo cartográfico é compartilhado entre
+  todos os mapas, adiciona só uma fração disso) — ver v6.1 acima e
+  `feature_roadmap.md`.
 - (v6.3) Bloco "Principais achados" existe agora, mas com texto placeholder
   (lorem ipsum) — ainda precisa de curadoria editorial real.
-- (v6.5) O fundo dos mapas é liso/neutro (sem imagem de satélite/relevo) —
-  decisão deliberada, não uma limitação técnica: azul fica reservado só
-  pra mar/água em contextos futuros que tiverem uma camada de hidrografia
-  confiável pra separar terra e água.
+- (v6.6) O fundo cartográfico real é a mesma imagem compartilhada pra
+  bairro/AP/RP/CAP-saúde (coincidência de bounding box — todos os 4
+  recortes cobrem o mesmo contorno do município).
 - (v6) URLs de Transparência Rio/LGPD e e-mail de contato no rodapé são
   placeholders, não confirmados para este relatório especificamente.
 - (v6) Autorização de uso do logo oficial da Prefeitura do Rio/IPP ainda não

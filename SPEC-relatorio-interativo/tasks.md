@@ -492,3 +492,49 @@ taxas, agrupamento (plan.md §10) — **implementado e validado nesta rodada**
       GitHub Pages) está todo registrado em `feature_roadmap.md` e não
       bloqueia o merge do código em si, só o deploy público específico
       (ver T0.4/T9.4/T9.5, já detalhado nos Blocos anteriores).
+
+## Bloco 16 — Fundo real de volta (esclarecido: o problema era o
+## choropleth azul, não o basemap) + texto do mapa de verdade limitado à
+## altura do mapa
+
+- [x] **T16.1** — **Fundo cartográfico real restaurado** (revertendo o
+      Bloco 14/T14.1): o usuário esclareceu que a preocupação era o
+      choropleth dos DADOS aparecer azul sobre terra (já corrigido no
+      Bloco 14/T14.2, censo em `Greys`), não o basemap real em si. A
+      função `_basemap_css_class` (fetch via `contextily`/Esri Ocean
+      Basemap, zoom 10, cache por bbox, 1 classe CSS compartilhada) foi
+      restaurada exatamente como estava antes da reversão, incluindo o
+      `fill-opacity:.88` nos polígonos pra deixar o fundo mostrar
+      sutilmente através. Único mapa real usado no relatório inteiro
+      continua compartilhando a mesma imagem entre os 44 mapas
+      (bairro/AP/RP/CAP-saúde têm bbox idêntico).
+- [x] **T16.2** — **Bug real encontrado e corrigido**: `min-height:0` por
+      si só (em `.opt-panes`/`.opt-texts`/`.opt-pane`/`.opt-text`) NÃO
+      limitava a altura do texto à altura do mapa — testado isoladamente
+      com 2 HTML mínimos (um em CSS Grid, outro em Flexbox, ambos com
+      `align-items:stretch` + `min-height:0` + `overflow-y:auto`) e os
+      2 mostraram o mesmo problema: quando o container não tem altura
+      própria definida (é `auto`, como aqui), a linha/eixo cruzado cresce
+      pro maior conteúdo entre os dois lados, e o lado mais curto (o
+      mapa, com altura intrínseca fixa por aspect-ratio) simplesmente
+      fica com espaço em branco sobrando — `min-height:0` só ajuda quando
+      o container JÁ tem uma altura restrita de fora, que não é o caso.
+      Corrigido com a técnica de retirar o conteúdo do cálculo de altura
+      intrínseca do pai: o texto de análise agora fica num filho
+      `.opt-text-inner` com `position:absolute;inset:0;overflow-y:auto`
+      dentro de `.opt-text` (`position:relative;overflow:hidden`) — um
+      descendente absolutamente posicionado não contribui pra altura
+      automática do ancestral, então a linha do grid passa a ser guiada
+      só pela altura real do mapa (o outro lado). Confirmado no teste
+      isolado (`gridtest2.html`, ver histórico da sessão) antes de
+      aplicar no gerador real.
+- [x] **T16.3** — Geração completa (17,19MB) + validação visual via Edge
+      headless: fundo real (relevo/rodovias/água) visível atrás dos
+      polígonos cinza (nunca azul) em 2 mapas testados (Censo bairro
+      absoluto e uma variante mais abaixo), texto de análise com
+      scrollbar interna terminando exatamente na mesma linha que a borda
+      inferior do mapa (antes vazava bem além). DOM dump + log sem erro
+      de JS. **Não testado**: clique real em pill, breakpoints móveis,
+      todos os outros ~42 mapas individualmente (mesma classe de fundo e
+      mesma técnica de CSS, risco de regressão específica baixo mas não
+      zero).

@@ -374,7 +374,7 @@ def option_card(entries, padrao='grafico'):
         parts.append(
             f'<div class="option-card option-card-{padrao} option-card-single">'
             f'<div class="opt-panes">{html}</div>'
-            f'<div class="opt-texts"><div class="opt-text">{_lorem(seed)}</div></div>'
+            f'<div class="opt-texts"><div class="opt-text"><div class="opt-text-inner">{_lorem(seed)}</div></div></div>'
             '</div>'
         )
         return
@@ -384,7 +384,7 @@ def option_card(entries, padrao='grafico'):
         build_fn()
         html = "".join(parts[start:]); del parts[start:]
         panes.append(f'<div class="opt-pane"{" hidden" if i else ""}>{html}</div>')
-        texts.append(f'<div class="opt-text"{" hidden" if i else ""}>{_lorem(seed)}</div>')
+        texts.append(f'<div class="opt-text"{" hidden" if i else ""}><div class="opt-text-inner">{_lorem(seed)}</div></div>')
         active = ' data-active="true"' if i == 0 else ''
         pills.append(f'<button type="button" class="pill"{active}>{_esc(label)}</button>')
     parts.append(
@@ -534,15 +534,65 @@ def _chave_norm(v, nivel):
         return str(float(v))
     raise ValueError(nivel)
 
-# ---- fundo dos mapas ----
-# Uma rodada anterior buscava tiles reais (Esri Ocean Basemap) pra tras dos
-# poligonos -- revertido: o usuario pediu explicitamente pra NUNCA usar
-# imagem de mapa/satelite pra representar TERRA, e o retalho de padding ao
-# redor da cidade (usado pra respiro visual) mistura terra (municipios
-# vizinhos) e agua (baia/oceano) sem uma camada de hidrografia disponivel
-# pra distinguir os dois -- sem forma segura de colorir so o mar de azul
-# sem arriscar colorir terra vizinha tambem. Fundo volta a ser neutro liso
-# (--surface-2, nao azul), sem tile algum.
+# ---- fundo cartografico real (Esri Ocean Basemap, mesmo provedor do PNG em
+# analise.py) ----
+# Restaurado apos uma rodada que removeu isso por preocupacao com terra
+# aparecer azul -- esclarecido pelo usuario: o problema era o CHOROPLETH dos
+# dados (censo em tons de azul, agora 'Greys') representar TERRA em azul, nao
+# o basemap em si. O basemap real pode voltar; so os dados (shapefile
+# colorido por valor) nunca usam azul.
+_BASEMAP_CACHE = {}   # bbox (arredondado) -> (classe css, b64 jpeg)
+_BASEMAP_CSS_RULES = []
+
+def _merc_para_lonlat(mx, my):
+    r = 20037508.342789244
+    lon = mx / r * 180
+    lat = math.degrees(math.atan(math.sinh(my / r * math.pi)))
+    return lon, lat
+
+def _basemap_css_class(project):
+    """Busca (1x, cacheado por bbox) um mosaico de tiles Esri Ocean Basemap
+    cobrindo os limites geograficos de `project` e reamostra pra caber
+    EXATAMENTE no espaco de pixels do SVG (mesma bbox/escala usada pelos
+    poligonos) -- resultado widthxheight identico a _MAP_W/_MAP_H, aplicado
+    como CSS background compartilhado (1 copia do base64, nao 1 por mapa)."""
+    minx, miny, maxx, maxy = project.bounds
+    key = (round(minx, 4), round(miny, 4), round(maxx, 4), round(maxy, 4))
+    if key in _BASEMAP_CACHE:
+        return _BASEMAP_CACHE[key][0]
+    class_name = ""
+    try:
+        import contextily as ctx
+        import numpy as np
+        # zoom 10 -- checado manualmente: o Esri Ocean Basemap so tem cobertura real
+        # de terreno pra area do Rio ate zoom ~10; zoom 11+ devolve um tile placeholder
+        # cinza-azulado com o texto 'Map data not yet available' (bytes identicos em
+        # zoom 11 e 13, confirmado por probe manual dos tiles) -- e um basemap voltado
+        # a oceano/costa, a cobertura terrestre em alta resolucao nao acompanha
+        img, ext = ctx.bounds2img(minx, miny, maxx, maxy, zoom=10, source=ctx.providers.Esri.OceanBasemap, ll=True)
+        mx0, mx1, my0, my1 = ext
+        lon0, lat0 = _merc_para_lonlat(mx0, my0)
+        lon1, lat1 = _merc_para_lonlat(mx1, my1)
+        tile_img = Image.fromarray(np.asarray(img)).convert("RGB")
+        x0, y1 = project(lon0, lat0)
+        x1, y0 = project(lon1, lat1)
+        w, h = max(1, round(x1 - x0)), max(1, round(y1 - y0))
+        tile_img = tile_img.resize((w, h), Image.LANCZOS)
+        canvas = Image.new("RGB", (_MAP_W, _MAP_H), "#eef3f6")
+        canvas.paste(tile_img, (round(x0), round(y0)))
+        buf = io.BytesIO()
+        canvas.save(buf, format="JPEG", quality=72)
+        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+        class_name = f"map-bg-{len(_BASEMAP_CACHE) + 1}"
+        _BASEMAP_CSS_RULES.append(
+            f'.{class_name}{{background-image:url(data:image/jpeg;base64,{b64});background-size:100% 100%;}}'
+        )
+    except Exception as exc:
+        # sem internet/timeout etc -- mapa cai de volta pro fundo neutro
+        # (--surface-2 em .map-svg-frame), nao trava a geracao do relatorio inteiro
+        print(f"[aviso] fundo cartografico indisponivel para bbox {key}: {exc}", file=sys.stderr)
+    _BASEMAP_CACHE[key] = (class_name, None)
+    return class_name
 
 def _escala_legivel(distancia_m):
     """Arredonda pra 1/2/5 x 10^n mais proximo -- convencao de barra de escala."""
@@ -640,17 +690,18 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 v = vmin + (vmax - vmin) * frac
                 sw = _cor_sequencial(tema, frac)
                 legend_bits.append(f'<div class="map-legend-row"><span class="map-legend-sw" style="background:{sw}"></span>{_fmt_ptbr(v, 1)}{"%" if fmt == "pct1" else ""}</div>')
+        bg_class = _basemap_css_class(project)
         overlay = _svg_rosa_dos_ventos() + _svg_barra_escala(project)
         svg = (
-            f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg" id="{elem_id}">'
+            f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg {bg_class}" id="{elem_id}">'
             + "".join(paths) + overlay + "</svg>"
         )
         csv = _csv_data_attr([_NIVEL_LABEL.get(nivel, "Bairro"), legenda_titulo or valor_col], rows)
-        # estilo cartografico (specification.md §7): fundo neutro (nunca imagem/mapa
-        # real -- azul fica reservado ao choropleth do mar em outros contextos, nunca
-        # a terra), rosa dos ventos + barra de escala, titulo serifado, legenda como
-        # overlay DENTRO do mapa (nao mais coluna lateral) + rodape com sistema de
-        # referencia (convencao do PNG).
+        # estilo cartografico (specification.md §7): fundo real (Esri Ocean Basemap,
+        # igual ao PNG) -- azul fica reservado ao mar/basemap, o choropleth dos DADOS
+        # (censo etc.) nunca usa azul (Greys/BuGn/RdPu/YlOrBr). Rosa dos ventos + barra
+        # de escala, titulo serifado, legenda como overlay DENTRO do mapa + rodape com
+        # sistema de referencia (convencao do PNG).
         ref_txt = "Sistema de referência: SIRGAS 2000, UTM - Fuso 23S"
         parts.append(
             f'<div class="out map-svg-card" data-csv="{csv}" data-filename="{_esc(titulo)}.csv">'
@@ -1519,7 +1570,10 @@ CSS = r"""
   .option-card-mapa .pill-col{
     flex-direction:row; flex-wrap:wrap; max-height:none; overflow-y:visible; padding-right:0;
   }
-  .option-card-mapa .opt-panes, .option-card-mapa .opt-texts, .option-card-mapa .opt-pane{height:100%;}
+  /* min-height:0 e essencial aqui -- sem isso, o tamanho minimo automatico
+     de um item de grid (baseado no seu conteudo) vence o height:100%/stretch
+     e o texto acaba maior que o mapa em vez de limitado a ele */
+  .option-card-mapa .opt-panes, .option-card-mapa .opt-texts, .option-card-mapa .opt-pane{height:100%; min-height:0;}
 
   .table-with-text{display:grid; grid-template-columns:260px 1fr; gap:20px; margin:14px 0 8px; align-items:start;}
 
@@ -1537,10 +1591,21 @@ CSS = r"""
     max-height:240px; overflow-y:auto;
   }
   /* texto do mapa: unico opt-text que mantem contorno (+ sombra), igual
-     largura/altura do mapa ao lado -- specification.md §7 */
+     largura/altura do mapa ao lado -- specification.md §7. min-height:0 por
+     si so NAO limita a altura aqui: uma linha "auto" de grid/flex sem altura
+     de container definida cresce pro maior max-content dos 2 lados (testado
+     isoladamente -- nem grid nem flexbox escapam disso so com min-height:0).
+     Fix real: o conteudo de texto vai pra um filho `position:absolute`
+     (`.opt-text-inner`), que sai do calculo de altura intrinseca do pai --
+     a linha do grid passa a ser guiada só pela altura real do mapa. */
   .option-card-mapa .opt-text{
     border:2px solid var(--ink); box-shadow:var(--shadow); box-sizing:border-box;
-    height:100%; max-height:none;
+    height:100%; min-height:0; max-height:none; padding:0;
+    position:relative; overflow:hidden;
+  }
+  .option-card-mapa .opt-text .opt-text-inner{
+    position:absolute; inset:0; overflow-y:auto;
+    padding:16px 18px; box-sizing:border-box;
   }
 
   /* ---- outliers ---- */
@@ -1579,8 +1644,8 @@ CSS = r"""
   .map-svg-frame{
     position:relative; background:var(--surface-2);
   }
-  .map-svg{display:block; width:100%; height:auto;}
-  .map-region{transition:filter .15s ease; cursor:pointer;}
+  .map-svg{display:block; width:100%; height:auto; background-size:100% 100%; background-repeat:no-repeat;}
+  .map-region{transition:filter .15s ease; cursor:pointer; fill-opacity:.88;}
   .map-region:hover{filter:brightness(1.08); stroke-width:1.6;}
   .map-scalebar-label{font-family:var(--font-mono); font-size:9.6px; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
   .map-compass-label{font-family:var(--font-mono); font-size:13.2px; font-weight:700; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
@@ -2033,8 +2098,14 @@ ENGINE = r"""
 
 RENDER_CALLS = "<script>\n(function(){\n\"use strict\";\n" + "\n".join(scripts) + "\n})();\n</script>"
 
+# regras de fundo cartografico dos mapas, coletadas durante a geracao (1 por
+# bbox unico -- bairro/AP/RP compartilham a mesma classe, ja que dissolvem da
+# mesma geometria base e tem bounds identicos; CAP tem a sua propria)
+BASEMAP_CSS = "<style>" + "".join(_BASEMAP_CSS_RULES) + "</style>" if _BASEMAP_CSS_RULES else ""
+
 doc = f"""<title>Primeira Infância Carioca</title>
 {CSS}
+{BASEMAP_CSS}
 <div class="doc">
 {body}
 </div>
