@@ -227,6 +227,73 @@ três justamente evitam.
   nem aos mapas (não há "mais recente" num corte espacial de um só ano) —
   só a `lineChart`.
 
+### 3.10 Identidade visual institucional (IPP / Prefeitura do Rio)
+
+Pedido do usuário: aproximar o visual do relatório da identidade
+institucional de `ipp.prefeitura.rio`, sem mudar tipografia nem a
+funcionalidade já especificada. Cores e composição do logo foram extraídas
+diretamente do CSS/HTML publicado do site (não estimadas):
+
+- **Navy institucional** `#004a80` — cor de fundo do rodapé no site real
+  (`#wrapper-footer-prefeitura`). Usada aqui como cor institucional
+  primária.
+- **Família azul/ciano de apoio** — `#4579fb`, `#00aeef`, `#02b1d7`,
+  `#00c0f4`, `#008eb6` (botões, estados de hover, destaques pontuais no site
+  real).
+- **Verde-água** `#0bb975`/`#09b88a`/`#0ab786` — é literalmente a cor padrão
+  de link (`a, a:hover { color: #0bb975 }`) do site do IPP. Coincidência
+  favorável: já fica muito próxima do `--accent` (`#2E9678`) que o relatório
+  já usa — **não precisa mudar** para "conversar" com a identidade
+  institucional, é só documentar a proximidade.
+- **Logo**: `PREFEITURA [brasão do Rio] RIO | Instituto Pereira Passos`,
+  versão monocromática branca (pensada para fundo escuro/colorido) — mesmo
+  arquivo usado no cabeçalho do site real.
+
+**Aplicação (subtil, conforme pedido — decisão §4-L)**: fundo do corpo do
+relatório continua branco/tinta brutalista, sem alteração. O navy entra em
+só dois lugares:
+1. Barra de 4px no topo da página, acima da navbar.
+2. Rodapé novo (§3.11), fundo sólido navy.
+No navbar em si, o logo fica num pequeno chip navy (o logo é
+monocromático branco — precisa de fundo escuro para ficar legível sobre a
+navbar branca). Nenhuma cor institucional nova entra na paleta categórica
+de dados (`--c1`…`--c11`) nem nos estados de interação já especificados
+(seletor de opção, toggle de outliers) — isso ficou fora do pedido
+("sem mudanças substanciais na funcionalidade").
+
+**Logo — decisão registrada, reverte uma decisão anterior do projeto**:
+`relatorio/specs.md` (histórico v2, "Ajustes pontuais em v2") registra que o
+projeto **evitou deliberadamente** usar/gerar um logo real do Instituto
+Pereira Passos, "para não publicar uma marca institucional não verificada".
+Nesta rodada, a pedido direto do usuário, essa decisão é revertida: o logo
+real (baixado de `ipp.prefeitura.rio`) é embutido no mockup. **Como esta
+sessão não está autenticada com um domínio `@prefeitura.rio`/`@ipp`,
+fica registrado aqui como pendência a confirmar antes do deploy público
+(§5.1, GitHub Pages torna o arquivo público)**: validar com alguém do IPP
+que o uso do brasão/logo oficial neste relatório está autorizado.
+
+### 3.11 Rodapé — novo componente
+
+Rodapé institucional, fundo navy (`#004a80`), texto claro. Escopo
+enxuto para o que é relevante a um relatório de dados, não uma réplica do
+rodapé completo do site institucional (decisão §4-M):
+
+- Logo (mesmo arquivo do navbar, maior) + uma frase curta de contexto
+  ("Relatório produzido a partir da análise de indicadores de primeira
+  infância do Instituto Municipal de Urbanismo Pereira Passos (IPP)").
+- **Fontes de dados**: lista curta (Censo 2022, CadÚnico, DataSUS/Tabnet,
+  SISVAN/SIDRA) — mesma fonte já citada por gráfico (§3.8), aqui como visão
+  geral.
+- **Links**: `ipp.prefeitura.rio`, Transparência Rio, LGPD (proteção de
+  dados) — os três elementos do rodapé real do site que fazem sentido num
+  relatório de dados públicos; **omitidos**: endereço físico, telefone,
+  ícones de redes sociais (pertencem ao site institucional principal, não a
+  este sub-relatório).
+- **Contato**: e-mail de contato para o relatório + data de "atualizado em"
+  (derivada da data de geração do `build_html_report.py`).
+- Tipografia mantida (IBM Plex Sans/Mono) — só a cor de fundo/texto muda
+  para o esquema navy.
+
 ## 4. Tabela de decisões (formato igual a `SPEC-visual-identity/specs.md` §4)
 
 | # | Pergunta | Decisão (confirmada com o usuário nesta rodada) |
@@ -241,6 +308,9 @@ três justamente evitam.
 | H | Conteúdo padrão do tooltip | Rótulo + valor em todo ponto/barra/região, gráfico ou mapa — não opcional por card (§3.8) |
 | I | Séries temporais: algum rótulo fixo, sem hover? | Sim — valor mais alto, mais baixo e mais recente, sempre visíveis por série ativa (§3.9) |
 | J | Hospedagem/deploy | GitHub Pages, via GitHub Actions (`actions/deploy-pages`) — ver §5.1 |
+| K | Logo institucional: real ou lockup em texto? | **Logo real** (reverte a decisão anterior de `relatorio/specs.md` que evitava isso) — pendência de confirmar autorização antes do deploy público, ver §3.10 |
+| L | Intensidade de aplicação das cores institucionais | Navy só em: barra de 4px no topo + rodapé + chip do logo no navbar. Corpo do relatório e paleta de dados não mudam (§3.10) |
+| M | Escopo do conteúdo do rodapé | Enxuto — fontes de dados, 3 links (IPP, Transparência Rio, LGPD), contato, data de atualização. Sem endereço/telefone/redes sociais (§3.11) |
 
 ## 5. Stack técnica
 
@@ -315,13 +385,15 @@ conteúdo real do relatório atual (seções, textos e paleta de
 
 Contém 2 artboards:
 
-- **Main** — navbar persistente aberta, cabeçalho do relatório, uma seção
-  `h2` completa expandida (⛓️ Óbitos por causas evitáveis, usada como
-  exemplo por ser o caso mais extremo de repetição hoje) mostrando bloco de
-  achados, texto de análise, chart-card de gráfico (seletor de categorias
-  CID-10 + toggle de outliers + download) e chart-card de mapa (seletor de
-  CAP + toggle de outliers + download + painel de análise lateral), e a
-  seção seguinte mostrada recolhida para dar o ritmo da página.
+- **Main** — barra de acento navy + navbar persistente aberta (com o chip do
+  logo institucional), cabeçalho do relatório, uma seção `h2` completa
+  expandida (⛓️ Óbitos por causas evitáveis, usada como exemplo por ser o
+  caso mais extremo de repetição hoje) mostrando bloco de achados, texto de
+  análise, chart-card de gráfico (seletor de categorias CID-10 + toggle de
+  outliers + download) e chart-card de mapa (seletor de CAP + toggle de
+  outliers + download + painel de análise lateral), a seção seguinte
+  mostrada recolhida para dar o ritmo da página, e o rodapé institucional
+  (§3.11) ao final.
 - **States** — comparação lado a lado do estado recolhido vs. expandido de
   uma seção `h2` (🗂️ CadÚnico), em close-up.
 
@@ -342,3 +414,38 @@ validar estrutura e hierarquia visual antes de qualquer implementação.
   depois se for pedido.
 - Domínio customizado / HTTPS extra para o GitHub Pages — usa o domínio
   padrão `github.io`.
+
+## 8. Revisão geral e sugestões de melhoria
+
+Pedido do usuário nesta rodada: revisão geral do design, além dos itens
+específicos acima. Observações levantadas ao revisar o mockup atualizado:
+
+1. **Autorização do logo é a pendência mais importante** (já registrada em
+   §3.10/§4-K) — bloqueia o deploy público (§5.1) até ser confirmada, não só
+   o visual. Sugiro resolver isso antes de qualquer outra coisa nesta lista.
+2. **Responsividade ainda não especificada.** O layout de seletor de pills
+   verticais + painel lateral (gráfico: pills + card; mapa: pills + card +
+   painel de análise — três colunas) não foi pensado para telas estreitas.
+   Sugestão para a implementação: abaixo de um breakpoint (~720px), as pills
+   viram uma faixa horizontal com scroll (em vez de empilhadas na lateral) e
+   o painel de análise ao lado do mapa desce para abaixo dele. Vale um
+   spec/decisão própria quando a implementação começar — não é parte desta
+   rodada, mas fica sinalizado para não ser esquecido.
+3. **Contraste do rodapé**: o texto secundário claro sobre navy (usado para
+   labels tipo "FONTES DE DADOS") é mais dessaturado que o texto principal —
+   vale checar contraste real (WCAG AA) na implementação, não só no mockup.
+4. **"Voltar ao topo"**: com o rodapé novo alongando a página (e a navbar já
+   ocupando o topo como sticky), um botão fixo de voltar ao topo melhora a
+   navegação em seções tardias (ex.: 🎓 Educação, a última).
+5. **O `--accent` atual do relatório já "conversa" com a identidade
+   institucional** (§3.10 — o verde-água do IPP e o `--accent` do relatório
+   são visualmente muito próximos) — não é uma mudança a fazer, é uma boa
+   notícia: não há conflito de paleta entre o que já existe e o que está
+   sendo adicionado agora.
+6. **Chip do logo no navbar é pequeno** (20px de altura) — vale testar
+   legibilidade em telas de alta densidade/mobile durante a implementação,
+   antes de considerar o tamanho definitivo.
+7. **O menu do navbar (§3.6) poderia linkar para o rodapé** (ex.: item
+   "Fontes e contato") já que ele passa a concentrar informação que hoje só
+   existe implicitamente, espalhada por gráfico — sugestão a avaliar na
+   implementação, não é um requisito confirmado nesta rodada.
