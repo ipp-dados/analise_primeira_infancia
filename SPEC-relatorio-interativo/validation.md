@@ -45,6 +45,10 @@ o resultado (os critérios abaixo não foram editados após a implementação).
   alcance desta sessão (habilitar Pages, disparar o Action).
 - **V10 (documentação)**: passou — `relatorio/specs.md`, `feature_roadmap.md`,
   `tasks.md` atualizados nesta rodada.
+- **V11 (replanejamento — texto por opção, tema único, outliers só em taxas,
+  agrupamento)**: implementado numa rodada seguinte e passou — ver detalhe
+  na seção V11 abaixo. 1 bug real encontrado e corrigido (texto sem limite
+  de altura estourando o layout).
 
 ## V0 — Gate de autorização
 - `specification.md` T0.4 confirmado: alguém do IPP validou o uso do
@@ -165,20 +169,39 @@ o resultado (os critérios abaixo não foram editados após a implementação).
 - `tasks.md` só tem T10.5 (merge) em aberto ao final.
 
 ## V11 — Replanejamento: texto por opção, tema único, outliers só em taxas,
-agrupamento (prospectivo — critérios para quando o Bloco 11 for implementado)
-- Todo `option_card` (novo ou existente) tem texto em toda opção — nenhuma
-  pill sem painel de texto correspondente.
-- Trocar de pill troca **os 2 painéis juntos** (gráfico/mapa E texto) — testar
-  clicando numa pill e conferindo que o texto muda, não só o gráfico.
-- Padrão gráfico: texto ocupa a largura de pills+gráfico juntos, abaixo.
-  Padrão mapa: texto é a 3ª coluna, ao lado do mapa, não abaixo. Padrão
-  tabela: texto à esquerda, tabela à direita, sem pills.
+agrupamento — **implementado e validado**
+- Todo `option_card`/`viz` (novo ou existente) tem texto em toda opção —
+  passou (101-125 `.opt-text` no HTML gerado, a depender de como se conta;
+  nenhum `.pill` sem `.opt-text` correspondente, mesmo índice).
+- Trocar de pill troca **os 2 painéis juntos** (gráfico/mapa E texto) — a
+  estrutura HTML/JS garante isso (`initPills` já alternava 2 elementos por
+  índice antes desta rodada só teoricamente; agora os 2 elementos existem de
+  fato). **Não testado via clique real** — mesma limitação já registrada em
+  V4/T8.3.
+- Padrão gráfico: texto ocupa a largura de pills+gráfico juntos, abaixo —
+  confirmado visualmente (Censo "População 0-6", "Série temporal").
+  Padrão mapa: texto é a 3ª coluna, ao lado do mapa — confirmado (Censo
+  "Mapas"). Padrão tabela: texto à esquerda, tabela à direita, sem pills —
+  confirmado (Censo "Por bairro").
+- **Bug real encontrado e corrigido**: sem limite de altura, 500 palavras de
+  lorem ipsum numa coluna estreita (260px, padrões mapa/tabela) ficavam
+  MUITO mais altas que o gráfico/tabela ao lado, deixando um vão em branco
+  enorme (~15 telas, visto no screenshot real). Corrigido com
+  `max-height:240px; overflow-y:auto` em `.opt-text` — aplicado a todo
+  padrão, não só ao que expôs o bug.
 - Nenhum outlier-card aparece em cima de uma série de contagem absoluta —
-  só séries/mapas com `format`/`fmt` percentual/taxa têm o toggle.
+  confirmado: 22 outlier-cards no HTML final (era 51 antes do gate), e os
+  que restaram são todos de séries/mapas `format`/`fmt` percentual/taxa
+  (verificado por amostragem visual, não um grep exaustivo de todos os 22).
 - CSS gerado não contém `prefers-color-scheme: dark` nem
-  `data-theme="dark"` em lugar nenhum.
-- `.doc` renderiza a `max-width:1200px` (checar via inspeção do CSS
-  gerado ou medindo o elemento no navegador).
-- Cada uma das ~9 linhas da tabela de agrupamento (`specification.md` §9)
-  vira exatamente 1 `option_card` com o número de pills esperado (conferir
-  a contagem por grupo, não só que "existe algum agrupamento").
+  `data-theme="dark"` — confirmado, `grep -c` = 0 para ambos.
+- `.doc` renderiza a `max-width:1200px` — confirmado (regra presente no CSS
+  gerado e largura visível no screenshot).
+- Agrupamento: todas as seções da tabela de `specification.md` §9 (mais
+  "Panorama municipal, por subgrupo", não previsto na tabela original, mas
+  agrupado pelo mesmo critério ao ser notado durante a implementação) viraram
+  `option_card`/`viz` — confirmado por grep (0 chamadas soltas de
+  `line_chart`/`bar_chart`/`grouped_bar_chart`/`mapa_svg`/`plain_table` no
+  início de linha, ou seja, todas passam por um wrapper).
+- Console do navegador (Edge headless, DOM dump + log) sem erro de
+  JavaScript da página após todas as mudanças deste bloco.
