@@ -16,6 +16,20 @@
 - Update dados de matrículas escolares for years 2021-2025
 
 ## Relatório interativo (SPEC-relatorio-interativo)
+- **Converter os ~30 mapas restantes de PNG para SVG interativo** — o pipeline
+  (geometria → paths, tooltip, outlier, download) já está implementado e provado
+  com 1 indicador (Censo 0-4/bairro); falta aplicar aos outros 3 temas
+  (natalidade/mortalidade/cadúnico) e aos níveis AP/RP (precisa do dissolve por
+  `area_plane`/`cod_rp`, ainda não escrito) — ver tasks.md Bloco 3
+- **Confirmar URLs/e-mail reais do rodapé** (Transparência Rio, LGPD, contato) —
+  hoje são placeholders copiados do site institucional principal — ver tasks.md T6.2
+- **Confirmar autorização de uso do logo oficial** da Prefeitura do Rio/IPP antes do
+  deploy público — ver tasks.md T0.4 (bloqueia só o deploy, não o código)
+- **Habilitar GitHub Pages** nas configurações do repositório e disparar o primeiro
+  deploy — passo manual fora do alcance de uma sessão de código (tasks.md T9.4/T9.5)
+- Medir formalmente o contraste do rodapé (WCAG AA) — inspeção visual feita, não
+  uma medição real (tasks.md T5.6)
+- Testar responsividade em telas estreitas (~375-420px) — não testado nesta rodada
 - Botão de "baixar tudo" (fora do escopo — só tem download por gráfico/mapa individual)
 - Persistir estado de collapse das seções entre sessões (localStorage), se vier a ser pedido
 - Basemap/contexto geográfico (satélite/desenho, UF, municípios vizinhos) nos mapas SVG

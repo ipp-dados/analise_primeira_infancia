@@ -1,0 +1,42 @@
+name: Deploy relatório
+
+# Publica relatorio/index.html no GitHub Pages -- SPEC-relatorio-interativo/plan.md §8.
+# Gatilho manual nesta primeira versão (workflow_dispatch); push-trigger automático
+# fica para depois, se for pedido (specification.md §5.1).
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Evita dois deploys concorrentes pisando um no outro; não cancela um deploy em
+# andamento por um novo disparo (espera terminar).
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Publica só o relatório -- não o resto de relatorio/ (Page 1.pdf, o PDF de
+      # ~50MB), que não precisa ir para o site (plan.md §8, decisão T9.3).
+      - name: Prepara o site
+        run: |
+          mkdir -p _site
+          cp relatorio/index.html _site/index.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
