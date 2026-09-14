@@ -354,3 +354,33 @@ agrupamento — **implementado e validado**
   ipsum, peso do arquivo (~17MB de geometria SVG sem compartilhamento).
 - Merge em `staging_main`: **gated**, só após aval explícito do usuário
   (mesma regra desde o Bloco 10/T10.5).
+
+## V16 — Fundo real de volta, texto do mapa de verdade limitado à altura
+
+- Fundo real: screenshot confirma relevo/rodovias/água visível atrás dos
+  polígonos cinza do Censo (bairro absoluto e uma variante mais abaixo na
+  mesma página) — igual ao visual antes da reversão do Bloco 14, agora
+  com o esclarecimento correto de que só o CHOROPLETH dos dados (não o
+  basemap) tinha o problema de azul-sobre-terra.
+- Choropleth ainda em cinza: confirmado nos mesmos 2 screenshots — nenhum
+  dado (polígono colorido por valor) aparece em azul; azul só aparece no
+  mar/água do basemap real, exatamente a regra pedida ("não usar azul nos
+  dados representados no shapefile").
+- **Bug real encontrado e corrigido nesta rodada**: `min-height:0` (a
+  tentativa anterior de limitar a altura do texto à do mapa) não
+  funcionava — confirmado isolando o problema em 2 arquivos HTML mínimos
+  fora do gerador (um em CSS Grid, outro em Flexbox, ambos com
+  `align-items:stretch`), reproduzindo o mesmo bug nos dois: sem uma
+  altura de container definida de fora, o eixo cruzado cresce pro maior
+  conteúdo entre os lados, e `min-height:0` não muda isso. A técnica que
+  funcionou (confirmada num 3º arquivo de teste antes de aplicar no
+  gerador): tirar o texto do cálculo de altura intrínseca do pai via um
+  filho `position:absolute`. Screenshot do gerador real após aplicar
+  confirma a borda inferior do texto (com scrollbar visível, conteúdo
+  cortado) terminando exatamente na mesma linha que a borda inferior do
+  mapa — em 2 exemplos diferentes na mesma página.
+- Geração: 17.189.574 bytes (17,19MB). Console do Edge headless (DOM dump
+  + log) sem erro de JavaScript. **Não testado**: clique real em pill,
+  breakpoints móveis, os ~42 mapas restantes fotografados individualmente
+  (mesma classe de fundo e mesma técnica CSS que os 2 testados, risco de
+  regressão específica baixo mas não zero).
