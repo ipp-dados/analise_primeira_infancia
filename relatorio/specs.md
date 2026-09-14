@@ -141,20 +141,81 @@ totalmente diferente."
   substitui a decisão F de `SPEC-visual-identity/specs.md` (mantinha fora do
   git).
 
+### v6 — relatório interativo: seções retráteis, seletor de opções, outliers,
+mapas SVG, identidade institucional (`SPEC-relatorio-interativo`)
+
+Rodada baseada num wireframe manuscrito (`relatorio/Page 1.pdf`), planejada em
+`SPEC-relatorio-interativo/specification.md`/`plan.md` antes de implementar.
+Motivo: o relatório v5.1 tinha paredes de 6-18 gráficos quase idênticos
+(cortes diferentes do mesmo indicador) e nenhuma interação além do hover.
+
+- **Seções `h2` viram cartões retráteis** — borda `2px solid`, cabeçalho com
+  eyebrow "SEÇÃO N DE 9" + botão recolher/expandir. Estado inicial: todas
+  expandidas, sem persistência entre sessões.
+- **Seletor de opções (pills verticais)** substitui parede de gráficos
+  repetidos em 2 casos reais: "Por CAP e faixa etária" (18 combinações
+  faixa×subgrupo → 1 card) e "Grupo evitável, por CAP" (3 faixas → 1 card).
+  Implementado como pré-renderização de cada opção pelo Python (motor de
+  gráfico inalterado) + troca de visibilidade no cliente — não regeração de
+  SVG via JS.
+- **Toggle "× Remover outliers"** em todo gráfico/mapa com pelo menos 1 valor
+  fora das cercas de Tukey (1.5×IQR) — aplicado centralmente dentro de
+  `line_chart`/`bar_chart`/`grouped_bar_chart`/`mapa_svg`, sem editar os ~48+
+  call sites individualmente.
+- **Download CSV** por chart-card (126 no total), respeitando outlier/opção
+  ativa no momento do clique.
+- **Rótulo fixo de máximo/mínimo/mais recente** em toda `lineChart`, sem
+  precisar de hover — pula o 1º e o último ponto quando coincidem com um
+  extremo (evita rótulo redundante colado no eixo Y).
+- **Mapas SVG interativos** (tooltip por região) — pipeline novo
+  (`dados_locais/geo/limite_bairros_rio.geojson` → paths SVG), aplicado nesta
+  rodada só ao Censo 0-4 anos por bairro (absoluto + percentual) como prova de
+  conceito real; os demais ~30 mapas continuam PNG (`map_card`, inalterado) —
+  conversão mecânica fica para uma rodada seguinte.
+- **Navbar persistente** (sticky, hambúrguer com as 9 seções) substitui o
+  antigo bloco "Sumário".
+- **Identidade institucional (IPP/Prefeitura do Rio)**: cores extraídas do CSS
+  real de `ipp.prefeitura.rio` (navy `#004a80`, ciano `#00aeef`) aplicadas só
+  como barra de 4px no topo + rodapé + chip do logo no navbar — corpo do
+  relatório e paleta categórica de dados inalterados. Logo real embutido
+  (`relatorio/assets/ipp-logo.png`) — **reverte a decisão de v2** que evitava
+  logo institucional não verificado; autorização de uso ainda pendente de
+  confirmação antes de deploy público (`SPEC-relatorio-interativo/tasks.md`
+  T0.4).
+- **Rodapé institucional** novo: fontes de dados, links (IPP/Transparência
+  Rio/LGPD), contato, data de atualização — escopo enxuto, sem
+  endereço/telefone/redes sociais. URLs/e-mail ainda são placeholders
+  copiados do site institucional principal, pendentes de confirmação
+  (`tasks.md` T6.2).
+- **Bug real encontrado e corrigido durante a validação**: o eyebrow das
+  seções ia usar `--accent-ink`, que no tema escuro é quase preto (pensado
+  para texto sobre chip claro, não sobre o fundo da página) — ficaria
+  ilegível. Trocado para `--accent` (mesma variável já usada em links nos
+  dois temas).
+- **Deploy**: workflow do GitHub Actions (`.github/workflows/deploy-relatorio.yml`,
+  `workflow_dispatch` manual) publica só `relatorio/index.html` no GitHub
+  Pages — GitHub Pages ainda não habilitado nas configurações do repositório
+  (passo manual fora do alcance desta sessão).
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
 | :--- | :--- | :--- | :--- |
-| `index.html` | Claro/escuro automático | Pastel | Sim (32 mapas, 7 grupos temáticos) |
+| `index.html` | Claro/escuro automático | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Sim — Censo 0-4/bairro em SVG interativo; demais mapas em PNG, intercalados no fluxo |
 
 ## Limitações conhecidas
 
 - CadÚnico (por faixa de renda/idade) depende de uma consulta ao banco CTPE
   que não pode ser reexecutada neste ambiente; os números refletem o último
   export salvo em `tabelas_finais/`.
-- `relatorio/*.html` não está versionado no git: o `.gitignore` do projeto
-  tem uma regra genérica `*.html` que os exclui — decisão explícita de manter
-  assim nesta rodada (ver `SPEC-visual-identity/specs.md` §4, decisão F).
 - Algumas seções de `analise.py` sem saída visual (funções auxiliares,
   junção de tabelas por bairro) não têm equivalente no relatório, por não
   gerarem gráfico algum no notebook.
+- (v6) Só o mapa do Censo 0-4/bairro é SVG interativo — os demais ~30 mapas
+  continuam PNG estático (sem tooltip por região), conversão mecânica
+  planejada para uma rodada seguinte (ver `SPEC-relatorio-interativo/tasks.md`
+  Bloco 3).
+- (v6) URLs de Transparência Rio/LGPD e e-mail de contato no rodapé são
+  placeholders, não confirmados para este relatório especificamente.
+- (v6) Autorização de uso do logo oficial da Prefeitura do Rio/IPP ainda não
+  confirmada — bloqueia o deploy público, não o desenvolvimento local.

@@ -1,9 +1,40 @@
 # Validation — SPEC-relatorio-interativo
 
-Critérios objetivos por bloco. Um bloco só é marcado `[x]` em `tasks.md`
-depois de passar aqui. Escrito antes da implementação (ao contrário de
-`SPEC-visual-identity/validation.md`, que documenta o que já rodou) —
-os critérios abaixo são o alvo, não um resultado.
+Critérios objetivos por bloco, escritos antes da implementação — o alvo, não
+o resultado (os critérios abaixo não foram editados após a implementação).
+
+## Status real após a implementação (ver `tasks.md` para o detalhe por bloco)
+
+- **V1-V2 (chart-card, outliers)**: passaram. Aplicado a 2 casos reais de
+  repetição (não 4 como o spec original estimava — os outros 2 candidatos
+  não eram, na prática, paredes de gráficos repetidos; ver `tasks.md` T1.2).
+  Outliers aplicados centralmente, confirmados por geração real (73→122
+  chart-renders).
+- **V3 (mapas SVG)**: pipeline passou, **escopo reduzido** — só bairro (não
+  AP/RP) e só 1 indicador (Censo 0-4 anos, não os 4 temas) como prova de
+  conceito real. Os ~30 mapas restantes continuam PNG. Não é uma falha do
+  critério, é uma redução de escopo deliberada tomada durante a
+  implementação — ver `tasks.md` Bloco 3 e `feature_roadmap.md`.
+- **V4 (motor JS)**: passou por inspeção estrutural do DOM e screenshots reais
+  (Edge headless). **Não testado**: clique interativo real (pill/outlier
+  toggle/collapse/download) — só o estado inicial foi observado. Um bug real
+  foi encontrado e corrigido nesta validação (rótulo de extremo duplicado no
+  1º ponto de séries curtas, T4.5).
+- **V5 (CSS institucional)**: passou, com 1 bug real encontrado e corrigido
+  (`--accent-ink` ilegível no tema escuro — trocado por `--accent`, T5.3).
+  Contraste do rodapé (T5.6) não foi medido formalmente.
+- **V6 (rodapé)**: estrutura/escopo passaram; URLs e e-mail **não
+  confirmados** (T6.2) — continuam placeholders.
+- **V7 (navbar)**: passou (contagem 1:1 de links/seções/âncoras no DOM).
+- **V8 (geração/validação manual)**: geração e ausência de erro de console
+  confirmadas via Edge headless real. Responsividade (T8.5) e tema claro
+  (T8.6) não testados nesta rodada — só tema escuro (o default do ambiente
+  de screenshot).
+- **V9 (deploy)**: workflow escrito e com escopo decidido; **não executado**
+  — depende de T0.4 (autorização do logo) e de passos manuais fora do
+  alcance desta sessão (habilitar Pages, disparar o Action).
+- **V10 (documentação)**: passou — `relatorio/specs.md`, `feature_roadmap.md`,
+  `tasks.md` atualizados nesta rodada.
 
 ## V0 — Gate de autorização
 - `specification.md` T0.4 confirmado: alguém do IPP validou o uso do

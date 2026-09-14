@@ -77,9 +77,12 @@ def slugify(text):
     _slugs.add(slug)
     return slug
 
+section_starts = []  # (index_in_parts, title, sid) -- 1 per h2, used to wrap sections (retratil)
+
 def h2(t):
     sid = slugify(t)
     toc.append((2, t, sid))
+    section_starts.append((len(parts), t, sid))
     parts.append(f'<h2 id="{sid}">{t}</h2>')
 
 def h3(t):
@@ -91,57 +94,105 @@ def h4(t): parts.append(f"<h4>{t}</h4>")
 def h5(t): parts.append(f"<h5>{t}</h5>")
 def h6(t): parts.append(f"<h6>{t}</h6>")
 
-def _out_div(elem_id, fonte, titulo=None):
+def _out_div(elem_id, fonte, titulo=None, csv_attr=None, filename=None):
     tit = f'<div class="chart-subtitle">{titulo}</div>' if titulo else ""
     src = f'<div class="out-src">{fonte}</div>' if fonte else ""
-    return f'<div class="out">{tit}<div id="{elem_id}"></div>{src}</div>'
+    dl = '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>' if csv_attr else ""
+    attrs = f' data-csv="{csv_attr}" data-filename="{_esc(filename or "dados")}.csv"' if csv_attr else ""
+    return f'<div class="out"{attrs}>{dl}{tit}<div id="{elem_id}"></div>{src}</div>'
 
 FMT_MAP = {'int': 'v=>fmt(v)', 'pct': 'v=>pct(v)', 'pct1': 'v=>pct(v,1)'}
 
+def _normaliza(vals):
+    """pandas/list -> list[float|None], NaN->None (para comparar/filtrar outliers)."""
+    out = []
+    for v in vals:
+        if v is None or (isinstance(v, float) and math.isnan(v)) or pd.isna(v):
+            out.append(None)
+        else:
+            out.append(float(v))
+    return out
+
 def line_chart(x, series, opts=None, fonte=None, titulo=None):
-    elem_id = new_id('c')
     opts = dict(opts or {})
-    js_series = []
-    for s in series:
-        fmt_fn = FMT_MAP.get(s.get('format', 'int'), FMT_MAP['int'])
-        js_series.append(
-            "{label:%s, values:%s, format:%s}" % (json.dumps(s['label'], ensure_ascii=False), json.dumps(jsvals(s['values'])), fmt_fn)
+    x_list = list(x)
+    norm = [_normaliza(s['values']) for s in series]
+    limpos = [remove_outliers_tukey(v) for v in norm]
+    has_outliers = any(c != n for c, n in zip(limpos, norm))
+
+    def build(valores_por_serie):
+        elem_id = new_id('c')
+        js_series = []
+        for s, vals in zip(series, valores_por_serie):
+            fmt_fn = FMT_MAP.get(s.get('format', 'int'), FMT_MAP['int'])
+            js_series.append(
+                "{label:%s, values:%s, format:%s}" % (json.dumps(s['label'], ensure_ascii=False), json.dumps(vals), fmt_fn)
+            )
+        scripts.append(
+            "lineChart(byId(%s), {x:%s, series:[%s], opts:%s});" % (
+                json.dumps(elem_id), json.dumps(jsvals(x_list)), ",".join(js_series), json.dumps(opts)
+            )
         )
-    scripts.append(
-        "lineChart(byId(%s), {x:%s, series:[%s], opts:%s});" % (
-            json.dumps(elem_id), json.dumps(jsvals(list(x))), ",".join(js_series), json.dumps(opts)
-        )
-    )
-    parts.append(_out_div(elem_id, fonte, titulo))
-    return elem_id
+        csv = _csv_data_attr(["Ano"] + [s['label'] for s in series],
+                              [[x_list[i]] + [vv[i] for vv in valores_por_serie] for i in range(len(x_list))])
+        parts.append(_out_div(elem_id, fonte, titulo, csv_attr=csv, filename=titulo or (series[0]['label'] if series else 'serie')))
+        return elem_id
+
+    if has_outliers:
+        with_outliers_toggle(lambda: build(norm), lambda: build(limpos), True)
+    else:
+        build(norm)
 
 def bar_chart(items, fonte=None, titulo=None):
-    elem_id = new_id('c')
-    js_items = [
-        "{label:%s, value:%s}" % (json.dumps(str(it['label']), ensure_ascii=False), json.dumps(round(float(it['value']), 4)))
-        for it in items
-    ]
-    scripts.append("barChart(byId(%s), {items:[%s]});" % (json.dumps(elem_id), ",".join(js_items)))
-    parts.append(_out_div(elem_id, fonte, titulo))
-    return elem_id
+    norm = _normaliza([it['value'] for it in items])
+    limpos = remove_outliers_tukey(norm)
+    has_outliers = limpos != norm
+
+    def build(valores):
+        elem_id = new_id('c')
+        js_items = [
+            "{label:%s, value:%s}" % (json.dumps(str(it['label']), ensure_ascii=False), json.dumps(v))
+            for it, v in zip(items, valores) if v is not None
+        ]
+        scripts.append("barChart(byId(%s), {items:[%s]});" % (json.dumps(elem_id), ",".join(js_items)))
+        csv = _csv_data_attr(["Categoria", "Valor"], [(it['label'], v) for it, v in zip(items, valores)])
+        parts.append(_out_div(elem_id, fonte, titulo, csv_attr=csv, filename=titulo or 'barras'))
+        return elem_id
+
+    if has_outliers:
+        with_outliers_toggle(lambda: build(norm), lambda: build(limpos), True)
+    else:
+        build(norm)
 
 def grouped_bar_chart(groups, series, opts=None, fonte=None, titulo=None):
-    elem_id = new_id('c')
     opts = dict(opts or {})
     opts.setdefault('table', True)
-    js_series = []
-    for s in series:
-        fmt_fn = FMT_MAP.get(s.get('format', 'int'), FMT_MAP['int'])
-        js_series.append(
-            "{label:%s, values:%s, format:%s}" % (json.dumps(s['label'], ensure_ascii=False), json.dumps(jsvals(s['values'])), fmt_fn)
+    groups_list = [str(g) for g in groups]
+    norm = [_normaliza(s['values']) for s in series]
+    limpos = [remove_outliers_tukey(v) for v in norm]
+    has_outliers = any(c != n for c, n in zip(limpos, norm))
+
+    def build(valores_por_serie):
+        elem_id = new_id('c')
+        js_series = []
+        for s, vals in zip(series, valores_por_serie):
+            fmt_fn = FMT_MAP.get(s.get('format', 'int'), FMT_MAP['int'])
+            js_series.append(
+                "{label:%s, values:%s, format:%s}" % (json.dumps(s['label'], ensure_ascii=False), json.dumps(vals), fmt_fn)
+            )
+        scripts.append(
+            "groupedBarChart(byId(%s), {groups:%s, series:[%s], opts:%s});" % (
+                json.dumps(elem_id), json.dumps(groups_list, ensure_ascii=False), ",".join(js_series), json.dumps(opts)
+            )
         )
-    scripts.append(
-        "groupedBarChart(byId(%s), {groups:%s, series:[%s], opts:%s});" % (
-            json.dumps(elem_id), json.dumps([str(g) for g in groups], ensure_ascii=False), ",".join(js_series), json.dumps(opts)
-        )
-    )
-    parts.append(_out_div(elem_id, fonte, titulo))
-    return elem_id
+        csv = _csv_data_attr([""] + groups_list, [[s['label']] + vv for s, vv in zip(series, valores_por_serie)])
+        parts.append(_out_div(elem_id, fonte, titulo, csv_attr=csv, filename=titulo or 'barras-agrupadas'))
+        return elem_id
+
+    if has_outliers:
+        with_outliers_toggle(lambda: build(norm), lambda: build(limpos), True)
+    else:
+        build(norm)
 
 def out_pair(fn1, fn2):
     """Wrap two chart-producing calls (each appending one .out div) as a side-by-side pair."""
@@ -187,14 +238,251 @@ def check_maps(imgs):
     if missing:
         raise SystemExit(f"missing map PNGs: {missing}")
 
-# ================================================================= HEADER ==
+# ------------------------------------------------ SPEC-relatorio-interativo --
+# Outliers, option-card (pill selector), CSV download, institutional identity,
+# and the SVG choropleth pipeline -- see SPEC-relatorio-interativo/plan.md.
+
+def _esc(s):
+    return str(s).replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+
+def _fmt_ptbr(v, dec=0):
+    if v is None:
+        return "—"
+    s = f"{v:,.{dec}f}"
+    s = s.replace(",", "\x00").replace(".", ",").replace("\x00", ".")
+    return s
+
+def remove_outliers_tukey(valores):
+    """valores: list[float|None]. Retorna list[float|None] do mesmo tamanho,
+    outliers substituidos por None (mantem o eixo alinhado -- nao remove o
+    ponto, so mascara o valor). Cercas de Tukey 1.5xIQR (specification.md §3.3).
+    Series com menos de 4 pontos finitos voltam inalteradas (IQR pouco confiavel)."""
+    finitos = [v for v in valores if v is not None]
+    if len(finitos) < 4:
+        return list(valores)
+    s = pd.Series(finitos)
+    q1, q3 = s.quantile(0.25), s.quantile(0.75)
+    iqr = q3 - q1
+    lo, hi = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+    return [v if (v is None or (lo <= v <= hi)) else None for v in valores]
+
+def _csv_data_attr(headers, rows):
+    """Monta um CSV (pt-BR: ; como separador, , decimal) e devolve como atributo
+    HTML data-csv já escapado -- o botao de download so precisa ler o atributo."""
+    def cell(v):
+        if v is None:
+            return ""
+        if isinstance(v, float):
+            return _fmt_ptbr(v, 2 if v != int(v) else 0)
+        return str(v).replace(';', ',')
+    lines = [";".join(cell(h) for h in headers)]
+    for r in rows:
+        lines.append(";".join(cell(c) for c in r))
+    return _esc("\n".join(lines))
+
+def with_outliers_toggle(build_full, build_clean, has_outliers):
+    """build_full/build_clean: funcoes sem argumento que emitem exatamente 1
+    construto (1 chamada a line_chart/bar_chart/... -- 1 div .out) cada. Se
+    has_outliers, envolve as duas em um card com toggle; senao so renderiza
+    build_full (sem chrome de toggle morto numa serie sem outlier)."""
+    if not has_outliers:
+        build_full()
+        return
+    start = len(parts)
+    build_full()
+    full_html = "".join(parts[start:]); del parts[start:]
+    build_clean()
+    clean_html = "".join(parts[start:]); del parts[start:]
+    parts.append(
+        '<div class="outlier-card">'
+        '<div class="outlier-toolbar"><button type="button" class="outlier-btn"><span class="outlier-x">×</span> Remover outliers</button></div>'
+        f'<div class="outlier-pane" data-variant="full">{full_html}</div>'
+        f'<div class="outlier-pane" data-variant="clean" hidden>{clean_html}</div>'
+        '</div>'
+    )
+
+def option_card(entries):
+    """entries: list de (label, build_fn). build_fn emite exatamente 1 construto
+    (pode por sua vez conter um outlier-card). len==1 -> renderiza direto, sem
+    coluna de pills (specification.md §3.2)."""
+    if len(entries) == 1:
+        entries[0][1]()
+        return
+    panes, pills = [], []
+    for i, (label, build_fn) in enumerate(entries):
+        start = len(parts)
+        build_fn()
+        html = "".join(parts[start:]); del parts[start:]
+        panes.append(f'<div class="opt-pane"{" hidden" if i else ""}>{html}</div>')
+        active = ' data-active="true"' if i == 0 else ''
+        pills.append(f'<button type="button" class="pill"{active}>{_esc(label)}</button>')
+    parts.append(
+        '<div class="option-card">'
+        '<div class="pill-col">' + "".join(pills) + '</div>'
+        '<div class="opt-panes">' + "".join(panes) + '</div>'
+        '</div>'
+    )
+
+# ---- institutional logo (embedded once, reused in navbar + footer) --------
+
+def _logo_b64():
+    with open("relatorio/assets/ipp-logo.png", "rb") as f:
+        return base64.b64encode(f.read()).decode("ascii")
+
+LOGO_B64 = _logo_b64()
+LOGO_IMG = f'<img src="data:image/png;base64,{LOGO_B64}" alt="Prefeitura do Rio de Janeiro — Instituto Pereira Passos" class="ipp-logo">'
+
+# ---- SVG choropleth pipeline (Bloco 3) -------------------------------------
+# Aplicado nesta rodada ao mapa do Censo por bairro (prova de conceito real,
+# ver SPEC-relatorio-interativo/tasks.md T3.4) -- os demais ~30 mapas
+# continuam como PNG (map_card acima) ate uma rodada de conversao mecanica.
+
+_MAP_W, _MAP_H = 640, 560
+_CMAP_TEMA = {'censo': 'Blues', 'natalidade': 'BuGn', 'mortalidade': 'RdPu', 'cadunico': 'YlOrBr'}
+_GEO_CACHE = {}
+
+def _bounds_project(gdf, width, height, pad_frac=0.03):
+    minx, miny, maxx, maxy = gdf.total_bounds
+    cos_lat = math.cos(math.radians((miny + maxy) / 2))
+    padx, pady = (maxx - minx) * pad_frac, (maxy - miny) * pad_frac
+    minx -= padx; maxx += padx; miny -= pady; maxy += pady
+    geo_w, geo_h = (maxx - minx) * cos_lat, (maxy - miny)
+    scale = min(width / geo_w, height / geo_h) if geo_w and geo_h else 1
+    off_x, off_y = (width - geo_w * scale) / 2, (height - geo_h * scale) / 2
+    def project(lon, lat):
+        x = (lon - minx) * cos_lat * scale + off_x
+        y = height - ((lat - miny) * scale + off_y)
+        return x, y
+    return project
+
+def _ring_path(coords, project):
+    pts = [project(x, y) for x, y in coords]
+    return "M" + " L".join(f"{px:.1f},{py:.1f}" for px, py in pts) + " Z"
+
+def _geom_path_d(geom, project):
+    polys = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
+    d = []
+    for poly in polys:
+        d.append(_ring_path(list(poly.exterior.coords), project))
+        for interior in poly.interiors:
+            d.append(_ring_path(list(interior.coords), project))
+    return " ".join(d)
+
+def _carrega_bairros_geo():
+    if "gdf" not in _GEO_CACHE:
+        import geopandas as gpd
+        gdf = gpd.read_file("dados_locais/geo/limite_bairros_rio.geojson")
+        gdf["codbairro"] = gdf["codbairro"].astype(int)
+        _GEO_CACHE["gdf"] = gdf
+        _GEO_CACHE["project"] = _bounds_project(gdf, _MAP_W, _MAP_H)
+    return _GEO_CACHE["gdf"], _GEO_CACHE["project"]
+
+def _cor_sequencial(tema, frac):
+    import matplotlib
+    r, g, b, _ = matplotlib.colormaps[_CMAP_TEMA[tema]](0.22 + 0.68 * max(0.0, min(1.0, frac)))
+    return "#%02x%02x%02x" % (int(r * 255), int(g * 255), int(b * 255))
+
+def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int"):
+    """df: 1 linha por bairro (chave_col=codbairro int, valor_col numerico).
+    bins: lista de limites superiores (contagem absoluta, classes discretas) ou
+    None (percentual/taxa, escala continua) -- mesma convencao de
+    mapa_coropletico_bairros em analise.py. Emite 1 construto (option_card-
+    compativel) com SVG + legenda + tooltip por bairro + toggle de outliers +
+    download CSV."""
+    gdf, project = _carrega_bairros_geo()
+    valores = {int(r[chave_col]): (None if pd.isna(r[valor_col]) else float(r[valor_col])) for _, r in df.iterrows()}
+    nomes = {int(r["codbairro"]): r["nome"] for _, r in gdf.iterrows()}
+    brutos = list(valores.values())
+    limpos = remove_outliers_tukey(brutos)
+    limpos_map = dict(zip(valores.keys(), limpos))
+    has_outliers = limpos != brutos
+
+    def build(valor_por_bairro):
+        elem_id = new_id("m")
+        finitos = [v for v in valor_por_bairro.values() if v is not None]
+        vmin, vmax = (min(finitos), max(finitos)) if finitos else (0, 1)
+        paths, rows = [], []
+        for _, row in gdf.iterrows():
+            cod = int(row["codbairro"])
+            v = valor_por_bairro.get(cod)
+            d = _geom_path_d(row.geometry, project)
+            if v is None:
+                fill = "var(--surface-2)"
+            elif bins is not None:
+                idx = next((i for i, edge in enumerate(bins) if v <= edge), len(bins))
+                fill = _cor_sequencial(tema, (idx + 1) / (len(bins) + 1))
+            else:
+                frac = (v - vmin) / (vmax - vmin) if vmax > vmin else 0.5
+                fill = _cor_sequencial(tema, frac)
+            label = nomes.get(cod, str(cod))
+            val_txt = _fmt_ptbr(v, 1 if fmt == "pct1" else 0) + ("%" if fmt == "pct1" and v is not None else "")
+            paths.append(
+                f'<path d="{d}" class="map-region" fill="{fill}" stroke="var(--page)" stroke-width="0.7" '
+                f'data-label="{_esc(label)}" data-valor="{_esc(val_txt)}"></path>'
+            )
+            rows.append((label, v))
+        legend_bits = []
+        if bins is not None:
+            edges = [None] + bins + [None]
+            for i in range(len(bins) + 1):
+                lo, hi = edges[i], edges[i + 1]
+                lbl = f"Até {_fmt_ptbr(hi)}" if lo is None else (f"Mais de {_fmt_ptbr(lo)}" if hi is None else f"{_fmt_ptbr(lo)} a {_fmt_ptbr(hi)}")
+                sw = _cor_sequencial(tema, (i + 1) / (len(bins) + 1))
+                legend_bits.append(f'<div class="map-legend-row"><span class="map-legend-sw" style="background:{sw}"></span>{lbl}</div>')
+        else:
+            steps = 5
+            for i in range(steps):
+                frac = i / (steps - 1)
+                v = vmin + (vmax - vmin) * frac
+                sw = _cor_sequencial(tema, frac)
+                legend_bits.append(f'<div class="map-legend-row"><span class="map-legend-sw" style="background:{sw}"></span>{_fmt_ptbr(v, 1)}{"%" if fmt == "pct1" else ""}</div>')
+        svg = f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg" id="{elem_id}">' + "".join(paths) + "</svg>"
+        csv = _csv_data_attr(["Bairro", legenda_titulo or valor_col], rows)
+        parts.append(
+            f'<div class="out map-svg-card" data-csv="{csv}" data-filename="{_esc(titulo)}.csv">'
+            '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>'
+            f'<div class="chart-subtitle">{_esc(titulo)}</div>'
+            '<div class="map-svg-row">'
+            f'{svg}'
+            f'<div class="map-legend"><div class="eyebrow">{_esc(legenda_titulo or "")}</div>{"".join(legend_bits)}</div>'
+            '</div>'
+            f'<div class="out-src">{_esc(fonte_dados)}</div>'
+            '</div>'
+        )
+        return elem_id
+
+    if has_outliers:
+        with_outliers_toggle(lambda: build(valores), lambda: build(limpos_map), True)
+    else:
+        build(valores)
+
+# ============================================================ NAVBAR/HEADER ==
+
+parts.append('<div class="topbar-accent"></div>')
+parts.append('<nav class="navbar">')
+parts.append(
+    '<button type="button" class="navbar-burger" id="navbar-burger" aria-expanded="false" aria-controls="navbar-menu">'
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">'
+    '<line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line>'
+    '</svg><span class="eyebrow navbar-label">NAVEGAÇÃO</span></button>'
+)
+parts.append(f'<div class="navbar-logo">{LOGO_IMG}</div>')
+parts.append('</nav>')
+parts.append('<div class="navbar-menu" id="navbar-menu" hidden><!--NAVBAR--></div>')
 
 parts.append('<header class="doc-head">')
+parts.append('<div class="doc-head-row">')
+parts.append('<div class="doc-head-title">')
+parts.append('<div class="eyebrow doc-eyebrow">PROJETO · RELATÓRIO INTERATIVO</div>')
 parts.append('<h1><span class="glyph">\U0001F3DB️</span>Análise Primeira Infância Carioca</h1>')
+parts.append('</div>')
+parts.append('<div class="doc-head-desc">')
 parts.append('<p class="sub">Visualizações dos indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro. Cada gráfico tem a fonte no rodapé e uma opção de ver os dados em tabela; a descrição metodológica completa fica no notebook (<code>analise.py</code>) e no relatório em PDF.</p>')
-parts.append('<div class="meta"><span>Instituto Pereira Passos</span><span id="gen-date">—</span></div>')
+parts.append('<p class="meta"><span id="gen-date">—</span></p>')
+parts.append('</div>')
+parts.append('</div>')
+parts.append('<div class="spectrum-bar">' + "".join(f'<span style="background:var(--c{i})"></span>' for i in range(1, 12)) + '</div>')
 parts.append('</header>')
-parts.append('<!--TOC-->')
 
 # ================================================================== CENSO ==
 
@@ -223,9 +511,17 @@ sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
 grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO)
 
 h3('Mapas')
+# Bairro: SVG interativo (tooltip por bairro + toggle de outliers + download) --
+# prova de conceito do pipeline de SPEC-relatorio-interativo/plan.md §3. AP/RP
+# continuam como PNG nesta rodada (dissolve por area_plane/cod_rp fica para a
+# conversao mecanica dos demais mapas, ver tasks.md T3.4).
+mapa_svg(df_censo_bairro, "codbairro", "0 a 4 anos", "censo",
+         "Crianças de 0 a 4 anos, por bairro (Censo 2022)", "Crianças 0-4",
+         FONTE_CENSO, bins=[1000, 2500, 5000, 10000])
+mapa_svg(df_censo_bairro, "codbairro", "Percentual 0 a 4", "censo",
+         "% de crianças de 0 a 4 anos, por bairro (Censo 2022)", "% 0-4 anos",
+         FONTE_CENSO, fmt='pct1')
 _censo_maps = [
-    ("mapa_censo_0_4_absoluto.png", "Crianças de 0 a 4 anos, por bairro (Censo 2022)"),
-    ("mapa_censo_0_4_percentual.png", "% de crianças de 0 a 4 anos, por bairro (Censo 2022)"),
     ("mapa_censo_0_4_absoluto_ap.png", "Crianças de 0 a 4 anos, por Área de Planejamento"),
     ("mapa_censo_0_4_percentual_ap.png", "% de crianças de 0 a 4 anos, por Área de Planejamento"),
     ("mapa_censo_0_4_absoluto_rp.png", "Crianças de 0 a 4 anos, por Região de Planejamento"),
@@ -360,6 +656,9 @@ for faixa in ['menores de 1 ano', 'de 1 a 4 anos', 'menores de 5 anos']:
     line_chart(anos, series, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
 
 h4('Por CAP e faixa etária')
+# 18 combinacoes (3 faixas x 6 subgrupos) -- antes eram 18 line_chart em sequencia
+# (h5 por faixa + h6 por subgrupo); viram 1 chart-card com seletor de opcoes
+# (specification.md §3.2/§4-E), pill = "faixa · subgrupo".
 _SLUG_SUBGRUPO = {
     '1.1. Reduzível pelas ações de imunização': 'Imunização',
     '1.2.1. Red por at à mulher na gestação': 'Gestação',
@@ -368,8 +667,8 @@ _SLUG_SUBGRUPO = {
     '1.3. Red por ações de diag e trat adequado': 'Diagnóstico/tratamento',
     '1.4. Red por ações promoção vinc a atenção': 'Promoção/vinculação',
 }
+_entries_cap_faixa = []
 for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 anos', 'De 1 a 4 anos'), ('menores de 5 anos', 'Menores de 5 anos')]:
-    h5(faixa_lbl)
     for subgrupo_full, subgrupo_lbl in _SLUG_SUBGRUPO.items():
         sub = df_cap_faixa[(df_cap_faixa["subgrupo"] == subgrupo_full) & (df_cap_faixa["faixa_etaria"] == faixa)]
         if not len(sub):
@@ -380,13 +679,19 @@ for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 an
         for cap in caps:
             d = sub[sub["cod_ap_sms"] == cap].set_index("ano")["obitos"]
             series.append({'label': f"CAP {cap}", 'values': [d.get(a) for a in anos]})
-        h6(subgrupo_lbl)
-        line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'legendTitle': 'CAP', 'table': True}, fonte=FONTE_EVITAVEIS)
+        _entries_cap_faixa.append((
+            f"{faixa_lbl} · {subgrupo_lbl}",
+            lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'legendTitle': 'CAP', 'table': True}, fonte=FONTE_EVITAVEIS)
+        ))
+option_card(_entries_cap_faixa)
 
 h4('Grupo evitável, por CAP')
+# 3 faixas, cada uma com o par absoluto+percentual (antes h5 por faixa com 2
+# line_chart cada) -- viram 1 chart-card, pill = faixa, cada opcao mostra o
+# par lado a lado (out_pair).
 GRUPO1_COL = "1. Causas evitáveis"
+_entries_grupo_cap = []
 for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 anos', 'De 1 a 4 anos'), ('menores de 5 anos', 'Menores de 5 anos')]:
-    h5(faixa_lbl)
     sub = df_grupo_cap_faixa[df_grupo_cap_faixa["faixa_etaria"] == faixa]
     anos = sorted(sub["ano"].unique().tolist())
     caps = sorted(sub["cod_ap_sms"].unique().tolist())
@@ -395,8 +700,14 @@ for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 an
         d = sub[sub["cod_ap_sms"] == cap].set_index("ano")
         series_abs.append({'label': f"CAP {cap}", 'values': [d[GRUPO1_COL].get(a) for a in anos]})
         series_pct.append({'label': f"CAP {cap}", 'values': [d['percentual_evitaveis'].get(a) for a in anos], 'format': 'pct1'})
-    line_chart(anos, series_abs, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
-    line_chart(anos, series_pct, opts={'height': 240, 'maxXLabels': 6, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)
+    _entries_grupo_cap.append((
+        faixa_lbl,
+        lambda anos=anos, series_abs=series_abs, series_pct=series_pct: out_pair(
+            lambda: line_chart(anos, series_abs, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS, titulo="Óbitos (absoluto)"),
+            lambda: line_chart(anos, series_pct, opts={'height': 240, 'maxXLabels': 6, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS, titulo="% do total evitável"),
+        )
+    ))
+option_card(_entries_grupo_cap)
 
 h4('Gestação e parto, menores de 1 ano, por CAP')
 for subgrupo_full, subgrupo_lbl in [
@@ -538,9 +849,6 @@ h3('Matrículas 0 a 6 anos')
 df_mat = read("matriculas_0_a_6_por_ano.csv").sort_values("ano")
 line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}], opts={'height': 200, 'table': True}, fonte="Censo Escolar/INEP")
 
-footer = '<footer class="doc-foot"><p>Fontes: IBGE (Censo, SIDRA), CTPE/CadÚnico, DATASUS/Tabnet (SINASC, SIM), SISVAN, EPI/SVS-Rio, PNAD Contínua e Censo Escolar/INEP. Elaborado a partir do pipeline documentado em <code>analise.py</code> — Instituto Pereira Passos, Prefeitura da Cidade do Rio de Janeiro.</p></footer>'
-parts.append(footer)
-
 # ============================================================== ASSEMBLE ==
 
 gen_date = datetime.date.today().strftime("%d de %B de %Y")
@@ -549,29 +857,64 @@ MESES = {"January": "janeiro", "February": "fevereiro", "March": "março", "Apri
 for en, pt in MESES.items():
     gen_date = gen_date.replace(en, pt)
 
-# ---- table of contents (h2 + nested h3), built from the headings collected above ----
-toc_html = ['<nav class="toc"><h6 class="toc-label">Sumário</h6><ul class="toc-list">']
-i = 0
-while i < len(toc):
-    level, title, sid = toc[i]
-    if level == 2:
-        toc_html.append(f'<li><a href="#{sid}">{title}</a>')
-        sub = []
-        j = i + 1
-        while j < len(toc) and toc[j][0] == 3:
-            _, t3, sid3 = toc[j]
-            sub.append(f'<li><a href="#{sid3}">{t3}</a></li>')
-            j += 1
-        if sub:
-            toc_html.append('<ul>' + "".join(sub) + '</ul>')
-        toc_html.append('</li>')
-        i = j
-    else:
-        i += 1
-toc_html.append('</ul></nav>')
+# ---- rodape institucional (specification.md §3.11/§4-M -- escopo enxuto) ----
+# URLs de Transparencia Rio/LGPD e o e-mail de contato sao os do site
+# institucional principal, copiados do mockup -- CONFIRMAR se sao os corretos
+# para este relatorio especificamente antes do deploy (plan.md §6, T6.2).
+FOOTER_FONTES = ["Censo 2022 (IBGE)", "CadÚnico", "DataSUS/Tabnet", "SISVAN · IBGE SIDRA"]
+FOOTER_LINKS = [
+    ("ipp.prefeitura.rio", "https://ipp.prefeitura.rio/"),
+    ("Transparência Rio", "https://transparencia.rio/"),
+    ("LGPD — Proteção de dados", "https://ipp.prefeitura.rio/lgpd/"),
+]
+FOOTER_CONTATO = "ascom.ipp@prefeitura.rio"
+
+_footer_cols = [
+    f'<div class="footer-col footer-col-logo">{LOGO_IMG}<p>Relatório produzido a partir da análise de indicadores de primeira infância do Instituto Municipal de Urbanismo Pereira Passos (IPP).</p></div>',
+    '<div class="footer-col"><div class="eyebrow">FONTES DE DADOS</div>' + "".join(f'<div>{f}</div>' for f in FOOTER_FONTES) + '</div>',
+    '<div class="footer-col"><div class="eyebrow">LINKS</div>' + "".join(f'<div><a href="{url}" target="_blank" rel="noopener">{label} ↗</a></div>' for label, url in FOOTER_LINKS) + '</div>',
+    f'<div class="footer-col"><div class="eyebrow">CONTATO</div><div>{FOOTER_CONTATO}</div><div class="eyebrow" style="margin-top:14px;">ATUALIZADO EM</div><div>{gen_date}</div></div>',
+]
+footer = (
+    '<footer class="doc-foot">'
+    '<div class="footer-cols">' + "".join(_footer_cols) + '</div>'
+    '<div class="footer-rule"></div>'
+    '<div class="footer-credit">Instituto Municipal de Urbanismo Pereira Passos — Prefeitura da Cidade do Rio de Janeiro</div>'
+    '</footer>'
+)
+_pre_footer_len = len(parts)   # boundary: conteudo de secao termina aqui; o rodape (a seguir) fica fora de qualquer .rsec
+parts.append(footer)
+
+# ---- envolve cada secao h2 num container retratil (specification.md §3.1) ----
+if section_starts:
+    n_sections = len(section_starts)
+    _wrapped = list(parts[:section_starts[0][0]])
+    for i, (start, title, sid) in enumerate(section_starts):
+        end = section_starts[i + 1][0] if i + 1 < n_sections else _pre_footer_len
+        heading_html = parts[start]
+        body_html = "".join(parts[start + 1:end])
+        _wrapped.append(
+            f'<section class="rsec" id="wrap-{sid}">'
+            '<div class="rsec-head">'
+            f'<div class="rsec-head-l"><span class="eyebrow rsec-eyebrow">SEÇÃO {i + 1} DE {n_sections}</span>{heading_html}</div>'
+            '<button type="button" class="rsec-toggle" aria-expanded="true">'
+            '<span class="rsec-toggle-label">RECOLHER</span>'
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><polyline points="6 9 12 15 18 9"></polyline></svg>'
+            '</button>'
+            '</div>'
+            f'<div class="section-body">{body_html}</div>'
+            '</section>'
+        )
+    _wrapped.append(parts[_pre_footer_len])  # rodape, fora de qualquer secao
+    parts[:] = _wrapped
+
+# ---- navbar: links para as secoes h2, substitui o antigo Sumario (specification.md §3.6) ----
+navbar_links = "".join(
+    f'<a href="#{sid}" class="navbar-link">{title}</a>' for level, title, sid in toc if level == 2
+)
 
 body = "\n".join(parts).replace('<span id="gen-date">—</span>', f'<span id="gen-date">Atualizado {gen_date}</span>')
-body = body.replace('<!--TOC-->', "\n".join(toc_html))
+body = body.replace('<!--NAVBAR-->', navbar_links)
 
 CSS = r"""
 <style>
@@ -743,6 +1086,7 @@ CSS = r"""
   .grid-line{stroke:var(--hairline); stroke-width:1;}
   .axis-label{font-family:var(--font-mono); font-size:9px; fill:var(--ink-3);}
   .end-label{font-family:var(--font-mono); font-size:10.5px; font-weight:600; dominant-baseline:middle;}
+  .extreme-label{font-family:var(--font-mono); font-size:8.5px; font-weight:600;}
   .hover-line{stroke:var(--ink-3); stroke-width:1; stroke-dasharray:2 3;}
   .hover-dot{stroke:var(--surface); stroke-width:2;}
   .chart-tooltip{
@@ -785,17 +1129,123 @@ CSS = r"""
   table.plain th:first-child, table.plain td:first-child{text-align:left; font-variant-numeric:normal;}
   table.plain th{color:var(--ink-3); font-weight:500; font-size:.78rem;}
 
-  footer.doc-foot{
-    max-width:880px; margin:80px auto 0; padding:24px 24px 60px; border-top:1px solid var(--hairline);
-    font-size:.82rem; color:var(--ink-3);
-  }
-  footer.doc-foot p{max-width:74ch;}
-
   ::selection{background:var(--accent); color:#fff;}
 
+  /* ============ SPEC-relatorio-interativo: identidade institucional ============ */
+  :root{ --ipp-navy:#004a80; --ipp-cyan:#00aeef; }
+
+  .topbar-accent{
+    height:4px; background:var(--ipp-navy);
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  }
+  .navbar{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    height:56px; padding:0 24px; background:var(--page); border-bottom:2px solid var(--ink);
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+    position:sticky; top:0; z-index:20;
+  }
+  .navbar-burger{display:flex; align-items:center; gap:10px; background:none; border:none; cursor:pointer; color:var(--ink); padding:6px 0;}
+  .navbar-label{color:var(--ink); font-weight:600;}
+  .navbar-logo{background:var(--ipp-navy); padding:6px 12px; display:flex; align-items:center; flex:none;}
+  .navbar-logo .ipp-logo{height:20px; width:auto; display:block;}
+  .navbar-menu{
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+    background:var(--surface); border-bottom:2px solid var(--ink); box-shadow:var(--shadow-hover);
+    position:sticky; top:56px; z-index:19; max-height:70vh; overflow-y:auto;
+  }
+  .navbar-menu[hidden]{display:none;}
+  .navbar-link{
+    display:block; max-width:880px; margin:0 auto; padding:10px 24px;
+    font-family:var(--font-mono); font-size:.85rem; color:var(--ink); text-decoration:none;
+    border-bottom:1px solid var(--hairline);
+  }
+  .navbar-link:hover{color:var(--accent);}
+
+  .doc-head-row{display:flex; justify-content:space-between; align-items:flex-end; gap:40px; flex-wrap:wrap;}
+  .doc-eyebrow{color:var(--accent); font-weight:700; margin-bottom:10px;}
+  .doc-head-desc{max-width:420px;}
+  header.doc-head .doc-head-desc .meta{display:block; font-family:var(--font-mono); font-size:.72rem; color:var(--ink-3); padding-bottom:0; margin:8px 0 0;}
+  .spectrum-bar{display:flex; height:6px; margin-top:24px;}
+  .spectrum-bar span{flex:1;}
+
+  /* ---- secoes retrateis, cartao brutalista ---- */
+  .rsec{border:2px solid var(--ink); border-radius:0; margin:40px 0; background:var(--surface);}
+  .rsec-head{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 22px; border-bottom:2px solid var(--ink);}
+  .rsec-head-l{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
+  .rsec-head-l h2{margin:0; padding:0; border:none;}
+  .rsec-eyebrow{color:var(--accent); font-weight:700;}
+  .rsec[data-collapsed="true"] .rsec-eyebrow{color:var(--ink-3); font-weight:400;}
+  .rsec-toggle{
+    display:flex; align-items:center; gap:8px; background:var(--ink); color:var(--page); border:none; border-radius:0;
+    font-family:var(--font-mono); font-size:.72rem; font-weight:600; padding:8px 14px; cursor:pointer; flex:none;
+  }
+  .rsec[data-collapsed="true"] .rsec-toggle{background:var(--page); color:var(--ink); border:2px solid var(--ink); padding:6px 12px;}
+  .section-body{padding:24px 22px 30px;}
+  .rsec[data-collapsed="true"] .section-body{display:none;}
+
+  /* ---- seletor de opcoes (pills) ---- */
+  .option-card{display:flex; gap:16px; align-items:stretch; margin:14px 0 8px;}
+  .pill-col{display:flex; flex-direction:column; gap:8px; width:200px; flex:none; max-height:460px; overflow-y:auto; padding-right:2px;}
+  .pill{
+    text-align:left; padding:9px 12px; border:2px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
+    font-family:var(--font-mono); font-size:.72rem; font-weight:600; cursor:pointer;
+  }
+  .pill[data-active="true"]{background:var(--ink); color:var(--page);}
+  .opt-panes{flex:1; min-width:0;}
+  .opt-panes .out{margin-top:0;}
+
+  /* ---- outliers ---- */
+  .outlier-toolbar{display:flex; justify-content:flex-end; margin-bottom:6px;}
+  .outlier-btn{
+    display:flex; align-items:center; gap:6px; border:1.5px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
+    font-family:var(--font-mono); font-size:.68rem; font-weight:600; padding:5px 10px; cursor:pointer;
+  }
+  .outlier-btn[data-active="true"]{background:var(--ink); color:var(--page);}
+  .outlier-x{font-weight:700;}
+
+  /* ---- download CSV ---- */
+  .out{position:relative;}
+  .dl-btn{
+    position:absolute; top:14px; right:14px; z-index:2;
+    display:flex; align-items:center; gap:5px; border:1.5px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
+    font-family:var(--font-mono); font-size:.66rem; font-weight:600; padding:5px 9px; cursor:pointer;
+  }
+  .dl-btn:hover{background:var(--accent-soft);}
+
+  /* ---- mapas SVG interativos ---- */
+  .map-svg-row{display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;}
+  .map-svg{flex:1; min-width:260px; max-width:480px; height:auto;}
+  .map-region{transition:filter .15s ease; cursor:pointer;}
+  .map-region:hover{filter:brightness(1.08); stroke-width:1.6;}
+  .map-legend{width:170px; flex:none;}
+  .map-legend-row{display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:.7rem; color:var(--ink-2); margin:4px 0;}
+  .map-legend-sw{width:14px; height:14px; border:1px solid var(--ink); flex:none; display:inline-block;}
+
+  /* ---- rodape institucional ---- */
+  footer.doc-foot{
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+    background:var(--ipp-navy); color:#EAF2F8; padding:36px 24px 24px; margin-top:60px;
+  }
+  .footer-cols{max-width:880px; margin:0 auto; display:flex; gap:40px; flex-wrap:wrap; padding-bottom:20px;}
+  .footer-col{min-width:180px; flex:1;}
+  .footer-col-logo{min-width:220px; flex:1.4;}
+  .footer-col-logo .ipp-logo{height:24px; width:auto; display:block; margin-bottom:12px;}
+  .footer-col-logo p{font-size:.76rem; color:#B9D2E4; max-width:260px; line-height:1.6; margin:0;}
+  .footer-col .eyebrow{color:#7FA9C6; margin-bottom:8px;}
+  .footer-col > div{font-size:.76rem; color:#DCE9F2; line-height:1.9;}
+  .footer-col a{color:#DCE9F2;}
+  .footer-col a:hover{color:#fff;}
+  .footer-rule{max-width:880px; margin:0 auto; height:1px; background:var(--ipp-cyan); opacity:.4;}
+  .footer-credit{max-width:880px; margin:0 auto; padding-top:14px; font-family:var(--font-mono); font-size:.66rem; color:#7FA9C6;}
+
+  @media (max-width:720px){
+    .option-card{flex-direction:column;}
+    .pill-col{flex-direction:row; flex-wrap:wrap; width:auto; max-height:none;}
+    .map-svg-row{flex-direction:column;}
+    .map-legend{width:auto;}
+  }
   @media (max-width:520px){
     .bar-row{grid-template-columns:70px 1fr auto;}
-    ul.toc-list{columns:1;}
   }
 </style>
 """
@@ -907,12 +1357,32 @@ ENGINE = r"""
       }
       svgEl('path', {d:d, fill:'none', stroke:cor, 'stroke-width':apagada?1.1:2, 'stroke-opacity':apagada?.55:1, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, svg);
       const last = validPts[validPts.length-1];
+      let lastValidIdx = -1;
+      for (let i=s.values.length-1;i>=0;i--){ if (s.values[i]!=null){ lastValidIdx=i; break; } }
       if (last && !apagada && opts.endLabels !== false){
         svgEl('circle', {cx:last[0], cy:last[1], r:3.2, fill:cor}, svg);
         if (destacadas.length <= (opts.maxDirectLabels || 8)){
           const t = svgEl('text', {x:last[0]+7, y:last[1], class:'end-label', fill:cor}, svg);
           t.textContent = s.format ? s.format(s.values[s.values.length-1]) : fmtY(s.values[s.values.length-1]);
         }
+      }
+      // maximo/minimo fixos, sempre visiveis sem hover (specification.md §3.9) --
+      // pula o ponto ja coberto pelo end-label "mais recente" (idx===lastValidIdx) e o
+      // primeiro ponto (idx===0, ja visivel por ser onde a linha comeca) -- em series
+      // com poucos pontos isso evita rotulo redundante colado no eixo Y. Limiar mais
+      // baixo que o end-label (maxExtremeSeries, nao maxDirectLabels): com muitas series
+      // no mesmo grafico, maximos/minimos caem em posicoes X arbitrarias e colidem com
+      // mais facilidade do que o end-label (que fica sempre no mesmo X, a ultima coluna).
+      if (!apagada && opts.extremeLabels !== false && destacadas.length <= (opts.maxExtremeSeries || 4)){
+        let iMax=-1, iMin=-1, vMax=-Infinity, vMin=Infinity;
+        s.values.forEach((v,i)=>{ if (v!=null){ if (v>vMax){vMax=v;iMax=i;} if (v<vMin){vMin=v;iMin=i;} } });
+        [[iMax,-8],[iMin,13]].forEach(([idx,dy])=>{
+          if (idx<0 || idx===lastValidIdx || idx===0) return;
+          const p = pts[idx]; if (!p) return;
+          svgEl('circle', {cx:p[0], cy:p[1], r:2.6, fill:cor}, svg);
+          const t = svgEl('text', {x:p[0], y:p[1]+dy, class:'extreme-label', fill:cor, 'text-anchor':'middle'}, svg);
+          t.textContent = s.format ? s.format(s.values[idx]) : fmtY(s.values[idx]);
+        });
       }
     }
     apagadas.forEach(s=>desenhaSerie(s, true));
@@ -1070,6 +1540,108 @@ ENGINE = r"""
       container.appendChild(det);
     }
   }
+
+  // ================= SPEC-relatorio-interativo: controladores estaticos =================
+  // (navbar, secoes retrateis, seletor de opcoes, toggle de outliers, download CSV,
+  // tooltip de mapa -- tudo delegado/inicializado uma vez no DOMContentLoaded, ja que
+  // esses elementos sao HTML estatico gerado em Python, nao criados por lineChart/etc.)
+
+  function initNavbar(){
+    const burger = document.getElementById('navbar-burger');
+    const menu = document.getElementById('navbar-menu');
+    if (!burger || !menu) return;
+    burger.addEventListener('click', ()=>{
+      const abrindo = menu.hasAttribute('hidden');
+      if (abrindo) menu.removeAttribute('hidden'); else menu.setAttribute('hidden','');
+      burger.setAttribute('aria-expanded', abrindo ? 'true' : 'false');
+    });
+    menu.querySelectorAll('a.navbar-link').forEach(a=>{
+      a.addEventListener('click', ()=>{ menu.setAttribute('hidden',''); burger.setAttribute('aria-expanded','false'); });
+    });
+  }
+
+  function initSections(){
+    document.querySelectorAll('.rsec').forEach(sec=>{
+      const btn = sec.querySelector(':scope > .rsec-head > .rsec-toggle');
+      const label = btn && btn.querySelector('.rsec-toggle-label');
+      if (!btn) return;
+      btn.addEventListener('click', ()=>{
+        const colapsando = sec.getAttribute('data-collapsed') !== 'true';
+        sec.setAttribute('data-collapsed', colapsando ? 'true' : 'false');
+        btn.setAttribute('aria-expanded', colapsando ? 'false' : 'true');
+        if (label) label.textContent = colapsando ? 'EXPANDIR' : 'RECOLHER';
+      });
+    });
+  }
+
+  function initPills(){
+    document.querySelectorAll('.option-card').forEach(card=>{
+      const pills = Array.from(card.querySelectorAll(':scope > .pill-col > .pill'));
+      const panes = Array.from(card.querySelectorAll(':scope > .opt-panes > .opt-pane'));
+      pills.forEach((pill,i)=>{
+        pill.addEventListener('click', ()=>{
+          pills.forEach((p,j)=>{ if (j!==i) p.removeAttribute('data-active'); });
+          pill.setAttribute('data-active','true');
+          panes.forEach((pane,j)=>{ pane.hidden = (j!==i); });
+        });
+      });
+    });
+  }
+
+  function initOutliers(){
+    document.querySelectorAll('.outlier-card').forEach(card=>{
+      const btn = card.querySelector('.outlier-btn');
+      const full = card.querySelector(':scope > .outlier-pane[data-variant="full"]');
+      const clean = card.querySelector(':scope > .outlier-pane[data-variant="clean"]');
+      if (!btn || !full || !clean) return;
+      btn.addEventListener('click', ()=>{
+        const semOutliers = btn.getAttribute('data-active') !== 'true';
+        btn.setAttribute('data-active', semOutliers ? 'true' : 'false');
+        full.hidden = semOutliers;
+        clean.hidden = !semOutliers;
+      });
+    });
+  }
+
+  function initDownloads(){
+    document.addEventListener('click', e=>{
+      const btn = e.target.closest('.dl-btn');
+      if (!btn) return;
+      const card = btn.closest('.out');
+      if (!card || !card.dataset.csv) return;
+      const blob = new Blob(['﻿' + card.dataset.csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = card.dataset.filename || 'dados.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(a.href);
+    });
+  }
+
+  function initMapTooltips(){
+    document.querySelectorAll('.map-svg-card').forEach(card=>{
+      const svg = card.querySelector('.map-svg');
+      if (!svg) return;
+      const tooltip = document.createElement('div'); tooltip.className = 'chart-tooltip';
+      tooltip.style.position = 'absolute';
+      card.appendChild(tooltip);
+      svg.querySelectorAll('.map-region').forEach(path=>{
+        path.addEventListener('mousemove', e=>{
+          const r = card.getBoundingClientRect();
+          tooltip.innerHTML = '<div class="tt-row"><b>'+path.dataset.label+'</b></div><div class="tt-row">'+path.dataset.valor+'</div>';
+          tooltip.style.display = 'block';
+          tooltip.style.left = (e.clientX - r.left + 12) + 'px';
+          tooltip.style.top = (e.clientY - r.top - 34) + 'px';
+          tooltip.style.transform = 'none';
+        });
+        path.addEventListener('mouseleave', ()=>{ tooltip.style.display = 'none'; });
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    initNavbar(); initSections(); initPills(); initOutliers(); initDownloads(); initMapTooltips();
+  });
 
   window.byId = byId; window.lineChart = lineChart; window.barChart = barChart; window.groupedBarChart = groupedBarChart;
   window.fmt = fmt; window.pct = pct;
