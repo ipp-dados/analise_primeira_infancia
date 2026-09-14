@@ -89,18 +89,40 @@ máxima igual à do chart-card — mantém o padrão visual único do wireframe 
 vez de trocar para `<select>` nesses casos, ao custo de precisar rolar a
 lista de opções quando ela for longa.
 
-### 3.3 Outliers — pré-computados nas duas versões
+**Atualização desta rodada — ver §3.13**: o seletor de opções passa a existir
+em praticamente todo chart-card/map-card do relatório (não só nos 2 casos
+convertidos até aqui), como parte do agrupamento de visualizações por seção
+(§9). O padrão de pills em si não muda; o que muda é (a) quase toda
+visualização agora tem pelo menos 1 pill (mesmo com 1 opção só a estrutura
+é reaproveitada, sem coluna de pills visível — regra já existente), e (b)
+o texto de análise passa a viver **dentro** de cada opção, não fora do
+seletor (§3.13).
 
-O gerador (`build_html_report.py`) calcula, para cada série numérica, a
-versão com e sem outliers e embute as duas como JSON. O toggle no cliente só
-troca qual array o gráfico/mapa lê — sem lógica estatística em JS.
+### 3.3 Outliers — pré-computados, só para percentuais/taxas
 
-- **Regra de outlier proposta** (default se não houver objeção): cercas de
-  Tukey, `[Q1 - 1.5×IQR, Q3 + 1.5×IQR]`, calculada por série/corte
-  individualmente (não globalmente por seção). Mesma regra para gráficos de
-  barra/linha e para os valores por bairro/CAP nos mapas.
+O gerador (`build_html_report.py`) calcula, para cada série numérica **que
+seja percentual ou taxa**, a versão com e sem outliers e embute as duas como
+JSON. O toggle no cliente só troca qual array o gráfico/mapa lê — sem lógica
+estatística em JS.
+
+- **Escopo restringido nesta rodada (decisão nova, §4-O)**: outliers **não**
+  são calculados/removidos em números absolutos (contagens — óbitos,
+  nascidos vivos, crianças no CadÚnico, etc.). Só se aplica a séries que já
+  são percentual/taxa (`format='pct1'` no motor JS — % de óbitos evitáveis,
+  taxa de mortalidade por mil, % de crianças no CadÚnico sobre o Censo...).
+  Motivo: um valor absoluto "fora da faixa" é frequentemente o dado mais
+  relevante da série (um pico real de óbitos num ano, não um erro de
+  medição), enquanto uma taxa/percentual anômala tem mais chance de refletir
+  um denominador pequeno ou um problema de base de dados (ver o próprio
+  aviso do notebook sobre o outlier de >500% no CadÚnico/Censo). Reverte a
+  regra genérica "aplica em toda série numérica" da rodada anterior.
+- **Regra de outlier** (mantida): cercas de Tukey,
+  `[Q1 - 1.5×IQR, Q3 + 1.5×IQR]`, calculada por série/corte individualmente
+  (não globalmente por seção).
 - Pontos removidos ficam ocultos (não substituídos por interpolação) — a
   série "sem outliers" tem menos pontos, não pontos alterados.
+- Mapas: idem — só mapas cuja métrica é percentual/taxa (`fmt='pct1'` em
+  `mapa_svg`) ganham o toggle de outliers; mapas de contagem absoluta não.
 
 ### 3.4 Espaço para análise textual — reversão parcial da decisão B de `SPEC-visual-identity`
 
@@ -110,13 +132,22 @@ espaço textual, mas **redefinido**, não como retorno ao texto integral do
 notebook:
 
 - Bloco "Principais achados" por seção (`h2`) — lista curta, editorial, não
-  o texto de método completo do notebook.
-- Bloco "Análise" por chart-card — texto curto (2–3 frases) abaixo do
-  gráfico, ou ao lado do mapa (ver wireframe, segundo exemplo da seção).
-  Fica fixo por chart-card, não muda quando a opção do seletor muda (a menos
-  que o texto seja escrito por opção — decisão de conteúdo, não deste spec).
+  o texto de método completo do notebook. **Ainda não implementado** (gap de
+  conteúdo registrado em `relatorio/specs.md` v6.1/`feature_roadmap.md`) —
+  continua fora do escopo até existir texto real curado por alguém.
+- Bloco de análise por chart-card/map-card/tabela — **decisão tomada nesta
+  rodada: o texto muda por opção do seletor**, não fica fixo por card. Ver
+  §3.13 para o layout exato (3 padrões) e a implicação técnica de o texto
+  virar parte de cada opção, não um elemento externo ao seletor.
 - O texto de método completo continua vivendo só no notebook/PDF — este spec
-  não reverte isso, só adiciona os dois blocos curtos acima.
+  não reverte isso.
+- **Conteúdo placeholder nesta rodada**: todo bloco de análise é preenchido
+  com lorem ipsum (~500 palavras cada, texto de preenchimento clássico, sem
+  qualquer leitura analítica real) — marca claramente onde o texto de
+  verdade vai entrar depois, sem fabricar uma interpretação dos dados que
+  ninguém validou (mesmo cuidado do bloco "Principais achados" acima, só que
+  aqui preenchido com lorem ipsum em vez de deixado vazio, porque o pedido
+  desta rodada é especificamente ver o layout com o espaço de texto ocupado).
 
 ### 3.5 Mapas: tooltip por região exige migrar de PNG para SVG — dentro do escopo desta rodada
 
@@ -301,9 +332,14 @@ ganhou um tratamento específico, escolhido entre 3 opções sketch (ver canvas
 de design, artboard `HeaderOptions`):
 
 - **Eyebrow do título** ("PROJETO · RELATÓRIO INTERATIVO") passa de cinza
-  neutro (`--ink-3`, o padrão de qualquer legenda mono) para `--accent-ink`
-  (verde-escuro do próprio `--accent` do relatório) + peso 700 — não usa
-  nenhuma cor institucional nova, só a que já existe.
+  neutro (`--ink-3`, o padrão de qualquer legenda mono) para `--accent`
+  (o verde já usado em links) + peso 700 — não usa nenhuma cor institucional
+  nova, só a que já existe. **Correção feita na implementação**: o plano
+  original desta linha dizia `--accent-ink`, mas esse token é escuro demais
+  para texto direto sobre o fundo da página no tema escuro (pensado para
+  texto sobre um chip claro) — trocado por `--accent` antes mesmo desta
+  rodada de remoção do tema escuro (ver `relatorio/specs.md` v6, "bug real
+  encontrado e corrigido").
 - **Barra de espectro**: uma faixa de 6px logo abaixo do bloco de
   título/descrição, dividida em 11 segmentos iguais, um por cor categórica
   (`--c1`…`--c11`) — assinatura visual única da página (não se repete em
@@ -327,6 +363,71 @@ princípio, não uma cor nova:
   exclusiva do topo da página, como uma "vinheta" única, para não virar um
   padrão repetitivo a cada seção (eram 9 repetições).
 
+### 3.13 Layout de conteúdo — 3 padrões (gráfico, mapa, tabela) + texto por opção
+
+Replanejamento desta rodada, a partir de uma revisão do canvas de design
+(`https://claude.ai/code/artifact/6d48c53d-9799-4ac6-be36-a7fa9ca5f64e`)
+contra o HTML gerado: o texto de análise não tinha sido implementado (só
+existia no mockup) e, ao planejar como implementá-lo, ficou claro que ele
+precisa **trocar junto com a opção ativa do seletor** — cada opção passa a
+carregar seu próprio texto, não um texto fixo por card. Isso define 3
+padrões de layout, um por tipo de conteúdo:
+
+**Padrão A — gráfico (linha/barra/barra agrupada).** Pills à esquerda +
+gráfico à direita, na mesma linha (como já é hoje). O texto de análise fica
+**abaixo**, ocupando a largura inteira do card (pills + gráfico juntos) —
+não só a largura do gráfico. Ao trocar de pill, o gráfico troca **e** o
+texto abaixo troca junto (é o texto daquela opção especificamente).
+
+**Padrão B — mapa.** Pills à esquerda + mapa/legenda à direita, igual ao
+padrão atual. O texto de análise fica numa coluna **à direita do mapa**
+(3ª coluna: pills | mapa+legenda | texto), não abaixo — mesma posição que o
+wireframe original já mostrava para mapas. Troca de pill troca o mapa e o
+texto lateral juntos.
+
+**Padrão C — tabela (novo, não existia no wireframe nem no HTML atual).**
+Texto à **esquerda**, tabela à **direita** — ordem invertida em relação aos
+padrões A/B (texto antes do dado, não depois/ao lado). Sem coluna de pills
+nesta rodada (as tabelas do relatório hoje — ex. "Top 10 bairros" do Censo —
+não têm cortes alternativos; se um caso com opções aparecer depois, adiciona-se
+pills à esquerda do texto, mesma lógica dos outros 2 padrões).
+
+**Implicação técnica**: o formato interno de `option_card` muda de
+`(label, build_fn)` para `(label, build_fn, texto)` — cada entrada carrega
+seu texto. Card de opção única (a maioria, sem pills visíveis) também ganha
+texto, só que fixo (1 opção = 1 texto, nada para trocar). O JS de troca de
+pill (`initPills`) passa a alternar 2 elementos por opção (painel do
+gráfico/mapa + painel de texto), não 1.
+
+**Conteúdo dos textos nesta rodada**: lorem ipsum, ~500 palavras por bloco
+(ver §3.4) — texto de preenchimento puro, não uma tentativa de análise real.
+
+### 3.14 Tema único (claro) — remove o tema escuro automático
+
+Decisão nova: `relatorio/index.html` deixa de ter tema escuro automático via
+`prefers-color-scheme`. Só o tema claro existe — simplifica a folha de
+estilo (remove o bloco `@media (prefers-color-scheme: dark)` e o seletor
+`:root[data-theme="dark"]`, que hoje duplicam todas as variáveis de cor) e
+elimina uma superfície inteira de teste (a maior parte da validação visual
+desta spec até agora só cobriu o tema escuro, por ser o default do ambiente
+de screenshot usado — ver `SPEC-relatorio-interativo/validation.md` V8).
+Paleta categórica de dados (`--c1`…`--c11`), cores institucionais
+(`--ipp-navy`/`--ipp-cyan`) e o restante do sistema de tokens continuam os
+mesmos valores que já existem para o tema claro — não é uma paleta nova,
+só a remoção da variante escura.
+
+### 3.15 Corpo mais largo
+
+`.doc{max-width:880px}` era estreito demais mesmo para o padrão A (pills +
+gráfico + texto abaixo, tudo cabendo em 880px deixa pouco espaço para
+qualquer um dos três elementos) — mais ainda para o padrão B (3 colunas:
+pills + mapa + texto) e o padrão C (texto + tabela lado a lado). Proposta
+(default se não houver objeção): `max-width:1200px` — grande o suficiente
+para os 3 padrões respirarem, sem virar uma coluna de leitura larga demais
+para os blocos de texto corrido (achados, notas). Os elementos de largura
+total (navbar, barra de topo, rodapé) já são full-bleed independentemente
+deste valor (§3.10), não são afetados.
+
 ## 4. Tabela de decisões (formato igual a `SPEC-visual-identity/specs.md` §4)
 
 | # | Pergunta | Decisão (confirmada com o usuário nesta rodada) |
@@ -344,7 +445,11 @@ princípio, não uma cor nova:
 | K | Logo institucional: real ou lockup em texto? | **Logo real** (reverte a decisão anterior de `relatorio/specs.md` que evitava isso) — pendência de confirmar autorização antes do deploy público, ver §3.10 |
 | L | Intensidade de aplicação das cores institucionais | Navy só em: barra de 4px no topo + rodapé + chip do logo no navbar. Corpo do relatório e paleta de dados não mudam (§3.10) |
 | M | Escopo do conteúdo do rodapé | Enxuto — fontes de dados, 3 links (IPP, Transparência Rio, LGPD), contato, data de atualização. Sem endereço/telefone/redes sociais (§3.11) |
-| N | Tratamento do bloco de título/descrição | Opção A ("barra de espectro") — eyebrow em `--accent-ink` + faixa de 6px com as 11 cores categóricas; mesma cor de eyebrow estendida aos cabeçalhos de seção expandidos, por consistência (§3.12) |
+| N | Tratamento do bloco de título/descrição | Opção A ("barra de espectro") — eyebrow em `--accent` + faixa de 6px com as 11 cores categóricas; mesma cor de eyebrow estendida aos cabeçalhos de seção expandidos, por consistência (§3.12) |
+| O | Outliers em números absolutos (contagens)? | **Não** — só percentuais/taxas ganham o toggle de outliers a partir de agora (§3.3) |
+| P | Texto de análise: fixo por card ou por opção do seletor? | **Por opção** — troca junto com a pill ativa (§3.13) |
+| Q | Tema escuro automático? | **Removido** — só tema claro a partir de agora (§3.14) |
+| R | Largura do corpo (`.doc`) | `880px` → `1200px` (default, sem objeção ainda) (§3.15) |
 
 ## 5. Stack técnica
 
@@ -483,3 +588,46 @@ específicos acima. Observações levantadas ao revisar o mockup atualizado:
    "Fontes e contato") já que ele passa a concentrar informação que hoje só
    existe implicitamente, espalhada por gráfico — sugestão a avaliar na
    implementação, não é um requisito confirmado nesta rodada.
+
+## 9. Proposta de agrupamento de visualizações por seção
+
+Pedido do usuário: com texto por opção (§3.13) tornando cada card maior,
+seções continuarem curtas depende de agrupar cortes correlatos num só
+chart-card/map-card com pills, em vez de vários cards em sequência — o
+mesmo movimento já feito em 2 casos (§ "Por CAP e faixa etária", "Grupo
+evitável por CAP"), agora estendido ao resto do relatório. Levantamento
+feito direto em `build_html_report.py` (call sites reais, não estimados).
+Alvo por seção: **achados + análise inicial + 1(-2) grupo(s) de gráfico +
+1 grupo de mapa** — não necessariamente 1 grupo só quando os cortes não são
+comparáveis entre si (mesmo princípio já usado para não forçar pills na
+galeria de mapas do CAP, §3.2).
+
+| Seção | Hoje (cards separados) | Proposta de agrupamento |
+|---|---|---|
+| 🏘️ Censo 2022 | Tabela top 10 + 2 grouped-bar (raça, sexo) + 6 mapas + 2 line charts | Tabela → **padrão C** (texto+tabela). Grupo gráfico "População 0-6" = pills [raça, sexo] (2). Grupo gráfico "Série temporal" = pills [Total/Fem/Masc, % 0-4] (2). Grupo mapa "Censo por nível" = pills [bairro abs, bairro %, AP abs, AP %, RP abs, RP %] (6) |
+| 🗂️ CadÚnico | 2 pares bar (renda, idade) + 3 mapas | Grupo gráfico "Por faixa de renda/idade" = pills [Renda, Idade] (2, cada opção já mostra o par Crianças/Famílias). Grupo mapa "Mapas" = pills [Crianças 0-6, Crianças 0-4, % s/ Censo] (3) |
+| 🏥 DataSUS/Tabnet | 4 line charts + 5 mapas, em 3 subseções | Grupo gráfico "Séries temporais" = pills [Nascidos vivos, % baixo peso, Óbitos raça abs, Óbitos raça %] (4). Grupo mapa "Mapas" = pills [Nascidos vivos, Baixo peso abs, % baixo peso, Óbitos 0-364, Taxa mortalidade infantil] (5) |
+| ⛓️ Óbitos por causas evitáveis | Maior seção: ~14 line charts fora dos 2 grupos já existentes, + 8 mapas soltos | Grupo "Por raça/cor" = pills [Abs, %, Abs sem NI, % sem NI] (4). Grupo "Por grupo/subgrupo CID-10" = pills [8 combinações faixa×corte] (8, já é o padrão do CAP). "Comparação entre faixas" fica solo (1 gráfico, sem par comparável). Grupo "Por CAP e faixa etária" mantido (18, já existe). Grupo "Grupo evitável + gestação/parto, por CAP" = merge de 2 grupos existentes em 1 (3+2=5 pills). Grupo "Panorama <5 anos" = pills [Óbitos por subgrupo, Taxa por mil NV] (2). Grupo mapa "Mapas por CAP" = pills com as 8 opções hoje soltas em sequência |
+| 🤰 Gravidez e puerpério | 2 line charts + 2 mapas, soltos | Grupo gráfico = pills [Gravidez, Puerpério] (2). Grupo mapa = pills [Gravidez, Puerpério] (2) |
+| 🩺 Mortalidade neonatal | 4 line charts + 8 mapas, em 4 subseções (precoce/tardia/pós/total) | Grupo gráfico "Taxa por fase" = pills [Precoce, Tardia, Pós-neonatal, Total] (4). Grupo mapa "Mapas por fase" = pills [8 combinações fase×abs/taxa] (8) |
+| 🥗 SISVAN | 3 line charts soltos | Grupo gráfico = pills [Baixo peso, Sobrepeso, Obesidade] (3) |
+| 💉 Cobertura vacinal (EPI) | 1 line (11 séries) + 1 grouped-bar, soltos | Grupo gráfico = pills [Série temporal por imunobiológico, Comparativo por ano] (2) — tipos de gráfico diferentes por opção, o mecanismo já suporta isso |
+| 🎓 Educação | 4 grouped-bar (SIDRA) + 1 bar (PNAD) + 1 line (matrículas) | Grupo gráfico "SIDRA frequência/taxa" = pills [Freq. 0-5 raça, Freq. 0-5 sexo, Taxa 0-6 raça, Taxa 0-6 sexo] (4). PNAD e Matrículas ficam soltos — indicadores/fontes diferentes entre si, não um corte do mesmo dado (mesmo critério do item "Comparação entre faixas" acima) |
+
+**Efeito líquido esperado**: as ~14 subseções `h3`/`h4`/`h5`/`h6` hoje usadas
+só para separar cortes correlatos (ex. os 4 `h5` de "Por CAP e faixa etária"
+já removidos numa rodada anterior) somem, substituídas por pills dentro de
+menos grupos maiores — cada `h2` passa a ter uma forma mais previsível
+(achados + intro + 1-2 grupos de gráfico + 1 grupo de mapa) em vez de um
+número variável de subseções soltas. Título/legenda por opção dentro de um
+grupo continuam carregando a informação que os `h5`/`h6` davam (ex. pill
+"Menores de 1 ano · Imunização" already carrega os dois níveis que antes
+eram `h5`+`h6`).
+
+**Fora desta proposta, por decisão explícita já registrada**: a galeria de
+8 mapas do CAP evitável por grupo/subgrupo (§3.2) — mantida como pills
+agora (ver tabela acima, linha "Óbitos por causas evitáveis"), revertendo a
+decisão anterior de deixá-la como grade solta, já que o objetivo desta
+rodada (seções mais curtas) pesa mais que a preocupação original
+(comparação lado a lado) — se comparação lado a lado for importante depois,
+cabe reavaliar.

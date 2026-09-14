@@ -215,3 +215,34 @@ nível — `relatorio/index.html` foi de ~5MB para ~20MB. Registrado em
 - [ ] **T10.5** — **Merge em `staging_main` (só após aval do usuário)** — e só
       depois de T0.4/T9.4/T9.5 para o deploy público especificamente; o merge
       do código em si não depende desses três.
+
+## Bloco 11 — Replanejamento: texto por opção, tema único, outliers só em
+taxas, agrupamento (plan.md §10) — **prospectivo, nada implementado ainda**
+- [ ] **T11.1** — `option_card` ganha `texto` por opção (plan.md §10.1) — os
+      2 grupos já existentes ("Por CAP e faixa etária", "Grupo evitável por
+      CAP") precisam de texto também, não só os grupos novos do Bloco 11.4.
+- [ ] **T11.2** — 3 padrões de CSS (grid) — gráfico (texto abaixo, largura
+      total), mapa (texto na 3ª coluna), tabela (texto à esquerda, novo,
+      sem pills) — plan.md §10.2.
+- [ ] **T11.3** — Gerador de lorem ipsum determinístico por label
+      (`_lorem(seed, palavras=500)`) — plan.md §10.3.
+- [ ] **T11.4** — Aplicar a proposta de agrupamento de `specification.md` §9
+      aos ~9 grupos novos (Censo população/série, CadÚnico renda/idade,
+      DataSUS séries/mapas, evitáveis raça/CID-10/panorama/mapas-CAP,
+      gravidez-puerpério gráfico/mapa, neonatal taxa/mapas, SISVAN, EPI,
+      Educação SIDRA) + reverter a galeria de mapas do CAP evitável (8) de
+      grade solta para pills.
+- [ ] **T11.5** — Outliers com gate por formato (`_eh_taxa_ou_percentual`) —
+      aplicado em `line_chart`/`bar_chart`/`grouped_bar_chart`/`mapa_svg`
+      (plan.md §10.4). Confirmar que a contagem de outlier-cards cai bastante
+      em relação aos 51 da rodada anterior (só séries/mapas percentual/taxa
+      devem restar).
+- [ ] **T11.6** — Remover o bloco CSS de tema escuro inteiro (`@media
+      (prefers-color-scheme: dark)` + `:root[data-theme="dark"]`) — plan.md
+      §10.5. Confirmar visualmente que não sobra nenhuma referência a cor
+      "dark" morta no CSS gerado.
+- [ ] **T11.7** — `.doc{max-width:1200px}` (era 880px) — plan.md §10.6.
+- [ ] **T11.8** — Geração completa + validação visual (screenshot único
+      tema, já que dark deixou de existir) dos 3 padrões de layout em pelo
+      menos 1 instância cada (gráfico, mapa, tabela) e de pelo menos 2 dos
+      novos grupos de §11.4.

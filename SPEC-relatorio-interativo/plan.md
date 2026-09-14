@@ -282,3 +282,125 @@ institucional) → Bloco 6 (rodapé) → Bloco 7 (navbar) → geração completa
 (documentação/fechamento). Blocos 1-2 e 4-5 podem ser feitos em paralelo
 por serem independentes; Bloco 3 é o único que bloqueia Bloco 8
 (validação) por completo, então começar cedo.
+
+## 10. Replanejamento — texto por opção, tema único, outliers só em taxas,
+agrupamento (specification.md §3.3/§3.13-15/§9)
+
+### 10.1 `option_card`: texto vira parte da opção
+
+Assinatura muda de `entries: list[(label, build_fn)]` para
+`entries: list[(label, build_fn, texto)]`. `build_fn` continua emitindo 1
+construto (gráfico/mapa); `texto` é uma string (lorem ipsum nesta rodada,
+~500 palavras) renderizada num painel próprio, alternado junto com o painel
+do gráfico/mapa pelo mesmo índice de opção:
+
+```python
+def option_card(entries, padrao):
+    """entries: list de (label, build_fn, texto). padrao: 'grafico' | 'mapa'
+    -- controla o CSS aplicado (texto abaixo vs. texto na 3a coluna, §3.13).
+    Card de opção unica tambem passa por aqui (sem pills visiveis, texto
+    ainda renderizado -- so nao ha nada para trocar)."""
+    if len(entries) == 1:
+        label, build_fn, texto = entries[0]
+        build_fn()
+        _emite_bloco_texto(texto)  # fora do option-card, mesma posicao visual
+        return
+    panes, text_panes, pills = [], [], []
+    for i, (label, build_fn, texto) in enumerate(entries):
+        start = len(parts)
+        build_fn()
+        html = "".join(parts[start:]); del parts[start:]
+        panes.append(f'<div class="opt-pane"{" hidden" if i else ""}>{html}</div>')
+        text_panes.append(f'<div class="opt-text"{" hidden" if i else ""}>{_lorem(texto)}</div>')
+        pills.append(f'<button type="button" class="pill"{"" if i else " data-active=\"true\""}>{_esc(label)}</button>')
+    parts.append(
+        f'<div class="option-card option-card-{padrao}">'
+        '<div class="pill-col">' + "".join(pills) + '</div>'
+        '<div class="opt-panes">' + "".join(panes) + '</div>'
+        '<div class="opt-texts">' + "".join(text_panes) + '</div>'
+        '</div>'
+    )
+```
+
+`initPills` (JS) passa a esconder/mostrar 2 elementos por índice (`.opt-pane`
+e `.opt-text`), não 1 — mesmo padrão de índice compartilhado, só duplicado.
+
+### 10.2 3 padrões de CSS (grid, não flex simples)
+
+```css
+/* padrão A — grafico: pills+grafico numa linha, texto abaixo ocupando tudo */
+.option-card-grafico{
+  display:grid; grid-template-columns:200px 1fr; grid-template-areas:"pills chart" "text text";
+  gap:16px;
+}
+.option-card-grafico .pill-col{grid-area:pills;}
+.option-card-grafico .opt-panes{grid-area:chart;}
+.option-card-grafico .opt-texts{grid-area:text;}
+
+/* padrão B — mapa: pills+mapa+texto numa linha so (3 colunas) */
+.option-card-mapa{
+  display:grid; grid-template-columns:200px 1fr 260px; gap:16px; align-items:start;
+}
+
+/* padrão C — tabela: texto | tabela (sem pills nesta rodada) */
+.table-with-text{ display:grid; grid-template-columns:260px 1fr; gap:20px; align-items:start; }
+```
+
+`.opt-text`/`.table-with-text` usam a mesma tipografia de corpo do
+relatório (`--font-body`), não mono — é prosa, não metadado.
+
+### 10.3 Geração de texto (lorem ipsum, ~500 palavras)
+
+```python
+import random
+_LOREM_WORDS = "lorem ipsum dolor sit amet consectetur adipiscing elit ...".split()  # banco de palavras classico
+
+def _lorem(seed, palavras=500):
+    rng = random.Random(seed)  # seed = label da opcao, texto deterministico por opcao (nao muda a cada geracao)
+    return " ".join(rng.choice(_LOREM_WORDS) for _ in range(palavras)).capitalize() + "."
+```
+
+Determinístico por `seed` (ex. o label da opção) para o texto não mudar
+gratuitamente a cada rodada de geração — útil para revisar diffs.
+
+### 10.4 Outliers: gate por formato
+
+```python
+def _eh_taxa_ou_percentual(s):
+    return s.get('format') in ('pct', 'pct1')
+
+# dentro de line_chart/bar_chart/grouped_bar_chart:
+norm = [_normaliza(s['values']) for s in series]
+limpos = [remove_outliers_tukey(v) if _eh_taxa_ou_percentual(s) else v for s, v in zip(series, norm)]
+```
+
+`mapa_svg` ganha o mesmo gate a partir do parâmetro `fmt` que já recebe
+(`fmt='pct1'` → aplica; `fmt='int'`, default → não aplica, nem chama
+`remove_outliers_tukey`). Efeito prático: bem menos cards ganham o toggle
+de outliers do que na rodada anterior (a maioria dos ~122 chart-renders
+eram séries de contagem absoluta).
+
+### 10.5 Tema único: remove o bloco dark inteiro
+
+Apaga `@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){...} }`
+e `:root[data-theme="dark"]{...}` do CSS gerado — as variáveis do `:root`
+base (hoje "claro") passam a ser as únicas. `color-scheme:light` explícito
+no `:root` (novo) evita qualquer resquício de UI nativa escura (scrollbar,
+etc.) no navegador do leitor.
+
+### 10.6 Corpo mais largo
+
+`.doc{max-width:880px}` → `.doc{max-width:1200px}` (specification.md §3.15,
+R). `.option-card-mapa`'s 3ª coluna (260px) e `.table-with-text`'s 1ª coluna
+(260px) foram dimensionadas para caber confortavelmente dentro desse novo
+limite junto com um mapa/tabela de tamanho razoável.
+
+### 10.7 Agrupamento (specification.md §9)
+
+Mecânico: para cada linha da tabela de §9, substituir as chamadas
+`line_chart`/`bar_chart`/`grouped_bar_chart`/`mapa_svg` soltas (ou os
+`h5`/`h6` que hoje as separam) por 1 chamada a `option_card` com as N
+opções correspondentes — mesma técnica já usada para "Por CAP e faixa
+etária"/"Grupo evitável por CAP", agora aplicada aos ~9 grupos novos
+listados na tabela. Cada `build_fn` de opção ganha também seu `texto`
+(§10.1) — nesta rodada, `_lorem(label)`.
