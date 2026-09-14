@@ -395,11 +395,21 @@ azul, não o basemap), texto do mapa de verdade limitado à altura do mapa
   a caixa de texto termina exatamente na mesma altura do mapa, com
   scrollbar interna pro que não cabe.
 
+### v6.7 — sem contorno no texto do mapa, cor do Censo trocada de cinza
+pra roxo
+
+- **Contorno removido do texto ao lado do mapa** (mantendo a sombra) —
+  era o único bloco de texto de análise que ainda tinha borda; agora
+  nenhum tem, só os cartões de mapa em si.
+- **Censo mudou de cinza pra roxo** (`Greys` → `Purples`) — o usuário
+  pediu uma cor própria em vez de cinza, mantendo a regra de nunca usar
+  azul (reservado ao mar/água do fundo cartográfico).
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
 | :--- | :--- | :--- | :--- |
-| `index.html` | Claro (único, v6.2) | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), fundo cartográfico real + rosa dos ventos + escala + legenda interna (v6.6), intercalados no fluxo |
+| `index.html` | Claro (único, v6.2) | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), fundo cartográfico real + rosa dos ventos + escala + legenda interna (v6.7), intercalados no fluxo |
 
 ## Limitações conhecidas
 

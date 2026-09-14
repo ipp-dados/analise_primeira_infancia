@@ -384,3 +384,20 @@ agrupamento — **implementado e validado**
   breakpoints móveis, os ~42 mapas restantes fotografados individualmente
   (mesma classe de fundo e mesma técnica CSS que os 2 testados, risco de
   regressão específica baixo mas não zero).
+
+## V17 — Sem contorno no texto do mapa, cor do Censo trocada de cinza pra
+## roxo
+
+- Sem contorno no texto do mapa: screenshot confirma a caixa de texto ao
+  lado do mapa "Crianças de 0 a 4 anos, por bairro" sem nenhuma borda
+  visível — só resta a sombra sutil (`box-shadow`), que continua lá.
+- Cor do Censo: screenshot mostra a escala "CRIANÇAS 0-4" e os polígonos
+  do mapa em tons de roxo (branco → violeta escuro), não mais cinza —
+  confirmado visualmente. Mar/água do fundo cartográfico continua azul
+  (a única cor azul na página), sem mudança.
+- Mapa e texto continuam encostados e com altura igual (Bloco 16
+  preservado — confirmado no mesmo screenshot, scrollbar interna do texto
+  terminando na mesma linha da borda inferior do mapa).
+- Geração: 17.189.538 bytes (17,19MB, essencialmente igual à rodada
+  anterior). Console do Edge headless (DOM dump + log) sem erro de
+  JavaScript. **Não testado**: clique real em pill, breakpoints móveis.
