@@ -30,7 +30,15 @@
   deploy — passo manual fora do alcance de uma sessão de código (tasks.md T9.4/T9.5)
 - Medir formalmente o contraste do rodapé (WCAG AA) — inspeção visual feita, não
   uma medição real (tasks.md T5.6)
-- Testar responsividade em telas estreitas (~375-420px) — não testado nesta rodada
+- **`mobile_version`** — versão mobile do relatório ainda não validada de verdade.
+  O CSS já tem breakpoints (`max-width:720px` e `max-width:520px`) que empilham
+  os 3 padrões de layout (gráfico/mapa/tabela) numa coluna só e viram a coluna de
+  pills numa fileira horizontal, mas isso nunca foi checado numa viewport estreita
+  real (~375-420px) nem via Edge headless — toda validação desta spec até agora
+  foi feita a 1400px. Precisa de uma rodada dedicada: screenshot real em
+  375/390/420px de largura pra cada um dos 3 padrões de layout + navbar (o burger
+  menu nunca foi aberto/testado) + mapa (legenda overlay pode não caber numa tela
+  estreita) + tabelas largas (scroll horizontal).
 - **Bloco "Principais achados" por seção** — layout implementado (v6.3, caixa cinza
   clara + 5 bullets no início de cada `h2`), mas o texto ainda é placeholder (lorem
   ipsum); precisa de texto curado por alguém que analise os dados, não é algo para
