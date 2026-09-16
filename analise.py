@@ -154,7 +154,7 @@ def total_e_percentual_ano(df):
     df['0 a 4 anos'] = df['Sexo feminino, 0 a 4 anos'] + df['Sexo masculino, 0 a 4 anos']
     df['Total'] = df.iloc[:,9:].sum(axis=1)
     df['Percentual 0 a 4 anos'] = (df['0 a 4 anos']/df['Total'])
-    return df[['bairro','0 a 4 anos','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']]
+    return df[['bairro','0 a 4 anos','Total','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']]
 
 def carrega_cobertura_vacinal(caminho):
     """Lê um export do EPI/SVS-Rio de cobertura vacinal por imunobiológico e ano."""
@@ -849,7 +849,7 @@ mapa_coropletico_bairros(
 # (16 regiões menores), então cada nível tem seus próprios limites (não dá pra reaproveitar os do
 # bairro); percentuais continuam em escala contínua (não fazem sentido em classes fixas aqui, com só
 # 5/16 unidades)
-niveis_planejamento = {
+""" niveis_planejamento = {
     'ap': {'nome': 'Área de Planejamento', 'bins': [25000, 50000, 75000, 100000]},
     'rp': {'nome': 'Região de Planejamento', 'bins': [12000, 18000, 24000, 30000]},
 }
@@ -874,7 +874,7 @@ for nivel, info in niveis_planejamento.items():
         cmap=_CORES_TEMA_MAPA['censo'],
         legenda_titulo='% da população',
         fonte_dados=fonte_censo,
-    )
+    ) """
 
 # %% [markdown]
 # #### Serie temporal censo
@@ -887,14 +887,28 @@ df_2000 = pd.read_csv('dados_locais\\censo\\tabela 2974_2000.csv', sep=';')
 df_2010 = pd.read_csv('dados_locais\\censo\\tabela 2974_2010.csv', sep=';')
 df_2022 = pd.read_csv('dados_locais\\censo\\tabela 2974_2022.csv', sep=';')
 
-df_serie_censo = pd.DataFrame(columns=['bairro','ano','0 a 4 anos','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos'])
-for i in [[df_2000,'2000'],[df_2010,'2010'],[df_2022,'2022']]:
-    df = total_e_percentual_ano(i[0])
-    df['ano'] = i[1]
-    df_serie_censo = pd.concat([df_serie_censo,df])
+df_serie_censo = pd.DataFrame()
 
-df_serie_censo=df_serie_censo[['ano','0 a 4 anos', 'Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']].groupby(by='ano').sum()
-df_serie_censo.to_csv('tabelas_finais//censo_0_a_4_anos_por_ano.csv')
+for df_censo_ano, ano in [[df_2000, '2000'], [df_2010, '2010'], [df_2022, '2022']]:
+    df = total_e_percentual_ano(df_censo_ano)
+    df['ano'] = ano
+    df_serie_censo = pd.concat([df_serie_censo, df], ignore_index=True)
+
+df_serie_censo = (
+    df_serie_censo
+    .groupby(by='ano')[[
+        '0 a 4 anos',
+        'Total',
+        'Sexo feminino, 0 a 4 anos',
+        'Sexo masculino, 0 a 4 anos'
+    ]]
+    .sum()
+)
+
+df_serie_censo['Percentual 0 a 4 anos'] = (
+    df_serie_censo['0 a 4 anos'] /
+    df_serie_censo['Total']
+) * 100
 
 # %%
 plt.figure(figsize=(12, 6))
@@ -904,9 +918,9 @@ sns.lineplot(data=df_serie_censo, x='ano', y='Sexo masculino, 0 a 4 anos', label
 #sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o')
 
 # Customize the plot
-plt.title('Série Temporal: Crianças 0 a 4 anos', fontsize=16)
+plt.title('Evolução da população de 0 a 4 anos — Censos 2000, 2010 e 2022', fontsize=16)
 plt.xlabel('Ano', fontsize=12)
-plt.ylabel('Valores', fontsize=10)
+plt.ylabel('Número de crianças', fontsize=10)
 plt.legend(title='Indicadores', fontsize=10)
 plt.grid(True)
 plt.tight_layout()
@@ -919,9 +933,9 @@ plt.figure(figsize=(12, 6))
 sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o', errorbar=None)
 
 # Customize the plot
-plt.title('Série Temporal: Crianças 0 a 4 anos', fontsize=16)
+plt.title('Percentual da população de 0 a 4 anos — Censos 2000, 2010 e 2022', fontsize=16)
 plt.xlabel('Ano', fontsize=12)
-plt.ylabel('Valores', fontsize=12)
+plt.ylabel('Percentual (%)', fontsize=12)
 plt.legend(title='Indicadores', fontsize=10)
 plt.grid(True)
 plt.tight_layout()
