@@ -1429,7 +1429,7 @@ mapa_coropletico_bairros(
 
 # # fonte reaproveitada por todas as séries/mapas de óbitos por causas evitáveis desta seção
 # # (raça/cor, grupo/subgrupo de causa e, mais adiante, por CAP) -- mesmo sistema de origem (SIM/SVS-Rio)
-# fonte_evitaveis = 'SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro'
+fonte_evitaveis = 'SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro'
 
 # serie_temporal_multipla(
 #     df_evitaveis_raca_municipio,
