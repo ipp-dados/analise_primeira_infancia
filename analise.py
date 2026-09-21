@@ -2047,12 +2047,12 @@ serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durant
 df_obitos_gravidez_mapa = df_obitos_gravidez[df_obitos_gravidez['ano'].astype(str) == '2025'].dropna(subset=['codigo']).copy()
 df_obitos_gravidez_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_gravidez_2025.csv', index=False)
 
-mapa_coropletico_bairros(
-    df_obitos_gravidez_mapa, coluna_valor='óbitos-gravidez', titulo='Óbitos durante a gravidez por bairro (2025)',
-    nome_arquivo='mapa_obitos_gravidez_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    bins=[0, 1], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
-)
+# mapa_coropletico_bairros(
+#     df_obitos_gravidez_mapa, coluna_valor='óbitos-gravidez', titulo='Óbitos durante a gravidez por bairro (2025)',
+#     nome_arquivo='mapa_obitos_gravidez_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     bins=[0, 1], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+# )
 
 # %%
 df_obitos_puerperio = pd.read_csv('dados_locais\\mortalidade\\obitos_puerperio_bairro_2006_2025.csv')
@@ -2081,15 +2081,16 @@ serie_temporal(df_obitos_puerperio_anual,'ano','óbitos-puerpério','Óbitos dur
 df_obitos_puerperio_mapa = df_obitos_puerperio[df_obitos_puerperio['ano'].astype(str) == '2025'].dropna(subset=['codigo']).copy()
 df_obitos_puerperio_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_puerperio_2025.csv', index=False)
 
-mapa_coropletico_bairros(
-    df_obitos_puerperio_mapa, coluna_valor='óbitos-puerpério', titulo='Óbitos durante o puerpério por bairro (2025)',
-    nome_arquivo='mapa_obitos_puerperio_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    bins=[0, 1, 2], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
-)
+# mapa_coropletico_bairros(
+#     df_obitos_puerperio_mapa, coluna_valor='óbitos-puerpério', titulo='Óbitos durante o puerpério por bairro (2025)',
+#     nome_arquivo='mapa_obitos_puerperio_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     bins=[0, 1, 2], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+# )
 
 # %% [markdown]
 # #### 🩺 Mortalidade Neonatal
+
 
 # %% [markdown]
 # Óbitos de menores de 1 ano por faixa etária (precoce, tardia, pós-neonatal e total 0-364 dias), com taxa por 1.000 nascidos vivos.
@@ -2167,12 +2168,12 @@ serie_temporal(df_neonatal_tardia_anual,'ano','taxa_obitos_tardios','Taxa de ób
 df_neonatal_tardia_mapa = df_neonatal_tardia[df_neonatal_tardia['ano'].astype(str) == '2025'].dropna(subset=['codigo']).copy()
 df_neonatal_tardia_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_neonatal_tardia_2025.csv', index=False)
 
-mapa_coropletico_bairros(
-    df_neonatal_tardia_mapa, coluna_valor='obitos_tardios', titulo='Óbitos tardios (7-27 dias) por bairro (2025)',
-    nome_arquivo='mapa_obitos_neonatal_tardia_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
-)
+# mapa_coropletico_bairros(
+#     df_neonatal_tardia_mapa, coluna_valor='obitos_tardios', titulo='Óbitos tardios (7-27 dias) por bairro (2025)',
+#     nome_arquivo='mapa_obitos_neonatal_tardia_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+# )
 mapa_coropletico_bairros(
     df_neonatal_tardia_mapa, coluna_valor='taxa_obitos_tardios', titulo='Taxa de óbitos tardios (7-27 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_obitos_tardios_bairro_2025', chave='codigo',
@@ -2238,12 +2239,12 @@ serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonata
 df_mortalidade_infantil_mapa = df_mortalidade_infantil[df_mortalidade_infantil['ano'].astype(str) == '2025'].copy()
 df_mortalidade_infantil_mapa.to_csv('tabelas_finais//tabela_mapa_mortalidade_infantil_2025.csv', index=False)
 
-mapa_coropletico_bairros(
-    df_mortalidade_infantil_mapa, coluna_valor='obitos_28_364', titulo='Óbitos pós-neonatais (28-364 dias) por bairro (2025)',
-    nome_arquivo='mapa_obitos_pos_neonatal_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
-)
+# mapa_coropletico_bairros(
+#     df_mortalidade_infantil_mapa, coluna_valor='obitos_28_364', titulo='Óbitos pós-neonatais (28-364 dias) por bairro (2025)',
+#     nome_arquivo='mapa_obitos_pos_neonatal_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+# )
 mapa_coropletico_bairros(
     df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_pos_neonatal', titulo='Taxa de mortalidade pós-neonatal (28-364 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_mortalidade_pos_neonatal_bairro_2025', chave='codigo',
@@ -2292,7 +2293,7 @@ df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo
 df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
 df_desnutricao.to_csv('tabelas_finais\\sisvan_desnutricao_por_ano.csv')
-serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual Crianças 0-6 com baixo peso',
+serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual de crianças de 0 a 6 anos com baixo peso - SISVAN',
                nome_arquivo='sisvan_desnutricao_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %%
@@ -2304,11 +2305,11 @@ df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].appl
 df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
 df_sobrepeso.to_csv('tabelas_finais\\sisvan_sobrepeso_por_ano.csv')
-serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual Crianças 0-6 com sobrepeso i.e. PESO ACIMA + OBESIDADE',
+serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual de crianças de 0 a 6 anos com sobrepeso e obesidade - SISVAN',
                nome_arquivo='sisvan_sobrepeso_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %%
-serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual Crianças 0-6 com obesidade',
+serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual de crianças de 0 a 6 anos com obesidade - SISVAN',
                nome_arquivo='sisvan_obesidade_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %% [markdown]
@@ -2330,20 +2331,20 @@ df_cobertura_vacinal_wide.to_csv('tabelas_finais//cobertura_vacinal_epi_por_ano.
 df_cobertura_vacinal_wide.head()
 
 # %%
-colunas_vacinas = {c: c for c in df_cobertura_vacinal_wide.columns if c != 'ano'}
-serie_temporal_multipla(
-    df_cobertura_vacinal_wide,
-    tempo='ano',
-    colunas=colunas_vacinas,
-    titulo='Cobertura vacinal por imunobiológico - Rio de Janeiro (2016-2026)',
-    nome_arquivo='cobertura_vacinal_epi_ano',
-    ylabel='Cobertura (%)',
-    legend_title='Imunobiológico',
-    figsize=(14,7), fonte_dados=fonte_cobertura_vacinal,
-)
+# colunas_vacinas = {c: c for c in df_cobertura_vacinal_wide.columns if c != 'ano'}
+# serie_temporal_multipla(
+#     df_cobertura_vacinal_wide,
+#     tempo='ano',
+#     colunas=colunas_vacinas,
+#     titulo='Cobertura vacinal por imunobiológico - Rio de Janeiro (2016-2026)',
+#     nome_arquivo='cobertura_vacinal_epi_ano',
+#     ylabel='Cobertura (%)',
+#     legend_title='Imunobiológico',
+#     figsize=(14,7), fonte_dados=fonte_cobertura_vacinal,
+# )
 
 # %% [markdown]
-# Comparativo direto entre quatro anos (2016, 2019, 2022 e 2025) por imunobiológico, para visualizar o impacto da pandemia (queda em 2022) e a recuperação até 2025.
+# Comparativo da cobertura vacinal por imunobiológico nos anos de 2016, 2019, 2022 e 2025.
 
 # %%
 anos_comparacao = [2016, 2019, 2022, 2025]
