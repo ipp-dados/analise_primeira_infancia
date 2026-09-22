@@ -903,13 +903,13 @@ viz('grafico', [
 ])
 
 h3('Mapas')
-df_map_nv = read("tabela_mapa_bairros_nascidos_vivos_bruto.csv")
-df_map_bp_2025 = read("tabela_mapa_bairros_nascidos_abaixo_peso.csv").pipe(lambda d: d[d["ano"] == 2025])
+df_map_nv = read("tabela_mapa_nascidos_vivos_2025.csv")
+df_map_bp_2025 = read("tabela_mapa_nascidos_baixo_peso_2025.csv").pipe(lambda d: d[d["ano"] == 2025])
 df_map_raca_2025 = read("mortalidade_raca_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
 option_card([
-    ("Nascidos vivos", lambda: mapa_svg(df_map_nv, "codigo", "value", "natalidade",
+    ("Nascidos vivos", lambda: mapa_svg(df_map_nv, "codigo", "nascidos vivos", "natalidade",
         "Nascidos vivos por bairro (2025)", "Nascidos vivos", FONTE_DATASUS, bins=[200, 400, 800, 1500]), "Nascidos vivos"),
-    ("Baixo peso · Absoluto", lambda: mapa_svg(df_map_bp_2025, "codigo", "Nascidos abaixo peso", "natalidade",
+    ("Baixo peso · Absoluto", lambda: mapa_svg(df_map_bp_2025, "codigo", "nascidos abaixo peso", "natalidade",
         "Nascidos com baixo peso por bairro (2025)", "Nascidos abaixo do peso", FONTE_DATASUS, bins=[15, 30, 60, 120]), "Baixo peso · Absoluto"),
     ("Baixo peso · %", lambda: mapa_svg(df_map_bp_2025, "codigo", "percentual abaixo do peso", "natalidade",
         "% de nascidos com baixo peso por bairro (2025)", "% baixo peso", FONTE_DATASUS, fmt="pct1"), "Baixo peso · %"),
