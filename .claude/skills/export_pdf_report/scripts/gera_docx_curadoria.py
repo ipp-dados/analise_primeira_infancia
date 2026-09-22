@@ -1,11 +1,15 @@
 """Gera `relatorio/curadoria_textos.docx` (Bloco 5 de `specs/ajuste_eixos/plan.md`).
 
-Documento Word para curadoria de textos de análise fora do notebook/HTML: 1
-heading nível 1 por eixo, 1 heading nível 2 por subseção (`specs/estrutura_eixos.md`,
-pendentes incluídas), e para cada subseção não-pendente 1 "opção" por
-visualização/mapa real (heading nível 3 + imagem PNG real, redimensionada, +
-1 parágrafo de texto placeholder). Subseções sem visualização/mapa dedicado
-(`fonte`-only) ainda ganham 1 bloco de texto, sem imagem.
+Documento Word para curadoria de textos de análise fora do notebook/HTML:
+abre com um Sumário (campo TOC nativo do Word, sob controle do usuário --
+ele mesmo pede "Atualizar campo" no Word conforme edita o documento) e uma
+Introdução (placeholder de 250 palavras, mesmo princípio do HTML/PDF), 1
+heading nível 1 por eixo, 1 heading nível 2 por subseção
+(`specs/estrutura_eixos.md`, pendentes incluídas), e para cada subseção
+não-pendente 1 "opção" por visualização/mapa real (heading nível 3 +
+imagem PNG real, redimensionada, + 1 parágrafo de texto placeholder).
+Subseções sem visualização/mapa dedicado (`fonte`-only) ainda ganham 1
+bloco de texto, sem imagem.
 
 Cada parágrafo de texto carrega um bookmark OOXML (`w:bookmarkStart`/
 `w:bookmarkEnd`) nomeado a partir de um ID estável (nome do arquivo de
@@ -134,6 +138,62 @@ def add_bookmark(paragraph, bookmark_name, bookmark_id):
     paragraph._p.append(end)
 
 
+def add_toc_field(paragraph):
+    """Insere um campo `TOC` nativo do Word no parágrafo `paragraph` --
+    diferente de uma lista estática (HTML/PDF deste projeto usam uma,
+    construída a partir do `toc`/`_toc` de cada gerador), um campo de
+    verdade fica sob controle do usuário: à medida que ele edita o .docx
+    (renomeia um heading, apaga uma subseção, promove um H3 pendente depois
+    de implementado), basta clicar com o botão direito e "Atualizar campo"
+    (ou F9) para o sumário refletir a estrutura atual do documento, sem
+    precisar regenerar nada por script. python-docx não roda o campo (só o
+    Word calcula os títulos + números de página), por isso o texto inicial
+    é só um aviso -- vira um sumário de verdade na primeira abertura no
+    Word (ver `_forca_atualizacao_de_campos` abaixo)."""
+    run = paragraph.add_run()
+
+    fld_begin = OxmlElement('w:fldChar')
+    fld_begin.set(qn('w:fldCharType'), 'begin')
+    run._r.append(fld_begin)
+
+    instr = OxmlElement('w:instrText')
+    instr.set(qn('xml:space'), 'preserve')
+    instr.text = 'TOC \\o "1-3" \\h \\z \\u'
+    run._r.append(instr)
+
+    fld_sep = OxmlElement('w:fldChar')
+    fld_sep.set(qn('w:fldCharType'), 'separate')
+    run._r.append(fld_sep)
+
+    placeholder = OxmlElement('w:t')
+    placeholder.text = (
+        "Clique com o botão direito neste texto e escolha “Atualizar "
+        "campo” (ou selecione tudo com Ctrl+A e pressione F9) para "
+        "gerar o sumário a partir dos títulos deste documento."
+    )
+    run._r.append(placeholder)
+
+    fld_end = OxmlElement('w:fldChar')
+    fld_end.set(qn('w:fldCharType'), 'end')
+    run._r.append(fld_end)
+
+
+def _forca_atualizacao_de_campos(document):
+    """Seta `<w:updateFields w:val="true"/>` em settings.xml -- pede ao Word
+    pra recalcular todos os campos (o TOC acima incluído) na abertura do
+    arquivo, em vez de depender só do usuário lembrar de atualizar
+    manualmente. Best-effort: numa versão de python-docx sem `.settings`
+    isso só deixa de forçar, não quebra a geração (o campo ainda funciona
+    manualmente)."""
+    try:
+        settings = document.settings.element
+        update_fields = OxmlElement('w:updateFields')
+        update_fields.set(qn('w:val'), 'true')
+        settings.append(update_fields)
+    except AttributeError:
+        pass
+
+
 def extrai_textos_por_bookmark(caminho_docx):
     """Retorna {bookmark_name: texto_do_paragrafo} lendo um .docx já gerado."""
     doc = Document(caminho_docx)
@@ -213,6 +273,24 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None):
 
     doc = Document()
 
+    # ---- sumario + introducao (pedido do usuario, specs/ajuste_eixos) -----
+    # Sumario = campo TOC nativo do Word (add_toc_field), nao uma lista
+    # estatica -- "para controle do usuario": ele mesmo pede a atualizacao
+    # no Word conforme edita o documento, sem depender de regerar via
+    # script. Mesmo lugar/ordem do HTML e do PDF (Sumario antes,
+    # Introducao logo depois, ambos antes do primeiro eixo).
+    # "Sumário" NÃO usa add_heading (estilo Heading N) de propósito: o campo
+    # TOC abaixo varre os níveis 1-3 do documento inteiro, e um heading real
+    # aqui apareceria listado dentro do próprio sumário, apontando pra si
+    # mesmo (mesmo motivo pelo qual build_html_report.py também não usa
+    # h2() pra isso).
+    rotulo = doc.add_paragraph()
+    rotulo.add_run("SUMÁRIO").bold = True
+    add_toc_field(doc.add_paragraph())
+
+    doc.add_heading("Introdução", level=1)
+    doc.add_paragraph(_lorem("introducao-relatorio-docx", 250))
+
     def bloco_texto(id_):
         """Escreve 1 parágrafo de texto (curado, se já existir, senão lorem
         ipsum determinístico) com bookmark nomeado a partir de `id_`, e
@@ -290,6 +368,8 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None):
             rotulo.add_run(bname).bold = True
             p = doc.add_paragraph(texto)
             add_bookmark(p, bname, next_id())
+
+    _forca_atualizacao_de_campos(doc)
 
     Path(caminho_saida).parent.mkdir(parents=True, exist_ok=True)
     doc.save(caminho_saida)
