@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Build the single consolidated interactive HTML report (relatorio/index.html).
+"""Build the single consolidated interactive HTML report (relatorio/relatorio.html).
 
 Replaces the old 3-file setup (index.html / lighter_index.html / white_index.html),
 which was hand-built by unsaved ad-hoc scripts (see relatorio/specs.md). This script
@@ -53,7 +53,7 @@ from PIL import Image
 
 TF = "tabelas_finais"
 MAPAS = "mapas"
-OUT_PATH = sys.argv[1] if len(sys.argv) > 1 else "relatorio/index.html"
+OUT_PATH = sys.argv[1] if len(sys.argv) > 1 else "relatorio/relatorio.html"
 
 # ---------------------------------------------------------------- helpers --
 

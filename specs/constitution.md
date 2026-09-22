@@ -75,7 +75,7 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
 
 ## 4. Não editar artefatos gerados à mão
 
-`visualizacoes/*.png`, `mapas/*.png`, `tabelas_finais/*`, `relatorio/index.html`
+`visualizacoes/*.png`, `mapas/*.png`, `tabelas_finais/*`, `relatorio/relatorio.html`
 e `relatorio/analise_primeira_infancia.pdf` são saídas de pipeline. Uma
 mudança nesses arquivos que não vier de rodar `analise.py` ou os scripts em
 `.claude/skills/*/scripts/` será sobrescrita na próxima regeneração e não
