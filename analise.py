@@ -910,6 +910,8 @@ df_serie_censo['Percentual 0 a 4 anos'] = (
     df_serie_censo['Total']
 ) * 100
 
+df_serie_censo.to_csv('tabelas_finais//censo_0_a_4_anos_por_ano.csv')
+
 # %%
 plt.figure(figsize=(12, 6))
 sns.lineplot(data=df_serie_censo, x='ano', y='0 a 4 anos', label='Total 0 a 4 anos', marker='o', errorbar=None)
