@@ -16,7 +16,7 @@ Run from the project root:
 
 Maps are embedded directly from mapas/*.png (resized/WebP via Pillow, same
 technique as build_html_report.py) -- no longer routed through
-relatorio/*.html + extract_maps.py, since the consolidated relatorio/relatorio.html
+relatorio/*.html + extract_maps.py, since the consolidated relatorio/index.html
 (specs/visual-identity) embeds maps as plain <img> tags, not a `const MAPS = [...]`
 JS array extract_maps.py could parse.
 """

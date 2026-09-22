@@ -78,7 +78,7 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 - Export padrão em PNG (`visualizacoes/`, `mapas/`); export SVG existe mas
   fica comentado por padrão em cada função de plot.
 
-## Relatório interativo (`relatorio/relatorio.html`)
+## Relatório interativo (`relatorio/index.html`)
 
 - **HTML/CSS/JS vanilla**, um único arquivo autocontido — sem framework, sem
   passo de build, sem dependência externa além de uma fonte via Google
@@ -90,9 +90,9 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 - Tema claro/escuro automático via `prefers-color-scheme`, sem JS de
   detecção de tema.
 - Deploy: **GitHub Actions** (`.github/workflows/deploy-relatorio.yml`,
-  disparo manual `workflow_dispatch`) publica `relatorio/relatorio.html` no
-  **GitHub Pages**, copiado para `index.html` só no passo de deploy (Pages
-  exige esse nome na raiz do site — o arquivo-fonte mantém o nome descritivo).
+  disparo manual `workflow_dispatch`) publica `relatorio/index.html` no
+  **GitHub Pages** (copiado para `_site/index.html`, nome exigido na raiz
+  do site pelo Pages).
 
 ## Exportação em PDF
 

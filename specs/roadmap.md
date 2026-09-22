@@ -17,11 +17,11 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
    regenerados de verdade (exceto CadÚnico, sem `.env` nesta sessão) — ver
    `specs/reorganize-naming/plan.md`.
 3. **Reorganizar a estrutura do relatório** — revisar a organização de
-   `relatorio/relatorio.html` (seções, ordem, navegação) após o volume de
+   `relatorio/index.html` (seções, ordem, navegação) após o volume de
    conteúdo acumulado por `specs/maps-and-ibge` e `specs/relatorio-interativo`.
    Ainda sem spec próprio.
 4. **`publicar_teste_pages`** — em andamento: repositório está indo a
-   público e `relatorio/relatorio.html` ganhou uma faixa fixa "EM
+   público e `relatorio/index.html` ganhou uma faixa fixa "EM
    DESENVOLVIMENTO / TEMPORÁRIO" para permitir publicar antes do item 3
    estar pronto. Falta disparar o `workflow_dispatch` de
    `.github/workflows/deploy-relatorio.yml`.
@@ -48,7 +48,7 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 - Update dados de matrículas escolares for years 2021-2025
 
 ## Relatório interativo (`specs/relatorio-interativo`)
-- **Reduzir o peso de `relatorio/relatorio.html` (~17MB)** — todos os ~32 mapas
+- **Reduzir o peso de `relatorio/index.html` (~17MB)** — todos os ~32 mapas
   agora são SVG interativo (concluído), mas cada instância embute sua própria
   geometria como texto sem compartilhar paths entre mapas do mesmo nível
   (ex.: os ~20 mapas de bairro repetem os mesmos 166 polígonos). Otimização:

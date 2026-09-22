@@ -49,12 +49,11 @@ compartilhado, acesso restrito — solicitar a leonardoaucar@prefeitura.rio.*
 *   `tabelas_finais/`: Pasta de saída padronizada (CSV/Excel) para tabelas e agregados gerados pelo pipeline.
 *   `visualizacoes/`: Diretório para os gráficos exportados pelo notebook (PNG por padrão; exportação adicional em SVG disponível, mas comentada, em cada função de gráfico). Nomes de arquivo refletem a seção/tema da análise (ex.: `cobertura_vacinal_epi_ano.png`, `cadunico_criancas_por_idade.png`).
 *   `mapas/`: Imagens de mapas coropléticos, gerados dentro do próprio `analise.py` com `geopandas`/`contextily` pela função `mapa_coropletico_bairros`: basemap cartográfico (Esri Ocean Basemap), limite estadual sobreposto, municípios vizinhos rotulados, rosa dos ventos, escala gráfica, título em fonte serifada (Palatino Linotype), formato ~1,46:1 (próximo de A4 paisagem) e exportação a 300 DPI. Cobre hoje o Censo (bairro/AP/RP), mortalidade por causas evitáveis por CAP (grupo e subgrupo), e ~20 mapas por bairro no ano mais recente (CadÚnico, nascidos vivos, baixo peso, óbitos por raça, mortalidade neonatal, óbitos gravidez/puerpério) -- cada um com sua tabela-insumo gêmea em `tabelas_finais/tabela_mapa_*.csv`. `mapas/tabelas_bairros/` é o resquício do padrão anterior (Excel), mantido só para `dados_datasus_por_bairro.xlsx` e as tabelas do Censo (`tabela_mapa_0_4_*.xlsx`); nascidos vivos e baixo peso já migraram para o padrão CSV.
-*   `relatorio/`: `relatorio.html` autocontido, gerado por
+*   `relatorio/`: `index.html` autocontido, gerado por
     `.claude/skills/export_pdf_report/scripts/build_html_report.py`, com as visualizações do
     notebook renderizadas de forma interativa (SVG, tooltip, tabela de dados) e todos os mapas
     de `mapas/` (redimensionados/WebP), para compartilhamento com quem não abre o notebook.
-    Publicado no GitHub Pages como `index.html` (nome exigido pelo Pages na raiz do site — só
-    o arquivo publicado muda de nome, não o do repositório). Tema claro/escuro automático
+    Publicado diretamente no GitHub Pages. Tema claro/escuro automático
     (`prefers-color-scheme`); cada visualização traz só título + fonte + tabela opcional, sem a
     prosa/notas de método do notebook (essas ficam no notebook e no PDF).
 *   `specs/`: Constituição do projeto (`constitution.md`), stack técnica (`tech-stack.md`),
@@ -110,6 +109,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.19.1 | 2026-09-22 | Revertido o rename de `relatorio/index.html` para `relatorio/relatorio.html` (0.19.0) — de volta a `index.html`. |
 | 0.19.0 | 2026-09-22 | Relatório/mapas/tabelas regenerados de verdade; `relatorio/index.html` renomeado para `relatorio/relatorio.html` (deploy continua publicando como `index.html`); primeiro deploy de teste no GitHub Pages; README reestruturado. |
 | 0.18.0 | 2026-09-22 | `dados_locais/` reorganizado por tema; convenção de nomes de `tabelas_finais/`/`visualizacoes/`/`mapas/` documentada em `specs/tech-stack.md`. |
 | 0.17.0 | 2026-09-22 | Merge da curadoria de `analise.py` da Waleska Marques: bug de agregação do Censo corrigido, ~15 visualizações redundantes removidas. |
