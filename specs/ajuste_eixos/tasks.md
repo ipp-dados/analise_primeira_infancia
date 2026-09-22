@@ -112,21 +112,38 @@
       depois de confirmado (não é uma mudança real de estrutura).
 
 ## Bloco 7 — Skill de sincronização do DOCX (plan.md §7)
-- [ ] **T7.1** — `eh_lorem_ipsum()` implementado e testado (texto idêntico
-      ao `_lorem(id_)` gerado on-the-fly = não editado; qualquer diferença =
-      editado).
-- [ ] **T7.2** — `sincroniza_docx()` escrito — propaga texto real para
-      HTML/PDF source.
-- [ ] **T7.3** — Propagação para `analise.py`: nota markdown inserida na
-      subseção certa, localizada pelo `id_` (nome de arquivo) já usado como
-      referência na célula de código correspondente.
-- [ ] **T7.4** — Teste de ponta a ponta: editar 1 bloco no DOCX, pedir
-      sincronização, confirmar que o texto aparece no HTML regenerado, no
-      PDF regenerado e como nota markdown em `analise.py` — e que os outros
-      blocos (ainda lorem ipsum) não foram tocados.
-- [ ] **T7.5** — `jupytext --sync analise.py` rodado depois da escrita
-      automática de nota markdown pelo skill (mesma regra de qualquer edição
-      manual do `.py`).
+- [x] **T7.1** — `eh_lorem_ipsum()` implementado e testado — comparação
+      exata (não heurística) contra `_lorem(id_)` recalculado on-the-fly;
+      0 falsos positivos contra o `.docx` real (100% lorem ipsum hoje).
+      Achado durante a implementação: o nome do bookmark gravado no `.docx`
+      (`_bookmark_name(id_)`, sanitizado/truncado+hash) não bate byte a
+      byte com o `id_` original em 26 dos 84 blocos — corrigido comparando
+      contra o `id_` reconstruído (`_mapa_bookmark_para_id`), não contra o
+      nome do bookmark diretamente (que teria dado falso positivo e
+      gravado a chave errada no JSON).
+- [x] **T7.2** — `sincroniza_docx()` escrito — propaga texto real para
+      `relatorio/textos_curados.json` (lido por `_texto_analise()` em
+      ambos os geradores, Blocos 3-4) e regenera HTML/PDF-source via
+      subprocess.
+- [x] **T7.3** — Propagação para `analise.py`: nota markdown inserida logo
+      após a célula de código que produz o arquivo correspondente ao
+      `id_`, localizada por `nome_arquivo=` (2ª fase: `.png`/`.csv`/`.xlsx`
+      literal) — busca em duas fases porque um mesmo stem costuma nomear
+      tanto uma tabela (`to_csv`, célula anterior) quanto o gráfico
+      (`nome_arquivo=`, célula posterior); buscar misturado pegaria a
+      célula errada. Idempotente via marcador `<!-- nota-curadoria:ID -->`.
+- [x] **T7.4** — Teste de ponta a ponta (feito duas vezes, uma pelo agente
+      que implementou e uma independente pela sessão coordenadora, em
+      blocos diferentes): editar 1 bookmark numa cópia de teste do `.docx`,
+      rodar `sincroniza_docx.py`, confirmar texto no JSON, no HTML
+      regenerado, na HTML-fonte do PDF regenerada e como nota markdown em
+      `analise.py` — demais blocos (ainda lorem ipsum) inalterados.
+      Segunda rodada sobre a mesma edição confirma idempotência (nota
+      substituída in-place, não duplicada). Edições de teste revertidas
+      (`git restore` + `jupytext --sync`) — nada de teste ficou commitado.
+- [x] **T7.5** — `jupytext --sync analise.py` chamado automaticamente por
+      `aplica_notas_em_analise()` sempre que uma nota é escrita; confirmado
+      sem divergência (`returncode=0`) nos dois testes de ponta a ponta.
 
 ## Bloco 8 — Documentação (plan.md §8)
 - [ ] **T8.1** — `requirements.txt` com `python-docx`.

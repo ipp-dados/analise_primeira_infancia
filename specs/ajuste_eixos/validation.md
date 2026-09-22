@@ -91,12 +91,19 @@ escrito antes da implementação, junto com `plan.md`/`tasks.md`.
   `SKILL.md` diga isso claramente e que eu (ou quem operar o skill) saiba
   que precisa ajustar `build_html_report.py`/`build_notebook_report.py` à
   mão antes de regerá-los.
-- **Teste de sincronização do DOCX** (`tasks.md` T7.4): editar 1 bloco de
-  texto no DOCX, pedir sincronização em linguagem natural, confirmar que
-  (a) o HTML regenerado mostra o texto novo no bloco certo, (b) o PDF
-  idem, (c) `analise.py` ganha a nota markdown correspondente na subseção
-  certa, (d) nenhum outro bloco (ainda lorem ipsum) foi alterado nos 3
-  artefatos.
+- **Teste de sincronização do DOCX** (`tasks.md` T7.4) — **PASSOU**, testado
+  duas vezes independentemente (uma vez pelo agente que implementou o
+  Bloco 7, uma vez pela sessão coordenadora, em bookmarks diferentes):
+  editar 1 bloco de texto numa cópia de teste do DOCX e rodar
+  `sincroniza_docx.py` confirma (a) `relatorio/textos_curados.json` ganha
+  a entrada certa, (b) o HTML regenerado mostra o texto novo no card
+  certo, (c) a HTML-fonte do PDF idem, (d) `analise.py` ganha a nota
+  markdown correspondente logo após a célula de código certa (`git diff`
+  mostra só a célula nova), (e) `jupytext --sync` roda limpo, (f) nenhum
+  outro bookmark (ainda lorem ipsum) foi alterado, (g) rodar a
+  sincronização de novo sobre a mesma edição é idempotente (nota
+  substituída in-place, não duplicada). Contra o `.docx` real (ainda 100%
+  lorem ipsum) a detecção de edição não dá nenhum falso positivo.
 
 ## V7 — Documentação
 - `requirements.txt` lista `python-docx`.
