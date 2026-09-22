@@ -87,9 +87,17 @@ algo novo, e só re-nomear o que quebra o padrão:
 4. Documentar a convenção em `specs/tech-stack.md` (não em `constitution.md` — é uma convenção
    de projeto, não uma regra de processo).
 
-## Perguntas em aberto para o usuário
+## Execução — ✅ concluída (2026-09-22)
 
-- Confirma a correção do bug (item 1) e o apagamento dos 36 órfãos (item 2)?
-- Algum dos 5 PNGs "de leitura" em `mapas/` (`Nº absoluto crianças de 0 a 4.png` etc.) tem
-  valor de referência/comparação com o mapa QGIS original que eu não estou vendo, antes de
-  apagar?
+Usuário aprovou os itens 1-2. Feito, nesta ordem:
+
+1. `build_html_report.py` corrigido (tabelas/colunas atuais).
+2. 39 arquivos órfãos removidos (5 "de leitura" incluídos — sem objeção).
+3. Convenção documentada em `specs/tech-stack.md` (item 4), não em
+   `constitution.md`.
+4. `.gitignore` corrigido à parte (linhas de `mapas/`/`tabelas_finais/`/
+   `visualizacoes/` estavam comentadas, virando texto solto em vez de regra).
+5. `relatorio/`, `mapas/`, `tabelas_finais/`, `visualizacoes/`,
+   `dados_locais/tratados/` regenerados de verdade (CadÚnico no último
+   estado salvo). PDF renderizado via Chromium/Playwright e verificado por
+   amostragem de páginas antes de substituir o arquivo.

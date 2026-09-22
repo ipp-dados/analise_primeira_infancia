@@ -27,6 +27,30 @@ descartadas nas `SKILL.md` e nas specs por rodada).
 - **pandas** para toda a manipulação tabular; **openpyxl** para ler/escrever
   Excel (`.xlsx`); saídas finais em CSV e Excel em `tabelas_finais/`.
 
+### Convenção de nomes (`dados_locais/` · `tabelas_finais/` · `visualizacoes/` · `mapas/`)
+
+Formalizada em 2026-09-22 a partir do padrão que já era maioria — ver
+`specs/reorganize-naming/plan.md` para o levantamento completo (achados,
+arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
+
+- `dados_locais/`: uma pasta por fonte, tema, snake_case sem espaço/acento
+  maiúsculo (`censo/`, `mortalidade/`, `sisvan/`, `ibge_sidra/`,
+  `vacinacao/`, `nascidos_vivos/`, `geo/`). Um dado nunca mora em duas
+  pastas — se duas seções de análise usam o mesmo arquivo, as duas leem da
+  mesma pasta.
+- `tabelas_finais/`/`visualizacoes/`/`mapas/`: `{tema}_{indicador}[_{corte}]_{granularidade_ou_ano}.{ext}`.
+  `tema` normalmente repete o nome da pasta de origem em `dados_locais/`.
+  `corte` (opcional): `raca`, `sexo`, `subgrupo`, `cap`. Sufixo de
+  granularidade: `_por_ano` (série município), `_bairro_ano` (série por
+  bairro), `_{ANO}` (corte transversal — mapas, prefixo `tabela_mapa_`
+  reservado pro par CSV↔PNG de cada mapa).
+- **O nome do PNG reaproveita o nome do CSV correspondente** sempre que os
+  dois existem pro mesmo indicador — é o mecanismo de rastreio entre as
+  três pastas, não uma tabela de mapeamento separada pra manter em dia.
+- Exceção documentada, não é dívida técnica: `mapas/tabelas_bairros/*.xlsx`
+  é o resquício intencional do padrão anterior (Excel), mantido só pra 2
+  tabelas que não migraram — ver README.
+
 ## Geoespacial (mapas)
 
 - **geopandas** + **shapely** + **pyproj** + **pyogrio** para ler/manipular
