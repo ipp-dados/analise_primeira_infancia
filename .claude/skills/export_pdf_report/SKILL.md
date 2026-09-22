@@ -1,6 +1,6 @@
 ---
 name: export_pdf_report
-description: Export a non-technical PDF of the primeira-infancia analysis, using analise.py's own matplotlib/seaborn chart images (visualizacoes/*.png) and tabelas_finais/ data tables -- NOT the relatorio/*.html custom SVG report. Use when the user asks for a PDF export/version of the analysis, report, or notebook, or to regenerate an existing report PDF after the notebook/data changes. Also covers regenerating relatorio/index.html and the DOCX curation export (relatorio/curadoria_textos.docx) from the same structural source (specs/estrutura_eixos.md) -- use this skill too when the user edits that file and asks to "update the report(s)".
+description: Export a non-technical PDF of the primeira-infancia analysis, using analise.py's own matplotlib/seaborn chart images (visualizacoes/*.png) and tabelas_finais/ data tables -- NOT the relatorio/*.html custom SVG report. Use when the user asks for a PDF export/version of the analysis, report, or notebook, or to regenerate an existing report PDF after the notebook/data changes. Also covers regenerating relatorio/index.html and the DOCX curation export (relatorio/curadoria_textos.docx) from the same structural source (specs/estrutura_eixos.md) -- use this skill too when the user edits that file and asks to "update the report(s)", or when someone has hand-edited analysis text in the DOCX and asks to sync/propagate it back into the HTML, PDF, or analise.py.
 ---
 
 # Export PDF report
@@ -84,6 +84,8 @@ Run every command from the project root. Steps 3-5 are independent of each
 other once step 1-2 are done — regenerate only the artifact(s) the request
 actually needs (e.g. "just update the PDF" skips steps 3 and 5), but
 **always run 1-2 first** regardless of which artifact(s) you're targeting.
+Step 6 (DOCX text sync) is only relevant once someone has actually curated
+text in the DOCX — most regeneration requests never need it.
 
 1. **Regenerate any stale/missing chart PNGs.**
    `visualizacoes/*.png` is not guaranteed to be complete/current under its
@@ -264,6 +266,32 @@ actually needs (e.g. "just update the PDF" skips steps 3 and 5), but
    from scratch (omitting `<docx_anterior>`) once real curation has begun,
    or edited text is lost. See `specs/ajuste_eixos/plan.md` Bloco 5 for
    the bookmark/ID design if extending this script.
+
+6. **Sync hand-curated DOCX text back into HTML/PDF/`analise.py`.** Once
+   someone has actually edited placeholder text in
+   `relatorio/curadoria_textos.docx` (replacing lorem ipsum with real
+   analysis), run:
+   ```
+   python .claude/skills/export_pdf_report/scripts/sincroniza_docx.py relatorio/curadoria_textos.docx [<pdf_source_out>]
+   ```
+   Detects which bookmarks genuinely changed (exact comparison against the
+   deterministic lorem ipsum that bookmark's ID would still produce — not
+   a heuristic), writes them to `relatorio/textos_curados.json` (which
+   `build_html_report.py`/`build_notebook_report.py` both read via
+   `_texto_analise(seed)` before falling back to lorem — this is *why*
+   Bloco 3/4's seeds were aligned to real filenames instead of pill
+   labels, see `specs/ajuste_eixos/specs.md` §9.3), regenerates
+   `relatorio/index.html` and the PDF's source HTML, and inserts/updates a
+   markdown note in `analise.py` right after the code cell that produces
+   the matching chart/table (idempotent — a marker comment prevents
+   duplicate notes on repeat runs; never touches a code cell). This script
+   does **not** render the final PDF binary — run step 4.2-4.4 above
+   afterward if you want `relatorio/analise_primeira_infancia.pdf`
+   updated too. Two identifier gaps are known and accepted (not bugs):
+   the ~24 HTML pill options with no single backing file (granular cuts
+   the catalog crosswalk doesn't enumerate) and the 2 PDF "out_pair" cases
+   with a combined two-file seed — curated text for those needs manual
+   placement, this script can't locate them automatically.
 
 ## Known limitations to mention if relevant
 
