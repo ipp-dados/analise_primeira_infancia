@@ -700,6 +700,16 @@ limpa_dados_sisvan(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','pes
 extrai_planilha_evitaveis_cap('dados_locais/mortalidade/obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx')
 
 # %% [markdown]
+# > **Nota de organização:** as seções abaixo seguem a ordem técnica de
+# > construção dos dados (fonte de dado, na ordem em que cada tabela é
+# > extraída/limpa/agregada) — não a ordem de apresentação final. A
+# > apresentação em `relatorio/index.html`, no PDF e no DOCX de curadoria é
+# > reorganizada por **eixo da política municipal de primeira infância**,
+# > definida em `specs/estrutura_eixos.md` (crosswalk e decisões de projeto em
+# > `specs/ajuste_eixos/specs.md`). Editar esse `.md` e pedir a atualização do
+# > relatório não exige reordenar nenhuma célula deste notebook.
+
+# %% [markdown]
 # ---
 # ## 🧭 Visualização dos Dados (entregáveis dia 12 & 19)
 
@@ -2506,6 +2516,12 @@ df_final.head()
 # %% [markdown]
 # ---
 # ## 📝 Análise / Relatório
+#
+# *(Pendente)* Síntese narrativa dos achados, organizada pelos 6 eixos ativos
+# da política municipal de primeira infância (`specs/estrutura_eixos.md`,
+# `specs/ajuste_eixos/specs.md`) — substitui os 5 subtítulos antigos por
+# fonte de dado (Demografia e População, Assistência Social, Educação,
+# Saúde, Proteção).
 
 # %% [markdown]
 # *(Pendente)* Síntese narrativa dos achados.
@@ -2514,7 +2530,7 @@ df_final.head()
 ###
 
 # %% [markdown]
-# ### Demografia e População
+# ### 🎯 Prioridade (sem secundário)
 
 # %%
 #### Resumo dos achados
@@ -2531,13 +2547,16 @@ df_final.head()
 #### Dimensão geográfica
 
 # %% [markdown]
-# ### Assistência Social
+# ### 🤝 Inclusão
 
 # %% [markdown]
-# ### Educação
+# ### 👨‍👩‍👧 Família e Cuidados
 
 # %% [markdown]
-# ### Saúde
+# ### 🛡️ Proteção
 
 # %% [markdown]
-# ### Proteção
+# ### 🍽️ Alimentação
+
+# %% [markdown]
+# ### 🏠 Moradia

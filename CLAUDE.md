@@ -50,9 +50,27 @@ reimplementing this logic:
 2. Analysis sections in source order: Censo 2022, CadÚnico, DataSUS/Tabnet
    (nascidos vivos, baixo peso, mortalidade neonatal, óbitos gravidez/puerpério,
    óbitos por causas evitáveis by CID-10 group/subgroup and by CAP), SISVAN,
-   Cobertura Vacinal EPI, IBGE SIDRA/PNAD/Censo Escolar.
+   Cobertura Vacinal EPI, IBGE SIDRA/PNAD/Censo Escolar. **This is the
+   technical build order (each section's data feeds later joins) and is
+   deliberately left unchanged** — see the note below.
 3. A closing "Análise / Relatório" section (markdown notes only, no code
-   output) — deliberately omitted from both the HTML and PDF reports.
+   output) — deliberately omitted from both the HTML and PDF reports. Its
+   subtitles are the 6 active policy axes (`specs/estrutura_eixos.md`), not
+   the source-order sections above.
+
+**Presentation order vs. build order** (`specs/ajuste_eixos/`): the sections
+above are ordered by *data dependency* (a section may read results computed
+by an earlier one, e.g. the bairro-level joins near the end of the file read
+nascidos vivos/baixo peso/óbitos already computed above) — this order is not
+reorganized when the *published* structure changes. `relatorio/index.html`,
+the PDF, and the DOCX curation export are instead grouped by **eixo da
+política municipal de primeira infância** (Prioridade, Inclusão, Família e
+Cuidados, Proteção, Alimentação, Moradia), read from `specs/estrutura_eixos.md`
+— a hand-editable crosswalk from the indicator catalog
+(`dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx`) to the real
+visualization/map/table files. To change the published grouping, edit that
+`.md` file, not this one's section order (see `specs/ajuste_eixos/specs.md`
+§5 and §9.1 for why cells are not physically moved).
 
 Key conventions enforced throughout, worth checking before adding a new call site:
 - **Join key for anything at bairro level is the numeric bairro code**
