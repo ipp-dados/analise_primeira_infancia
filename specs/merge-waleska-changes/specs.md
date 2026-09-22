@@ -151,3 +151,28 @@ não mudam sozinhos.
    relatório/PDF — em vez de deixar como dívida técnica silenciosa.
 4. Rodar o notebook do zero (ou pelo menos as seções tocadas) pra confirmar
    que não há mais nenhuma referência solta às variáveis/arquivos removidos.
+
+## Execução
+
+Itens 1-3 feitos neste branch:
+
+- **Merge real**: `git merge origin/waleska-analise-primeira-infancia`
+  (commit `ed964a5`), preservando os 4 commits/autoria da Waleska. Sem
+  conflitos, igual ao teste prévio.
+- **CSV do Censo restaurado**: `df_serie_censo.to_csv('tabelas_finais//censo_0_a_4_anos_por_ano.csv')`
+  de volta em `analise.py`, logo após o cálculo do percentual (commit `0facf8a`).
+- **Scripts de relatório corrigidos** (commit `0facf8a`): removidas de
+  `build_notebook_report.py` e `build_html_report.py` todas as referências a
+  saídas que a curadoria descontinuou (tabela no spec acima) — verificado por
+  grep que não sobra nenhuma, e `ast.parse` confirma que os 3 arquivos
+  (`analise.py` + os 2 scripts) continuam sintaticamente válidos.
+
+**Item 4 pendente** — não rodei o notebook de ponta a ponta (precisa da
+conexão com o Postgres do CadÚnico e acesso de rede para os tiles do
+`contextily`, indisponíveis nesta sessão). O que foi verificado sem executar:
+`ast.parse` em todos os arquivos tocados e uma auditoria por `grep` de que
+nenhum nome de arquivo/variável removido ainda é referenciado em
+`analise.py` ou nos scripts de relatório. **Recomendado antes de dar o merge
+por definitivamente validado**: rodar `analise.py` do zero (kernel limpo) e,
+depois, o skill `export_pdf_report` de ponta a ponta, para confirmar em
+tempo de execução (não só estaticamente) que nada quebrou.

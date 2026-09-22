@@ -6,11 +6,14 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 
 ## Prioridades atuais
 
-1. **Merge das mudanças da Waleska** — revisão de `analise.py`/notebook feita
-   em `origin/waleska-analise-primeira-infancia` (remoção de visualizações
-   redundantes/pouco interessantes, pequenas correções), a incorporar sem
-   quebrar o código. Ver `specs/merge-waleska-changes/` (spec dedicado,
-   criado antes da execução).
+1. **Merge das mudanças da Waleska** — ✅ feito em `specs/merge-waleska-changes`
+   (merge real dos 4 commits + correção de um CSV perdido por acidente +
+   atualização de `build_notebook_report.py`/`build_html_report.py` para não
+   referenciar saídas descontinuadas). Falta só rodar o notebook de ponta a
+   ponta num ambiente com acesso ao Postgres/rede antes de considerar
+   validado em tempo de execução, não só estaticamente — ver
+   `specs/merge-waleska-changes/specs.md` §Execução. Falta também dar merge
+   deste branch em `planning`/`staging_main`.
 2. **Reorganizar a estrutura do relatório** — revisar a organização de
    `relatorio/index.html` (seções, ordem, navegação) após o volume de
    conteúdo acumulado por `specs/maps-and-ibge` e `specs/relatorio-interativo`.
