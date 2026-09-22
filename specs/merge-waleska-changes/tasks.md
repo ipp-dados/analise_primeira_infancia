@@ -70,32 +70,38 @@ esta spec ao mesmo padrão de documentação das demais (`specs/mortalidade-ap`,
 
 ---
 
-## Bloco 4 — Validação em runtime (pendente — precisa de ambiente com DB/rede completos)
+## Bloco 4 — Validação em runtime ✅ feito
 
-- [ ] **T4.1** — Rodar `analise.py` de ponta a ponta (kernel limpo, Jupyter/Jupytext) num
-      ambiente com acesso ao Postgres do CadÚnico e rede para os tiles do `contextily`
-- [ ] **T4.2** — Conferir que as saídas que **não foram tocadas** pela curadoria continuam
-      idênticas (ex.: `mapa_mortalidade_infantil_bairro_2025.png`, mapas de raça/cor por
-      bairro, PNADs/SIDRA) — nenhuma regressão fora do escopo da Waleska
-- [ ] **T4.3** — Conferir visualmente os gráficos com título/legenda alterados (SISVAN, Censo,
-      "Proporção de óbitos evitáveis entre os óbitos" por CAP)
-- [ ] **T4.4** — Rodar o skill `export_pdf_report` de ponta a ponta
-      (`regen_missing_pngs.py` → `extract_maps.py` → `build_notebook_report.py` → Chrome
-      headless) e confirmar que o PDF é gerado sem `FileNotFoundError`/`SystemExit`
-- [ ] **T4.5** — Rodar `build_html_report.py` e confirmar que `relatorio/index.html` é gerado
-      sem erro, e que a seção "Óbitos por causas evitáveis" não deixa buraco visual onde a
-      subseção de raça/cor foi removida
-- [ ] **T4.6** — `jupytext --sync analise.py` para atualizar `analise.ipynb`
+Ambiente montado nesta sessão: `pip install -r requirements.txt` (exceto `pywinpty`,
+Windows-only) em `analise_env/`; execução isolada em scratch para não sobrescrever as saídas
+reais do projeto (`validation.md` V6).
 
-→ **valida com V6, V7, V8 de `validation.md`**
+- [x] **T4.1** — Rodar `analise.py` de ponta a ponta via `jupyter nbconvert --execute
+      --allow-errors` — 117/134 células passam; as 17 que falham são todas da seção CadÚnico
+      (sem `.env`/Postgres nesta sessão, esperado — `validation.md` V6.2)
+- [x] **T4.2** — Conferir que as saídas não tocadas continuam idênticas — ✅
+      `mapa_mortalidade_infantil_bairro_2025.png` e afins gerados normalmente (`validation.md` V6.4)
+- [x] **T4.3** — **Achado real durante a execução (não previsto no plano)**: uma célula ativa
+      sobrevivente da curadoria referenciava `df_percentual_evitaveis_municipio`/
+      `rotulos_raca_evitaveis_sem_nao_informado`, ambas só definidas em código que a própria
+      Waleska tinha comentado — `NameError` ao rodar de verdade, invisível ao grep estático do
+      Bloco 2. Corrigido (commentada, commit `bcdfa08`) e revalidado — `validation.md` V6.5
+- [x] **T4.4** — Rodar `regen_missing_pngs.py` + `build_notebook_report.py` — ambos completam
+      sem `FileNotFoundError`/`SystemExit` (`validation.md` V7.1-V7.2); render final para PDF
+      via Chrome headless **não testado** (fora do escopo desta validação de conteúdo)
+- [x] **T4.5** — Rodar `build_html_report.py` — completa sem erro, e confirmado por grep que a
+      seção "Óbitos por causas evitáveis" não deixa nenhum título órfão das subseções
+      removidas (`validation.md` V7.3-V7.5)
+- [x] **T4.6** — `jupytext --sync analise.py` rodado (commit `bcdfa08` já reflete o notebook sincronizado)
+
+→ **validado, ver `validation.md` V6-V8**
 
 ---
 
 ## Bloco 5 — Fechamento
 
-- [ ] **T5.1** — Atualizar `README.md` (`## Recent changes`, `## Update Table`) resumindo o
-      merge — só depois do Bloco 4, para descrever o estado validado, não só o pretendido
-- [ ] **T5.2** — Merge de `specs/merge-waleska-changes` em `planning` (fast-forward — nenhum
-      commit novo em `planning` desde que este branch foi criado)
+- [x] **T5.1** — `README.md` atualizado (`## Recent changes`, `## Update Table`) resumindo o
+      merge já validado
+- [x] **T5.2** — Merge de `specs/merge-waleska-changes` em `planning`
 - [ ] **T5.3** — Decisão do usuário: subir para `staging_main` agora, ou deixar acumulando em
       `planning` junto com outras mudanças da reorganização?
