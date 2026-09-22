@@ -722,6 +722,17 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
 
 # ============================================================ NAVBAR/HEADER ==
 
+# Faixa de aviso "em desenvolvimento" -- publicação de teste no GitHub Pages
+# (repositório passou a ser público). Remover só quando o relatório for
+# considerado pronto para divulgação oficial -- ver specs/roadmap.md
+# "publicar_teste_pages".
+parts.append(
+    '<div class="dev-banner" role="alert">'
+    '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
+    'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
+    '</div>'
+)
+
 parts.append('<div class="topbar-accent"></div>')
 parts.append('<nav class="navbar"><div class="navbar-inner">')
 parts.append(
@@ -1460,6 +1471,16 @@ CSS = r"""
 
   /* ============ specs/relatorio-interativo: identidade institucional ============ */
   :root{ --ipp-navy:#004a80; --ipp-cyan:#00aeef; }
+
+  /* Faixa "em desenvolvimento" -- cor de alerta fixa, igual em tema claro/escuro
+     (não usa as variáveis de tema de propósito: precisa continuar chamativa nos dois,
+     e alto contraste de texto é mais importante aqui do que combinar com o resto). */
+  .dev-banner{
+    background:#ffb300; color:#1a1a1a; font-weight:800; text-align:center;
+    padding:12px 16px; font-size:.95rem; line-height:1.4;
+    border-bottom:3px solid #1a1a1a;
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  }
 
   .topbar-accent{
     height:4px; background:var(--ipp-navy);
