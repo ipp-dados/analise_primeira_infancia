@@ -2,7 +2,7 @@
 *pycache*
 *.ipynb
 *.zip
-!/relatorio/relatorio.html
+!/relatorio/index.html
 *.png
 *.svg
 *.vscode

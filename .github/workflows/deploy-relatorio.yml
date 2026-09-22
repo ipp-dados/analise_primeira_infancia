@@ -1,6 +1,6 @@
 name: Deploy relatório
 
-# Publica relatorio/relatorio.html no GitHub Pages -- specs/relatorio-interativo/plan.md §8.
+# Publica relatorio/index.html no GitHub Pages -- specs/relatorio-interativo/plan.md §8.
 # Gatilho manual nesta primeira versão (workflow_dispatch); push-trigger automático
 # fica para depois, se for pedido (specification.md §5.1).
 on:
@@ -31,7 +31,7 @@ jobs:
       - name: Prepara o site
         run: |
           mkdir -p _site
-          cp relatorio/relatorio.html _site/index.html
+          cp relatorio/index.html _site/index.html
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

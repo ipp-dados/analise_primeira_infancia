@@ -5,7 +5,7 @@ description: Generate a choropleth (coroplético) PNG map of Rio de Janeiro -- b
 
 **Note (v6, `specs/relatorio-interativo`):** this skill's PNG pipeline is still
 the source for the notebook, the PDF export, and the geometry itself, but
-`relatorio/relatorio.html` (the interactive HTML report) no longer embeds these
+`relatorio/index.html` (the interactive HTML report) no longer embeds these
 PNGs for most indicators — `.claude/skills/export_pdf_report/scripts/build_html_report.py`
 now renders an inline interactive SVG choropleth instead (`mapa_svg()`:
 GeoJSON → SVG paths, tooltip per bairro/AP/RP/CAP, outlier toggle, CSV
