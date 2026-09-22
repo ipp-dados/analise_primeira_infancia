@@ -2101,12 +2101,53 @@ df_obitos_puerperio_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_puerperio_20
 # ##### Precoce (0 a 6 dias)
 
 # %%
-df_neonatal_precoce = pd.read_csv('dados_locais//mortalidade//obitos_0_6_dias_bairro_2006_2025.csv', sep=';')
+# df_neonatal_precoce = pd.read_csv('dados_locais//mortalidade//obitos_0_6_dias_bairro_2006_2025.csv', sep=';')
+# df_neonatal_precoce = limpa_dados_datasus(df_neonatal_precoce)
+# df_neonatal_precoce = limpeza_tabnet_bairros(df_neonatal_precoce,categoria='obitos precoces')
+# df_neonatal_precoce = df_vivos.merge(
+#     df_neonatal_precoce,
+#     on=['bairro', 'ano', 'codigo'],
+#     how='left'
+# )
+
+# df_neonatal_precoce['obitos_precoces'] = (
+#     df_neonatal_precoce['obitos_precoces'].fillna(0)
+# )
+# df_neonatal_precoce['taxa_mortalidade_precoce'] = (df_neonatal_precoce['obitos precoces']/df_neonatal_precoce['nascidos vivos'])*1000
+# df_neonatal_precoce.to_csv('tabelas_finais//mortalidade_neonatal_precoce_bairro_ano.csv', index=False)
+# df_neonatal_precoce.head()
+
+df_neonatal_precoce = pd.read_csv(
+    'dados_locais//mortalidade//obitos_0_6_dias_bairro_2006_2025.csv',
+    sep=';'
+)
+
 df_neonatal_precoce = limpa_dados_datasus(df_neonatal_precoce)
-df_neonatal_precoce = limpeza_tabnet_bairros(df_neonatal_precoce,categoria='obitos precoces')
-df_neonatal_precoce = df_neonatal_precoce.merge(df_vivos, on=['bairro','ano','codigo'])
-df_neonatal_precoce['taxa_mortalidade_precoce'] = (df_neonatal_precoce['obitos precoces']/df_neonatal_precoce['nascidos vivos'])*1000
-df_neonatal_precoce.to_csv('tabelas_finais//mortalidade_neonatal_precoce_bairro_ano.csv', index=False)
+df_neonatal_precoce = limpeza_tabnet_bairros(
+    df_neonatal_precoce,
+    categoria='obitos precoces'
+)
+
+df_neonatal_precoce = df_vivos.merge(
+    df_neonatal_precoce,
+    on=['bairro', 'ano', 'codigo'],
+    how='left'
+)
+
+df_neonatal_precoce['obitos precoces'] = (
+    df_neonatal_precoce['obitos precoces'].fillna(0)
+)
+
+df_neonatal_precoce['taxa_mortalidade_precoce'] = (
+    df_neonatal_precoce['obitos precoces']
+    / df_neonatal_precoce['nascidos vivos']
+) * 1000
+
+df_neonatal_precoce.to_csv(
+    'tabelas_finais//mortalidade_neonatal_precoce_bairro_ano.csv',
+    index=False
+)
+
 df_neonatal_precoce.head()
 
 # %%
@@ -2228,9 +2269,9 @@ df_mortalidade_infantil_anual['taxa_mortalidade_pos_neonatal'] = (df_mortalidade
 df_mortalidade_infantil_anual.to_csv('tabelas_finais//mortalidade_infantil_pos_neonatal_total_por_ano.csv')
 df_mortalidade_infantil_anual
 
-# %%
-serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonatal','Taxa de mortalidade pós-neonatal (28-364 dias) por ano',
-               nome_arquivo='taxa_mortalidade_pos_neonatal_ano', fonte_dados=fonte_datasus_bairro)
+# # %%
+# serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonatal','Taxa de mortalidade pós-neonatal (28-364 dias) por ano',
+#                nome_arquivo='taxa_mortalidade_pos_neonatal_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2245,36 +2286,36 @@ df_mortalidade_infantil_mapa.to_csv('tabelas_finais//tabela_mapa_mortalidade_inf
 #     cmap=_CORES_TEMA_MAPA['mortalidade'],
 #     bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 # )
-mapa_coropletico_bairros(
-    df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_pos_neonatal', titulo='Taxa de mortalidade pós-neonatal (28-364 dias) por bairro (2025)',
-    nome_arquivo='mapa_taxa_mortalidade_pos_neonatal_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
-)
+# mapa_coropletico_bairros(
+#     df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_pos_neonatal', titulo='Taxa de mortalidade pós-neonatal (28-364 dias) por bairro (2025)',
+#     nome_arquivo='mapa_taxa_mortalidade_pos_neonatal_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
+# )
 
 # %% [markdown]
 # ##### Total (0 a 364 dias)
 
 # %%
-serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','Taxa de mortalidade infantil (0-364 dias) por ano',
-               nome_arquivo='taxa_mortalidade_infantil_ano', fonte_dados=fonte_datasus_bairro)
+# serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','Taxa de mortalidade infantil (0-364 dias) por ano',
+#                nome_arquivo='taxa_mortalidade_infantil_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
 
 # %%
-mapa_coropletico_bairros(
-    df_mortalidade_infantil_mapa, coluna_valor='obitos_0_364', titulo='Óbitos infantis (0-364 dias) por bairro (2025)',
-    nome_arquivo='mapa_mortalidade_infantil_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    bins=[2, 5, 10, 20], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
-)
-mapa_coropletico_bairros(
-    df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_infantil', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
-    nome_arquivo='mapa_taxa_mortalidade_infantil_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
-)
+# mapa_coropletico_bairros(
+#     df_mortalidade_infantil_mapa, coluna_valor='obitos_0_364', titulo='Óbitos infantis (0-364 dias) por bairro (2025)',
+#     nome_arquivo='mapa_mortalidade_infantil_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     bins=[2, 5, 10, 20], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+# )
+# mapa_coropletico_bairros(
+#     df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_infantil', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
+#     nome_arquivo='mapa_taxa_mortalidade_infantil_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
+# )
 
 # %% [markdown]
 # ### 🥗 DataSus - SISVAN
@@ -2454,8 +2495,8 @@ df_freq_escolar.to_csv('tabelas_finais//frequencia_escolar_pnad_por_idade.csv', 
 df_freq_escolar
 
 # %%
-grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequencia escolar por idade",
-              nome_arquivo='pnad_frequencia_escolar_por_idade', fonte_dados=fonte_pnad)
+# grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequencia escolar por idade",
+#               nome_arquivo='pnad_frequencia_escolar_por_idade', fonte_dados=fonte_pnad)
 
 # %% [markdown]
 # #### Número de matrículas 0 a 6 anos (complementar 2021-2025)
@@ -2470,8 +2511,8 @@ df_freq_escolar.to_csv('tabelas_finais//matriculas_0_a_6_por_ano.csv', index=Fal
 df_freq_escolar
 
 # %%
-serie_temporal(df_freq_escolar,'ano','matriculas','Matrículas de 0 a 6 anos por ano',
-               nome_arquivo='matriculas_0_a_6_por_ano', fonte_dados=fonte_matriculas)
+# serie_temporal(df_freq_escolar,'ano','matriculas','Matrículas de 0 a 6 anos por ano',
+#                nome_arquivo='matriculas_0_a_6_por_ano', fonte_dados=fonte_matriculas)
 
 # %% [markdown]
 # #### Juncao de tabelas por bairro
