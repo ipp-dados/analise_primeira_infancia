@@ -7,7 +7,7 @@ assinaturas de função, colunas exatas e a ordem em que cada peça depende da a
 
 ## 1. Princípio norteador
 
-Diferente da spec anterior (`SPEC-mortalidade-AP`), **não há restrição de "nunca alterar
+Diferente da spec anterior (`specs/mortalidade-ap`), **não há restrição de "nunca alterar
 código existente"** — o usuário já autorizou corrigir os dois bugs de ordenação (feito, fora
 deste branch) e pediu explicitamente para corrigir as lacunas de export do Componente A
 (`specs.md` §2.3/§8.G). Mesmo assim, o princípio de menor intervenção continua valendo:

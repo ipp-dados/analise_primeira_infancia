@@ -1,4 +1,4 @@
-# Tasks — SPEC-relatorio-interativo
+# Tasks — specs/relatorio-interativo
 
 ## Bloco 0 — Decisões
 - [x] **T0.1** — Especificação e decisões A-N aprovadas pelo usuário (`specification.md` §4).

@@ -1,6 +1,6 @@
 name: Deploy relatório
 
-# Publica relatorio/index.html no GitHub Pages -- SPEC-relatorio-interativo/plan.md §8.
+# Publica relatorio/index.html no GitHub Pages -- specs/relatorio-interativo/plan.md §8.
 # Gatilho manual nesta primeira versão (workflow_dispatch); push-trigger automático
 # fica para depois, se for pedido (specification.md §5.1).
 on:

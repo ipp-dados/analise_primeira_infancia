@@ -7,7 +7,7 @@ from tabelas_finais/) under each chart. Run render_pdf.py on its output to
 get the final PDF.
 
 This script is a direct transcription of analise.py's markdown cells and
-plotting/export calls as of this branch (SPEC-visual-identity) -- if
+plotting/export calls as of this branch (specs/visual-identity) -- if
 analise.py's sections, column names, or exported filenames change, this
 needs matching edits. It is not a generic notebook-to-PDF converter.
 
@@ -17,7 +17,7 @@ Run from the project root:
 Maps are embedded directly from mapas/*.png (resized/WebP via Pillow, same
 technique as build_html_report.py) -- no longer routed through
 relatorio/*.html + extract_maps.py, since the consolidated relatorio/index.html
-(SPEC-visual-identity) embeds maps as plain <img> tags, not a `const MAPS = [...]`
+(specs/visual-identity) embeds maps as plain <img> tags, not a `const MAPS = [...]`
 JS array extract_maps.py could parse.
 """
 import base64

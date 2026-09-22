@@ -1,11 +1,40 @@
-# Feature Roadmap
+# Roadmap
+
+Estado em 2026-09-22. Itens em ordem de prioridade dentro de cada seção;
+"Prioridades atuais" é a fila de trabalho imediata, o resto é backlog por
+tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
+
+## Prioridades atuais
+
+1. **Merge das mudanças da Waleska** — revisão de `analise.py`/notebook feita
+   em `origin/waleska-analise-primeira-infancia` (remoção de visualizações
+   redundantes/pouco interessantes, pequenas correções), a incorporar sem
+   quebrar o código. Ver `specs/merge-waleska-changes/` (spec dedicado,
+   criado antes da execução).
+2. **Reorganizar a estrutura do relatório** — revisar a organização de
+   `relatorio/index.html` (seções, ordem, navegação) após o volume de
+   conteúdo acumulado por `specs/maps-and-ibge` e `specs/relatorio-interativo`.
+   Ainda sem spec próprio — abrir um quando o escopo for definido.
+3. **`publicar_teste_pages`** — publicar uma versão de teste de
+   `relatorio/index.html` no GitHub Pages (`workflow_dispatch` já existe em
+   `.github/workflows/deploy-relatorio.yml`) para validação, depois que o
+   merge da Waleska e a reorganização do relatório (itens 1-2 acima)
+   estiverem concluídos — não antes, para não publicar uma versão que ainda
+   vai mudar de estrutura. Relacionado ao item "Habilitar GitHub Pages" em
+   "Relatório interativo" abaixo, mas esse é sobre o deploy de produção;
+   este é um teste prévio.
+4. **Importar dados de violência** — ver "Educação e Violência" abaixo; dados
+   ainda não importados para o pipeline.
+5. **Outros dados faltantes** — levantar e importar bases pendentes além de
+   violência (a detalhar; nenhuma listada formalmente ainda além dos itens
+   de Matrículas/Mortalidade abaixo).
 
 ## Mortalidade
 - Create time series comparing particular subgroups among regions over time
 - Create map visualizations comparing particular subgroups among regions in 2025
 - Create map visualizations for all data with granularity up to bairro
 - AP/RP-level map versions (not just bairro) for the new bairro indicators added in
-  SPEC-maps-and-ibge (nascidos vivos, baixo peso, mortalidade neonatal, óbitos por raça,
+  `specs/maps-and-ibge` (nascidos vivos, baixo peso, mortalidade neonatal, óbitos por raça,
   óbitos gravidez/puerpério) — deferred out of that spec's scope, see its §7
 
 ## Educação e Violência
@@ -15,7 +44,7 @@
 ## Matrículas
 - Update dados de matrículas escolares for years 2021-2025
 
-## Relatório interativo (SPEC-relatorio-interativo)
+## Relatório interativo (`specs/relatorio-interativo`)
 - **Reduzir o peso de `relatorio/index.html` (~17MB)** — todos os ~32 mapas
   agora são SVG interativo (concluído), mas cada instância embute sua própria
   geometria como texto sem compartilhar paths entre mapas do mesmo nível
@@ -23,13 +52,13 @@
   compartilhar via `<defs>`/`<use>` ou um mapa `codigo→d` referenciado por id
   em vez de inline em cada `<path>` — ver `relatorio/specs.md` v6.1.
 - **Confirmar URLs/e-mail reais do rodapé** (Transparência Rio, LGPD, contato) —
-  hoje são placeholders copiados do site institucional principal — ver tasks.md T6.2
+  hoje são placeholders copiados do site institucional principal — ver `specs/relatorio-interativo/tasks.md` T6.2
 - **Confirmar autorização de uso do logo oficial** da Prefeitura do Rio/IPP antes do
-  deploy público — ver tasks.md T0.4 (bloqueia só o deploy, não o código)
+  deploy público — ver `specs/relatorio-interativo/tasks.md` T0.4 (bloqueia só o deploy, não o código)
 - **Habilitar GitHub Pages** nas configurações do repositório e disparar o primeiro
-  deploy — passo manual fora do alcance de uma sessão de código (tasks.md T9.4/T9.5)
+  deploy — passo manual fora do alcance de uma sessão de código (`specs/relatorio-interativo/tasks.md` T9.4/T9.5)
 - Medir formalmente o contraste do rodapé (WCAG AA) — inspeção visual feita, não
-  uma medição real (tasks.md T5.6)
+  uma medição real (`specs/relatorio-interativo/tasks.md` T5.6)
 - **`mobile_version`** — versão mobile do relatório ainda não validada de verdade.
   O CSS já tem breakpoints (`max-width:720px` e `max-width:520px`) que empilham
   os 3 padrões de layout (gráfico/mapa/tabela) numa coluna só e viram a coluna de
@@ -63,10 +92,10 @@
 ## Other (need to break down later)
 - Replace HTML visualization with proper Streamlit panel
 - Setup LaTeX final report
-- Refactor architecture (after SPEC-maps-and-ibge is completed) — analise.py has grown a lot
-  across SPEC-mortalidade-AP and SPEC-maps-and-ibge; revisit whether the single-script
+- Refactor architecture (after `specs/maps-and-ibge` is completed) — analise.py has grown a lot
+  across `specs/mortalidade-ap` and `specs/maps-and-ibge`; revisit whether the single-script
   notebook structure still scales, or whether wrangling/visualization/analysis should split
   into separate modules
-- Convert the PDF export pipeline to LaTeX (after SPEC-visual-identity is completed) —
+- Convert the PDF export pipeline to LaTeX (after `specs/visual-identity` is completed) —
   requested once the current `export_pdf_report` skill's Chrome-headless HTML-to-PDF pipeline
-  and the new unified visual identity (SPEC-visual-identity) are both in place
+  and the new unified visual identity (`specs/visual-identity`) are both in place

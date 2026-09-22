@@ -41,11 +41,11 @@ interação. Este spec cobre **só o planejamento** desta rodada — especifica�
    viram 1 gráfico + seletor de opções.
 2. Adicionar interação sem sair do modelo "arquivo HTML único, sem backend,
    sem build step para o HTML em si" já estabelecido em
-   `SPEC-visual-identity/specs.md` §4 decisão A — refinado nesta rodada só no
+   `specs/visual-identity/specs.md` §4 decisão A — refinado nesta rodada só no
    que diz respeito a **deploy** (§5.1), não à arquitetura do arquivo.
 3. Reorganizar o espaço da página para dar lugar de verdade à análise
    textual (hoje o HTML é "só visualização" por decisão de
-   `SPEC-visual-identity` §2 — isso é revisto aqui, ver §3.4).
+   `specs/visual-identity` §2 — isso é revisto aqui, ver §3.4).
 4. Adotar um estilo mais "clean/brutalista" — bordas visíveis, blocos
    segmentados, menos dependência de sombra suave — sem abandonar a
    identidade já validada (paleta de 11 cores categóricas, tipografia
@@ -124,9 +124,9 @@ estatística em JS.
 - Mapas: idem — só mapas cuja métrica é percentual/taxa (`fmt='pct1'` em
   `mapa_svg`) ganham o toggle de outliers; mapas de contagem absoluta não.
 
-### 3.4 Espaço para análise textual — reversão parcial da decisão B de `SPEC-visual-identity`
+### 3.4 Espaço para análise textual — reversão parcial da decisão B de `specs/visual-identity`
 
-`SPEC-visual-identity/specs.md` §4 decisão B removeu a prosa/notas de método
+`specs/visual-identity/specs.md` §4 decisão B removeu a prosa/notas de método
 do HTML, deixando "só visualização" (título + fonte). Esta rodada reintroduz
 espaço textual, mas **redefinido**, não como retorno ao texto integral do
 notebook:
@@ -179,7 +179,7 @@ resolveram (ver `.claude/skills/generate_map/SKILL.md`):
    aplicável) — mesma ideia de "dado pré-computado embutido" já usada para
    gráficos (§3.3).
 4. **Preenchimento**: mesma escala sequencial por tema já definida em
-   `SPEC-visual-identity/specs.md` §3.1 (`Teal` natalidade, `RdPu`/`PuRd`
+   `specs/visual-identity/specs.md` §3.1 (`Teal` natalidade, `RdPu`/`PuRd`
    mortalidade, `YlOrBr` CadÚnico, `Blues` Censo) — calculada em Python no
    gerador e aplicada como `fill` inline por `<path>`, sem reimplementar a
    classificação de bins em JS.
@@ -248,7 +248,7 @@ três justamente evitam.
 - Quando dois desses três coincidem no mesmo ponto (ex.: o valor mais
   recente também é o mais alto), um único rótulo é mostrado, não duplicado.
 - Aplica-se por série visível — no caso de séries com destaque (regra de
-  `SPEC-visual-identity/specs.md` §3.3, mais de 6 linhas → só as N mais
+  `specs/visual-identity/specs.md` §3.3, mais de 6 linhas → só as N mais
   relevantes coloridas, resto agrupado em "Outras (N)"), a marcação
   máx/mín/recente vale para as séries coloridas em destaque, não para o
   agregado cinza "Outras".
@@ -410,7 +410,7 @@ estilo (remove o bloco `@media (prefers-color-scheme: dark)` e o seletor
 `:root[data-theme="dark"]`, que hoje duplicam todas as variáveis de cor) e
 elimina uma superfície inteira de teste (a maior parte da validação visual
 desta spec até agora só cobriu o tema escuro, por ser o default do ambiente
-de screenshot usado — ver `SPEC-relatorio-interativo/validation.md` V8).
+de screenshot usado — ver `specs/relatorio-interativo/validation.md` V8).
 Paleta categórica de dados (`--c1`…`--c11`), cores institucionais
 (`--ipp-navy`/`--ipp-cyan`) e o restante do sistema de tokens continuam os
 mesmos valores que já existem para o tema claro — não é uma paleta nova,
@@ -428,7 +428,7 @@ para os blocos de texto corrido (achados, notas). Os elementos de largura
 total (navbar, barra de topo, rodapé) já são full-bleed independentemente
 deste valor (§3.10), não são afetados.
 
-## 4. Tabela de decisões (formato igual a `SPEC-visual-identity/specs.md` §4)
+## 4. Tabela de decisões (formato igual a `specs/visual-identity/specs.md` §4)
 
 | # | Pergunta | Decisão (confirmada com o usuário nesta rodada) |
 |---|---|---|
@@ -454,7 +454,7 @@ deste valor (§3.10), não são afetados.
 ## 5. Stack técnica
 
 Mantém a regra de arquitetura já estabelecida em
-`SPEC-visual-identity/specs.md` (arquivo HTML único, sem passo de build, sem
+`specs/visual-identity/specs.md` (arquivo HTML único, sem passo de build, sem
 backend) — nenhuma das features pedidas exige quebrar essa regra. O único
 item novo é **onde** o arquivo passa a ser servido (§5.1).
 

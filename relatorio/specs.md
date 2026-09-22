@@ -96,7 +96,7 @@ totalmente diferente."
   visualizador (`data-theme="light"`/`"dark"` e `prefers-color-scheme`, sem
   *stamp*).
 
-### v5 — `index.html` único, gerado por script, sem prosa (SPEC-visual-identity)
+### v5 — `index.html` único, gerado por script, sem prosa (specs/visual-identity)
 
 - Os 3 arquivos (`index`/`lighter`/`white`) foram consolidados em **um único
   `relatorio/index.html`**, com tema claro/escuro automático via
@@ -110,7 +110,7 @@ totalmente diferente."
   tabela" — sem as notas de método/prosa que as versões anteriores copiavam do
   notebook (essas ficam no notebook e no PDF).
 - Cobertura ampliada para as ~73 visualizações do notebook (25 já existentes +
-  tudo que `SPEC-maps-and-ibge` adicionou: SIDRA, evitáveis por CAP/subgrupo,
+  tudo que `specs/maps-and-ibge` adicionou: SIDRA, evitáveis por CAP/subgrupo,
   painéis D.1/D.2, raça sem "não informada") e as 32 imagens reais em
   `mapas/*.png` (7 grupos temáticos).
 - `lineChart` ganhou a mesma lógica de destaque de `serie_temporal_multipla`
@@ -138,14 +138,14 @@ totalmente diferente."
   agora têm papéis fixos (esquerda = Crianças, direita = Famílias).
 - `relatorio/index.html` passou a ser versionado no git (exceção adicionada
   ao `.gitignore`, que ignora `*.html` de forma genérica) — pedido direto,
-  substitui a decisão F de `SPEC-visual-identity/specs.md` (mantinha fora do
+  substitui a decisão F de `specs/visual-identity/specs.md` (mantinha fora do
   git).
 
 ### v6 — relatório interativo: seções retráteis, seletor de opções, outliers,
-mapas SVG, identidade institucional (`SPEC-relatorio-interativo`)
+mapas SVG, identidade institucional (`specs/relatorio-interativo`)
 
 Rodada baseada num wireframe manuscrito (`relatorio/Page 1.pdf`), planejada em
-`SPEC-relatorio-interativo/specification.md`/`plan.md` antes de implementar.
+`specs/relatorio-interativo/specification.md`/`plan.md` antes de implementar.
 Motivo: o relatório v5.1 tinha paredes de 6-18 gráficos quase idênticos
 (cortes diferentes do mesmo indicador) e nenhuma interação além do hover.
 
@@ -180,7 +180,7 @@ Motivo: o relatório v5.1 tinha paredes de 6-18 gráficos quase idênticos
   relatório e paleta categórica de dados inalterados. Logo real embutido
   (`relatorio/assets/ipp-logo.png`) — **reverte a decisão de v2** que evitava
   logo institucional não verificado; autorização de uso ainda pendente de
-  confirmação antes de deploy público (`SPEC-relatorio-interativo/tasks.md`
+  confirmação antes de deploy público (`specs/relatorio-interativo/tasks.md`
   T0.4).
 - **Rodapé institucional** novo: fontes de dados, links (IPP/Transparência
   Rio/LGPD), contato, data de atualização — escopo enxuto, sem

@@ -1,4 +1,4 @@
-# Validation — SPEC-visual-identity
+# Validation — specs/visual-identity
 
 Critérios objetivos por bloco. Um bloco só é marcado `[x]` em `tasks.md`
 depois de passar aqui.
@@ -8,7 +8,7 @@ inicial precisaram de correção durante a implementação: o Bloco 6/7 cobre
 **32 mapas reais** (não 25 — a estimativa original contava call sites de
 `mapa_coropletico_bairros`, e alguns são loops que produzem várias imagens) e
 **73 visualizações totais** no HTML/PDF (25 mapas + 48 gráficos, contando tudo
-que já existia + tudo que `SPEC-maps-and-ibge` adicionou — não "~35 novas").
+que já existia + tudo que `specs/maps-and-ibge` adicionou — não "~35 novas").
 
 ## V1 — Módulo de estilo compartilhado
 - Novas constantes (`_PALETA_CATEGORICA`, `_CORES_TEMA_MAPA`,
@@ -31,7 +31,7 @@ que já existia + tudo que `SPEC-maps-and-ibge` adicionou — não "~35 novas").
   satura a ponto de esconder o contorno dos bairros/CAPs.
 - Nenhum mapa quebra com `ValueError: Bin edges must be unique` ou `cannot
   convert float NaN to integer` (regressão dos bugs já corrigidos em
-  `SPEC-maps-and-ibge` — trocar só o `cmap` não deveria afetar isso, mas
+  `specs/maps-and-ibge` — trocar só o `cmap` não deveria afetar isso, mas
   confirmar).
 
 ## V3 — `fonte_dados` nos 73 call sites
@@ -57,7 +57,7 @@ que já existia + tudo que `SPEC-maps-and-ibge` adicionou — não "~35 novas").
   conforme `prefers-color-scheme` do SO (sem precisar de toggle manual, a
   menos que os arquivos antigos já tivessem um — nesse caso manter o
   comportamento existente).
-- Contém as ~35 visualizações novas de `SPEC-maps-and-ibge` (11 mapas de
+- Contém as ~35 visualizações novas de `specs/maps-and-ibge` (11 mapas de
   bairro, 2 mapas de subgrupo/CAP, 6 gráficos SIDRA, 22 séries de evitáveis)
   — conferir contagem de elementos de gráfico/mapa na página contra a
   contagem de `savefig`/`mapa_coropletico_bairros` em `analise.py`.
@@ -87,7 +87,7 @@ que já existia + tudo que `SPEC-maps-and-ibge` adicionou — não "~35 novas").
   com 11 séries, ambos com 4 destacadas + "Outras (N)".
 - V2: 25/25 call sites com `cmap` (4 censo, 3 cadúnico, 3 natalidade, 15
   mortalidade); 4 mapas (1 por tema) inspecionados visualmente, sem
-  regressão dos bugs de `SPEC-maps-and-ibge`.
+  regressão dos bugs de `specs/maps-and-ibge`.
 - V3: `grep -c "fonte_dados=" analise.py` = 78 = 73 call sites reais + 5
   assinaturas de função com `=None`; verificação programática (script
   parseando blocos de chamada) confirmou 0 sem fonte.

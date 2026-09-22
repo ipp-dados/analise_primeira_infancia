@@ -166,7 +166,7 @@ def carrega_cobertura_vacinal(caminho):
     return df[['ano','IMUNO','cobertura']].rename(columns={'IMUNO':'imunobiologico'})
 
 # a planilha TabWin de causas evitáveis por CAP só traz os 8 subgrupos CID (nunca o nível
-# 'grupo' como linha própria, e nunca um terceiro nível 'causa' -- ver SPEC-mortalidade-AP/
+# 'grupo' como linha própria, e nunca um terceiro nível 'causa' -- ver specs/mortalidade-ap/
 # specification.md §2.4); o rótulo bruto de 3 das 8 categorias ('1.2.*') traz um trecho 'ad '
 # redundante que não aparece no texto de subgrupo canônico -- este dicionário normaliza os 8
 # rótulos possíveis para esse texto canônico, usado em toda tabela derivada desta planilha
@@ -307,7 +307,7 @@ def carrega_sidra_longo(caminho, coluna_corte=None):
 
 # %%
 # Identidade visual compartilhada por todas as funções de visualização desta seção --
-# mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver SPEC-visual-identity).
+# mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver specs/visual-identity).
 
 # paleta categórica de 11 cores -- mesmos hex do motor JS de relatorio/index.html (--c1..--c11),
 # para a mesma série ter a mesma cor no notebook, no PDF e no HTML.
@@ -436,7 +436,7 @@ _NIVEIS_AGREGACAO = {
 
 # geojson oficial das 10 CAPs (Coordenadoria de Área Programática de Saúde, SMS-Rio -- não
 # aninha no geojson de bairros do IPP, que só traz Área/Região de Planejamento), Data.Rio
-# ("Áreas Programáticas da Saúde"); ver SPEC-mortalidade-AP/specification.md §4
+# ("Áreas Programáticas da Saúde"); ver specs/mortalidade-ap/specification.md §4
 _CAMINHO_GEO_CAP = 'dados_locais/geo/limite_ap_saude_rio.geojson'
 
 # de-para RA -> CAP, derivado do cruzamento espacial com o polígono oficial acima (não de

@@ -19,7 +19,7 @@ document from `analise.py`'s own outputs instead, as described below.
 
 **Note:** `scripts/build_html_report.py` also lives in this skill's folder
 but is a separate pipeline, for `relatorio/index.html` (the interactive
-HTML report), not this PDF. As of `SPEC-relatorio-interativo` (v6,
+HTML report), not this PDF. As of `specs/relatorio-interativo` (v6,
 `relatorio/specs.md`) that report has its own visual identity — brutalist
 bordered cards, a pill-selector for cortes that used to repeat as separate
 charts, an outlier toggle, per-chart CSV download, and interactive SVG maps
@@ -59,7 +59,7 @@ Run every command from the project root.
    PNGs (too big to embed directly at full size); `relatorio/index.html`
    already ships them pre-resized to ~130KB WebP data URIs (see
    `relatorio/specs.md`) — reuse that instead of re-encoding. **Note (v6,
-   `SPEC-relatorio-interativo`):** most maps in `relatorio/index.html` are
+   `specs/relatorio-interativo`):** most maps in `relatorio/index.html` are
    no longer PNG/WebP at all — `build_html_report.py` now renders them as
    inline interactive SVG (`mapa_svg()`), so `extract_maps.py`'s approach
    (pulling a `const MAPS = [...]` JS array out of the HTML) only finds the
