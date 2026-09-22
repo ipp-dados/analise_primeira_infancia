@@ -1,173 +1,287 @@
 ---
 name: export_pdf_report
-description: Export a non-technical PDF of the primeira-infancia analysis, using analise.py's own matplotlib/seaborn chart images (visualizacoes/*.png) and tabelas_finais/ data tables -- NOT the relatorio/*.html custom SVG report. Use when the user asks for a PDF export/version of the analysis, report, or notebook, or to regenerate an existing report PDF after the notebook/data changes.
+description: Export a non-technical PDF of the primeira-infancia analysis, using analise.py's own matplotlib/seaborn chart images (visualizacoes/*.png) and tabelas_finais/ data tables -- NOT the relatorio/*.html custom SVG report. Use when the user asks for a PDF export/version of the analysis, report, or notebook, or to regenerate an existing report PDF after the notebook/data changes. Also covers regenerating relatorio/index.html and the DOCX curation export (relatorio/curadoria_textos.docx) from the same structural source (specs/estrutura_eixos.md) -- use this skill too when the user edits that file and asks to "update the report(s)".
 ---
 
 # Export PDF report
 
-Produces a print-ready PDF that mirrors `analise.py` section by section
-(same titles/order/notes as its markdown cells), but the charts are the
-**actual matplotlib/seaborn PNGs the notebook itself produces** in
-`visualizacoes/` -- not a re-rendered custom chart engine. This was a
-deliberate correction: an earlier version of this skill converted
-`relatorio/*.html` (a separate, hand-built report with its own SVG chart
-engine, pastel palette and Fraunces/IBM-Plex typography — see
+Produces a print-ready PDF that mirrors `analise.py`'s outputs section by
+section, but the charts are the **actual matplotlib/seaborn PNGs the
+notebook itself produces** in `visualizacoes/` -- not a re-rendered custom
+chart engine. This was a deliberate correction: an earlier version of this
+skill converted `relatorio/*.html` (a separate, hand-built report with its
+own SVG chart engine, pastel palette and Fraunces/IBM-Plex typography — see
 `relatorio/specs.md`) to PDF. The user explicitly rejected that: **"keep
 the visual style of the visualizations used in the notebook, not the
-html."** Do not go back to converting `relatorio/*.html` — build the
-document from `analise.py`'s own outputs instead, as described below.
+html."** Do not go back to converting `relatorio/*.html` — build the PDF
+from `analise.py`'s own outputs instead, as described below.
 
 **Note:** `scripts/build_html_report.py` also lives in this skill's folder
-but is a separate pipeline, for `relatorio/index.html` (the interactive
-HTML report), not this PDF. As of `specs/relatorio-interativo` (v6,
-`relatorio/specs.md`) that report has its own visual identity — brutalist
-bordered cards, a pill-selector for cortes that used to repeat as separate
-charts, an outlier toggle, per-chart CSV download, and interactive SVG maps
-(`mapa_svg()`) replacing most of the old raster `mapas/*.png` — entirely
-independent of this skill's matplotlib/PNG-based PDF pipeline. Don't apply
-that report's styling conventions here; this PDF intentionally mirrors the
-notebook's own matplotlib rendering, per the rejection noted above.
+but is a separate rendering engine for `relatorio/index.html` (the
+interactive HTML report) — brutalist bordered cards, a pill-selector for
+cortes, inline interactive SVG maps (`mapa_svg()`) — entirely independent
+of this skill's matplotlib/PNG-based PDF pipeline. Don't apply that
+report's styling conventions to the PDF, or vice versa; the rejection noted
+above still stands. **What changed as of `specs/ajuste_eixos`:** both used
+to be organized independently (9 sections each, mirroring `analise.py`'s
+data-source order, hardcoded per script) — both were manually regrouped
+into the 6 eixo sections described by `specs/estrutura_eixos.md` (see
+`specs/ajuste_eixos/specs.md` for the crosswalk/decisions), but **neither
+actually reads that file at runtime** — see the important caveat below
+before assuming an `.md` edit alone regenerates them correctly.
+
+## `specs/estrutura_eixos.md`: source of truth for grouping — but only *live* for the DOCX
+
+A hand-editable Markdown file (root of `specs/`, not inside
+`specs/ajuste_eixos/`) — `##` per eixo, `###` per indicator subsection, a
+flat `- chave: valor` list per subsection (`fonte`/`visualização`/`mapa`/
+`tabela`/`status`/`nota`; repeatable keys become a list). **This is the
+file the user edits by hand** to reorganize the reports (move an
+indicator to another eixo, rename a subsection, mark something pendente)
+— per the explicit request in `specs/ajuste_eixos/specs.md` §5.2: *"whenever
+i may want to change the structure of the report, i want to be able to
+just change the .md file and ask for the update."*
+
+**Important, discovered while validating this skill (2026-09, Bloco 6):**
+that promise is only fully automatic for `gera_docx_curadoria.py`, which
+genuinely imports and calls `parse_estrutura_eixos()` at generation time —
+edit the `.md`, rerun step 5 below, done. `build_html_report.py` and
+`build_notebook_report.py` do **not** import or read the `.md` at all —
+their grouping is hardcoded Python, physically reorganized once (Blocos
+3-4) to match the `.md` as it existed then. Regenerating them after an
+`.md`-only edit reproduces the *old* grouping byte-for-byte (confirmed
+empirically: moving an indicator between eixos and renaming a subsection
+in the `.md`, then rerunning step 3, produced a byte-identical
+`relatorio/index.html`). Decided with the user not to rewrite these two
+into fully data-driven renderers (a much larger, riskier change touching
+already-verified working code) — so when a user's `.md` edit changes
+HTML/PDF *grouping* (which eixo a chart/map lives under — a rename that
+doesn't move anything, or a `status: pendente` flip, has no HTML/PDF code
+to touch), the fix is a **manual code change**: find the moved
+content's h2/h3/h4 block in `build_html_report.py`
+(and the equivalent in `build_notebook_report.py`) and relocate it under
+the new eixo's heading, same method used to build Blocos 3-4 originally —
+then run the pipeline. Tell the user this explicitly rather than silently
+claiming the `.md` edit alone was enough for all three artifacts.
+
+`scripts/gera_estrutura_eixos.py` owns `parse_estrutura_eixos()` (the
+parser — only `gera_docx_curadoria.py` actually imports it, per the caveat
+above; `build_html_report.py`/`build_notebook_report.py` only reference the
+`.md` in comments) and `valida_estrutura()` (fails loud, naming the missing
+file, if any `visualização`/`mapa`/`tabela` reference doesn't exist on disk
+— never lets a generator run against a broken reference silently, and
+worth running against the `.md` regardless of which artifact you're
+touching). It does **not** regenerate `specs/estrutura_eixos.md` from the
+original Excel catalog (`dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx`)
+— that classification (which eixo a catalog indicator belongs to, which 18
+were discarded) was a one-time script run to produce the initial file;
+from then on the `.md` is the source of truth, edited by hand, never
+re-derived from the spreadsheet again (`specs/ajuste_eixos/specs.md` §5.2).
 
 ## Pipeline
 
-Run every command from the project root.
+Run every command from the project root. Steps 3-5 are independent of each
+other once step 1-2 are done — regenerate only the artifact(s) the request
+actually needs (e.g. "just update the PDF" skips steps 3 and 5), but
+**always run 1-2 first** regardless of which artifact(s) you're targeting.
 
 1. **Regenerate any stale/missing chart PNGs.**
-   `visualizacoes/*.png` is not guaranteed to be complete under its current
-   filenames — `analise.py` gets re-run cell-by-cell during development
-   (not always top-to-bottom), so older sections' PNGs can lag behind a
-   renaming refactor. Check what's missing by diffing the filenames each
-   `nome_arquivo=` call in `analise.py` writes against what's actually in
-   `visualizacoes/`. As of 2026-09-02 this includes: the 2 Censo series
-   (analise.py only ever calls `plt.show()` on those, never `savefig`), 4
-   CadÚnico charts, and several DataSus/SISVAN/PNAD charts that were last
-   generated under an old filename.
-   `scripts/regen_missing_pngs.py` regenerates all of these **from
-   `tabelas_finais/` CSVs already on disk — no DB connection or raw
-   `dados_locais/` files needed**, including the 4 CadÚnico charts (their
-   source CSVs are already exported there). Copies of `analise.py`'s
+   `visualizacoes/*.png` is not guaranteed to be complete/current under its
+   current filenames — `analise.py` gets re-run cell-by-cell during
+   development (not always top-to-bottom), so older sections' PNGs can lag
+   behind a renaming refactor or a data update.
+   `scripts/regen_missing_pngs.py` regenerates a known list of charts
+   **from `tabelas_finais/` CSVs already on disk — no DB connection or raw
+   `dados_locais/` files needed.** Copies of `analise.py`'s
    `serie_temporal`/`grafico_barra` verbatim, so output is pixel-identical
    in style to what the notebook itself would produce.
    ```
    python .claude/skills/export_pdf_report/scripts/regen_missing_pngs.py
    ```
-   If analise.py's plotting functions or exported CSV schemas changed since
-   2026-09-02, this script needs matching edits — it's a snapshot of that
+   **Caution observed in practice:** this script regenerates its whole
+   fixed list unconditionally, not just files that are actually missing —
+   running it can silently produce a handful of `git diff`-visible PNG
+   changes even when nothing upstream changed (e.g. from matplotlib
+   rendering drift between environments/versions), not necessarily a
+   real content update. Check `git status`/`git diff --stat` on
+   `visualizacoes/` right after running it, and don't fold those changes
+   into an unrelated commit (e.g. a structure-reorg commit) without
+   noticing — confirm with the user whether an incidental regen diff
+   should be kept or reverted before committing it. If `analise.py`'s
+   plotting functions or exported CSV schemas changed since this script
+   was last touched, it needs matching edits — it's a snapshot of that
    contract, not a generic tool. Read it before trusting it blindly.
 
-2. **Extract the 5 map images.** The choropleth maps in `mapas/` are ~6MB
-   PNGs (too big to embed directly at full size); `relatorio/index.html`
-   already ships them pre-resized to ~130KB WebP data URIs (see
-   `relatorio/specs.md`) — reuse that instead of re-encoding. **Note (v6,
-   `specs/relatorio-interativo`):** most maps in `relatorio/index.html` are
-   no longer PNG/WebP at all — `build_html_report.py` now renders them as
-   inline interactive SVG (`mapa_svg()`), so `extract_maps.py`'s approach
-   (pulling a `const MAPS = [...]` JS array out of the HTML) only finds the
-   handful of maps still on the old path, if any remain. Check
-   `build_html_report.py` for the current map count before relying on this
-   step; `extract_maps.py` may need to read straight from `mapas/*.png`
-   instead of from the HTML if the JS array it expects is gone.
+2. **Validate `specs/estrutura_eixos.md` against the real files.**
    ```
-   python .claude/skills/export_pdf_report/scripts/extract_maps.py relatorio/index.html <scratchpad>/maps.json
+   python .claude/skills/export_pdf_report/scripts/gera_estrutura_eixos.py
    ```
+   Prints the eixo/subsection/pendente counts and exits non-zero with a
+   clear "file X referenced by Y doesn't exist" error if anything is
+   broken (e.g. the user renamed a PNG on disk but not in the `.md`, or a
+   copy-paste typo in a filename). **Stop here and fix the `.md` (or the
+   missing file) if this fails** — never proceed to steps 3-5 against a
+   broken structure.
 
-3. **Build the report HTML.** `scripts/build_notebook_report.py` is a
-   direct transcription of `analise.py`'s markdown cells and
-   `serie_temporal`/`grafico_barra`/`serie_temporal_multipla` calls: for
-   each one it embeds the matching PNG from `visualizacoes/` (base64) plus
-   a plain data table sourced from the matching `tabelas_finais/*.csv`.
+3. **Build `relatorio/index.html`.**
    ```
-   python .claude/skills/export_pdf_report/scripts/build_notebook_report.py <scratchpad>/maps.json <scratchpad>/pdf_source.html
+   python .claude/skills/export_pdf_report/scripts/build_html_report.py relatorio/index.html
    ```
-   If `analise.py` gains/loses a section, or a `tabelas_finais/` filename
-   or column name changes, this script needs matching edits — same caveat
-   as step 1.
+   Reads `parse_estrutura_eixos()` and groups its ~130 chart/map cards
+   into the 6 eixo `<h2>` sections; catalog indicators marked
+   `status: pendente` render via `emite_bloco_pendente()` (a labeled
+   placeholder, never a silently empty section). `relatorio/index.html` is
+   explicitly un-ignored and committed (unlike other `relatorio/*.html`) —
+   GitHub Pages deploys it as-is.
 
-4. **Render to PDF with an isolated headless Chrome.** System Chrome is at
-   `C:\Program Files\Google\Chrome\Application\chrome.exe` on this machine.
+4. **Build the PDF.**
+   1. Build the PDF's source HTML (embeds real PNGs from `visualizacoes/`/
+      `mapas/`, resized; groups the same 47 indicators into the same 6
+      eixos, with chart-paired data tables moved to a final "Apêndice"
+      section instead of sitting inline — `specs/ajuste_eixos/plan.md`
+      Bloco 4):
+      ```
+      python .claude/skills/export_pdf_report/scripts/build_notebook_report.py <scratchpad>/pdf_source.html
+      ```
+      (Single positional arg. Older docs/comments in this codebase may
+      reference a 2-arg `extract_maps.py`-based invocation — that pipeline
+      was removed when maps moved to plain `<img>`/PNG embedding; ignore
+      any mention of `extract_maps.py` for this step, it's dead for this
+      script.)
+   2. **Render to PDF with an isolated headless browser.** Use whichever
+      Chromium-based browser is actually installed on this machine — check
+      both, in order:
+      ```
+      CHROME="/c/Program Files/Google/Chrome/Application/chrome.exe"
+      EDGE="/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
+      ```
+      Chrome is not guaranteed to be present (confirmed absent on at least
+      one dev machine this skill was used on, 2026-09) — fall back to Edge
+      at the path above if Chrome doesn't exist; both are Chromium and
+      accept the same flags below.
 
-   **Critical safety rule:** always pass `--headless=new` together with a
-   **dedicated, throwaway `--user-data-dir`** (e.g. a fresh folder under
-   the scratchpad). Without an isolated `--user-data-dir`, `chrome.exe` can
-   attach to the user's real running Chrome instance/profile and pop open a
-   **visible window on the user's desktop** — confirmed while building this
-   skill, twice: once from a plain `--version` check with no flags at all,
-   and the fix (`--headless=new` alone, still sharing the default profile
-   dir implicitly) was not sufficient on its own either. Always pass both
-   flags together, every invocation, no exceptions.
+      **Critical safety rule, applies to either browser:** always pass
+      `--headless=new` together with a **dedicated, throwaway
+      `--user-data-dir`** (e.g. a fresh folder under the scratchpad).
+      Without an isolated `--user-data-dir`, the browser can attach to the
+      user's real running instance/profile and pop open a **visible
+      window on the user's desktop** — confirmed while building this
+      skill, twice: once from a plain `--version` check with no flags at
+      all, and `--headless=new` alone (still sharing the default profile
+      dir implicitly) was not sufficient either. Always pass both flags
+      together, every invocation, no exceptions.
 
-   ```
-   CHROME="/c/Program Files/Google/Chrome/Application/chrome.exe"
-   PROFILE="<scratchpad>/chrome_profile"   # fresh dir, throwaway
-   "$CHROME" --headless=new --disable-gpu --no-sandbox \
-     --disable-default-apps --no-first-run --disable-sync \
-     --user-data-dir="$PROFILE" \
-     --print-to-pdf="<scratchpad>/report.pdf" \
-     --no-pdf-header-footer \
-     --virtual-time-budget=20000 \
-     "file:///<scratchpad>/pdf_source.html"
-   ```
-   **`--no-pdf-header-footer` is the flag that actually suppresses Chrome's
-   injected page header/footer** (URL, date, page number). A similarly
-   named `--print-to-pdf-no-header` flag does *not* do this — it was tried
-   and produced a PDF with visible browser chrome (date top-left, page
-   title top-center, `file://...` path + page number at the bottom) on
-   every page. Use `--no-pdf-header-footer`, not the other one.
+      **The `file://` URL must use the Windows drive-letter form**
+      (`file:///C:/Users/...`), not the POSIX/Git-Bash form the shell
+      itself uses (`/c/Users/...`) — passing the latter silently produces
+      a near-empty 1-page PDF with no error (confirmed while validating
+      this skill, 2026-09) instead of failing loudly. Convert the path
+      before building the URL if your working shell is Git Bash/MSYS.
 
-5. **Verify before handing off.** Page count sanity check:
-   ```
-   python -c "import pypdf; print(len(pypdf.PdfReader('<pdf>').pages))"
-   ```
-   Then rasterize a broad sample (first page, several mid-document pages
-   across different sections, the maps section, the last page) with
-   PyMuPDF and actually look at the PNGs — don't just trust a 0 exit code:
-   ```
-   python -c "
-   import fitz
-   doc = fitz.open('<pdf>')
-   for i in [0, 5, len(doc)//3, len(doc)//2, 2*len(doc)//3, len(doc)-1]:
-       doc[i].get_pixmap(dpi=95).save(f'<scratchpad>/check_{i}.png')
-   "
-   ```
-   Known failure modes to specifically check for (all previously hit and
-   fixed while building this skill — don't reintroduce them):
-   - **Year columns/axes with a thousands separator or fractional ticks**
-     (`"2.000"` instead of `"2000"`, or `"2007.5"` tick labels on a chart).
-     A column literally named `ano` must never get thousands-grouped, and
-     any dataframe read fresh from a CSV needs `df['ano'].astype(str)`
-     before plotting a time series with `serie_temporal`, or seaborn
-     treats a numeric `ano` as a continuous axis instead of one tick/year.
-   - **Wide tables (>6-7 columns) silently clipped/scrollable.** A `<table>`
-     wider than the printable page area doesn't wrap in Chrome's print
-     output — it just overflows with an inert scrollbar baked into the
-     image. `table_html(..., clean_headers=True)` and the `.plain.wide`
-     CSS class (table-layout:fixed, wrapping headers, smaller font) handle
-     this; use it for anything with many series as columns (subgrupo/CID-10
-     tables, cobertura vacinal by imunobiológico).
-   - **Percent columns on the wrong scale.** Most `tabelas_finais/*.csv`
-     percentage columns are already 0-100. At least one (PNAD frequência
-     escolar's `Total`) is a 0-1 fraction — multiply by 100 before treating
-     it as a `pct_cols` column, or it prints as `"0,1%"` instead of `"8,0%"`.
-   - Browser header/footer leaking onto every page (see step 4's flag note).
-   - Dark theme leaking in from the rendering environment's OS setting — the
-     doc already forces `<html data-theme="light">` + a `color-scheme`
-     meta tag; don't drop those if editing the template.
+      ```
+      BROWSER="$EDGE"   # or "$CHROME", whichever exists
+      PROFILE="<scratchpad>/chrome_profile"   # fresh dir, throwaway
+      "$BROWSER" --headless=new --disable-gpu --no-sandbox \
+        --disable-default-apps --no-first-run --disable-sync \
+        --user-data-dir="$PROFILE" \
+        --print-to-pdf="<scratchpad>/report.pdf" \
+        --no-pdf-header-footer \
+        --virtual-time-budget=60000 \
+        "file:///C:/path/to/<scratchpad>/pdf_source.html"
+      ```
+      **`--no-pdf-header-footer` is the flag that actually suppresses the
+      browser's injected page header/footer** (URL, date, page number). A
+      similarly named `--print-to-pdf-no-header` flag does *not* do this —
+      it was tried and produced a PDF with visible browser chrome on every
+      page. Use `--no-pdf-header-footer`, not the other one.
+      `--virtual-time-budget=60000` (60s) has been sufficient for the full
+      ~78-page, ~14MB source HTML; a much shorter budget is not
+      necessarily the cause if you still get a tiny/broken PDF — check the
+      `file://` path form above first, that has been the actual repeat
+      cause of a "renders but comes out wrong" result.
+   3. **Verify before handing off.** Page count sanity check:
+      ```
+      python -c "import pypdf; print(len(pypdf.PdfReader('<pdf>').pages))"
+      ```
+      Then rasterize a broad sample (first page, several mid-document
+      pages across different eixos, a mostly-pendente eixo like Proteção
+      or Moradia, the Apêndice, the last page) with PyMuPDF and actually
+      look at the PNGs — don't just trust a 0 exit code:
+      ```
+      python -c "
+      import fitz
+      doc = fitz.open('<pdf>')
+      for i in [0, 5, len(doc)//3, len(doc)//2, 2*len(doc)//3, len(doc)-1]:
+          doc[i].get_pixmap(dpi=95).save(f'<scratchpad>/check_{i}.png')
+      "
+      ```
+      Known failure modes to specifically check for (all previously hit
+      and fixed while building this skill — don't reintroduce them):
+      - **Year columns/axes with a thousands separator or fractional
+        ticks** (`"2.000"` instead of `"2000"`, or `"2007.5"` tick
+        labels). A column literally named `ano` must never get
+        thousands-grouped, and any dataframe read fresh from a CSV needs
+        `df['ano'].astype(str)` before plotting a time series, or
+        seaborn treats a numeric `ano` as a continuous axis instead of
+        one tick/year.
+      - **Wide tables (>6-7 columns) silently clipped/scrollable.** A
+        `<table>` wider than the printable page area doesn't wrap in
+        print output — it just overflows with an inert scrollbar baked
+        into the image. `table_html(..., clean_headers=True)` and the
+        `.plain.wide` CSS class handle this.
+      - **Percent columns on the wrong scale.** Most `tabelas_finais/*.csv`
+        percentage columns are already 0-100. At least one (PNAD
+        frequência escolar's `Total`) is a 0-1 fraction — multiply by 100
+        before treating it as a `pct_cols` column.
+      - Browser header/footer leaking onto every page (see the flag note
+        above).
+      - Dark theme leaking in from the rendering environment's OS setting
+        — the doc forces `<html data-theme="light">` + a `color-scheme`
+        meta tag; don't drop those if editing the template.
+      - A near-empty 1-2 page PDF despite a 0 exit code — see the
+        `file://` path-form note above; this is the most likely cause,
+        check it before anything else.
+   4. **Place the final file.** Copy the verified PDF to
+      `relatorio/analise_primeira_infancia.pdf`. It is **not** in
+      `.gitignore` (unlike most of `relatorio/*.html`) — ask the user
+      before committing it if that wasn't already part of the request,
+      since it's a ~25-30MB binary regenerated from other tracked/ignored
+      sources.
 
-6. **Place the final file.** Copy the verified PDF to
-   `relatorio/analise_primeira_infancia.pdf`. It is **not** in
-   `.gitignore` (unlike `relatorio/*.html`, which is) — ask the user before
-   committing it if that wasn't already part of the request, since it's a
-   ~10-15MB binary regenerated from other tracked/ignored sources.
+5. **Build the DOCX curation export.**
+   ```
+   python .claude/skills/export_pdf_report/scripts/gera_docx_curadoria.py [<docx_anterior>]
+   ```
+   Writes `relatorio/curadoria_textos.docx` (hardcoded output path) — 1
+   heading per eixo/subsection, real (resized) images per
+   visualização/mapa, one bookmarked placeholder text block per
+   image/option for a human to edit outside the notebook. **Pass the
+   existing `relatorio/curadoria_textos.docx` itself as `<docx_anterior>`
+   when regenerating after a structure edit**, so already hand-edited text
+   survives (matched by a stable per-image bookmark ID) and any text whose
+   underlying indicator got removed/renamed lands in a "Textos órfãos"
+   appendix instead of silently vanishing — never regenerate this file
+   from scratch (omitting `<docx_anterior>`) once real curation has begun,
+   or edited text is lost. See `specs/ajuste_eixos/plan.md` Bloco 5 for
+   the bookmark/ID design if extending this script.
 
 ## Known limitations to mention if relevant
 
 - CadÚnico charts reflect the last saved `tabelas_finais/` export, not a
-  live CTPE query (documented in `relatorio/specs.md`); this pipeline
-  doesn't touch the DB at all, so it can't refresh them further.
+  live CTPE query; steps 3-5 above don't touch the DB at all, so they
+  can't refresh CadÚnico data further (only `analise.py` itself can, via
+  step 1's caveat above not applying to CadÚnico specifically — it needs a
+  real notebook re-run against the live DB).
 - Some chart end-labels can visually overlap when two series end on close
-  values — a cosmetic quirk of the matplotlib defaults `analise.py` uses
-  (no custom label collision avoidance), not something to "fix" here since
-  the whole point is fidelity to the notebook's own rendering.
-- `analise.py` also has two sections with no visual output at all (the
-  final bairro/município table joins, "Análise / Relatório") — this
-  report omits them, matching `relatorio/*.html`'s precedent.
+  values — a cosmetic quirk of the matplotlib defaults `analise.py` uses,
+  not something to "fix" here since the whole point of the PDF/DOCX is
+  fidelity to the notebook's own rendering.
+- `analise.py` has a final "Análise / Relatório" section (markdown notes
+  only, no code output) that all three artifacts deliberately omit —
+  it's editorial scaffolding for a future narrative synthesis by eixo, not
+  publishable content yet.
+- 16 catalog indicators (`specs/estrutura_eixos.md`, `status: pendente`)
+  have no real chart/map yet — all three artifacts show them as a labeled
+  placeholder, never a silently missing/empty section. Importing the
+  underlying data for these is tracked in `specs/roadmap.md`, not this
+  skill's job.
