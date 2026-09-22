@@ -1,5 +1,8 @@
 # Especificação — Merge das mudanças da Waleska
 
+Ver `plan.md` para a estratégia técnica e a validação numérica independente do bug de cálculo,
+`tasks.md` para o checklist de execução e `validation.md` para os critérios de aceite.
+
 ## Contexto
 
 `origin/waleska-analise-primeira-infancia` é uma revisão de `analise.py` feita
