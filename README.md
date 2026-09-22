@@ -320,30 +320,11 @@ Notable code changes (2026-09-09) — identidade visual unificada e relatório H
   `MaxNLocator(integer=True)`.
 
 Notable code changes (2026-09-22) — merge da curadoria da Waleska (`specs/merge-waleska-changes/`):
-- Corrigido bug de agregação em `total_e_percentual_ano`/série do Censo: o percentual de
-  0-4 anos por ano era a soma dos percentuais por bairro (viola a convenção do projeto de
-  nunca agregar taxas assim), não o percentual recalculado a partir dos totais somados.
-  Confirmado numericamente contra os 3 CSVs reais (2000/2010/2022): valor antigo saía
-  752-1.092% (sem sentido), novo 4,75-7,09% (plausível, decrescente ao longo dos censos).
-- Removidas ~15 visualizações consideradas redundantes ou pouco interessantes: óbitos por
-  causas evitáveis por raça/cor (pipeline inteira, 4 gráficos), a matriz de 18 séries
-  subgrupo×CAP×faixa etária, mapas e séries de gestação/parto por CAP, os 4 mapas AP/RP do
-  Censo, os mapas de contagem absoluta de gravidez/puerpério/neonatal tardia/pós-neonatal
-  (mantidas as versões em taxa, já existentes) e o gráfico principal de cobertura vacinal
-  (mantido o comparativo entre 4 anos).
-- Títulos/legendas mais precisos em vários gráficos (SISVAN, Censo, e o mapa de percentual
-  de óbitos evitáveis por CAP, que passou a deixar claro que é proporção entre os óbitos
-  totais, não entre nascidos vivos).
-- `build_notebook_report.py`/`build_html_report.py` atualizados para não referenciar mais
-  nenhuma das saídas descontinuadas (evitava `FileNotFoundError`/`SystemExit` na próxima
-  geração do PDF/HTML).
-- Validação em runtime (não só estática): `analise.py` rodado de ponta a ponta (ambiente
-  Linux montado com `pip install -r requirements.txt`, exceto `pywinpty`) e os dois scripts
-  de relatório executados contra as saídas frescas. Achado e corrigido nesse processo um
-  `NameError` real -- uma célula ativa sobrevivente referenciava
-  `df_percentual_evitaveis_municipio`, definida só em código que a própria curadoria da
-  Waleska tinha comentado (oversight dela, não do merge) -- invisível a uma checagem estática
-  por nome de arquivo. Detalhes completos em `specs/merge-waleska-changes/`.
+corrigido bug de agregação do percentual do Censo, removidas ~15 visualizações redundantes,
+`build_notebook_report.py`/`build_html_report.py` atualizados para as saídas descontinuadas.
+Validado rodando `analise.py` e os dois scripts de ponta a ponta -- achado e corrigido nesse
+processo um `NameError` real (célula ativa sobrevivente da curadoria). Detalhes em
+`specs/merge-waleska-changes/`.
 
 ---
 
@@ -373,4 +354,5 @@ Notable code changes (2026-09-22) — merge da curadoria da Waleska (`specs/merg
 | 0.14.0  | 2026-09-08 | Óbitos por causas evitáveis na primeira infância por Área Programática de Saúde (CAP): nova planilha TabWin (`obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx`) extraída para 6 CSVs em `dados_locais/tratados/`; painel municipal (série por subgrupo CID e taxa por mil NV), séries por CAP e faixa etária (`< 1 ano`/`1-4 anos`/`< 5 anos`), e 6 mapas coropléticos por CAP em 2025 (absoluto em classes discretas, percentual em escala contínua), via novo nível `'cap'` em `mapa_coropletico_bairros` (`_NIVEIS_AGREGACAO`) e geometria oficial das CAPs (`dados_locais/geo/limite_ap_saude_rio.geojson`, Data.Rio). |
 | 0.15.0  | 2026-09-09 | Mapas por bairro para todo indicador com essa granularidade (11 indicadores, 18 mapas novos + `tabela_mapa_*.csv` gêmeas, migração de nascidos vivos/baixo peso do Excel legado para CSV); importação e visualização do IBGE SIDRA (Censo 2022 e frequência escolar, nível município, 6 tabelas + 6 gráficos); mortalidade por subgrupo evitável -- 2 mapas (gestação/parto, CAP, `< 1 ano`, 2025), painel municipal nas 3 faixas etárias, matriz de séries subgrupo×CAP (18 gráficos) e recorte gestação/parto×CAP (2 gráficos); versões dos gráficos de causas evitáveis por raça/cor sem `nao_informado`/1996. Dois bugs pré-existentes de ordenação de células corrigidos (`SPEC-maps-and-ibge/`). |
 | 0.16.0  | 2026-09-09 | Identidade visual unificada (`SPEC-visual-identity/`): paleta/tipografia/rodapé de fonte compartilhados pelas 4 funções de gráfico do notebook, destaque automático de séries com mais de 6 linhas, mapas com `cmap` por tema em vez de `'Oranges'` fixo, `fonte_dados` em todos os 73 call sites de visualização. `relatorio/index.html` consolidado (3 arquivos → 1, primeiro gerador HTML persistido, `build_html_report.py`, cobrindo as ~73 visualizações + 32 mapas). PDF (`build_notebook_report.py`) atualizado com as seções que faltavam desde `SPEC-maps-and-ibge` e a galeria de mapas completa. Corrigido bug pré-existente de eixo de ano fracionário em `serie_temporal`/`serie_temporal_multipla`. |
-| 0.17.0  | 2026-09-22 | Merge da curadoria de `analise.py` feita por Waleska Marques (`specs/merge-waleska-changes/`): corrigido bug de agregação no Censo (percentual 0-4 anos era soma de percentuais por bairro, não recalculado dos totais -- confirmado numericamente contra os 3 CSVs reais, valor antigo saía 752-1092%, novo 4,75-7,09%); removidas ~15 visualizações redundantes (óbitos evitáveis por raça/cor, matriz subgrupo×CAP, mapas AP/RP do Censo, mapas de contagem absoluta que já tinham uma versão em taxa, comparativo redundante de cobertura vacinal); títulos/legendas mais precisos em vários gráficos. `build_notebook_report.py`/`build_html_report.py` atualizados para não referenciar as saídas descontinuadas. Validado rodando `analise.py` de ponta a ponta (kernel limpo) e os dois scripts de relatório -- achado e corrigido durante essa validação um `NameError` numa célula que a curadoria tinha deixado ativa por engano, referenciando variável só definida em código comentado. |
+| 0.17.0  | 2026-09-22 | Merge da curadoria de `analise.py` da Waleska Marques (`specs/merge-waleska-changes/`): bug de agregação do Censo corrigido, ~15 visualizações redundantes removidas, scripts de relatório atualizados e validados de ponta a ponta. |
+| 0.18.0  | 2026-09-22 | Reorganização de `dados_locais/` por tema (dedup de nascidos_vivos, sisvan/ consolidado, `ibge_sidra/` sem espaço/maiúsculas), rename de `relatorio/Page 1.pdf`, faixa "em desenvolvimento" no `relatorio/index.html` (deploy de teste no GitHub Pages). Convenção de nomes para `tabelas_finais/`/`visualizacoes/`/`mapas/` proposta em `specs/reorganize-naming/` (não executada). |

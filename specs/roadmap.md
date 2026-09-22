@@ -6,29 +6,28 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 
 ## Prioridades atuais
 
-1. **Merge das mudanças da Waleska** — ✅ feito em `specs/merge-waleska-changes`
-   (merge real dos 4 commits + correção de um CSV perdido por acidente +
-   atualização de `build_notebook_report.py`/`build_html_report.py` para não
-   referenciar saídas descontinuadas). Falta só rodar o notebook de ponta a
-   ponta num ambiente com acesso ao Postgres/rede antes de considerar
-   validado em tempo de execução, não só estaticamente — ver
-   `specs/merge-waleska-changes/specs.md` §Execução. Falta também dar merge
-   deste branch em `planning`/`staging_main`.
-2. **Reorganizar a estrutura do relatório** — revisar a organização de
+1. **Merge das mudanças da Waleska** — ✅ concluído e validado de ponta a
+   ponta (`specs/merge-waleska-changes`). Falta só dar merge deste branch
+   (`planning`) em `staging_main`, quando o usuário decidir.
+2. **Reorganização de dados/nomes** — ✅ `dados_locais/` por tema feita
+   (dedup nascidos_vivos, sisvan/ consolidado, ibge_sidra/ sem espaço).
+   ⏳ Convenção de nomes para `tabelas_finais/`/`visualizacoes/`/`mapas/`
+   **proposta, não aplicada** — ver `specs/reorganize-naming/plan.md`
+   (inclui um bug real achado: 2 mapas do relatório HTML leem tabelas
+   legadas paradas desde 09/09 em vez das atuais).
+3. **Reorganizar a estrutura do relatório** — revisar a organização de
    `relatorio/index.html` (seções, ordem, navegação) após o volume de
    conteúdo acumulado por `specs/maps-and-ibge` e `specs/relatorio-interativo`.
-   Ainda sem spec próprio — abrir um quando o escopo for definido.
-3. **`publicar_teste_pages`** — publicar uma versão de teste de
-   `relatorio/index.html` no GitHub Pages (`workflow_dispatch` já existe em
-   `.github/workflows/deploy-relatorio.yml`) para validação, depois que o
-   merge da Waleska e a reorganização do relatório (itens 1-2 acima)
-   estiverem concluídos — não antes, para não publicar uma versão que ainda
-   vai mudar de estrutura. Relacionado ao item "Habilitar GitHub Pages" em
-   "Relatório interativo" abaixo, mas esse é sobre o deploy de produção;
-   este é um teste prévio.
-4. **Importar dados de violência** — ver "Educação e Violência" abaixo; dados
-   ainda não importados para o pipeline.
-5. **Outros dados faltantes** — levantar e importar bases pendentes além de
+   Ainda sem spec próprio.
+4. **`publicar_teste_pages`** — em andamento: repositório está indo a
+   público e `relatorio/index.html` ganhou uma faixa fixa "EM
+   DESENVOLVIMENTO / TEMPORÁRIO" para permitir publicar antes do item 3
+   estar pronto. Falta disparar o `workflow_dispatch` de
+   `.github/workflows/deploy-relatorio.yml`.
+5. **Importar dados de violência** — ver "Educação e Violência" abaixo;
+   `dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx` (eixo
+   "Proteção") tem o catálogo de indicadores/fontes a importar.
+6. **Outros dados faltantes** — levantar e importar bases pendentes além de
    violência (a detalhar; nenhuma listada formalmente ainda além dos itens
    de Matrículas/Mortalidade abaixo).
 

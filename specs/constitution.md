@@ -16,6 +16,10 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   (gestores, stakeholders da Prefeitura) — título + fonte + dado, sem jargão
   de código nem notas de método do notebook. O notebook (`analise.py`) é o
   único lugar com prosa técnica/metodológica.
+- **Changelog breve** (feedback do usuário, 2026-09-22): entradas na "Update
+  Table" e em "Notable code changes" do README são 1-3 linhas — o quê e por
+  quê, não uma lista exaustiva de sub-itens. Detalhe completo mora na spec
+  da rodada (`specs/<nome>/`), o README só aponta pra lá.
 
 ## 2. `analise.py` é a fonte de verdade
 
@@ -53,6 +57,21 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   camadas geo) são versionados. Confirme com `git status` antes de assumir o
   contrário; não versione dado bruto sensível sem checar antes se deveria
   (ver §6, Privacidade).
+- `dados_locais/` é organizado **por tema, uma pasta por fonte, nome em
+  snake_case sem espaço/acentuação maiúscula** (`censo/`, `mortalidade/`,
+  `sisvan/`, `ibge_sidra/`, `vacinacao/`, `nascidos_vivos/`, `geo/`,
+  `tratados/`). Não duplicar o mesmo arquivo em duas pastas temáticas — se um
+  dado serve duas seções de análise, ele mora numa pasta só e as duas seções
+  leem de lá. `tabelas_finais/`/`visualizacoes/`/`mapas/` seguem uma
+  convenção de nome própria — ver `specs/tech-stack.md` (proposta em
+  `specs/reorganize-naming/` até ser aprovada e aplicada).
+- ⚠️ **Achado 2026-09-22, ainda não corrigido**: `.gitignore` tem as regras
+  de `mapas/`, `tabelas_finais/` e `visualizacoes/*.png` comentadas (`#` no
+  início da linha) — na prática essas pastas **estão sendo versionadas**,
+  contradizendo a descrição de "artefato gerado" do §4 abaixo. Não rode uma
+  regeneração completa nem apague esses arquivos achando que são
+  recuperáveis via regeneração até isso ser decidido — confirme com o
+  usuário antes.
 
 ## 4. Não editar artefatos gerados à mão
 
