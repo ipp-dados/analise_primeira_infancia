@@ -81,11 +81,16 @@ escrito antes da implementação, junto com `plan.md`/`tasks.md`.
 ## V6 — Skills (Blocos 6-7)
 - Pipeline do Bloco 6 roda de ponta a ponta (5 passos) sem intervenção
   manual entre eles, a partir de um estado limpo.
-- **Teste do fluxo real do usuário** (`specs.md` §5.2, `tasks.md` T6.3):
-  mover 1 indicador de eixo em `estrutura_eixos.md` à mão, pedir a
-  atualização em linguagem natural, confirmar que HTML/PDF/DOCX
-  regenerados refletem a mudança (a visualização aparece no novo eixo, não
-  mais no antigo, nos 3 artefatos).
+- **Teste do fluxo real do usuário** (`specs.md` §5.2/§9.3, `tasks.md`
+  T6.3): mover 1 indicador de eixo em `estrutura_eixos.md` à mão, pedir a
+  atualização em linguagem natural — **critério revisado após o teste
+  real**: confirma que o DOCX regenerado reflete a mudança (a única via
+  `parse_estrutura_eixos()` de verdade); HTML/PDF **não** são obrigados a
+  refletir uma mudança de agrupamento só pela edição do `.md` (limitação
+  documentada, decisão do usuário) — nesse caso o critério é que o
+  `SKILL.md` diga isso claramente e que eu (ou quem operar o skill) saiba
+  que precisa ajustar `build_html_report.py`/`build_notebook_report.py` à
+  mão antes de regerá-los.
 - **Teste de sincronização do DOCX** (`tasks.md` T7.4): editar 1 bloco de
   texto no DOCX, pedir sincronização em linguagem natural, confirmar que
   (a) o HTML regenerado mostra o texto novo no bloco certo, (b) o PDF

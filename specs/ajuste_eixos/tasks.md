@@ -93,15 +93,23 @@
       DOCX lista 1 heading + 1 texto por opção, em sequência.
 
 ## Bloco 6 — Skill de reestruturação (plan.md §6)
-- [ ] **T6.1** — `SKILL.md` de `export_pdf_report` atualizado com o pipeline
+- [x] **T6.1** — `SKILL.md` de `export_pdf_report` atualizado com o pipeline
       de 5 passos (regen PNGs → valida estrutura → HTML → PDF → DOCX).
-- [ ] **T6.2** — Pipeline executado de ponta a ponta 1x, do zero, sem
-      intervenção manual entre os passos.
-- [ ] **T6.3** — Teste do fluxo real do usuário (`specs.md` §5.2): editar
+- [x] **T6.2** — Pipeline executado de ponta a ponta 1x, do zero, sem
+      intervenção manual entre os passos (passo 1 produziu um diff
+      incidental conhecido em `visualizacoes/*.png`, revertido — não é uma
+      falha do pipeline, ver caveat registrado no próprio `SKILL.md`).
+- [x] **T6.3** — Teste do fluxo real do usuário (`specs.md` §5.2): editar
       `specs/estrutura_eixos.md` à mão (mover 1 indicador de eixo, renomear
-      1 subseção) e pedir a atualização em linguagem natural — confirmar que
-      o skill certo é invocado e que a mudança aparece no HTML/PDF/DOCX
-      regenerados.
+      1 subseção) e regenerar — **resultado real, não o esperado
+      originalmente**: a mudança aparece no DOCX (importa
+      `parse_estrutura_eixos()` de verdade), mas não no HTML/PDF
+      (`relatorio/index.html` saiu byte-idêntico ao anterior) — os dois
+      geradores são Python hardcoded, não leem o `.md` em tempo de
+      execução. Decisão do usuário registrada em `specs.md` §9.3: manter
+      assim, documentar a limitação, tratar mudança de estrutura que afete
+      HTML/PDF como ajuste de código manual. Edição de teste revertida
+      depois de confirmado (não é uma mudança real de estrutura).
 
 ## Bloco 7 — Skill de sincronização do DOCX (plan.md §7)
 - [ ] **T7.1** — `eh_lorem_ipsum()` implementado e testado (texto idêntico

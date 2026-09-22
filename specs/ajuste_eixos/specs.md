@@ -435,6 +435,30 @@ mudança de alto risco/alto custo de revisão. Duas alternativas a pesar no
   em Proteção.
 - `python-docx` precisa ser adicionado a `requirements.txt`.
 
+### 9.3 Registrado durante a implementação (Bloco 6) — §5.2 só é totalmente automático para o DOCX
+
+A promessa do usuário em §5.2 ("just change the .md file and ask for the
+update") foi testada de ponta a ponta no Bloco 6
+(`specs/ajuste_eixos/tasks.md` T6.3): editar `specs/estrutura_eixos.md` à
+mão (mover 1 indicador de eixo, renomear 1 subseção) e regenerar reflete a
+mudança em `relatorio/curadoria_textos.docx` (que importa
+`parse_estrutura_eixos()` de verdade), **mas não** em `relatorio/index.html`
+nem no PDF — confirmado empiricamente (HTML byte-idêntico ao anterior após
+o teste). `build_html_report.py`/`build_notebook_report.py` foram
+reorganizados fisicamente uma vez (Blocos 3-4) para bater com o `.md` da
+época, mas continuam Python hardcoded, sem importar o parser.
+
+Decisão do usuário ao ser confrontado com o achado: **não** reescrever os
+dois geradores como renderizadores genéricos guiados pelo `.md` (mudança
+maior e mais arriscada, tocando código já verificado) — manter como estão,
+documentar a limitação no `SKILL.md` (seção "source of truth for grouping
+— but only live for the DOCX"), e tratar uma mudança de estrutura que
+afete HTML/PDF como um ajuste de código manual (mesmo método usado nos
+Blocos 3-4), não uma regeneração automática. Registrado aqui para não
+reabrir essa decisão sem motivo novo — se o custo de manter os dois
+geradores sincronizados à mão crescer muito, é candidato a
+`specs/roadmap.md`, não a uma reversão silenciosa desta escolha.
+
 ## 10. Fora de escopo desta rodada
 
 - Implementação em si (reorganizar `analise.py`, regenerar HTML/PDF, criar o
