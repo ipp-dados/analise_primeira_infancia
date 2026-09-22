@@ -201,7 +201,7 @@ in this project:
 - Every DataSUS/Tabnet export cleaned via `limpeza_tabnet_bairros` /
   `carrega_raca_bairro` produces a `codigo` column (e.g. `"001"` for Saúde,
   `"144"` for Campo Grande) — **verified to use the same numbering as
-  `codbairro`** (checked against `dados_locais/mortalidade/nascidos_vivos_bairros_2006_a_2025.csv`:
+  `codbairro`** (checked against `dados_locais/nascidos_vivos/nascidos_vivos_bairros_2006_a_2025.csv`:
   `001 SAUDE`, `002 GAMBOA`, `003 SANTO CRISTO`... lines up 1:1 with the
   geojson's `codbairro` order). So any of the `df_vivos`, `df_baixo_peso`,
   `df_mortalidade_raca_bairro`, `df_final` (datasus_por_bairro) tables can

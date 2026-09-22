@@ -62,7 +62,7 @@ def convert_numeric_safe(s):
 
 # %%
 def limpa_dados_sisvan(colunas, dataset):
-    path = Path(f"dados_locais\\{dataset}\\")
+    path = Path(f"dados_locais/sisvan/{dataset}/")
     arquivos = [f.name for f in path.iterdir() if f.is_file() and not f.name.startswith('.') and f.name != 'example_file']
 
     colunas_ajustadas = ['ano']
@@ -76,14 +76,14 @@ def limpa_dados_sisvan(colunas, dataset):
     df_final = pd.DataFrame(columns=colunas_ajustadas)
 
     for arquivo in arquivos:
-        df = pd.read_excel(f"dados_locais\\{dataset}\\{arquivo}")
+        df = pd.read_excel(f"dados_locais/sisvan/{dataset}/{arquivo}")
         df_infos = df.iloc[[10],5:]
         df_infos.columns = colunas_ajustadas[1:]
         df_infos['ano'] = arquivo[-9:-5]
         df_final = pd.concat([df_final,df_infos])
     df_final.reset_index(inplace=True, drop=True)
 
-    df_final.to_csv(f"dados_locais\\tratados\\{dataset}.csv")
+    df_final.to_csv(f"dados_locais/tratados/{dataset}.csv")
 
 def limpa_dados_datasus(df):
     df = df.melt(id_vars=['Bairro Residencia'])
@@ -287,7 +287,7 @@ def carrega_sidra_longo(caminho, coluna_corte=None):
     """Lê um export longo do IBGE SIDRA (uma linha de município, dimensões em colunas) e
     devolve só as colunas relevantes: idade, `coluna_corte` (raça/sexo, se houver) e valor.
 
-    As tabelas de `dados_locais/IBGE SIDRA/` trazem sempre Rio de Janeiro (código 3304557),
+    As tabelas de `dados_locais/ibge_sidra/` trazem sempre Rio de Janeiro (código 3304557),
     2022, e uma coluna de idade (`Idade` na tabela 9606, `Grupo de idade` nas 10056/10057) --
     normalizada aqui para 'idade'. `Valor == '-'` (0 ocorrências, mesma convenção já usada nos
     arquivos Tabnet do projeto) é convertido para 0."""
@@ -764,8 +764,8 @@ df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4'
 # há mapa aqui, só tabelas e gráficos comparativos.
 
 # %%
-df_censo_sidra_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Censo//tabela9606_populacao_raca_cor.csv', coluna_corte='Cor ou raça')
-df_censo_sidra_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Censo//tabela9606_populacao_sexo.csv', coluna_corte='Sexo')
+df_censo_sidra_raca = carrega_sidra_longo('dados_locais//ibge_sidra//Censo//tabela9606_populacao_raca_cor.csv', coluna_corte='Cor ou raça')
+df_censo_sidra_sexo = carrega_sidra_longo('dados_locais//ibge_sidra//Censo//tabela9606_populacao_sexo.csv', coluna_corte='Sexo')
 
 fonte_sidra_censo = 'Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)'
 
@@ -1138,7 +1138,7 @@ mapa_coropletico_bairros(
 
 # %%
 #Nascidos vivos
-df_vivos = pd.read_csv("dados_locais\\mortalidade\\nascidos_vivos_bairros_2006_a_2025.csv")
+df_vivos = pd.read_csv("dados_locais/nascidos_vivos/nascidos_vivos_bairros_2006_a_2025.csv")
 df_vivos = limpa_dados_datasus(df_vivos)
 df_vivos = limpeza_tabnet_bairros(df_vivos,categoria='nascidos vivos')
 df_vivos.head()
@@ -1182,7 +1182,7 @@ serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nasc
 
 # %%
 #Nascidos abaixo do peso
-df_baixo_peso = pd.read_csv("dados_locais\\mortalidade\\nascidos_vivos_baixo_peso_ao_nascer_bairros_2006_a_2025.csv")
+df_baixo_peso = pd.read_csv("dados_locais/nascidos_vivos/nascidos_vivos_baixo_peso_ao_nascer_bairros_2006_a_2025.csv")
 df_baixo_peso = limpa_dados_datasus(df_baixo_peso)
 df_baixo_peso = limpeza_tabnet_bairros(df_baixo_peso,categoria='nascidos abaixo peso')
 df_baixo_peso.head()
@@ -2192,7 +2192,7 @@ mapa_coropletico_bairros(
 # %%
 anos_infantil = list(range(2006, 2026))
 
-df_nascidos_total = carrega_raca_bairro('dados_locais//mortalidade//nascidos_vivos_bairros_2006_a_2025.csv', categoria='nascidos_vivos', anos_validos=anos_infantil, sep=',')
+df_nascidos_total = carrega_raca_bairro('dados_locais//nascidos_vivos//nascidos_vivos_bairros_2006_a_2025.csv', categoria='nascidos_vivos', anos_validos=anos_infantil, sep=',')
 df_obitos_0_364_total = carrega_raca_bairro('dados_locais//mortalidade//obitos_0_364_dias_bairro_2006_2025.csv', categoria='obitos_0_364', anos_validos=anos_infantil)
 df_obitos_0_6_total = carrega_raca_bairro('dados_locais//mortalidade//obitos_0_6_dias_bairro_2006_2025.csv', categoria='obitos_0_6', anos_validos=anos_infantil)
 df_obitos_7_27_total = carrega_raca_bairro('dados_locais//mortalidade//obitos_7_27_dias_bairro_2006_2025.csv', categoria='obitos_7_27', anos_validos=anos_infantil)
@@ -2391,10 +2391,10 @@ grafico_barra_agrupado(
 # %%
 fonte_sidra_educacao = 'Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)'
 
-df_sidra_freq_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_raca_cor.csv', coluna_corte='Cor ou raça')
-df_sidra_freq_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_sexo.csv', coluna_corte='Sexo')
-df_sidra_taxa_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_raca_cor.csv', coluna_corte='Cor ou raça')
-df_sidra_taxa_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_sexo.csv', coluna_corte='Sexo')
+df_sidra_freq_raca = carrega_sidra_longo('dados_locais//ibge_sidra//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_raca_cor.csv', coluna_corte='Cor ou raça')
+df_sidra_freq_sexo = carrega_sidra_longo('dados_locais//ibge_sidra//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_sexo.csv', coluna_corte='Sexo')
+df_sidra_taxa_raca = carrega_sidra_longo('dados_locais//ibge_sidra//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_raca_cor.csv', coluna_corte='Cor ou raça')
+df_sidra_taxa_sexo = carrega_sidra_longo('dados_locais//ibge_sidra//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_sexo.csv', coluna_corte='Sexo')
 
 df_sidra_freq_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//sidra_frequencia_escola_0_5_raca_2022.csv')
 df_sidra_freq_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//sidra_frequencia_escola_0_5_sexo_2022.csv')
