@@ -211,34 +211,6 @@ add(chart_block("percentual_mortalidade_raca_ano.png", "mortalidade_raca_municip
 pct_cols = [f"percentual_{r}" for r in RACA_LABEL]
 add(table_html(df_raca[["ano"] + pct_cols], pct_cols=pct_cols, rename={"ano": "Ano", **{f"percentual_{r}": lbl for r, lbl in RACA_LABEL.items()}}))
 
-add(h5('Óbitos por causas evitáveis por raça/cor'))
-add(p('Óbitos por causas evitáveis (0 a 364 dias, somando as faixas 0-6, 7-27 e 28-364 dias) por raça/cor (1996-2025), comparados aos nascidos vivos por raça/cor da mãe (2011-2025).'))
-add(notes_list([
-    'O Datasus só disponibiliza o cruzamento causas evitáveis x raça/cor no nível de município, não por bairro → esta tabela tem granularidade município-ano.',
-    'Valores marcados com <code>-</code> na fonte indicam 0 ocorrências e são convertidos para 0.',
-    'Assim como na série geral de óbitos por raça, o percentual só é calculável a partir de 2011.',
-    '<b>Atenção:</b> apesar do nome, este cruzamento por raça/cor não é filtrado só para causas evitáveis — o total por raça aqui fica entre 92% e 103% do total geral de óbitos por raça (seção anterior) na maior parte da série.',
-    'A categoria <code>nao_informado</code> tem um pico isolado em 1996 (2.136 óbitos) por baixa completude do preenchimento de raça/cor no início da série → não interpretar como aumento real de óbitos.',
-]))
-df_evit_raca = read("mortalidade_causas_evitaveis_raca_municipio_ano.csv")
-add(chart_block("obitos_causas_evitaveis_raca_ano.png", "mortalidade_causas_evitaveis_raca_municipio_ano.csv"))
-obitos_evit_cols = [f"obitos_evitaveis_{r}" for r in RACA_LABEL]
-add(table_html(df_evit_raca[["ano"] + obitos_evit_cols], rename={"ano": "Ano", **{f"obitos_evitaveis_{r}": lbl for r, lbl in RACA_LABEL.items()}}))
-add(chart_block("percentual_mortalidade_causas_evitaveis_raca_ano.png", "mortalidade_causas_evitaveis_raca_municipio_ano.csv"))
-pct_evit_cols = [f"percentual_evitaveis_{r}" for r in RACA_LABEL]
-add(table_html(df_evit_raca[["ano"] + pct_evit_cols], pct_cols=pct_evit_cols, rename={"ano": "Ano", **{f"percentual_evitaveis_{r}": lbl for r, lbl in RACA_LABEL.items()}}))
-
-add(h6('Sem "não informada" (a partir de 1997)'))
-add(p('Mesmos dois gráficos acima, excluindo a categoria "não informada" e o ano de 1996 (baixa completude do preenchimento de raça/cor nesse ano inicial da série).'))
-RACA_LABEL_SEM_NI = {k: v for k, v in RACA_LABEL.items() if k != "nao_informado"}
-df_evit_raca_sem = df_evit_raca[df_evit_raca["ano"] > 1996]
-add(chart_block("obitos_causas_evitaveis_raca_sem_nao_informado_ano.png", "mortalidade_causas_evitaveis_raca_municipio_ano.csv"))
-obitos_evit_cols_sem = [f"obitos_evitaveis_{r}" for r in RACA_LABEL_SEM_NI]
-add(table_html(df_evit_raca_sem[["ano"] + obitos_evit_cols_sem], rename={"ano": "Ano", **{f"obitos_evitaveis_{r}": lbl for r, lbl in RACA_LABEL_SEM_NI.items()}}))
-add(chart_block("percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano.png", "mortalidade_causas_evitaveis_raca_municipio_ano.csv"))
-pct_evit_cols_sem = [f"percentual_evitaveis_{r}" for r in RACA_LABEL_SEM_NI]
-add(table_html(df_evit_raca_sem[["ano"] + pct_evit_cols_sem], pct_cols=pct_evit_cols_sem, rename={"ano": "Ano", **{f"percentual_evitaveis_{r}": lbl for r, lbl in RACA_LABEL_SEM_NI.items()}}))
-
 add(h5('Óbitos por causas evitáveis, por grupo de causa (CID-10)'))
 add(p('Usa os arquivos "segundo causas" (não por raça/cor), que classificam cada óbito evitável em uma hierarquia de grupo/subgrupo/causa específica. Soma as três faixas etárias (0-6, 7-27 e 28-364 dias) para obter o total 0-364 dias, no nível de município (1996-2025).'))
 add(notes_list([
@@ -276,14 +248,6 @@ add(p('Coordenadorias de Área Programática da SMS-Rio (10 unidades) — divis�
 df_cap_faixa = read("mortalidade_evitaveis_cap_faixa_ano.csv")
 df_grupo_cap_faixa = read("mortalidade_evitaveis_grupo_cap_faixa_ano.csv")
 _FAIXAS_CAP = [("menores_1_ano", "menores de 1 ano", "Menores de 1 ano"), ("1_a_4_anos", "de 1 a 4 anos", "De 1 a 4 anos"), ("menores_5_anos", "menores de 5 anos", "Menores de 5 anos")]
-_SLUG_SUBGRUPO_PDF = {
-    "1.1. Reduzível pelas ações de imunização": ("imunizacao", "Imunização"),
-    "1.2.1. Red por at à mulher na gestação": ("gestacao", "Gestação"),
-    "1.2.2. Red por at à mulher no parto": ("parto", "Parto"),
-    "1.2.3. Red por at ao recém-nascido": ("recem_nascido", "Recém-nascido"),
-    "1.3. Red por ações de diag e trat adequado": ("diagnostico_tratamento", "Diagnóstico/tratamento"),
-    "1.4. Red por ações promoção vinc a atenção": ("promocao_vinculacao", "Promoção/vinculação"),
-}
 
 def cap_pivot_table(df, value_col, faixa_full, fmt_pct=False):
     sub = df[df["faixa_etaria"] == faixa_full]
@@ -301,16 +265,6 @@ for sufixo, faixa_full, faixa_lbl in _FAIXAS_CAP:
     wide = sub.pivot(index="ano", columns="subgrupo", values="obitos").reset_index()
     add(table_html(wide, rename={"ano": "Ano"}, clean_headers=True))
 
-add(h6('Por CAP e faixa etária, por subgrupo'))
-for sufixo, faixa_full, faixa_lbl in _FAIXAS_CAP:
-    add(p(faixa_lbl))
-    for subgrupo_full, (slug, subgrupo_lbl) in _SLUG_SUBGRUPO_PDF.items():
-        add(chart_block(f"obitos_evitaveis_{slug}_cap_{sufixo}_ano.png", "mortalidade_evitaveis_cap_faixa_ano.csv"))
-        sub = df_cap_faixa[(df_cap_faixa["subgrupo"] == subgrupo_full) & (df_cap_faixa["faixa_etaria"] == faixa_full)]
-        wide = sub.pivot(index="ano", columns="cod_ap_sms", values="obitos").reset_index()
-        wide.columns = ["ano"] + [f"CAP {c}" for c in wide.columns[1:]]
-        add(table_html(wide, rename={"ano": "Ano"}))
-
 add(h6('Grupo evitável, por CAP'))
 for sufixo, faixa_full, faixa_lbl in _FAIXAS_CAP:
     add(p(faixa_lbl))
@@ -323,18 +277,6 @@ for sufixo, faixa_full, faixa_lbl in _FAIXAS_CAP:
     add(cap_pivot_table(df_grupo_cap_faixa, "percentual_evitaveis", faixa_full, fmt_pct=True))
 add(chart_block("obitos_evitaveis_total_cap_ano.png", "mortalidade_evitaveis_grupo_cap_faixa_ano.csv"))
 add(cap_pivot_table(df_grupo_cap_faixa, "total", "menores de 5 anos"))
-
-add(h6('Gestação e parto, menores de 1 ano, por CAP'))
-for subgrupo_full, (slug, subgrupo_lbl) in [
-    ("1.2.1. Red por at à mulher na gestação", ("gestacao", "Gestação")),
-    ("1.2.2. Red por at à mulher no parto", ("parto", "Parto")),
-]:
-    add(p(subgrupo_lbl))
-    add(chart_block(f"obitos_evitaveis_{slug}_cap_menores_1_ano_ano.png", "mortalidade_evitaveis_cap_faixa_ano.csv"))
-    sub = df_cap_faixa[(df_cap_faixa["subgrupo"] == subgrupo_full) & (df_cap_faixa["faixa_etaria"] == "menores de 1 ano")]
-    wide = sub.pivot(index="ano", columns="cod_ap_sms", values="obitos").reset_index()
-    wide.columns = ["ano"] + [f"CAP {c}" for c in wide.columns[1:]]
-    add(table_html(wide, rename={"ano": "Ano"}))
 
 add(h6('Panorama municipal (< 5 anos) e taxa'))
 add(chart_block("taxa_mortalidade_evitaveis_menores_5_ano.png", "taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv"))
@@ -386,7 +328,6 @@ add(notes_list([
 ]))
 df_vac = read("cobertura_vacinal_epi_por_ano.csv")
 vac_cols = [c for c in df_vac.columns if c != "ano"]
-add(chart_block("cobertura_vacinal_epi_ano.png", "cobertura_vacinal_epi_por_ano.csv"))
 add(table_html(df_vac, pct_cols=vac_cols, rename={"ano": "Ano"}))
 
 add(p('Comparativo direto entre quatro anos (2016, 2019, 2022 e 2025) por imunobiológico, para visualizar o impacto da pandemia (queda em 2022) e a recuperação até 2025.'))
@@ -423,10 +364,6 @@ MAP_GROUPS = [
     ("Censo/população", [
         ("mapa_censo_0_4_absoluto.png", "Crianças de 0 a 4 anos, por bairro (Censo 2022)"),
         ("mapa_censo_0_4_percentual.png", "% de crianças de 0 a 4 anos, por bairro (Censo 2022)"),
-        ("mapa_censo_0_4_absoluto_ap.png", "Crianças de 0 a 4 anos, por Área de Planejamento"),
-        ("mapa_censo_0_4_percentual_ap.png", "% de crianças de 0 a 4 anos, por Área de Planejamento"),
-        ("mapa_censo_0_4_absoluto_rp.png", "Crianças de 0 a 4 anos, por Região de Planejamento"),
-        ("mapa_censo_0_4_percentual_rp.png", "% de crianças de 0 a 4 anos, por Região de Planejamento"),
     ]),
     ("CadÚnico", [
         ("mapa_cadunico_criancas_bairro_2026.png", "Crianças (0-6 anos) no CadÚnico, por bairro"),
@@ -442,16 +379,10 @@ MAP_GROUPS = [
         ("mapa_obitos_raca_total_bairro_2025.png", "Óbitos de 0 a 364 dias por bairro (2025)"),
         ("mapa_taxa_obitos_raca_total_bairro_2025.png", "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)"),
     ]),
-    ("Gravidez e puerpério", [
-        ("mapa_obitos_gravidez_bairro_2025.png", "Óbitos durante a gravidez por bairro (2025)"),
-        ("mapa_obitos_puerperio_bairro_2025.png", "Óbitos durante o puerpério por bairro (2025)"),
-    ]),
     ("Mortalidade neonatal", [
         ("mapa_obitos_neonatal_precoce_bairro_2025.png", "Óbitos precoces (0-6 dias) por bairro (2025)"),
         ("mapa_taxa_mortalidade_precoce_bairro_2025.png", "Taxa de óbitos precoces por bairro (2025)"),
-        ("mapa_obitos_neonatal_tardia_bairro_2025.png", "Óbitos tardios (7-27 dias) por bairro (2025)"),
         ("mapa_taxa_obitos_tardios_bairro_2025.png", "Taxa de óbitos tardios por bairro (2025)"),
-        ("mapa_obitos_pos_neonatal_bairro_2025.png", "Óbitos pós-neonatais (28-364 dias) por bairro (2025)"),
         ("mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png", "Taxa de mortalidade pós-neonatal por bairro (2025)"),
         ("mapa_mortalidade_infantil_bairro_2025.png", "Óbitos infantis (0-364 dias) por bairro (2025)"),
         ("mapa_taxa_mortalidade_infantil_bairro_2025.png", "Taxa de mortalidade infantil por bairro (2025)"),
@@ -463,8 +394,6 @@ MAP_GROUPS = [
         ("mapa_percentual_evitaveis_1_a_4_anos_cap_2025.png", "% de óbitos evitáveis, de 1 a 4 anos, por CAP"),
         ("mapa_obitos_evitaveis_menores_5_anos_cap_2025.png", "Óbitos evitáveis, menores de 5 anos, por CAP"),
         ("mapa_percentual_evitaveis_menores_5_anos_cap_2025.png", "% de óbitos evitáveis, menores de 5 anos, por CAP"),
-        ("mapa_obitos_evitaveis_gestacao_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Gestação, menores de 1 ano, por CAP"),
-        ("mapa_obitos_evitaveis_parto_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Parto, menores de 1 ano, por CAP"),
     ]),
 ]
 

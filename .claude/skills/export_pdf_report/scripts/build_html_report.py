@@ -913,17 +913,6 @@ option_card([
 h2('⛓️ Óbitos por causas evitáveis')
 FONTE_EVITAVEIS = "SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro"
 
-h3('Por raça/cor (0-364 dias)')
-df_evit_raca = read("mortalidade_causas_evitaveis_raca_municipio_ano.csv")
-RACAS_SEM_NI = [r for r in RACAS if r != "nao_informado"]
-df_evit_raca_sem = df_evit_raca[df_evit_raca["ano"] > 1996]
-viz('grafico', [
-    ("Absoluto", lambda: line_chart(df_evit_raca["ano"], series_from_cols(df_evit_raca, [f"obitos_evitaveis_{r}" for r in RACAS], {f"obitos_evitaveis_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)),
-    ("%", lambda: line_chart(df_evit_raca["ano"], series_from_cols(df_evit_raca, [f"percentual_evitaveis_{r}" for r in RACAS], {f"percentual_evitaveis_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)),
-    ("Absoluto, sem \"não informada\" (a partir de 1997)", lambda: line_chart(df_evit_raca_sem["ano"], series_from_cols(df_evit_raca_sem, [f"obitos_evitaveis_{r}" for r in RACAS_SEM_NI], {f"obitos_evitaveis_{r}": RACA_LABEL[r] for r in RACAS_SEM_NI}), opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)),
-    ("%, sem \"não informada\" (a partir de 1997)", lambda: line_chart(df_evit_raca_sem["ano"], series_from_cols(df_evit_raca_sem, [f"percentual_evitaveis_{r}" for r in RACAS_SEM_NI], {f"percentual_evitaveis_{r}": RACA_LABEL[r] for r in RACAS_SEM_NI}, fmt='pct1'), opts={'height': 240, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)),
-])
-
 h3('Por grupo/subgrupo de causa (CID-10)')
 _entries_cid10 = []
 for faixa_id, faixa_titulo in [("", "0-364 dias"), ("_0_6", "0-6 dias"), ("_7_27", "7-27 dias"), ("_28_364", "28-364 dias")]:
@@ -1081,22 +1070,10 @@ for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
         df, "cod_ap_sms", "percentual_evitaveis", "mortalidade",
         f"Percentual de óbitos evitáveis, {info['rotulo']}, por CAP (2025)", "% evitáveis",
         FONTE_EVITAVEIS, fmt="pct1", nivel="cap"), _l2))
-_SUBGRUPOS_COMPONENTE_C = {'gestacao': 'Gestação', 'parto': 'Parto'}
-_BINS_SUBGRUPO_COMPONENTE_C = {'gestacao': [10, 20, 30, 40], 'parto': [2, 4, 6, 8]}
-_entries_mapas_cap_subgrupo = []
-for slug, rotulo in _SUBGRUPOS_COMPONENTE_C.items():
-    df_subgrupo_2025 = read(f"tabela_mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025.csv")
-    _l3 = rotulo
-    _entries_mapas_cap_subgrupo.append((_l3, lambda df=df_subgrupo_2025, slug=slug, rotulo=rotulo: mapa_svg(
-        df, "cod_ap_sms", "obitos", "mortalidade",
-        f"Óbitos evitáveis - {rotulo}, menores de 1 ano, por CAP (2025)", "Óbitos",
-        FONTE_EVITAVEIS, bins=_BINS_SUBGRUPO_COMPONENTE_C[slug], nivel="cap"), _l3))
-# 8 mapas era demais numa unica fileira de pills -- dividido em 2 grupos
-# (por faixa etaria / por subgrupo), specification.md §9 revisao
-h5('Por faixa etária')
+# mapas de gestação/parto por CAP removidos: merge-waleska-changes descontinuou a
+# curadoria desses subgrupos em analise.py (tabela_mapa_obitos_evitaveis_*_menores_1_ano_cap_2025.csv
+# não é mais gerada) -- ver specs/merge-waleska-changes/specs.md
 option_card(_entries_mapas_cap_faixa, 'mapa')
-h5('Por subgrupo (gestação e parto)')
-option_card(_entries_mapas_cap_subgrupo, 'mapa')
 
 # ==================================================== GRAVIDEZ/PUERPERIO ==
 
