@@ -9,12 +9,13 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 1. **Merge das mudanças da Waleska** — ✅ concluído e validado de ponta a
    ponta (`specs/merge-waleska-changes`). Falta só dar merge deste branch
    (`planning`) em `staging_main`, quando o usuário decidir.
-2. **Reorganização de dados/nomes** — ✅ `dados_locais/` por tema feita
-   (dedup nascidos_vivos, sisvan/ consolidado, ibge_sidra/ sem espaço).
-   ⏳ Convenção de nomes para `tabelas_finais/`/`visualizacoes/`/`mapas/`
-   **proposta, não aplicada** — ver `specs/reorganize-naming/plan.md`
-   (inclui um bug real achado: 2 mapas do relatório HTML leem tabelas
-   legadas paradas desde 09/09 em vez das atuais).
+2. **Reorganização de dados/nomes** — ✅ concluído: `dados_locais/` por
+   tema, convenção de `tabelas_finais/`/`visualizacoes/`/`mapas/`
+   documentada em `specs/tech-stack.md`, bug do mapa de nascidos
+   vivos/baixo peso preso em dado legado corrigido, 39 arquivos órfãos
+   removidos, `relatorio/`, `tabelas_finais/`, `mapas/`, `visualizacoes/`
+   regenerados de verdade (exceto CadÚnico, sem `.env` nesta sessão) — ver
+   `specs/reorganize-naming/plan.md`.
 3. **Reorganizar a estrutura do relatório** — revisar a organização de
    `relatorio/index.html` (seções, ordem, navegação) após o volume de
    conteúdo acumulado por `specs/maps-and-ibge` e `specs/relatorio-interativo`.
