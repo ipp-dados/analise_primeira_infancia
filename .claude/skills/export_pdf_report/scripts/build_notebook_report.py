@@ -31,6 +31,7 @@ import html
 import io
 import math
 import os
+import random
 import re
 import sys
 
@@ -113,8 +114,34 @@ def table_html(df, dec=0, pct_cols=None, dec_cols=None, rename=None, na="", clea
 def read(name, **kw):
     return pd.read_csv(f"{TF}/{name}", **kw)
 
-def h2(text): return f"<h2>{text}</h2>"
-def h3(text): return f"<h3>{text}</h3>"
+_toc = []      # (level, title, anchor_id) collected as h2()/h3() are called -- feeds the Sumário
+_slugs = set()
+
+def _slugify(text):
+    """Same algorithm as build_html_report.py's slugify() -- kept in sync
+    deliberately so the two generators' anchor ids read consistently, even
+    though this file has no shared import with that one (each generator is
+    a standalone snapshot per CLAUDE.md's convention)."""
+    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'[^\w\s-]', '', text, flags=re.UNICODE).strip().lower()
+    slug = re.sub(r'[\s_]+', '-', text) or 'sec'
+    base, i = slug, 2
+    while slug in _slugs:
+        slug = f"{base}-{i}"
+        i += 1
+    _slugs.add(slug)
+    return slug
+
+def h2(text):
+    sid = _slugify(text)
+    _toc.append((2, text, sid))
+    return f'<h2 id="{sid}">{text}</h2>'
+
+def h3(text):
+    sid = _slugify(text)
+    _toc.append((3, text, sid))
+    return f'<h3 id="{sid}">{text}</h3>'
+
 def h4(text): return f"<h4>{text}</h4>"
 def h5(text): return f"<h5>{text}</h5>"
 def h6(text): return f"<h6>{text}</h6>"
@@ -125,6 +152,27 @@ def notes_list(items):
 
 def _esc(text):
     return html.escape(str(text))
+
+# ---- introducao: lorem ipsum placeholder, mesmo gerador/lista de palavras
+# de build_html_report.py (specs/ajuste_eixos/specs.md §7 -- texto final é
+# trabalho de curadoria futura, nao fabricado aqui) -- mantido em sincronia
+# manualmente, mesma razao do _slugify acima.
+_LOREM_WORDS = (
+    "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod "
+    "tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam "
+    "quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo "
+    "consequat duis aute irure in reprehenderit voluptate velit esse cillum "
+    "eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident "
+    "sunt culpa qui officia deserunt mollit anim id est laborum curabitur "
+    "vitae purus eget nunc porttitor sollicitudin nec eget metus vestibulum "
+    "ante primis faucibus orci luctus posuere cubilia curae mauris blandit "
+    "aliquet nibh praesent tristique senectus netus fames turpis egestas"
+).split()
+
+def _lorem(seed, palavras):
+    rng = random.Random(seed)
+    corpo = " ".join(rng.choice(_LOREM_WORDS) for _ in range(palavras))
+    return corpo[:1].upper() + corpo[1:] + "."
 
 def pending(titulo, nota):
     """Placeholder for a catalog indicator not yet implemented in analise.py
@@ -165,6 +213,19 @@ add('<h1><span class="glyph">\U0001F3DB️</span>Análise Primeira Infância Car
 add('<p class="sub">Extração, limpeza e visualização dos indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro — Censo, CadÚnico, DataSus/Tabnet (nascidos vivos, mortalidade, causas evitáveis, cobertura vacinal) e educação (PNAD/Censo Escolar), organizados por eixo da política municipal.</p>')
 add('<div class="meta"><span>Instituto Pereira Passos</span><span id="gen-date">—</span><span>a partir de <code>analise.py</code></span></div>')
 add('</header>')
+
+# ---- sumario (pedido do usuario, specs/ajuste_eixos) ----------------------
+# Preenchido no fim (ver "full doc" abaixo), depois que todos os h2()/h3()
+# ja rodaram e _toc esta completo -- mesmo motivo do placeholder <!--NAVBAR-->
+# em build_html_report.py.
+add('<div class="toc"><div class="toc-label">SUMÁRIO</div><ul class="toc-list"><!--SUMARIO--></ul></div>')
+
+# ---- introducao: bloco placeholder de 250 palavras (lorem ipsum) ---------
+# Nao usa a faixa 100-200 dos blocos de analise por visualizacao do HTML
+# (specs.md §7, nao existem la) -- pedido do usuario foi especificamente
+# "250 words" fixas para a introducao do relatorio como um todo.
+add(h2('Introdução'))
+add(p(_lorem("introducao-relatorio-pdf", 250)))
 
 add(p('Para acesso aos dados brutos via Drive: <a href="https://drive.google.com/drive/folders/1xOwf72QfaDuJAHuA-Vngl6t5_kzSfGYX?usp=sharing">pasta compartilhada</a>.<br>OBS: acesso restrito, solicitar a leonardo.aucar@prefeitura.rio'))
 
@@ -520,7 +581,23 @@ MESES = {"January": "janeiro", "February": "fevereiro", "March": "março", "Apri
 for en, pt in MESES.items():
     gen_date = gen_date.replace(en, pt)
 
+# ---- sumario: agrupa cada h3 sob o h2 mais recente que o precede em _toc,
+# mesma logica de build_html_report.py (mantida em sincronia manualmente).
+_sumario_grupos = []
+for _level, _title, _sid in _toc:
+    if _level == 2:
+        _sumario_grupos.append([(_title, _sid), []])
+    elif _level == 3 and _sumario_grupos:
+        _sumario_grupos[-1][1].append((_title, _sid))
+sumario_html = "".join(
+    f'<li><a href="#{sid}">{_esc(re.sub(r"<[^>]+>", "", title))}</a>'
+    + ("<ul>" + "".join(f'<li><a href="#{csid}">{_esc(re.sub(r"<[^>]+>", "", ctitle))}</a></li>' for ctitle, csid in filhos) + "</ul>" if filhos else "")
+    + '</li>'
+    for (title, sid), filhos in _sumario_grupos
+)
+
 body = "\n".join(parts).replace('<span id="gen-date">—</span>', f'<span id="gen-date">Atualizado {gen_date}</span>')
+body = body.replace('<!--SUMARIO-->', sumario_html)
 body += "\n" + footer
 
 CSS = r"""
@@ -547,6 +624,14 @@ CSS = r"""
   header.doc-head h1 .glyph{font-size:.82em; flex:none;}
   header.doc-head .sub{color:var(--ink-2); font-size:1.02rem; max-width:64ch; margin:0 0 18px;}
   header.doc-head .meta{display:flex; flex-wrap:wrap; gap:6px 16px; font-family:var(--font-mono); font-size:.76rem; color:var(--ink-3); padding-bottom:24px; border-bottom:1px solid var(--hairline);}
+  .toc{background:var(--surface); border:1px solid var(--hairline); border-radius:4px; box-shadow:var(--shadow); padding:16px 20px 14px; margin:20px 0 8px;}
+  .toc-label{font-family:var(--font-body); font-weight:600; font-size:.72rem; color:var(--ink-3); text-transform:uppercase; letter-spacing:.07em; margin:0 0 10px;}
+  ul.toc-list{list-style:none; margin:0; padding:0; columns:2; column-gap:28px;}
+  ul.toc-list > li{break-inside:avoid; margin:0 0 8px;}
+  ul.toc-list > li > a{font-weight:600; color:var(--ink); text-decoration:none; font-size:.86rem;}
+  ul.toc-list ul{list-style:none; margin:4px 0 0; padding:0 0 0 12px; border-left:1px solid var(--hairline-2);}
+  ul.toc-list ul li{margin:3px 0;}
+  ul.toc-list ul a{color:var(--ink-2); text-decoration:none; font-size:.76rem;}
   h2{font-family:var(--font-display); font-weight:600; font-size:1.7rem; margin:56px 0 4px; padding-top:24px; border-top:1px solid var(--hairline); line-height:1.2;}
   h2:first-of-type{margin-top:32px;}
   h3{font-family:var(--font-display); font-weight:600; font-size:1.36rem; margin:40px 0 4px; line-height:1.2;}
@@ -595,7 +680,7 @@ CSS = r"""
     .doc > h3{ break-before:page; }
     .doc > h3:first-of-type{ break-before:auto; }
     h3,h4,h5,h6{ break-after:avoid; }
-    .out, .out-pair > .out, .map-card{ break-inside:avoid; }
+    .out, .out-pair > .out, .map-card, .toc{ break-inside:avoid; }
     .out{ box-shadow:none; }
     table.plain{ break-inside:auto; }
     table.plain tr{ break-inside:avoid; }

@@ -797,6 +797,35 @@ parts.append('</div>')
 parts.append('<div class="spectrum-bar">' + "".join(f'<span style="background:var(--c{i})"></span>' for i in range(1, 12)) + '</div>')
 parts.append('</header>')
 
+# ---- sumario + introducao (specs/ajuste_eixos, pedido do usuario) --------
+# O Sumario antigo (com ancoras h2+h3) foi removido em specification.md v6
+# em favor da navbar persistente (relatorio/specs.md linha ~175); a CSS
+# .toc/.toc-list ficou no arquivo sem uso desde entao. Reativada aqui, nao
+# reescrita -- convive com a navbar (motivos diferentes: navbar e navegacao
+# rapida sempre visivel, Sumario e a abertura formal do documento). Preenchido
+# via placeholder (mesmo padrao do <!--NAVBAR-->) porque os ids das secoes so
+# existem depois que h2()/h3() rodam mais abaixo no script.
+parts.append(
+    '<section class="doc-toc" aria-label="Sumário">'
+    '<div class="toc">'
+    '<div class="toc-label">SUMÁRIO</div>'
+    '<ul class="toc-list"><!--SUMARIO--></ul>'
+    '</div>'
+    '</section>'
+)
+# Introducao: bloco placeholder (lorem ipsum, 250 palavras fixas -- nao a
+# faixa 100-200 dos blocos de analise por visualizacao, specs.md §7; texto
+# final e' trabalho de curadoria futura, fora do escopo desta rodada) com
+# <h2> real só para herdar a tipografia/first-of-type do CSS -- não passa
+# por h2() de proposito (não deve virar seção retrátil, nem entrar na
+# navbar/Sumário listando a si mesma).
+parts.append(
+    '<section class="doc-intro" id="introducao">'
+    '<h2>Introdução</h2>'
+    f'<p class="lede">{_lorem("introducao-relatorio", 250)}</p>'
+    '</section>'
+)
+
 # ============================================================== PRIORIDADE ==
 
 h2('🎯 Prioridade (sem secundário)')
@@ -1353,8 +1382,25 @@ navbar_links = "".join(
     f'<a href="#{sid}" class="navbar-link">{title}</a>' for level, title, sid in toc if level == 2
 )
 
+# ---- sumario: mesma fonte (toc) da navbar, mas aninhado h2 > h3 (formato
+# do Sumario antigo, relatorio/specs.md) -- agrupa cada h3 sob o h2 mais
+# recente que o precede em `toc`.
+_sumario_grupos = []
+for _level, _title, _sid in toc:
+    if _level == 2:
+        _sumario_grupos.append([(_title, _sid), []])
+    elif _level == 3 and _sumario_grupos:
+        _sumario_grupos[-1][1].append((_title, _sid))
+sumario_html = "".join(
+    f'<li><a href="#{sid}">{_esc(title)}</a>'
+    + ("<ul>" + "".join(f'<li><a href="#{csid}">{_esc(ctitle)}</a></li>' for ctitle, csid in filhos) + "</ul>" if filhos else "")
+    + '</li>'
+    for (title, sid), filhos in _sumario_grupos
+)
+
 body = "\n".join(parts).replace('<span id="gen-date">—</span>', f'<span id="gen-date">Atualizado {gen_date}</span>')
 body = body.replace('<!--NAVBAR-->', navbar_links)
+body = body.replace('<!--SUMARIO-->', sumario_html)
 
 CSS = r"""
 <style>
@@ -1443,6 +1489,9 @@ CSS = r"""
   ul.toc-list ul li{margin:4px 0;}
   ul.toc-list ul a{color:var(--ink-2); text-decoration:none; font-size:.82rem;}
   ul.toc-list ul a:hover{color:var(--accent); text-decoration:underline;}
+  .doc-toc{margin:32px 0 0;}
+  .doc-intro{margin:0 0 8px;}
+  .doc-intro .lede{color:var(--ink-2); font-size:1.02rem; max-width:70ch; margin:8px 0 0;}
 
   h2{
     font-family:var(--font-display); font-weight:600; font-size:clamp(1.5rem,3vw,1.85rem);
