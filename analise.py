@@ -154,7 +154,7 @@ def total_e_percentual_ano(df):
     df['0 a 4 anos'] = df['Sexo feminino, 0 a 4 anos'] + df['Sexo masculino, 0 a 4 anos']
     df['Total'] = df.iloc[:,9:].sum(axis=1)
     df['Percentual 0 a 4 anos'] = (df['0 a 4 anos']/df['Total'])
-    return df[['bairro','0 a 4 anos','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']]
+    return df[['bairro','0 a 4 anos','Total','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']]
 
 def carrega_cobertura_vacinal(caminho):
     """Lê um export do EPI/SVS-Rio de cobertura vacinal por imunobiológico e ano."""
@@ -849,7 +849,7 @@ mapa_coropletico_bairros(
 # (16 regiões menores), então cada nível tem seus próprios limites (não dá pra reaproveitar os do
 # bairro); percentuais continuam em escala contínua (não fazem sentido em classes fixas aqui, com só
 # 5/16 unidades)
-niveis_planejamento = {
+""" niveis_planejamento = {
     'ap': {'nome': 'Área de Planejamento', 'bins': [25000, 50000, 75000, 100000]},
     'rp': {'nome': 'Região de Planejamento', 'bins': [12000, 18000, 24000, 30000]},
 }
@@ -874,7 +874,7 @@ for nivel, info in niveis_planejamento.items():
         cmap=_CORES_TEMA_MAPA['censo'],
         legenda_titulo='% da população',
         fonte_dados=fonte_censo,
-    )
+    ) """
 
 # %% [markdown]
 # #### Serie temporal censo
@@ -887,14 +887,28 @@ df_2000 = pd.read_csv('dados_locais\\censo\\tabela 2974_2000.csv', sep=';')
 df_2010 = pd.read_csv('dados_locais\\censo\\tabela 2974_2010.csv', sep=';')
 df_2022 = pd.read_csv('dados_locais\\censo\\tabela 2974_2022.csv', sep=';')
 
-df_serie_censo = pd.DataFrame(columns=['bairro','ano','0 a 4 anos','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos'])
-for i in [[df_2000,'2000'],[df_2010,'2010'],[df_2022,'2022']]:
-    df = total_e_percentual_ano(i[0])
-    df['ano'] = i[1]
-    df_serie_censo = pd.concat([df_serie_censo,df])
+df_serie_censo = pd.DataFrame()
 
-df_serie_censo=df_serie_censo[['ano','0 a 4 anos', 'Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']].groupby(by='ano').sum()
-df_serie_censo.to_csv('tabelas_finais//censo_0_a_4_anos_por_ano.csv')
+for df_censo_ano, ano in [[df_2000, '2000'], [df_2010, '2010'], [df_2022, '2022']]:
+    df = total_e_percentual_ano(df_censo_ano)
+    df['ano'] = ano
+    df_serie_censo = pd.concat([df_serie_censo, df], ignore_index=True)
+
+df_serie_censo = (
+    df_serie_censo
+    .groupby(by='ano')[[
+        '0 a 4 anos',
+        'Total',
+        'Sexo feminino, 0 a 4 anos',
+        'Sexo masculino, 0 a 4 anos'
+    ]]
+    .sum()
+)
+
+df_serie_censo['Percentual 0 a 4 anos'] = (
+    df_serie_censo['0 a 4 anos'] /
+    df_serie_censo['Total']
+) * 100
 
 # %%
 plt.figure(figsize=(12, 6))
@@ -904,9 +918,9 @@ sns.lineplot(data=df_serie_censo, x='ano', y='Sexo masculino, 0 a 4 anos', label
 #sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o')
 
 # Customize the plot
-plt.title('Série Temporal: Crianças 0 a 4 anos', fontsize=16)
+plt.title('Evolução da população de 0 a 4 anos — Censos 2000, 2010 e 2022', fontsize=16)
 plt.xlabel('Ano', fontsize=12)
-plt.ylabel('Valores', fontsize=10)
+plt.ylabel('Número de crianças', fontsize=10)
 plt.legend(title='Indicadores', fontsize=10)
 plt.grid(True)
 plt.tight_layout()
@@ -919,9 +933,9 @@ plt.figure(figsize=(12, 6))
 sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o', errorbar=None)
 
 # Customize the plot
-plt.title('Série Temporal: Crianças 0 a 4 anos', fontsize=16)
+plt.title('Percentual da população de 0 a 4 anos — Censos 2000, 2010 e 2022', fontsize=16)
 plt.xlabel('Ano', fontsize=12)
-plt.ylabel('Valores', fontsize=12)
+plt.ylabel('Percentual (%)', fontsize=12)
 plt.legend(title='Indicadores', fontsize=10)
 plt.grid(True)
 plt.tight_layout()
@@ -1374,92 +1388,92 @@ mapa_coropletico_bairros(
 # - A categoria `nao_informado` tem um pico isolado em 1996 (2.136 óbitos, muito acima dos demais anos) por baixa completude do preenchimento de raça/cor no início da série -> não interpretar como aumento real de óbitos.
 
 # %%
-faixas_evitaveis = {
-    '0_6': 'dados_locais//mortalidade//obitos_causas_evitaveis_0_6_dias_cor_raca_municipio_1996_2025.csv',
-    '7_27': 'dados_locais//mortalidade//obitos_causas_evitaveis_7_27_dias_cor_raca_municipio_1996_2025.csv',
-    '28_364': 'dados_locais//mortalidade//obitos_causas_evitaveis_28_364_dias_cor_raca_municipio_1996_2025.csv',
-}
+# faixas_evitaveis = {
+#     '0_6': 'dados_locais//mortalidade//obitos_causas_evitaveis_0_6_dias_cor_raca_municipio_1996_2025.csv',
+#     '7_27': 'dados_locais//mortalidade//obitos_causas_evitaveis_7_27_dias_cor_raca_municipio_1996_2025.csv',
+#     '28_364': 'dados_locais//mortalidade//obitos_causas_evitaveis_28_364_dias_cor_raca_municipio_1996_2025.csv',
+# }
 
-df_evitaveis_raca = None
-for faixa, caminho in faixas_evitaveis.items():
-    df_faixa = carrega_causas_evitaveis_raca(caminho, categoria='obitos')
-    df_evitaveis_raca = df_faixa if df_evitaveis_raca is None else pd.concat([df_evitaveis_raca, df_faixa])
+# df_evitaveis_raca = None
+# for faixa, caminho in faixas_evitaveis.items():
+#     df_faixa = carrega_causas_evitaveis_raca(caminho, categoria='obitos')
+#     df_evitaveis_raca = df_faixa if df_evitaveis_raca is None else pd.concat([df_evitaveis_raca, df_faixa])
 
-df_evitaveis_raca = df_evitaveis_raca.groupby(['raca','ano'], as_index=False)['obitos'].sum()
+# df_evitaveis_raca = df_evitaveis_raca.groupby(['raca','ano'], as_index=False)['obitos'].sum()
 
-df_evitaveis_raca_municipio = df_evitaveis_raca.pivot(index='ano', columns='raca', values='obitos')
-df_evitaveis_raca_municipio.columns = [f'obitos_evitaveis_{c}' for c in df_evitaveis_raca_municipio.columns]
-df_evitaveis_raca_municipio = df_evitaveis_raca_municipio.reset_index()
-df_evitaveis_raca_municipio['ano'] = df_evitaveis_raca_municipio['ano'].astype(int)
-df_evitaveis_raca_municipio.sort_values(by='ano', inplace=True)
-df_evitaveis_raca_municipio.head()
+# df_evitaveis_raca_municipio = df_evitaveis_raca.pivot(index='ano', columns='raca', values='obitos')
+# df_evitaveis_raca_municipio.columns = [f'obitos_evitaveis_{c}' for c in df_evitaveis_raca_municipio.columns]
+# df_evitaveis_raca_municipio = df_evitaveis_raca_municipio.reset_index()
+# df_evitaveis_raca_municipio['ano'] = df_evitaveis_raca_municipio['ano'].astype(int)
+# df_evitaveis_raca_municipio.sort_values(by='ano', inplace=True)
+# df_evitaveis_raca_municipio.head()
 
-# %%
-colunas_nascidos_municipio = [f'nascidos_{raca}' for raca in racas]
-df_evitaveis_raca_municipio = df_evitaveis_raca_municipio.merge(
-    df_mortalidade_raca_municipio[['ano'] + colunas_nascidos_municipio],
-    on='ano', how='left'
-)
+# # %%
+# colunas_nascidos_municipio = [f'nascidos_{raca}' for raca in racas]
+# df_evitaveis_raca_municipio = df_evitaveis_raca_municipio.merge(
+#     df_mortalidade_raca_municipio[['ano'] + colunas_nascidos_municipio],
+#     on='ano', how='left'
+# )
 
-for raca in racas:
-    percentual = (df_evitaveis_raca_municipio[f'obitos_evitaveis_{raca}'] / df_evitaveis_raca_municipio[f'nascidos_{raca}']) * 100
-    df_evitaveis_raca_municipio[f'percentual_evitaveis_{raca}'] = percentual.replace([float('inf'), -float('inf')], float('nan')).round(2)
+# for raca in racas:
+#     percentual = (df_evitaveis_raca_municipio[f'obitos_evitaveis_{raca}'] / df_evitaveis_raca_municipio[f'nascidos_{raca}']) * 100
+#     df_evitaveis_raca_municipio[f'percentual_evitaveis_{raca}'] = percentual.replace([float('inf'), -float('inf')], float('nan')).round(2)
 
-df_evitaveis_raca_municipio.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_raca_municipio_ano.csv', index=False)
-df_evitaveis_raca_municipio.to_csv('tabelas_finais//mortalidade_causas_evitaveis_raca_municipio_ano.csv', index=False)
-df_evitaveis_raca_municipio
+# df_evitaveis_raca_municipio.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_raca_municipio_ano.csv', index=False)
+# df_evitaveis_raca_municipio.to_csv('tabelas_finais//mortalidade_causas_evitaveis_raca_municipio_ano.csv', index=False)
+# df_evitaveis_raca_municipio
 
-# %%
-rotulos_raca_evitaveis = {'Amarela':'amarela','Branca':'branca','Indígena':'indigena',
-                           'Parda':'parda','Preta':'preta','Não informada':'nao_informado'}
+# # %%
+# rotulos_raca_evitaveis = {'Amarela':'amarela','Branca':'branca','Indígena':'indigena',
+#                            'Parda':'parda','Preta':'preta','Não informada':'nao_informado'}
 
-# fonte reaproveitada por todas as séries/mapas de óbitos por causas evitáveis desta seção
-# (raça/cor, grupo/subgrupo de causa e, mais adiante, por CAP) -- mesmo sistema de origem (SIM/SVS-Rio)
+# # fonte reaproveitada por todas as séries/mapas de óbitos por causas evitáveis desta seção
+# # (raça/cor, grupo/subgrupo de causa e, mais adiante, por CAP) -- mesmo sistema de origem (SIM/SVS-Rio)
 fonte_evitaveis = 'SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro'
 
-serie_temporal_multipla(
-    df_evitaveis_raca_municipio,
-    tempo='ano',
-    colunas={rotulo: f'obitos_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis.items()},
-    titulo='Óbitos por causas evitáveis (0-364 dias) por raça/cor - Rio de Janeiro (1996-2025)',
-    nome_arquivo='obitos_causas_evitaveis_raca_ano',
-    ylabel='Óbitos', fonte_dados=fonte_evitaveis,
-)
+# serie_temporal_multipla(
+#     df_evitaveis_raca_municipio,
+#     tempo='ano',
+#     colunas={rotulo: f'obitos_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis.items()},
+#     titulo='Óbitos por causas evitáveis (0-364 dias) por raça/cor - Rio de Janeiro (1996-2025)',
+#     nome_arquivo='obitos_causas_evitaveis_raca_ano',
+#     ylabel='Óbitos', fonte_dados=fonte_evitaveis,
+# )
 
-# %% [markdown]
-# **Versão sem `Não informada` e sem 1996:** o gráfico acima mantém as 6 categorias e a série
-# completa (1996-2025) para preservar a fidelidade à fonte. Para leitura de tendência, a
-# versão abaixo remove `nao_informado` (categoria de completude, não uma raça/cor) e o ano de
-# 1996, que tem um pico isolado de 2.136 óbitos "não informado" por baixa completude do
-# preenchimento de raça/cor no início da série (nota acima) -- não é um aumento real de óbitos.
+# # %% [markdown]
+# # **Versão sem `Não informada` e sem 1996:** o gráfico acima mantém as 6 categorias e a série
+# # completa (1996-2025) para preservar a fidelidade à fonte. Para leitura de tendência, a
+# # versão abaixo remove `nao_informado` (categoria de completude, não uma raça/cor) e o ano de
+# # 1996, que tem um pico isolado de 2.136 óbitos "não informado" por baixa completude do
+# # preenchimento de raça/cor no início da série (nota acima) -- não é um aumento real de óbitos.
 
-# %%
-rotulos_raca_evitaveis_sem_nao_informado = {
-    rotulo: raca for rotulo, raca in rotulos_raca_evitaveis.items() if rotulo != 'Não informada'
-}
-df_evitaveis_raca_sem_1996 = df_evitaveis_raca_municipio[df_evitaveis_raca_municipio['ano'] > 1996]
+# # %%
+# rotulos_raca_evitaveis_sem_nao_informado = {
+#     rotulo: raca for rotulo, raca in rotulos_raca_evitaveis.items() if rotulo != 'Não informada'
+# }
+# df_evitaveis_raca_sem_1996 = df_evitaveis_raca_municipio[df_evitaveis_raca_municipio['ano'] > 1996]
 
-serie_temporal_multipla(
-    df_evitaveis_raca_sem_1996,
-    tempo='ano',
-    colunas={rotulo: f'obitos_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis_sem_nao_informado.items()},
-    titulo='Óbitos por causas evitáveis (0-364 dias) por raça/cor, sem "não informada" - Rio de Janeiro (1997-2025)',
-    nome_arquivo='obitos_causas_evitaveis_raca_sem_nao_informado_ano',
-    ylabel='Óbitos', fonte_dados=fonte_evitaveis,
-)
+# serie_temporal_multipla(
+#     df_evitaveis_raca_sem_1996,
+#     tempo='ano',
+#     colunas={rotulo: f'obitos_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis_sem_nao_informado.items()},
+#     titulo='Óbitos por causas evitáveis (0-364 dias) por raça/cor, sem "não informada" - Rio de Janeiro (1997-2025)',
+#     nome_arquivo='obitos_causas_evitaveis_raca_sem_nao_informado_ano',
+#     ylabel='Óbitos', fonte_dados=fonte_evitaveis,
+# )
 
-# %%
-# percentual só existe a partir de 2011 (início da série de nascidos vivos por raça/cor da mãe)
-df_percentual_evitaveis_municipio = df_evitaveis_raca_municipio[df_evitaveis_raca_municipio['ano'] >= 2011]
+# # %%
+# # percentual só existe a partir de 2011 (início da série de nascidos vivos por raça/cor da mãe)
+# df_percentual_evitaveis_municipio = df_evitaveis_raca_municipio[df_evitaveis_raca_municipio['ano'] >= 2011]
 
-serie_temporal_multipla(
-    df_percentual_evitaveis_municipio,
-    tempo='ano',
-    colunas={rotulo: f'percentual_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis.items()},
-    titulo='Percentual de óbitos evitáveis (0-364 dias) em relação aos nascidos vivos por raça/cor - Rio de Janeiro (2011-2025)',
-    nome_arquivo='percentual_mortalidade_causas_evitaveis_raca_ano',
-    ylabel='Percentual (%)', fonte_dados=fonte_evitaveis,
-)
+# serie_temporal_multipla(
+#     df_percentual_evitaveis_municipio,
+#     tempo='ano',
+#     colunas={rotulo: f'percentual_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis.items()},
+#     titulo='Percentual de óbitos evitáveis (0-364 dias) em relação aos nascidos vivos por raça/cor - Rio de Janeiro (2011-2025)',
+#     nome_arquivo='percentual_mortalidade_causas_evitaveis_raca_ano',
+#     ylabel='Percentual (%)', fonte_dados=fonte_evitaveis,
+# )
 
 # %% [markdown]
 # **Versão sem `Não informada`:** já não inclui 1996 (a série só começa em 2011).
@@ -1871,29 +1885,29 @@ serie_temporal_multipla(
 # para `1-4 anos` em geral.
 
 # %%
-_SLUG_SUBGRUPO_EVITAVEL = {
-    '1.1. Reduzível pelas ações de imunização':   'imunizacao',
-    '1.2.1. Red por at à mulher na gestação':     'gestacao',
-    '1.2.2. Red por at à mulher no parto':        'parto',
-    '1.2.3. Red por at ao recém-nascido':         'recem_nascido',
-    '1.3. Red por ações de diag e trat adequado': 'diagnostico_tratamento',
-    '1.4. Red por ações promoção vinc a atenção': 'promocao_vinculacao',
-}
+# _SLUG_SUBGRUPO_EVITAVEL = {
+#     '1.1. Reduzível pelas ações de imunização':   'imunizacao',
+#     '1.2.1. Red por at à mulher na gestação':     'gestacao',
+#     '1.2.2. Red por at à mulher no parto':        'parto',
+#     '1.2.3. Red por at ao recém-nascido':         'recem_nascido',
+#     '1.3. Red por ações de diag e trat adequado': 'diagnostico_tratamento',
+#     '1.4. Red por ações promoção vinc a atenção': 'promocao_vinculacao',
+# }
 
-for subgrupo, slug in _SLUG_SUBGRUPO_EVITAVEL.items():
-    for sufixo, info in faixas_primeira_infancia.items():
-        df_serie_subgrupo_cap = df_evitaveis_cap_faixa[
-            (df_evitaveis_cap_faixa['subgrupo'] == subgrupo) & (df_evitaveis_cap_faixa['faixa_etaria'] == info['rotulo'])
-        ].pivot(index='ano', columns='cod_ap_sms', values='obitos').reset_index()
+# for subgrupo, slug in _SLUG_SUBGRUPO_EVITAVEL.items():
+#     for sufixo, info in faixas_primeira_infancia.items():
+#         df_serie_subgrupo_cap = df_evitaveis_cap_faixa[
+#             (df_evitaveis_cap_faixa['subgrupo'] == subgrupo) & (df_evitaveis_cap_faixa['faixa_etaria'] == info['rotulo'])
+#         ].pivot(index='ano', columns='cod_ap_sms', values='obitos').reset_index()
 
-        serie_temporal_multipla(
-            df_serie_subgrupo_cap,
-            tempo='ano',
-            colunas={c: c for c in df_serie_subgrupo_cap.columns if c != 'ano'},
-            titulo=f'Óbitos evitáveis - {subgrupo.split(". ",1)[1]}, {info["rotulo"]}, por CAP (2006-2025)',
-            nome_arquivo=f'obitos_evitaveis_{slug}_cap_{sufixo}_ano',
-            ylabel='Óbitos', legend_title='CAP', figsize=(14,7), fonte_dados=fonte_evitaveis,
-        )
+#         serie_temporal_multipla(
+#             df_serie_subgrupo_cap,
+#             tempo='ano',
+#             colunas={c: c for c in df_serie_subgrupo_cap.columns if c != 'ano'},
+#             titulo=f'Óbitos evitáveis - {subgrupo.split(". ",1)[1]}, {info["rotulo"]}, por CAP (2006-2025)',
+#             nome_arquivo=f'obitos_evitaveis_{slug}_cap_{sufixo}_ano',
+#             ylabel='Óbitos', legend_title='CAP', figsize=(14,7), fonte_dados=fonte_evitaveis,
+#         )
 
 # %% [markdown]
 # ###### 🗺️ Mapas por CAP (2025)
@@ -1935,10 +1949,10 @@ for sufixo, info in faixas_primeira_infancia.items():
     )
     mapa_coropletico_bairros(
         df_faixa_2025, coluna_valor='percentual_evitaveis', nivel='cap',
-        titulo=f'Percentual de óbitos evitáveis, {info["rotulo"]}, por CAP - Rio de Janeiro (2025)',
+        titulo=f'Proporção de óbitos evitáveis entre os óbitos, {info["rotulo"]}, por CAP - Rio de Janeiro (2025)',
         nome_arquivo=f'mapa_percentual_evitaveis_{sufixo}_cap_2025',
         cmap=_CORES_TEMA_MAPA['mortalidade'],
-        legenda_titulo='% evitáveis',
+        legenda_titulo='% dos óbitos',
         caminho_geojson=_CAMINHO_GEO_CAP,
         fonte_dados=fonte_evitaveis,
     )
@@ -1951,31 +1965,31 @@ for sufixo, info in faixas_primeira_infancia.items():
 # causas ligadas a gestação/parto se concentram).
 
 # %%
-subgrupos_componente_c = {
-    'gestacao': '1.2.1. Red por at à mulher na gestação',
-    'parto':    '1.2.2. Red por at à mulher no parto',
-}
-bins_subgrupo_componente_c = {
-    'gestacao': [10, 20, 30, 40],
-    'parto':    [2, 4, 6, 8],
-}
+# subgrupos_componente_c = {
+#     'gestacao': '1.2.1. Red por at à mulher na gestação',
+#     'parto':    '1.2.2. Red por at à mulher no parto',
+# }
+# bins_subgrupo_componente_c = {
+#     'gestacao': [10, 20, 30, 40],
+#     'parto':    [2, 4, 6, 8],
+# }
 
-for slug, subgrupo in subgrupos_componente_c.items():
-    df_subgrupo_2025 = df_evitaveis_cap_faixa[
-        (df_evitaveis_cap_faixa['ano'] == 2025)
-        & (df_evitaveis_cap_faixa['faixa_etaria'] == 'menores de 1 ano')
-        & (df_evitaveis_cap_faixa['subgrupo'] == subgrupo)
-    ]
-    df_subgrupo_2025.to_csv(f'tabelas_finais//tabela_mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025.csv', index=False)
+# for slug, subgrupo in subgrupos_componente_c.items():
+#     df_subgrupo_2025 = df_evitaveis_cap_faixa[
+#         (df_evitaveis_cap_faixa['ano'] == 2025)
+#         & (df_evitaveis_cap_faixa['faixa_etaria'] == 'menores de 1 ano')
+#         & (df_evitaveis_cap_faixa['subgrupo'] == subgrupo)
+#     ]
+#     df_subgrupo_2025.to_csv(f'tabelas_finais//tabela_mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025.csv', index=False)
 
-    mapa_coropletico_bairros(
-        df_subgrupo_2025, coluna_valor='obitos', nivel='cap',
-        titulo=f'Óbitos evitáveis - {subgrupo.split(". ",1)[1]}, menores de 1 ano, por CAP (2025)',
-        nome_arquivo=f'mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025',
-        cmap=_CORES_TEMA_MAPA['mortalidade'],
-        bins=bins_subgrupo_componente_c[slug],
-        legenda_titulo='Óbitos', caminho_geojson=_CAMINHO_GEO_CAP, fonte_dados=fonte_evitaveis,
-    )
+#     mapa_coropletico_bairros(
+#         df_subgrupo_2025, coluna_valor='obitos', nivel='cap',
+#         titulo=f'Óbitos evitáveis - {subgrupo.split(". ",1)[1]}, menores de 1 ano, por CAP (2025)',
+#         nome_arquivo=f'mapa_obitos_evitaveis_{slug}_menores_1_ano_cap_2025',
+#         cmap=_CORES_TEMA_MAPA['mortalidade'],
+#         bins=bins_subgrupo_componente_c[slug],
+#         legenda_titulo='Óbitos', caminho_geojson=_CAMINHO_GEO_CAP, fonte_dados=fonte_evitaveis,
+#     )
 
 # %% [markdown]
 # ###### Séries temporais — gestação e parto, menores de 1 ano, por CAP
@@ -1984,20 +1998,20 @@ for slug, subgrupo in subgrupos_componente_c.items():
 # subconjunto da matriz completa da seção "Por subgrupo e CAP" acima, não um cálculo novo.
 
 # %%
-for slug in ('gestacao', 'parto'):
-    df_serie_componente_c = df_evitaveis_cap_faixa[
-        (df_evitaveis_cap_faixa['subgrupo'] == subgrupos_componente_c[slug])
-        & (df_evitaveis_cap_faixa['faixa_etaria'] == 'menores de 1 ano')
-    ].pivot(index='ano', columns='cod_ap_sms', values='obitos').reset_index()
+# for slug in ('gestacao', 'parto'):
+#     df_serie_componente_c = df_evitaveis_cap_faixa[
+#         (df_evitaveis_cap_faixa['subgrupo'] == subgrupos_componente_c[slug])
+#         & (df_evitaveis_cap_faixa['faixa_etaria'] == 'menores de 1 ano')
+#     ].pivot(index='ano', columns='cod_ap_sms', values='obitos').reset_index()
 
-    serie_temporal_multipla(
-        df_serie_componente_c,
-        tempo='ano',
-        colunas={c: c for c in df_serie_componente_c.columns if c != 'ano'},
-        titulo=f'Óbitos evitáveis - {subgrupos_componente_c[slug].split(". ",1)[1]}, menores de 1 ano, por CAP (2006-2025)',
-        nome_arquivo=f'obitos_evitaveis_{slug}_cap_menores_1_ano_ano',
-        ylabel='Óbitos', legend_title='CAP', figsize=(14,7), fonte_dados=fonte_evitaveis,
-    )
+#     serie_temporal_multipla(
+#         df_serie_componente_c,
+#         tempo='ano',
+#         colunas={c: c for c in df_serie_componente_c.columns if c != 'ano'},
+#         titulo=f'Óbitos evitáveis - {subgrupos_componente_c[slug].split(". ",1)[1]}, menores de 1 ano, por CAP (2006-2025)',
+#         nome_arquivo=f'obitos_evitaveis_{slug}_cap_menores_1_ano_ano',
+#         ylabel='Óbitos', legend_title='CAP', figsize=(14,7), fonte_dados=fonte_evitaveis,
+#     )
 
 # %% [markdown]
 # #### 📋 Óbitos gravidez e puerpério
@@ -2033,12 +2047,12 @@ serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durant
 df_obitos_gravidez_mapa = df_obitos_gravidez[df_obitos_gravidez['ano'].astype(str) == '2025'].dropna(subset=['codigo']).copy()
 df_obitos_gravidez_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_gravidez_2025.csv', index=False)
 
-mapa_coropletico_bairros(
-    df_obitos_gravidez_mapa, coluna_valor='óbitos-gravidez', titulo='Óbitos durante a gravidez por bairro (2025)',
-    nome_arquivo='mapa_obitos_gravidez_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    bins=[0, 1], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
-)
+# mapa_coropletico_bairros(
+#     df_obitos_gravidez_mapa, coluna_valor='óbitos-gravidez', titulo='Óbitos durante a gravidez por bairro (2025)',
+#     nome_arquivo='mapa_obitos_gravidez_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     bins=[0, 1], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+# )
 
 # %%
 df_obitos_puerperio = pd.read_csv('dados_locais\\mortalidade\\obitos_puerperio_bairro_2006_2025.csv')
@@ -2067,15 +2081,16 @@ serie_temporal(df_obitos_puerperio_anual,'ano','óbitos-puerpério','Óbitos dur
 df_obitos_puerperio_mapa = df_obitos_puerperio[df_obitos_puerperio['ano'].astype(str) == '2025'].dropna(subset=['codigo']).copy()
 df_obitos_puerperio_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_puerperio_2025.csv', index=False)
 
-mapa_coropletico_bairros(
-    df_obitos_puerperio_mapa, coluna_valor='óbitos-puerpério', titulo='Óbitos durante o puerpério por bairro (2025)',
-    nome_arquivo='mapa_obitos_puerperio_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    bins=[0, 1, 2], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
-)
+# mapa_coropletico_bairros(
+#     df_obitos_puerperio_mapa, coluna_valor='óbitos-puerpério', titulo='Óbitos durante o puerpério por bairro (2025)',
+#     nome_arquivo='mapa_obitos_puerperio_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     bins=[0, 1, 2], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+# )
 
 # %% [markdown]
 # #### 🩺 Mortalidade Neonatal
+
 
 # %% [markdown]
 # Óbitos de menores de 1 ano por faixa etária (precoce, tardia, pós-neonatal e total 0-364 dias), com taxa por 1.000 nascidos vivos.
@@ -2153,12 +2168,12 @@ serie_temporal(df_neonatal_tardia_anual,'ano','taxa_obitos_tardios','Taxa de ób
 df_neonatal_tardia_mapa = df_neonatal_tardia[df_neonatal_tardia['ano'].astype(str) == '2025'].dropna(subset=['codigo']).copy()
 df_neonatal_tardia_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_neonatal_tardia_2025.csv', index=False)
 
-mapa_coropletico_bairros(
-    df_neonatal_tardia_mapa, coluna_valor='obitos_tardios', titulo='Óbitos tardios (7-27 dias) por bairro (2025)',
-    nome_arquivo='mapa_obitos_neonatal_tardia_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
-)
+# mapa_coropletico_bairros(
+#     df_neonatal_tardia_mapa, coluna_valor='obitos_tardios', titulo='Óbitos tardios (7-27 dias) por bairro (2025)',
+#     nome_arquivo='mapa_obitos_neonatal_tardia_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+# )
 mapa_coropletico_bairros(
     df_neonatal_tardia_mapa, coluna_valor='taxa_obitos_tardios', titulo='Taxa de óbitos tardios (7-27 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_obitos_tardios_bairro_2025', chave='codigo',
@@ -2224,12 +2239,12 @@ serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonata
 df_mortalidade_infantil_mapa = df_mortalidade_infantil[df_mortalidade_infantil['ano'].astype(str) == '2025'].copy()
 df_mortalidade_infantil_mapa.to_csv('tabelas_finais//tabela_mapa_mortalidade_infantil_2025.csv', index=False)
 
-mapa_coropletico_bairros(
-    df_mortalidade_infantil_mapa, coluna_valor='obitos_28_364', titulo='Óbitos pós-neonatais (28-364 dias) por bairro (2025)',
-    nome_arquivo='mapa_obitos_pos_neonatal_bairro_2025', chave='codigo',
-    cmap=_CORES_TEMA_MAPA['mortalidade'],
-    bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
-)
+# mapa_coropletico_bairros(
+#     df_mortalidade_infantil_mapa, coluna_valor='obitos_28_364', titulo='Óbitos pós-neonatais (28-364 dias) por bairro (2025)',
+#     nome_arquivo='mapa_obitos_pos_neonatal_bairro_2025', chave='codigo',
+#     cmap=_CORES_TEMA_MAPA['mortalidade'],
+#     bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+# )
 mapa_coropletico_bairros(
     df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_pos_neonatal', titulo='Taxa de mortalidade pós-neonatal (28-364 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_mortalidade_pos_neonatal_bairro_2025', chave='codigo',
@@ -2278,7 +2293,7 @@ df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo
 df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
 df_desnutricao.to_csv('tabelas_finais\\sisvan_desnutricao_por_ano.csv')
-serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual Crianças 0-6 com baixo peso',
+serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual de crianças de 0 a 6 anos com baixo peso - SISVAN',
                nome_arquivo='sisvan_desnutricao_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %%
@@ -2290,11 +2305,11 @@ df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].appl
 df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
 df_sobrepeso.to_csv('tabelas_finais\\sisvan_sobrepeso_por_ano.csv')
-serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual Crianças 0-6 com sobrepeso i.e. PESO ACIMA + OBESIDADE',
+serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual de crianças de 0 a 6 anos com sobrepeso e obesidade - SISVAN',
                nome_arquivo='sisvan_sobrepeso_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %%
-serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual Crianças 0-6 com obesidade',
+serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual de crianças de 0 a 6 anos com obesidade - SISVAN',
                nome_arquivo='sisvan_obesidade_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %% [markdown]
@@ -2316,20 +2331,20 @@ df_cobertura_vacinal_wide.to_csv('tabelas_finais//cobertura_vacinal_epi_por_ano.
 df_cobertura_vacinal_wide.head()
 
 # %%
-colunas_vacinas = {c: c for c in df_cobertura_vacinal_wide.columns if c != 'ano'}
-serie_temporal_multipla(
-    df_cobertura_vacinal_wide,
-    tempo='ano',
-    colunas=colunas_vacinas,
-    titulo='Cobertura vacinal por imunobiológico - Rio de Janeiro (2016-2026)',
-    nome_arquivo='cobertura_vacinal_epi_ano',
-    ylabel='Cobertura (%)',
-    legend_title='Imunobiológico',
-    figsize=(14,7), fonte_dados=fonte_cobertura_vacinal,
-)
+# colunas_vacinas = {c: c for c in df_cobertura_vacinal_wide.columns if c != 'ano'}
+# serie_temporal_multipla(
+#     df_cobertura_vacinal_wide,
+#     tempo='ano',
+#     colunas=colunas_vacinas,
+#     titulo='Cobertura vacinal por imunobiológico - Rio de Janeiro (2016-2026)',
+#     nome_arquivo='cobertura_vacinal_epi_ano',
+#     ylabel='Cobertura (%)',
+#     legend_title='Imunobiológico',
+#     figsize=(14,7), fonte_dados=fonte_cobertura_vacinal,
+# )
 
 # %% [markdown]
-# Comparativo direto entre quatro anos (2016, 2019, 2022 e 2025) por imunobiológico, para visualizar o impacto da pandemia (queda em 2022) e a recuperação até 2025.
+# Comparativo da cobertura vacinal por imunobiológico nos anos de 2016, 2019, 2022 e 2025.
 
 # %%
 anos_comparacao = [2016, 2019, 2022, 2025]
