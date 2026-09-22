@@ -94,17 +94,39 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   **GitHub Pages** (copiado para `_site/index.html`, nome exigido na raiz
   do site pelo Pages).
 
-## Exportação em PDF
+## Exportação em PDF/DOCX
 
 - Pipeline separada (mesma pasta de skill, script diferente:
-  `build_notebook_report.py`) monta um HTML espelhando `analise.py` seção a
-  seção com os **PNGs reais do matplotlib** (não o motor SVG do relatório
-  interativo) e renderiza para PDF via **Chrome headless**
-  (`--headless=new` + `--user-data-dir` isolado, obrigatório — ver
-  `.claude/skills/export_pdf_report/SKILL.md` para o incidente que motivou
-  essa regra).
+  `build_notebook_report.py`) monta um HTML espelhando `analise.py` (por
+  eixo da política municipal, `specs/ajuste_eixos/`) com os **PNGs reais do
+  matplotlib** (não o motor SVG do relatório interativo) e renderiza para
+  PDF via **Chrome headless** (`--headless=new` + `--user-data-dir`
+  isolado, obrigatório — ver `.claude/skills/export_pdf_report/SKILL.md`
+  para o incidente que motivou essa regra). Chrome não está garantido no
+  ambiente de desenvolvimento — **Edge** (mesmo motor Chromium, mesmas
+  flags) é o fallback documentado no `SKILL.md`. O `file://` da URL de
+  entrada precisa da forma com letra de unidade do Windows
+  (`file:///C:/...`) — a forma POSIX do Git Bash (`/c/...`) gera um PDF
+  quase vazio sem erro nenhum (achado registrado no `SKILL.md`).
 - Verificação do PDF gerado usa **pypdf** (contagem de páginas) e **PyMuPDF**
   (`fitz`, rasterizar páginas de amostra para inspeção visual).
+- **DOCX de curadoria** (`specs/ajuste_eixos/` Bloco 5): `python-docx`
+  (`requirements.txt`) gera `relatorio/curadoria_textos.docx` — 1 heading
+  por eixo/subseção, imagens reais redimensionadas (Pillow, JPEG em
+  memória — nunca embute o PNG original de `mapas/`, ~6MB cada), 1
+  parágrafo de texto de análise por visualização/mapa, cada um com um
+  bookmark OOXML (`w:bookmarkStart`/`w:bookmarkEnd`, via `docx.oxml` —
+  `python-docx` não tem API de alto nível pra isso) nomeado por um ID
+  estável (nome de arquivo sem extensão). Sumário do DOCX usa um **campo
+  `TOC` nativo do Word** (não uma lista estática) — o usuário atualiza
+  clicando "Atualizar campo"/F9 conforme edita o documento.
+- **Sincronização de texto curado** (`specs/ajuste_eixos/` Bloco 7,
+  `sincroniza_docx.py`): texto editado à mão no DOCX vira a fonte de
+  `relatorio/textos_curados.json` (`{seed: texto}`, seed = mesmo nome de
+  arquivo), lido por `build_html_report.py`/`build_notebook_report.py` via
+  um pequeno helper (`_texto_analise(seed)`) antes de cair no lorem ipsum
+  determinístico — por isso os seeds de texto do HTML/PDF foram alinhados
+  a nomes de arquivo reais (não ao rótulo legível da opção) nessa rodada.
 
 ## O que foi tentado e descartado (não reintroduzir sem motivo novo)
 
@@ -116,3 +138,12 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   formatação de número customizada aos rótulos.
 - Relatório em 3 variações estáticas (`index`/`lighter`/`white_index.html`)
   — consolidado num único `index.html` com tema automático.
+- Reordenar fisicamente as células de `analise.py` por eixo da política
+  municipal (`specs/ajuste_eixos/plan.md` §9.1) — mantida a ordem técnica
+  de construção do dado; só a apresentação (HTML/PDF/DOCX) é reorganizada.
+- Reescrever `build_html_report.py`/`build_notebook_report.py` como
+  renderizadores genéricos guiados por `specs/estrutura_eixos.md`
+  (`parse_estrutura_eixos()` de verdade, não só os seeds de texto) — maior
+  risco/custo do que o ganho, decisão do usuário registrada em
+  `specs/ajuste_eixos/specs.md` §9.3; os dois continuam Python hardcoded,
+  reorganizados fisicamente à mão quando o `.md` muda de agrupamento.
