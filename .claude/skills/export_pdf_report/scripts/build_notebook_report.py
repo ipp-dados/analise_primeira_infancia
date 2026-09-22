@@ -29,11 +29,13 @@ import base64
 import datetime
 import html
 import io
+import json
 import math
 import os
 import random
 import re
 import sys
+from pathlib import Path
 
 import pandas as pd
 from PIL import Image
@@ -169,10 +171,36 @@ _LOREM_WORDS = (
     "aliquet nibh praesent tristique senectus netus fames turpis egestas"
 ).split()
 
-def _lorem(seed, palavras):
+def _lorem(seed, palavras=None):
     rng = random.Random(seed)
+    if palavras is None:
+        palavras = random.Random(f"{seed}-palavras").randint(100, 200)
     corpo = " ".join(rng.choice(_LOREM_WORDS) for _ in range(palavras))
     return corpo[:1].upper() + corpo[1:] + "."
+
+# ---- textos curados: cada bloco de analise por grafico/mapa passa pelo
+# helper abaixo em vez de chamar _lorem diretamente, para que um futuro
+# script de sincronizacao (specs/ajuste_eixos/plan.md Bloco 7) possa injetar
+# texto editado a mao (originado no DOCX de curadoria, relatorio/
+# curadoria_textos.docx) sem precisar tocar este gerador de novo -- este
+# gerador so LE relatorio/textos_curados.json, nunca escreve nele.
+_CAMINHO_TEXTOS_CURADOS = "relatorio/textos_curados.json"
+
+def _carrega_textos_curados():
+    """{seed: texto} de edições humanas já sincronizadas de volta do DOCX de
+    curadoria -- arquivo pode não existir ainda (nenhuma curadoria feita),
+    nesse caso {} e tudo cai no lorem ipsum determinístico. Escrito por um
+    script futuro de sincronização (specs/ajuste_eixos/plan.md Bloco 7), não
+    por este gerador -- este gerador só LÊ."""
+    p = Path(_CAMINHO_TEXTOS_CURADOS)
+    if not p.exists():
+        return {}
+    return json.loads(p.read_text(encoding="utf-8"))
+
+_TEXTOS_CURADOS = _carrega_textos_curados()
+
+def _texto_analise(seed, palavras=None):
+    return _TEXTOS_CURADOS.get(seed) or _lorem(seed, palavras)
 
 def pending(titulo, nota):
     """Placeholder for a catalog indicator not yet implemented in analise.py
@@ -246,14 +274,17 @@ add('<div class="out">' + table_html(top10, pct_cols=["Percentual 0 a 4"], renam
 add(h4('Serie temporal censo'))
 add(p('Evolução da população de 0 a 4 anos entre os Censos 2000, 2010 e 2022 (Tabela 2974/IBGE), agregada para o município.'))
 add(chart_block("censo_0_a_4_serie_total_ano.png", "censo_0_a_4_anos_por_ano.csv"))
+add(p(_texto_analise("censo_0_a_4_serie_total_ano")))
 df_censo_serie = read("censo_0_a_4_anos_por_ano.csv")
 add(registra_tabela("População de 0 a 4 anos, por ano (Censo)", table_html(df_censo_serie[["ano", "0 a 4 anos", "Sexo feminino, 0 a 4 anos", "Sexo masculino, 0 a 4 anos"]], rename={"ano": "Ano"})))
 add(chart_block("censo_0_a_4_serie_percentual_ano.png", "censo_0_a_4_anos_por_ano.csv"))
+add(p(_texto_analise("censo_0_a_4_serie_percentual_ano")))
 add(registra_tabela("Percentual da população de 0 a 4 anos, por ano (Censo)", table_html(df_censo_serie[["ano", "Percentual 0 a 4 anos"]], pct_cols=["Percentual 0 a 4 anos"], rename={"ano": "Ano"})))
 
 add(h3('\U0001F3E5 Nascidos Vivos'))
 add(p('Nascidos vivos totais por bairro (2006-2025).'))
 add(chart_block("nascidos_vivos_por_ano.png", "nascidos_vivos_por_ano.csv"))
+add(p(_texto_analise("nascidos_vivos_por_ano")))
 add(registra_tabela("Nascidos vivos por ano", table_html(read("nascidos_vivos_por_ano.csv")[["ano", "nascidos vivos"]], rename={"ano": "Ano"})))
 
 add(h3('\U0001F4C9 Mortalidade'))
@@ -271,9 +302,11 @@ add(notes_list([
 ]))
 df_raca = read("mortalidade_raca_municipio_ano.csv")
 add(chart_block("obitos_raca_ano.png", "mortalidade_raca_municipio_ano.csv"))
+add(p(_texto_analise("obitos_raca_ano")))
 obitos_cols = [f"obitos_{r}" for r in RACA_LABEL]
 add(registra_tabela("Óbitos até 1 ano por raça/cor, por ano", table_html(df_raca[["ano"] + obitos_cols], rename={"ano": "Ano", **{f"obitos_{r}": lbl for r, lbl in RACA_LABEL.items()}})))
 add(chart_block("percentual_mortalidade_raca_ano.png", "mortalidade_raca_municipio_ano.csv"))
+add(p(_texto_analise("percentual_mortalidade_raca_ano")))
 pct_cols = [f"percentual_{r}" for r in RACA_LABEL]
 add(registra_tabela("Percentual de óbitos até 1 ano por raça/cor, por ano", table_html(df_raca[["ano"] + pct_cols], pct_cols=pct_cols, rename={"ano": "Ano", **{f"percentual_{r}": lbl for r, lbl in RACA_LABEL.items()}})))
 
@@ -284,8 +317,10 @@ add(notes_list([
     '<code>3. Demais causas (não claramente evitáveis)</code> não tem subgrupos e por isso só aparece no gráfico de grupo.',
 ]))
 add(chart_block("obitos_causas_evitaveis_grupo_ano.png", "mortalidade_causas_evitaveis_grupo_ano.csv"))
+add(p(_texto_analise("obitos_causas_evitaveis_grupo_ano")))
 add(registra_tabela("Óbitos por causas evitáveis, por grupo de causa e ano", table_html(read("mortalidade_causas_evitaveis_grupo_ano.csv"), rename={"ano": "Ano"})))
 add(chart_block("obitos_causas_evitaveis_subgrupo_ano.png", "mortalidade_causas_evitaveis_subgrupo_ano.csv"))
+add(p(_texto_analise("obitos_causas_evitaveis_subgrupo_ano")))
 add(registra_tabela("Óbitos por causas evitáveis, por subgrupo de causa e ano", table_html(read("mortalidade_causas_evitaveis_subgrupo_ano.csv"), rename={"ano": "Ano"}, clean_headers=True)))
 
 add(h4('Óbitos por causas evitáveis, por grupo de causa e faixa etária'))
@@ -294,13 +329,16 @@ add(p('Mesma classificação de grupo/subgrupo da seção anterior, mas sem soma
 for faixa_id, faixa_titulo in [("0_6", "Precoce (0 a 6 dias)"), ("7_27", "Tardia (7 a 27 dias)"), ("28_364", "Pós-neonatal (28 a 364 dias)")]:
     add(h5(faixa_titulo))
     add(chart_block(f"obitos_causas_evitaveis_grupo_{faixa_id}_ano.png", f"mortalidade_causas_evitaveis_grupo_{faixa_id}_ano.csv"))
+    add(p(_texto_analise(f"obitos_causas_evitaveis_grupo_{faixa_id}_ano")))
     add(registra_tabela(f"Óbitos por causas evitáveis, por grupo — {faixa_titulo}", table_html(read(f"mortalidade_causas_evitaveis_grupo_{faixa_id}_ano.csv"), rename={"ano": "Ano"})))
     add(chart_block(f"obitos_causas_evitaveis_subgrupo_{faixa_id}_ano.png", f"mortalidade_causas_evitaveis_subgrupo_{faixa_id}_ano.csv"))
+    add(p(_texto_analise(f"obitos_causas_evitaveis_subgrupo_{faixa_id}_ano")))
     add(registra_tabela(f"Óbitos por causas evitáveis, por subgrupo — {faixa_titulo}", table_html(read(f"mortalidade_causas_evitaveis_subgrupo_{faixa_id}_ano.csv"), rename={"ano": "Ano"}, clean_headers=True)))
 
 add(h5('Comparação entre faixas etárias (2025)'))
 add(p('Gráfico de barras comparando os subgrupos de causas evitáveis entre as três faixas etárias, no último ano disponível (2025).'))
 add(chart_block("obitos_causas_evitaveis_subgrupo_faixa_2025.png", "mortalidade_causas_evitaveis_subgrupo_faixa_2025.csv"))
+add(p(_texto_analise("obitos_causas_evitaveis_subgrupo_faixa_2025")))
 df_faixa2025 = read("mortalidade_causas_evitaveis_subgrupo_faixa_2025.csv")
 df_faixa2025_wide = df_faixa2025.pivot(index="subgrupo", columns="faixa_etaria", values="obitos").reset_index()
 ordem_faixa = [c for c in ["0-6 dias", "7-27 dias", "28-364 dias"] if c in df_faixa2025_wide.columns]
@@ -327,6 +365,7 @@ for sufixo, faixa_full, faixa_lbl in _FAIXAS_CAP:
     add(h6(faixa_lbl))
     fname = "obitos_evitaveis_menores_5_subgrupo_ano.png" if sufixo == "menores_5_anos" else f"obitos_evitaveis_{sufixo}_subgrupo_ano.png"
     add(chart_block(fname, "mortalidade_evitaveis_cap_faixa_ano.csv"))
+    add(p(_texto_analise(Path(fname).stem)))
     sub = df_cap_faixa[df_cap_faixa["faixa_etaria"] == faixa_full].groupby(["subgrupo", "ano"], as_index=False)["obitos"].sum()
     wide = sub.pivot(index="ano", columns="subgrupo", values="obitos").reset_index()
     add(registra_tabela(f"Óbitos evitáveis por subgrupo, panorama municipal — {faixa_lbl}", table_html(wide, rename={"ano": "Ano"}, clean_headers=True)))
@@ -336,23 +375,30 @@ for sufixo, faixa_full, faixa_lbl in _FAIXAS_CAP:
     add(p(faixa_lbl))
     if sufixo == "menores_5_anos":
         add(chart_block("obitos_evitaveis_cap_menores_5_anos_ano.png", "mortalidade_evitaveis_grupo_cap_faixa_ano.csv"))
+        add(p(_texto_analise("obitos_evitaveis_cap_menores_5_anos_ano")))
     else:
         add(chart_block(f"obitos_evitaveis_cap_{sufixo}_ano.png", "mortalidade_evitaveis_grupo_cap_faixa_ano.csv"))
+        add(p(_texto_analise(f"obitos_evitaveis_cap_{sufixo}_ano")))
     add(registra_tabela(f"Óbitos evitáveis (grupo), por CAP — {faixa_lbl}", cap_pivot_table(df_grupo_cap_faixa, "1. Causas evitáveis", faixa_full)))
     add(chart_block(f"percentual_evitaveis_cap_{sufixo}_ano.png", "mortalidade_evitaveis_grupo_cap_faixa_ano.csv"))
+    add(p(_texto_analise(f"percentual_evitaveis_cap_{sufixo}_ano")))
     add(registra_tabela(f"% de óbitos evitáveis, por CAP — {faixa_lbl}", cap_pivot_table(df_grupo_cap_faixa, "percentual_evitaveis", faixa_full, fmt_pct=True)))
 add(chart_block("obitos_evitaveis_total_cap_ano.png", "mortalidade_evitaveis_grupo_cap_faixa_ano.csv"))
+add(p(_texto_analise("obitos_evitaveis_total_cap_ano")))
 add(registra_tabela("Óbitos evitáveis totais, por CAP (menores de 5 anos)", cap_pivot_table(df_grupo_cap_faixa, "total", "menores de 5 anos")))
 
 add(h5('Panorama municipal (< 5 anos) e taxa'))
 add(chart_block("taxa_mortalidade_evitaveis_menores_5_ano.png", "taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv"))
+add(p(_texto_analise("taxa_mortalidade_evitaveis_menores_5_ano")))
 add(registra_tabela("Taxa de mortalidade por causas evitáveis, menores de 5 anos", table_html(read("taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv"), dec_cols={"taxa_por_mil": 1}, rename={"ano": "Ano", "obitos": "Óbitos", "nascidos_vivos": "Nascidos vivos", "taxa_por_mil": "Taxa (‰)"})))
 
 add(h4('\U0001F4CB Óbitos gravidez e puerpério'))
 add(p('Óbitos maternos durante a gravidez e o puerpério, por bairro de residência (2006-2025).'))
 add(chart_block("obitos_gravidez_por_ano.png", "obitos_gravidez_por_ano.csv"))
+add(p(_texto_analise("obitos_gravidez_por_ano")))
 add(registra_tabela("Óbitos durante a gravidez, por ano", table_html(read("obitos_gravidez_por_ano.csv"), rename={"ano": "Ano"})))
 add(chart_block("obitos_puerperio_por_ano.png", "obitos_puerperio_por_ano.csv"))
+add(p(_texto_analise("obitos_puerperio_por_ano")))
 add(registra_tabela("Óbitos durante o puerpério, por ano", table_html(read("obitos_puerperio_por_ano.csv"), rename={"ano": "Ano"})))
 
 add(h4('\U0001FA7A Mortalidade Neonatal'))
@@ -361,20 +407,24 @@ add(note('<b>Nota:</b> Precoce e Tardia comparam com os nascidos vivos por <i>in
 
 add(h5('Precoce (0 a 6 dias)'))
 add(chart_block("taxa_mortalidade_precoce_ano.png", "mortalidade_neonatal_precoce_por_ano.csv"))
+add(p(_texto_analise("taxa_mortalidade_precoce_ano")))
 add(registra_tabela("Mortalidade neonatal precoce (0 a 6 dias), por ano", table_html(read("mortalidade_neonatal_precoce_por_ano.csv"), dec_cols={"taxa_mortalidade_precoce": 1}, rename={"ano": "Ano", "obitos precoces": "Óbitos precoces", "nascidos vivos": "Nascidos vivos", "taxa_mortalidade_precoce": "Taxa (‰)"})))
 
 add(h5('Tardia (7 a 27 dias)'))
 add(chart_block("taxa_obitos_tardios_ano.png", "mortalidade_neonatal_tardia_por_ano.csv"))
+add(p(_texto_analise("taxa_obitos_tardios_ano")))
 add(registra_tabela("Mortalidade neonatal tardia (7 a 27 dias), por ano", table_html(read("mortalidade_neonatal_tardia_por_ano.csv"), dec_cols={"taxa_obitos_tardios": 1}, rename={"ano": "Ano", "obitos_tardios": "Óbitos tardios", "nascidos vivos": "Nascidos vivos", "taxa_obitos_tardios": "Taxa (‰)"})))
 
 add(h5('Pós-neonatal (28 a 364 dias)'))
 add(p('Não há arquivo pronto para 28-364 dias (total, sem raça): é derivado por subtração <code>0-364 - 0-6 - 7-27</code>, numa grade completa bairro x ano.'))
 df_infantil = read("mortalidade_infantil_pos_neonatal_total_por_ano.csv")
 add(chart_block("taxa_mortalidade_pos_neonatal_ano.png", "mortalidade_infantil_pos_neonatal_total_por_ano.csv"))
+add(p(_texto_analise("taxa_mortalidade_pos_neonatal_ano")))
 add(registra_tabela("Mortalidade pós-neonatal (28 a 364 dias), por ano", table_html(df_infantil[["ano", "obitos_28_364", "nascidos_vivos", "taxa_mortalidade_pos_neonatal"]], dec_cols={"taxa_mortalidade_pos_neonatal": 1}, rename={"ano": "Ano", "obitos_28_364": "Óbitos 28-364d", "nascidos_vivos": "Nascidos vivos", "taxa_mortalidade_pos_neonatal": "Taxa (‰)"})))
 
 add(h5('Total (0 a 364 dias)'))
 add(chart_block("taxa_mortalidade_infantil_ano.png", "mortalidade_infantil_pos_neonatal_total_por_ano.csv"))
+add(p(_texto_analise("taxa_mortalidade_infantil_ano")))
 add(registra_tabela("Mortalidade total (0 a 364 dias), por ano", table_html(df_infantil[["ano", "obitos_0_364", "nascidos_vivos", "taxa_mortalidade_infantil"]], dec_cols={"taxa_mortalidade_infantil": 1}, rename={"ano": "Ano", "obitos_0_364": "Óbitos 0-364d", "nascidos_vivos": "Nascidos vivos", "taxa_mortalidade_infantil": "Taxa (‰)"})))
 
 add(h3('\U0001F5FA️ Mapas'))
@@ -420,6 +470,7 @@ def emit_map_gallery(groups):
         add('<div class="map-gallery">')
         for fn, caption in imgs:
             add(map_card(fn, caption))
+            add(p(_texto_analise(Path(fn).stem)))
         add('</div>')
 
 emit_map_gallery(MAP_GROUPS_PRIORIDADE)
@@ -432,14 +483,20 @@ add(h2('\U0001F91D Inclusão'))
 add(h3('População 0-6 por idade/raça/sexo (IBGE SIDRA, 2022)'))
 add(p('Complementa o Censo por bairro do eixo Prioridade com o detalhe por idade simples (0 a 6 anos) e por raça/sexo, direto das tabelas do IBGE SIDRA (Censo 2022, tabela 9606). Só existe no nível município.'))
 add(chart_block("censo_sidra_populacao_0_6_raca_2022.png", "censo_sidra_populacao_0_6_raca_2022.csv"))
+add(p(_texto_analise("censo_sidra_populacao_0_6_raca_2022")))
 add(chart_block("censo_sidra_populacao_0_6_sexo_2022.png", "censo_sidra_populacao_0_6_sexo_2022.csv"))
+add(p(_texto_analise("censo_sidra_populacao_0_6_sexo_2022")))
 
 add(h3('Frequência escolar 0-6 anos (IBGE SIDRA, Censo 2022)'))
 add(p('Comparativo mais recente e granular (idade simples, por raça/sexo) que a série PNAD do eixo Família e Cuidados — o Censo é enumeração completa de um único ano (2022), a PNAD Contínua é amostral com série histórica. Não são diretamente comparáveis ano a ano.'))
 add(chart_block("sidra_frequencia_escola_0_5_raca_2022.png", "sidra_frequencia_escola_0_5_raca_2022.csv"))
+add(p(_texto_analise("sidra_frequencia_escola_0_5_raca_2022")))
 add(chart_block("sidra_frequencia_escola_0_5_sexo_2022.png", "sidra_frequencia_escola_0_5_sexo_2022.csv"))
+add(p(_texto_analise("sidra_frequencia_escola_0_5_sexo_2022")))
 add(chart_block("sidra_taxa_frequencia_0_6_raca_2022.png", "sidra_taxa_frequencia_0_6_raca_2022.csv"))
+add(p(_texto_analise("sidra_taxa_frequencia_0_6_raca_2022")))
 add(chart_block("sidra_taxa_frequencia_0_6_sexo_2022.png", "sidra_taxa_frequencia_0_6_sexo_2022.csv"))
+add(p(_texto_analise("sidra_taxa_frequencia_0_6_sexo_2022")))
 
 add(h3('\U0001F5C2️ CadÚnico'))
 add(pending("Famílias no CadÚnico com crianças até 6 anos, por sexo", "Fazer recorte — Léo"))
@@ -463,6 +520,12 @@ add('<div class="out-pair">')
 add(chart_block("cadunico_familias_por_faixa_renda.png", "cadunico_por_faixa_etaria_2026.csv"))
 add(chart_block("cadunico_criancas_por_faixa_renda.png", "cadunico_por_faixa_etaria_2026.csv"))
 add('</div>')
+# Par compartilha uma unica tabela no apendice (registra_tabela chamado uma
+# vez abaixo) -- por isso tambem compartilha UM bloco de texto, com seed
+# combinado dos dois stems (specs/ajuste_eixos/specs.md §7). Caso
+# PDF-only: nao existe um bookmark equivalente no DOCX de curadoria (que
+# ainda trata os dois arquivos separadamente), so este texto combinado.
+add(p(_texto_analise("cadunico_familias_por_faixa_renda_cadunico_criancas_por_faixa_renda")))
 add(registra_tabela("CadÚnico por faixa de renda", table_html(read("cadunico_por_faixa_etaria_2026.csv"), rename={"faixa de renda": "Faixa de renda"})))
 
 add(h4('Análise por idade'))
@@ -470,6 +533,8 @@ add('<div class="out-pair">')
 add(chart_block("cadunico_familias_por_idade.png", "cadunico_por_idade_2026.csv"))
 add(chart_block("cadunico_criancas_por_idade.png", "cadunico_por_idade_2026.csv"))
 add('</div>')
+# Mesmo caso do par acima: um bloco de texto compartilhado, PDF-only.
+add(p(_texto_analise("cadunico_familias_por_idade_cadunico_criancas_por_idade")))
 df_idade = read("cadunico_por_idade_2026.csv")
 df_idade["idade"] = df_idade["idade"].astype(int)
 add(registra_tabela("CadÚnico por idade", table_html(df_idade, rename={"idade": "Idade"})))
@@ -486,6 +551,7 @@ add(table_html(df_vac, pct_cols=vac_cols, rename={"ano": "Ano"}))
 
 add(p('Comparativo direto entre quatro anos (2016, 2019, 2022 e 2025) por imunobiológico, para visualizar o impacto da pandemia (queda em 2022) e a recuperação até 2025.'))
 add(chart_block("cobertura_vacinal_epi_comparativo_anos.png", "cobertura_vacinal_epi_comparativo_anos.csv"))
+add(p(_texto_analise("cobertura_vacinal_epi_comparativo_anos")))
 df_vac_comp = read("cobertura_vacinal_epi_comparativo_anos.csv")
 df_vac_comp_wide = df_vac_comp.pivot(index="ano", columns="imunobiologico", values="cobertura").reset_index()
 vac_comp_cols = [c for c in df_vac_comp_wide.columns if c != "ano"]
@@ -495,11 +561,13 @@ add(h3('\U0001F393 PNAD Contínua e INEP'))
 add(h4('Taxa de frequência escolar'))
 df_freq = read("frequencia_escolar_pnad_por_idade.csv")
 add(chart_block("pnad_frequencia_escolar_por_idade.png", "frequencia_escolar_pnad_por_idade.csv"))
+add(p(_texto_analise("pnad_frequencia_escolar_por_idade")))
 df_freq["Total"] = df_freq["Total"] * 100  # source column is a 0-1 fraction, not already 0-100
 add(registra_tabela("Taxa de frequência escolar (PNAD Contínua), por idade", table_html(df_freq, pct_cols=["Total"], dec_cols={"Total": 1}, rename={"Total": "% frequência"})))
 
 add(h4('Número de matrículas 0 a 6 anos <span style="opacity:.6">(complementar 2021-2025)</span>'))
 add(chart_block("matriculas_0_a_6_por_ano.png", "matriculas_0_a_6_por_ano.csv"))
+add(p(_texto_analise("matriculas_0_a_6_por_ano")))
 add(registra_tabela("Matrículas na educação básica, 0 a 6 anos, por ano", table_html(read("matriculas_0_a_6_por_ano.csv")[["ano", "matriculas"]], rename={"ano": "Ano", "matriculas": "Matrículas"})))
 add('<div class="pending-block pending-inline"><p><b>\U0001F6A7 Dado desatualizado.</b> até 2020, necessário tratar microdados posteriores.</p></div>')
 
@@ -532,16 +600,20 @@ add(h2('\U0001F37D️ Alimentação'))
 add(h3('\U0001F3E5 Nascidos abaixo peso'))
 add(p('Nascidos vivos com baixo peso (&lt;2.500g) por bairro, como percentual dos nascidos vivos totais.'))
 add(chart_block("nascidos_abaixo_peso_percentual_por_ano.png", "nascidos_abaixo_peso_por_ano.csv"))
+add(p(_texto_analise("nascidos_abaixo_peso_percentual_por_ano")))
 df_bp = read("nascidos_abaixo_peso_por_ano.csv")[["ano", "nascidos abaixo peso", "percentual abaixo do peso"]]
 add(registra_tabela("Nascidos abaixo do peso, por ano", table_html(df_bp, pct_cols=["percentual abaixo do peso"], rename={"ano": "Ano", "percentual abaixo do peso": "% abaixo do peso"})))
 
 add(h3('\U0001F957 DataSus - SISVAN'))
 add(p('Percentual de crianças 0-6 anos com sobrepeso/obesidade e desnutrição, agregado por ano (fonte: SISVAN).'))
 add(chart_block("sisvan_desnutricao_percentual_por_ano.png", "sisvan_desnutricao_por_ano.csv"))
+add(p(_texto_analise("sisvan_desnutricao_percentual_por_ano")))
 add(registra_tabela("Desnutrição SISVAN, por ano", table_html(read("sisvan_desnutricao_por_ano.csv")[["ano", "Percent. baixo peso total"]], pct_cols=["Percent. baixo peso total"], rename={"ano": "Ano"})))
 add(chart_block("sisvan_sobrepeso_percentual_por_ano.png", "sisvan_sobrepeso_por_ano.csv"))
+add(p(_texto_analise("sisvan_sobrepeso_percentual_por_ano")))
 add(registra_tabela("Sobrepeso SISVAN, por ano", table_html(read("sisvan_sobrepeso_por_ano.csv")[["ano", "Percent. sobrepeso total"]], pct_cols=["Percent. sobrepeso total"], rename={"ano": "Ano"})))
 add(chart_block("sisvan_obesidade_percentual_por_ano.png", "sisvan_sobrepeso_por_ano.csv"))
+add(p(_texto_analise("sisvan_obesidade_percentual_por_ano")))
 add(registra_tabela("Obesidade SISVAN, por ano", table_html(read("sisvan_sobrepeso_por_ano.csv")[["ano", "obesidade_percentual"]], pct_cols=["obesidade_percentual"], rename={"ano": "Ano", "obesidade_percentual": "% obesidade"})))
 
 add(h3('\U0001F5FA️ Mapas'))
