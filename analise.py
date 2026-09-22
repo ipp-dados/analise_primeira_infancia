@@ -309,7 +309,7 @@ def carrega_sidra_longo(caminho, coluna_corte=None):
 # Identidade visual compartilhada por todas as funções de visualização desta seção --
 # mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver specs/visual-identity).
 
-# paleta categórica de 11 cores -- mesmos hex do motor JS de relatorio/index.html (--c1..--c11),
+# paleta categórica de 11 cores -- mesmos hex do motor JS de relatorio/relatorio.html (--c1..--c11),
 # para a mesma série ter a mesma cor no notebook, no PDF e no HTML.
 _PALETA_CATEGORICA = ['#6a95c8', '#d28060', '#66cca7', '#deb254', '#ca688d',
                        '#54de54', '#8177bb', '#cc6766', '#bc9776', '#b67c99', '#8e9ea4']

@@ -18,7 +18,7 @@ html."** Do not go back to converting `relatorio/*.html` — build the
 document from `analise.py`'s own outputs instead, as described below.
 
 **Note:** `scripts/build_html_report.py` also lives in this skill's folder
-but is a separate pipeline, for `relatorio/index.html` (the interactive
+but is a separate pipeline, for `relatorio/relatorio.html` (the interactive
 HTML report), not this PDF. As of `specs/relatorio-interativo` (v6,
 `relatorio/specs.md`) that report has its own visual identity — brutalist
 bordered cards, a pill-selector for cortes that used to repeat as separate
@@ -56,10 +56,10 @@ Run every command from the project root.
    contract, not a generic tool. Read it before trusting it blindly.
 
 2. **Extract the 5 map images.** The choropleth maps in `mapas/` are ~6MB
-   PNGs (too big to embed directly at full size); `relatorio/index.html`
+   PNGs (too big to embed directly at full size); `relatorio/relatorio.html`
    already ships them pre-resized to ~130KB WebP data URIs (see
    `relatorio/specs.md`) — reuse that instead of re-encoding. **Note (v6,
-   `specs/relatorio-interativo`):** most maps in `relatorio/index.html` are
+   `specs/relatorio-interativo`):** most maps in `relatorio/relatorio.html` are
    no longer PNG/WebP at all — `build_html_report.py` now renders them as
    inline interactive SVG (`mapa_svg()`), so `extract_maps.py`'s approach
    (pulling a `const MAPS = [...]` JS array out of the HTML) only finds the
@@ -68,7 +68,7 @@ Run every command from the project root.
    step; `extract_maps.py` may need to read straight from `mapas/*.png`
    instead of from the HTML if the JS array it expects is gone.
    ```
-   python .claude/skills/export_pdf_report/scripts/extract_maps.py relatorio/index.html <scratchpad>/maps.json
+   python .claude/skills/export_pdf_report/scripts/extract_maps.py relatorio/relatorio.html <scratchpad>/maps.json
    ```
 
 3. **Build the report HTML.** `scripts/build_notebook_report.py` is a
