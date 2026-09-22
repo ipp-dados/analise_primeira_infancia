@@ -158,16 +158,25 @@
       limitações conhecidas da sincronização DOCX.
 
 ## Bloco 9 — Geração completa e validação (ver `validation.md`)
-- [ ] **T9.1** — Notebook reexecutado do zero, 0 erros (repetição do T2.5
-      depois de qualquer ajuste dos Blocos 3-7 que tenha tocado `analise.py`
-      via o skill do Bloco 7).
-- [ ] **T9.2** — HTML, PDF e DOCX gerados na mesma rodada, a partir da mesma
-      `estrutura_eixos.md` final — conferir que os 3 batem entre si (mesmas
-      6 seções, mesma contagem de indicadores pendentes destacados).
-- [ ] **T9.3** — Todos os critérios de `validation.md` (V1-V8) conferidos.
+- [x] **T9.1** — Sem reexecução nova necessária: os únicos toques em
+      `analise.py` desde o T2.5 (Bloco 2) foram edições de TESTE do Bloco 7
+      (`sincroniza_docx.py`), todas revertidas via `git restore` +
+      `jupytext --sync` logo depois de validadas — `analise.py` commitado
+      hoje é byte-a-byte o mesmo validado no T2.5 (0 erros, reexecução
+      completa de kernel limpo). Confirmado via `git diff` vazio contra o
+      commit do Bloco 2.
+- [x] **T9.2** — HTML, PDF (fonte + render) e DOCX regenerados na mesma
+      rodada a partir do `estrutura_eixos.md` commitado: 6 eixos em todos
+      os 3 (HTML 7 `<h2>`/PDF 8 `<h2>` por causa de Introdução/Apêndice,
+      DOCX 7 `<h2 level=1>` — front-matter de cada um, não divergência de
+      eixo), 16 pending-block em HTML e PDF, 47 `<h2 level=2>` no DOCX
+      (subseções, pendentes incluídas) — tudo batendo.
+- [x] **T9.3** — Todos os critérios de `validation.md` (V1-V8) conferidos
+      nesta rodada final (ver "Resultado final" em `validation.md`).
 
 ## Bloco 10 — Fechamento
-- [ ] **T10.1** — `validation.md` fechado com o resultado final de cada
-      critério.
+- [x] **T10.1** — `validation.md` fechado com o resultado final (V1-V8
+      todos passaram; 2 descobertas de escopo registradas com decisão do
+      usuário, não reabertas).
 - [ ] **T10.2** — Merge em `staging_main` — **só após aval explícito do
       usuário**, como de costume (`specs/constitution.md` §7).

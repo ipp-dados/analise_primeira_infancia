@@ -123,5 +123,32 @@ escrito antes da implementação, junto com `plan.md`/`tasks.md`.
   descartados.
 
 ## Resultado final
-*(preencher ao concluir a implementação — não preenchido nesta rodada de
-planejamento)*
+
+Todos os critérios V1-V8 passaram. Duas descobertas mudaram o escopo
+originalmente previsto (registradas com decisão do usuário, não reabertas
+sem motivo novo — `specs.md` §9.3):
+
+1. **`build_html_report.py`/`build_notebook_report.py` não leem
+   `specs/estrutura_eixos.md` em tempo de execução** (V6) — só o DOCX
+   (`gera_docx_curadoria.py`) importa `parse_estrutura_eixos()` de
+   verdade. Uma mudança de *agrupamento* no `.md` que afete HTML/PDF
+   precisa do mesmo ajuste manual de código usado para construir os
+   Blocos 3-4, não é automática. Decisão do usuário: manter assim
+   (reescrever os dois geradores como renderizadores genéricos foi
+   avaliado e descartado por custo/risco).
+2. **Pedidos adicionais do usuário durante a implementação, fora do
+   `plan.md` original**: apêndice de tabelas no PDF (Bloco 4), Sumário +
+   Introdução nos 3 artefatos (HTML/PDF/DOCX), blocos de texto de análise
+   por gráfico/mapa no PDF (faltava, `specs.md` §7 só cobria HTML/DOCX até
+   então), e o alinhamento dos seeds de texto do HTML a nomes de arquivo
+   reais (pré-requisito descoberto para a sincronização do Bloco 7
+   funcionar de ponta a ponta). Todos implementados e validados nesta
+   rodada, registrados nos commits e em `relatorio/specs.md` v7.
+
+Estado final: 6 eixos ativos, 47 indicadores (31 implementados, 16
+pendentes com selo+razão), 18 descartados ausentes dos 3 artefatos,
+infraestrutura de curadoria (DOCX + sincronização) construída e testada de
+ponta a ponta duas vezes — mas **nenhum texto real foi curado ainda**
+(todo texto de análise continua lorem ipsum de propósito, por decisão do
+projeto). Merge em `staging_main` pendente de aval explícito do usuário
+(Bloco 10, `specs/constitution.md` §7).
