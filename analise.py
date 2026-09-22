@@ -718,7 +718,7 @@ extrai_planilha_evitaveis_cap('dados_locais/mortalidade/obitos_causas_evitaveis_
 
 # %%
 ## dados censo
-df_censo = pd.read_csv("dados_locais\\censo\\pop_censo_2022_datario.csv", encoding='Latin-1', sep=';')
+df_censo = pd.read_csv("dados_locais/censo/pop_censo_2022_datario.csv", encoding='Latin-1', sep=';')
 df_censo.head()
 
 # %%
@@ -736,7 +736,7 @@ df_censo['Percentual 0 a 4'] = (df_censo['0 a 4 anos']/df_censo['Total'])*100
 df_censo['Percentual 5 a 9'] = (df_censo['5 a 9 anos']/df_censo['Total'])*100
 
 # %%
-df_censo[['bairro','codbairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 9']].sort_values(by='0 a 4 anos',ascending=False).to_csv('tabelas_finais\\censo_por_bairro.csv')
+df_censo[['bairro','codbairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 9']].sort_values(by='0 a 4 anos',ascending=False).to_csv('tabelas_finais/censo_por_bairro.csv')
 
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
@@ -811,7 +811,7 @@ grafico_barra_agrupado(
 # dos ventos e escala gráfica. Exportado a 300 DPI, em formato largo.
 
 # %%
-df_mapa_censo = pd.read_csv('tabelas_finais\\censo_por_bairro.csv')
+df_mapa_censo = pd.read_csv('tabelas_finais/censo_por_bairro.csv')
 
 fonte_censo = 'Censo Demográfico 2022 (IBGE/Data.Rio)'
 
@@ -883,9 +883,9 @@ for nivel, info in niveis_planejamento.items():
 # Evolução da população de 0 a 4 anos entre os Censos 2000, 2010 e 2022 (Tabela 2974/IBGE), agregada para o município.
 
 # %%
-df_2000 = pd.read_csv('dados_locais\\censo\\tabela 2974_2000.csv', sep=';')
-df_2010 = pd.read_csv('dados_locais\\censo\\tabela 2974_2010.csv', sep=';')
-df_2022 = pd.read_csv('dados_locais\\censo\\tabela 2974_2022.csv', sep=';')
+df_2000 = pd.read_csv('dados_locais/censo/tabela 2974_2000.csv', sep=';')
+df_2010 = pd.read_csv('dados_locais/censo/tabela 2974_2010.csv', sep=';')
+df_2022 = pd.read_csv('dados_locais/censo/tabela 2974_2022.csv', sep=';')
 
 df_serie_censo = pd.DataFrame()
 
@@ -972,7 +972,7 @@ df_original
 df = df.rename(columns={'id_pessoa':'Crianças','id_familia':'Famílias','grupo_renda_pct':'faixa de renda'})
 
 # %%
-df_bairro = pd.read_csv('dados_locais\\lista_bairros.csv', dtype={'cep': str})
+df_bairro = pd.read_csv('dados_locais/lista_bairros.csv', dtype={'cep': str})
 df['cep'] = df['cep'].astype(str)
 
 # 2. Faz o JOIN (Merge) trazendo apenas a coluna 'bairros' baseada no 'cep'
@@ -987,7 +987,7 @@ df_renda = df.groupby(by='faixa de renda').agg({'Crianças':'count','Famílias':
 df_renda.loc['Total'] = df_renda.sum()
 custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 df_renda = df_renda.reindex(custom_order)
-df_renda.to_csv('tabelas_finais\\cadunico_por_faixa_etaria_2026.csv')
+df_renda.to_csv('tabelas_finais/cadunico_por_faixa_etaria_2026.csv')
 
 # %%
 df_renda.head(10)
@@ -1009,7 +1009,7 @@ grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Crianças',
 #quantitativos por idade
 df #fazer one hot da coluna sexo
 df_idade = df.groupby(by='idade').agg({'Crianças':'count','Famílias':'nunique'})#,'sexo_m':'sum','sexo_f':'sum'})
-df_idade.to_csv('tabelas_finais\\cadunico_por_idade_2026.csv')
+df_idade.to_csv('tabelas_finais/cadunico_por_idade_2026.csv')
 df_idade.head(10)
 
 
@@ -1030,7 +1030,7 @@ df_bairro = df.groupby(by=['bairro']).agg({'Crianças':'count','Famílias':'nuni
 df_bairro.loc['Total'] = df_bairro.sum()
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro.to_csv('tabelas_finais\\cadunico_por_bairro_2026.csv')
+df_bairro.to_csv('tabelas_finais/cadunico_por_bairro_2026.csv')
 
 # %% [markdown]
 # **Nota sobre bairros do CadÚnico sem correspondência oficial:** o CadÚnico geocodifica
@@ -1071,7 +1071,7 @@ df_bairro_ate_4 = df_ate_4.groupby(by=['bairro']).agg({'Crianças':'count','Fam�
 df_bairro_ate_4.loc['Total'] = df_bairro_ate_4.sum()
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro_ate_4.to_csv('tabelas_finais\\cadunico_por_bairro_ate_4_2026.csv')
+df_bairro_ate_4.to_csv('tabelas_finais/cadunico_por_bairro_ate_4_2026.csv')
 # mesma normalização/exclusão de nomes sem correspondência oficial que df_bairro_mapa (nota acima) --
 # sem isso, o merge 'right' abaixo já dropava essas linhas em silêncio (nenhum erro, só sumia o dado)
 df_bairro_ate_4 = df_bairro_ate_4.rename(index=_ALIAS_BAIRRO_CADUNICO).drop(index=_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA, errors='ignore')
@@ -1168,7 +1168,7 @@ df_vivos_por_ano = df_vivos.loc[:,['ano','nascidos vivos']].groupby(by='ano').su
 df_vivos_por_ano.reset_index(inplace=True)
 df_vivos_por_ano.rename({'variable':'ano','value':'nascidos vivos'},axis=1, inplace=True)
 print(df_vivos_por_ano.head(25))
-df_vivos_por_ano.to_csv('tabelas_finais\\nascidos_vivos_por_ano.csv')
+df_vivos_por_ano.to_csv('tabelas_finais/nascidos_vivos_por_ano.csv')
 
 # %%
 serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nascidos vivos por ano',
@@ -1214,7 +1214,7 @@ mapa_coropletico_bairros(
 df_baixo_ano = df_baixo_peso.loc[:,['ano','nascidos abaixo peso']].groupby(by='ano').sum()
 df_baixo_ano.reset_index(inplace=True)
 df_baixo_ano['percentual abaixo do peso'] = (df_baixo_ano['nascidos abaixo peso']/df_vivos_por_ano['nascidos vivos'])*100
-df_baixo_ano.to_csv('tabelas_finais\\nascidos_abaixo_peso_por_ano.csv')
+df_baixo_ano.to_csv('tabelas_finais/nascidos_abaixo_peso_por_ano.csv')
 df_baixo_ano.head(25)
 
 # %%
@@ -2022,7 +2022,7 @@ for sufixo, info in faixas_primeira_infancia.items():
 # Óbitos maternos durante a gravidez e o puerpério, por bairro de residência (2006-2025).
 
 # %%
-df_obitos_gravidez = pd.read_csv('dados_locais\\mortalidade\\obitos_gravidez_bairro_2006_2025.csv')
+df_obitos_gravidez = pd.read_csv('dados_locais/mortalidade/obitos_gravidez_bairro_2006_2025.csv')
 df_obitos_gravidez = limpa_dados_datasus(df_obitos_gravidez)
 df_obitos_gravidez = limpeza_tabnet_bairros(df_obitos_gravidez,categoria='óbitos-gravidez')
 df_obitos_gravidez.to_csv('tabelas_finais//obitos_gravidez_bairro_ano.csv', index=False)
@@ -2057,7 +2057,7 @@ df_obitos_gravidez_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_gravidez_2025
 # )
 
 # %%
-df_obitos_puerperio = pd.read_csv('dados_locais\\mortalidade\\obitos_puerperio_bairro_2006_2025.csv')
+df_obitos_puerperio = pd.read_csv('dados_locais/mortalidade/obitos_puerperio_bairro_2006_2025.csv')
 df_obitos_puerperio = limpa_dados_datasus(df_obitos_puerperio)
 df_obitos_puerperio = limpeza_tabnet_bairros(df_obitos_puerperio,categoria='óbitos-puerpério')
 df_obitos_puerperio.to_csv('tabelas_finais//obitos_puerperio_bairro_ano.csv', index=False)
@@ -2287,26 +2287,26 @@ mapa_coropletico_bairros(
 # %%
 fonte_sisvan = 'SISVAN/DATASUS'
 
-df_desnutricao = pd.read_csv(r"dados_locais\tratados\desnutrição.csv", index_col=0)
+df_desnutricao = pd.read_csv("dados_locais/tratados/desnutrição.csv", index_col=0)
 df_desnutricao.tail()
 
 # %%
 df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
-df_desnutricao.to_csv('tabelas_finais\\sisvan_desnutricao_por_ano.csv')
+df_desnutricao.to_csv('tabelas_finais/sisvan_desnutricao_por_ano.csv')
 serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual de crianças de 0 a 6 anos com baixo peso - SISVAN',
                nome_arquivo='sisvan_desnutricao_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %%
-df_sobrepeso = pd.read_csv(r"dados_locais\tratados\sobrepeso.csv", index_col=0)
+df_sobrepeso = pd.read_csv("dados_locais/tratados/sobrepeso.csv", index_col=0)
 df_sobrepeso.head()
 
 # %%
 df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
-df_sobrepeso.to_csv('tabelas_finais\\sisvan_sobrepeso_por_ano.csv')
+df_sobrepeso.to_csv('tabelas_finais/sisvan_sobrepeso_por_ano.csv')
 serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual de crianças de 0 a 6 anos com sobrepeso e obesidade - SISVAN',
                nome_arquivo='sisvan_sobrepeso_percentual_por_ano', fonte_dados=fonte_sisvan)
 
