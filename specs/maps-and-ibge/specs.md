@@ -133,7 +133,7 @@ Pedido do usuário: para os mapas de Componente A, além do valor absoluto, gera
 
 **⚠️ Em aberto — a dicotomia "evitável / não evitável" não existe hoje em nenhuma fonte por
 bairro do projeto.** O único arquivo com óbitos por causa evitável desagregados
-geograficamente é a planilha TabWin por **CAP** (`SPEC-mortalidade-AP`), não por bairro —
+geograficamente é a planilha TabWin por **CAP** (`specs/mortalidade-ap`), não por bairro —
 `dados_locais/mortalidade/` só tem óbitos **totais** por bairro (`obitos_0_364_dias_bairro_
 2006_2025.csv`, sem recorte de causa). Não há, portanto, como calcular "Taxa de óbitos
 evitáveis por bairro" vs. "Taxa de óbitos não evitáveis por bairro" com os dados atuais.
@@ -242,7 +242,7 @@ agregados a município somando as 10 CAPs. Nome de arquivo:
 ### 5.2 Cada subgrupo evitável, desagregado por CAP — duas variantes
 
 Este cruzamento (subgrupo × CAP) foi **explicitamente marcado fora de escopo** na spec
-anterior (`SPEC-mortalidade-AP/specification.md` §5.4). Confirmadas **duas** entregas
+anterior (`specs/mortalidade-ap/specification.md` §5.4). Confirmadas **duas** entregas
 distintas e complementares:
 
 **D.2a — Matriz completa**: os 6 subgrupos do grupo `1. Causas evitáveis` (`1.1`-`1.4`,
@@ -361,7 +361,7 @@ errada, é necessário indicar de onde viria o dado de causas evitáveis por bai
 - Cruzamento subgrupo × CAP para os 8 subgrupos completos (só os 6 "evitáveis", grupo `1.`;
   ver §5.2).
 - Taxa por mil nascidos vivos por CAP (mesma limitação já documentada em
-  `SPEC-mortalidade-AP/specification.md` §5.3 — o denominador só existe a nível município; a
+  `specs/mortalidade-ap/specification.md` §5.3 — o denominador só existe a nível município; a
   Taxa deste branch é só Componente A/bairro, ver §8).
 - Taxa de óbitos maternos (gravidez/puerpério) por bairro — denominador não é óbvio com os
   dados disponíveis (ver §2.5); mantidos só como contagem absoluta.

@@ -142,7 +142,7 @@ de Mortalidade Neonatal.
 - [ ] **T6.4** — README: linha nova na `## Update Table` (próxima versão após 0.8.0)
 - [ ] **T6.5** — Sincronizar `analise.ipynb` via jupytext
 - [ ] **T6.6** — README: citar a fonte do geojson de CAP (Data.Rio) em `## Fontes de dados`
-- [ ] **T6.7** — Mover esta pasta `SPEC-mortalidade-AP/` para o commit final ou descartá-la
+- [ ] **T6.7** — Mover esta pasta `specs/mortalidade-ap/` para o commit final ou descartá-la
       (decisão do usuário — `relatorio/specs.md` é o precedente de spec versionada)
 
 → **valida com V8**

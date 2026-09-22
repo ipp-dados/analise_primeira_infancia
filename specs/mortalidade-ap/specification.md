@@ -371,7 +371,7 @@ duas chamadas `limpa_dados_sisvan(...)` — mesmo padrão de "roda uma vez, mate
 | A | **Texto institucional da fonte** para o rodapé dos mapas (§2.2) | uso `SIM/SVS-Rio (TabWin) — óbitos de residentes no município do Rio de Janeiro` |
 | B | **Destino dos CSVs extraídos**: `dados_locais/tratados/` (proposto, mesmo destino de `limpa_dados_sisvan`) ou `dados_locais/mortalidade/` | sigo com `tratados/` |
 | C | **Nascidos vivos por CAP**: existe export do Tabnet? | sem ele, não há mapa de taxa por mil NV — só contagem absoluta e % de evitáveis (§5.3) |
-| E | `SPEC-mortalidade-AP/` entra no commit final? (precedente: `relatorio/specs.md` é versionado) | mantenho versionado |
+| E | `specs/mortalidade-ap/` entra no commit final? (precedente: `relatorio/specs.md` é versionado) | mantenho versionado |
 
 Nenhuma delas bloqueia o início da implementação — A, B e E têm padrão assumido, e C só
 adiciona 3 mapas opcionais.

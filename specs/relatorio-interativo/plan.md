@@ -13,7 +13,7 @@ header e seções expandidas.
 Tudo isto é gerado por `.claude/skills/export_pdf_report/scripts/build_html_report.py`
 — não há edição manual do HTML. O motor JS (`lineChart`/`barChart`/
 `groupedBarChart`) vive embutido como string de template dentro desse
-script (mesmo padrão herdado de `SPEC-visual-identity/plan.md` Bloco 6) —
+script (mesmo padrão herdado de `specs/visual-identity/plan.md` Bloco 6) —
 este plano estende esse mesmo arquivo, não cria um novo pipeline.
 
 ## 1. Esquema de dado — chart-card com opções nomeadas
@@ -123,7 +123,7 @@ def monta_mapa_svg_card(df, coluna_valor, nivel, tema, fonte_dados):
   shapely→SVG usa (`M x,y L x,y ... Z` por anel, sem `fill-rule`
   especial necessário pois os anéis de bairro não se sobrepõem).
 - Reaproveita a paleta sequencial por tema já definida
-  (`_CORES_TEMA_MAPA`, `SPEC-visual-identity/plan.md` §1) — não inventa
+  (`_CORES_TEMA_MAPA`, `specs/visual-identity/plan.md` §1) — não inventa
   uma nova.
 
 ## 4. Motor JS — novos controladores

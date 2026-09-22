@@ -1,4 +1,4 @@
-# Validation — SPEC-relatorio-interativo
+# Validation — specs/relatorio-interativo
 
 Critérios objetivos por bloco, escritos antes da implementação — o alvo, não
 o resultado (os critérios abaixo não foram editados após a implementação).
@@ -146,7 +146,7 @@ o resultado (os critérios abaixo não foram editados após a implementação).
 - `build_html_report.py` roda do início ao fim sem exceção.
 - Console do navegador (Chrome headless `--screenshot` ou interativo,
   conforme disponibilidade do ambiente — mesmo método de
-  `SPEC-visual-identity/tasks.md` T6.6) sem erros/warnings novos.
+  `specs/visual-identity/tasks.md` T6.6) sem erros/warnings novos.
 - Largura ~375-420px: nenhum overflow horizontal da página inteira
   (scroll horizontal do `<body>`) — comportamento do seletor de
   pills/painel lateral pode não estar polido ainda (`specification.md`

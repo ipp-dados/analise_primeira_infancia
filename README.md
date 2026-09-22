@@ -27,6 +27,10 @@
     fonte + tabela opcional, sem a prosa/notas de método do notebook (essas ficam no notebook e
     no PDF). Substitui as 3 variações antigas (`index`/`lighter`/`white_index.html`), que eram
     montadas por scripts nunca salvos.
+*   `specs/`: Constituição do projeto (`constitution.md`), stack técnica (`tech-stack.md`),
+    roadmap (`roadmap.md`) e uma subpasta por rodada de planejamento (`plan.md`,
+    `specification.md`/`specs.md`, `tasks.md`, `validation.md`) -- histórico completo de
+    decisões de design, com o *porquê* por trás de convenções do código.
 *   `notebooks/`: Notebook(s) .ipynb sincronizados com `analise.py` via Jupytext (opcional).
 *   `.env.example`: Exemplo de variáveis de ambiente necessárias (ex.: credenciais DB).
 *   `scripts/`: Utilitários e conversores auxiliares (se presentes).
@@ -73,6 +77,11 @@ O script `analise.py` realiza as seguintes operações, em ordem prática:
 </ol>
 
 ---
+
+*Nota (reorganização de 2026-09-22): as pastas `SPEC-*` citadas no changelog abaixo
+foram movidas para `specs/<nome>` (ex.: `SPEC-mortalidade-AP/` → `specs/mortalidade-ap/`).
+As entradas abaixo preservam os nomes originais como registro histórico; ver
+`specs/constitution.md` e `specs/roadmap.md` para o estado/processo atuais.*
 
 ## Recent changes in analise.py
 

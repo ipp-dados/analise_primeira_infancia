@@ -221,7 +221,7 @@ ajustes:
 - `extract_maps.py` deve ler os mapas do novo `relatorio/index.html`
   consolidado (só 1 arquivo agora, não mais `white_index.html`).
 - `build_notebook_report.py` precisa de novas entradas de seção para os ~35
-  gráficos/mapas de `SPEC-maps-and-ibge` que ainda não estão no template
+  gráficos/mapas de `specs/maps-and-ibge` que ainda não estão no template
   (ele é "uma transcrição direta das células de `analise.py`" -- precisa
   acompanhar as células novas).
 - Estilo herdado automaticamente do notebook: como o PDF usa os PNGs reais

@@ -7,7 +7,7 @@ is the first *persisted* generator: it reads tabelas_finais/*.csv (same source t
 PDF pipeline uses) and renders interactive SVG charts via a small JS engine
 (lineChart/barChart/groupedBarChart, lifted from the old lighter_index.html and
 extended with the "many-series" highlight logic used in analise.py's
-serie_temporal_multipla). Per SPEC-visual-identity decision B, this report is
+serie_temporal_multipla). Per specs/visual-identity decision B, this report is
 visualization-only: title + source + chart/map + optional data table, no prose/notes
 (those stay in the notebook and the PDF). Maps are interleaved in the same position
 they appear in analise.py (not grouped in one trailing section), and the page opens
@@ -17,7 +17,7 @@ This is a direct transcription of analise.py's chart/map call sites, in the same
 order they appear there -- if analise.py's sections, column names, exported
 filenames, or cell order change, this needs matching edits.
 
-v6 (SPEC-relatorio-interativo) rebuilt the visual identity and interaction model to
+v6 (specs/relatorio-interativo) rebuilt the visual identity and interaction model to
 match a reviewed wireframe/mockup -- brutalist bordered cards (no shadow/radius),
 retractable h2 sections, a pill-selector (`option_card`) replacing what used to be a
 wall of near-identical repeated charts, an outlier toggle (Tukey fences, applied
@@ -33,7 +33,7 @@ kept only as a fallback for any future indicator that doesn't fit one of those 4
 geometry regimes. Known tradeoff: embedding real SVG geometry per map instance (166
 bairro paths, repeated per indicator) makes the output much heavier than the old
 base64-PNG version (~20MB vs ~5MB) -- not yet optimized (e.g. sharing paths via
-<defs>/<use>), tracked in SPEC-relatorio-interativo/feature_roadmap.md.
+<defs>/<use>), tracked in specs/roadmap.md.
 
 Usage (from project root):
     python .claude/skills/export_pdf_report/scripts/build_html_report.py [out_path]
@@ -261,9 +261,9 @@ def check_maps(imgs):
     if missing:
         raise SystemExit(f"missing map PNGs: {missing}")
 
-# ------------------------------------------------ SPEC-relatorio-interativo --
+# ------------------------------------------------ specs/relatorio-interativo --
 # Outliers, option-card (pill selector), CSV download, institutional identity,
-# and the SVG choropleth pipeline -- see SPEC-relatorio-interativo/plan.md.
+# and the SVG choropleth pipeline -- see specs/relatorio-interativo/plan.md.
 
 def _esc(s):
     return str(s).replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
@@ -275,7 +275,7 @@ def _fmt_ptbr(v, dec=0):
     s = s.replace(",", "\x00").replace(".", ",").replace("\x00", ".")
     return s
 
-# ---- texto de analise: lorem ipsum, por opcao (SPEC-relatorio-interativo/plan.md §10.3) --
+# ---- texto de analise: lorem ipsum, por opcao (specs/relatorio-interativo/plan.md §10.3) --
 # Placeholder deliberado (specification.md §3.4/§3.13): marca onde o texto real
 # vai entrar depois, sem fabricar uma leitura analitica dos dados que ninguem
 # validou. Deterministico por `seed` (o label da opcao) para o texto nao mudar
@@ -427,7 +427,7 @@ LOGO_IMG = f'<img src="data:image/png;base64,{LOGO_B64}" alt="Prefeitura do Rio 
 
 # ---- SVG choropleth pipeline (Bloco 3) -------------------------------------
 # Aplicado nesta rodada ao mapa do Censo por bairro (prova de conceito real,
-# ver SPEC-relatorio-interativo/tasks.md T3.4) -- os demais ~30 mapas
+# ver specs/relatorio-interativo/tasks.md T3.4) -- os demais ~30 mapas
 # continuam como PNG (map_card acima) ate uma rodada de conversao mecanica.
 
 # altura reduzida ~20% (560->448, pedido explicito do usuario) -- checado
@@ -1481,7 +1481,7 @@ CSS = r"""
 
   ::selection{background:var(--accent); color:#fff;}
 
-  /* ============ SPEC-relatorio-interativo: identidade institucional ============ */
+  /* ============ specs/relatorio-interativo: identidade institucional ============ */
   :root{ --ipp-navy:#004a80; --ipp-cyan:#00aeef; }
 
   .topbar-accent{
@@ -1716,7 +1716,7 @@ ENGINE = r"""
   // limiar acima do qual so as series mais relevantes (top N pelo ultimo valor
   // nao-nulo) ficam coloridas/na legenda; o resto vira uma linha cinza fina,
   // agrupada numa unica entrada "Outras (N)" -- mesma regra de
-  // serie_temporal_multipla em analise.py (ver SPEC-visual-identity).
+  // serie_temporal_multipla em analise.py (ver specs/visual-identity).
   const LIMIAR_DESTAQUE = 6, N_DESTACADAS = 4;
 
   function prepararSeries(series){
@@ -1987,7 +1987,7 @@ ENGINE = r"""
     }
   }
 
-  // ================= SPEC-relatorio-interativo: controladores estaticos =================
+  // ================= specs/relatorio-interativo: controladores estaticos =================
   // (navbar, secoes retrateis, seletor de opcoes, toggle de outliers, download CSV,
   // tooltip de mapa -- tudo delegado/inicializado uma vez no DOMContentLoaded, ja que
   // esses elementos sao HTML estatico gerado em Python, nao criados por lineChart/etc.)

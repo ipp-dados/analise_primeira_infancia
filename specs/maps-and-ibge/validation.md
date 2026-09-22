@@ -67,7 +67,7 @@ funcionava" — por isso `V8` (regressão) é a seção mais pesada aqui.
 | # | checagem | aceite |
 |---|---|---|
 | V5.1 | D.1 — 2 gráficos novos existem | `obitos_evitaveis_menores_1_ano_subgrupo_ano.png`, `obitos_evitaveis_1_a_4_anos_subgrupo_ano.png`; o de `< 5 anos` já existente **não foi alterado** |
-| V5.2 | D.1 — soma das faixas | para um ano de amostra, `< 5 anos` == `< 1 ano` + `1-4 anos`, por subgrupo (mesma checagem já feita na fonte, `SPEC-mortalidade-AP` V3.1) |
+| V5.2 | D.1 — soma das faixas | para um ano de amostra, `< 5 anos` == `< 1 ano` + `1-4 anos`, por subgrupo (mesma checagem já feita na fonte, `specs/mortalidade-ap` V3.1) |
 | V5.3 | D.2a — 18 gráficos existem | 6 subgrupos × 3 faixas, nomes conforme `plan.md` §6.2 |
 | V5.4 | D.2a — amostra conferida à mão | para 2-3 combinações (subgrupo, faixa, CAP, ano), o valor no gráfico bate com o filtro manual em `df_evitaveis_cap_faixa` |
 | V5.5 | D.2a — 10 séries por gráfico | todas as 10 CAPs presentes na legenda de cada um dos 18 (mesmo com valores baixos/zerados) |
@@ -121,7 +121,7 @@ git diff staging_main -- analise.py | grep "^-" | grep -v "^---"
 | V8.5 | README | os 4 pontos de T8.1-T8.4 atualizados |
 | V8.6 | Update Table | linha nova, versão seguinte à última do README |
 | V8.7 | Notebook sincronizado | `analise.ipynb` reflete `analise.py` via `jupytext --sync` (sem diff pendente) |
-| V8.8 | `SPEC-maps-and-ibge/` | decisão do usuário sobre versionar a pasta no commit final (mesmo precedente de `SPEC-mortalidade-AP/`, que ficou versionada) |
+| V8.8 | `specs/maps-and-ibge/` | decisão do usuário sobre versionar a pasta no commit final (mesmo precedente de `specs/mortalidade-ap/`, que ficou versionada) |
 
 ---
 

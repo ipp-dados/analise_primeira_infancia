@@ -3,7 +3,7 @@ name: generate_map
 description: Generate a choropleth (coroplético) PNG map of Rio de Janeiro -- by bairro, Área de Planejamento, or Região de Planejamento -- from any bairro-level table in this project (Censo, DataSUS/Tabnet, CadÚnico, etc.), using geopandas, a drawn-style basemap (contextily), surrounding state/UF and neighboring-municipality context, a north arrow, scale bar, and a cartographic footnote (spatial reference + data source). Discrete classes for absolute counts, continuous colorbar for percentages/rates -- a fixed project convention. Use when the user asks for a map, mapa coroplético, or "mapa por bairro/AP/RP" of some indicator, or to refresh/regenerate an existing one in mapas/.
 ---
 
-**Note (v6, `SPEC-relatorio-interativo`):** this skill's PNG pipeline is still
+**Note (v6, `specs/relatorio-interativo`):** this skill's PNG pipeline is still
 the source for the notebook, the PDF export, and the geometry itself, but
 `relatorio/index.html` (the interactive HTML report) no longer embeds these
 PNGs for most indicators — `.claude/skills/export_pdf_report/scripts/build_html_report.py`

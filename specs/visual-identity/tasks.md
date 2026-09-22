@@ -1,4 +1,4 @@
-# Tasks — SPEC-visual-identity
+# Tasks — specs/visual-identity
 
 ## Bloco 0 — Decisões
 - [x] **T0.1** — Especificação e decisões A-F aprovadas pelo usuário (`specs.md` §4).
@@ -110,7 +110,7 @@
       estimativa do plan.md contava call sites, não imagens renderizadas; alguns call sites são
       loops que produzem várias imagens), agrupadas em 7 blocos temáticos.
 - [x] **T6.5** — Todas as ~73 visualizações (48 gráficos + a cobertura completa de
-      SPEC-maps-and-ibge: SIDRA, evitáveis por CAP/subgrupo, D.1/D.2, raça sem "não informada")
+      specs/maps-and-ibge: SIDRA, evitáveis por CAP/subgrupo, D.1/D.2, raça sem "não informada")
       com só título + fonte + alternância "ver tabela" — sem prosa.
 - [x] **T6.6** — Gerado e validado com Chrome headless (`--screenshot`, sem servidor/browser
       interativo disponível neste ambiente): 0 erros de console (2 rodadas, 1 bug real
@@ -128,7 +128,7 @@
 
 ## Bloco 7 — PDF
 - [x] **T7.1** — Não necessário: a execução completa do notebook no Bloco 5 já regenerou
-      todos os PNGs (74 em `visualizacoes/`, incluindo tudo que `SPEC-maps-and-ibge` adicionou)
+      todos os PNGs (74 em `visualizacoes/`, incluindo tudo que `specs/maps-and-ibge` adicionou)
       com o estilo novo — nada para `regen_missing_pngs.py` preencher.
 - [x] **T7.2** — `extract_maps.py` **descontinuado** (não atualizado): ele lia um `const MAPS =
       [...]` de um `relatorio/*.html`, mas o novo `relatorio/index.html` (Bloco 6) embute mapas
