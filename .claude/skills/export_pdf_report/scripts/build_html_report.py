@@ -64,6 +64,7 @@ import os
 import re
 import sys
 import datetime
+from pathlib import Path
 
 import pandas as pd
 from PIL import Image
@@ -320,6 +321,19 @@ def _lorem(seed, palavras=None):
     corpo = " ".join(rng.choice(_LOREM_WORDS) for _ in range(palavras))
     return corpo[:1].upper() + corpo[1:] + "."
 
+_CAMINHO_TEXTOS_CURADOS = "relatorio/textos_curados.json"
+
+def _carrega_textos_curados():
+    p = Path(_CAMINHO_TEXTOS_CURADOS)
+    if not p.exists():
+        return {}
+    return json.loads(p.read_text(encoding="utf-8"))
+
+_TEXTOS_CURADOS = _carrega_textos_curados()
+
+def _texto_analise(seed, palavras=None):
+    return _TEXTOS_CURADOS.get(seed) or _lorem(seed, palavras)
+
 def _lorem_bullets(seed, n=5, palavras=8):
     """n frases curtas (placeholder) para o bloco 'principais achados' --
     mesmo gerador deterministico do _lorem, seed derivado por indice."""
@@ -397,7 +411,7 @@ def option_card(entries, padrao='grafico'):
         parts.append(
             f'<div class="option-card option-card-{padrao} option-card-single">'
             f'<div class="opt-panes">{html}</div>'
-            f'<div class="opt-texts"><div class="opt-text"><div class="opt-text-inner">{_lorem(seed)}</div></div></div>'
+            f'<div class="opt-texts"><div class="opt-text"><div class="opt-text-inner">{_texto_analise(seed)}</div></div></div>'
             '</div>'
         )
         return
@@ -407,7 +421,7 @@ def option_card(entries, padrao='grafico'):
         build_fn()
         html = "".join(parts[start:]); del parts[start:]
         panes.append(f'<div class="opt-pane"{" hidden" if i else ""}>{html}</div>')
-        texts.append(f'<div class="opt-text"{" hidden" if i else ""}><div class="opt-text-inner">{_lorem(seed)}</div></div>')
+        texts.append(f'<div class="opt-text"{" hidden" if i else ""}><div class="opt-text-inner">{_texto_analise(seed)}</div></div>')
         active = ' data-active="true"' if i == 0 else ''
         pills.append(f'<button type="button" class="pill"{active}>{_esc(label)}</button>')
     parts.append(
@@ -417,12 +431,6 @@ def option_card(entries, padrao='grafico'):
         '<div class="opt-texts">' + "".join(texts) + '</div>'
         '</div>'
     )
-
-def viz(padrao, entries):
-    """Acucar sintatico sobre option_card: aceita (label, build_fn) e usa o
-    proprio label como seed do texto -- e o caso comum (todo call site que
-    nao precisa de um seed de texto diferente do label)."""
-    option_card([(label, build_fn, label) for label, build_fn in entries], padrao)
 
 def tabela_com_texto(build_fn, seed):
     """Padrao C (specification.md §3.13): texto a esquerda, tabela a
@@ -863,11 +871,11 @@ NIVEIS_PLANEJAMENTO = {
 }
 _entries_mapas_censo_abs = [
     ("Bairro", lambda: mapa_svg(df_censo_bairro, "codbairro", "0 a 4 anos", "censo",
-        "Crianças de 0 a 4 anos, por bairro (Censo 2022)", "Crianças 0-4", FONTE_CENSO, bins=[1000, 2500, 5000, 10000]), "Bairro · Absoluto"),
+        "Crianças de 0 a 4 anos, por bairro (Censo 2022)", "Crianças 0-4", FONTE_CENSO, bins=[1000, 2500, 5000, 10000]), "mapa_censo_0_4_absoluto"),
 ]
 _entries_mapas_censo_pct = [
     ("Bairro", lambda: mapa_svg(df_censo_bairro, "codbairro", "Percentual 0 a 4", "censo",
-        "% de crianças de 0 a 4 anos, por bairro (Censo 2022)", "% 0-4 anos", FONTE_CENSO, fmt='pct1'), "Bairro · %"),
+        "% de crianças de 0 a 4 anos, por bairro (Censo 2022)", "% 0-4 anos", FONTE_CENSO, fmt='pct1'), "mapa_censo_0_4_percentual"),
 ]
 for _nivel, _info in NIVEIS_PLANEJAMENTO.items():
     df_censo_nivel = _agrega_censo_por_nivel(df_censo_bairro, _nivel)
@@ -890,16 +898,16 @@ option_card(_entries_mapas_censo_pct, 'mapa')
 
 h3('Série temporal')
 df_censo_serie = read("censo_0_a_4_anos_por_ano.csv")
-viz('grafico', [
+option_card([
     ("Total/Feminino/Masculino", lambda: line_chart(df_censo_serie["ano"], [
         {'label': 'Total 0–4 anos', 'values': df_censo_serie['0 a 4 anos']},
         {'label': 'Feminino', 'values': df_censo_serie['Sexo feminino, 0 a 4 anos']},
         {'label': 'Masculino', 'values': df_censo_serie['Sexo masculino, 0 a 4 anos']},
-    ], opts={'height': 230, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)")),
+    ], opts={'height': 230, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)"), "censo_0_a_4_serie_total_ano"),
     ("% 0-4 anos", lambda: line_chart(df_censo_serie["ano"], [
         {'label': 'Percentual 0–4 anos', 'values': df_censo_serie['Percentual 0 a 4 anos'], 'format': 'pct1'},
-    ], opts={'height': 200, 'zeroBase': False, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)")),
-])
+    ], opts={'height': 200, 'zeroBase': False, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)"), "censo_0_a_4_serie_percentual_ano"),
+], 'grafico')
 
 FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro"
 
@@ -910,52 +918,52 @@ df_bp = read("nascidos_abaixo_peso_por_ano.csv")
 df_raca = read("mortalidade_raca_municipio_ano.csv")
 
 h3('Nascidos vivos e mortalidade por raça/cor')
-viz('grafico', [
-    ("Nascidos vivos", lambda: line_chart(df_nv["ano"], [{'label': 'Nascidos vivos', 'values': df_nv['nascidos vivos']}], opts={'height': 220, 'table': True}, fonte=FONTE_DATASUS)),
-    ("Óbitos raça · Absoluto", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS)),
-    ("Óbitos raça · %", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"percentual_{r}" for r in RACAS], {f"percentual_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
-])
+option_card([
+    ("Nascidos vivos", lambda: line_chart(df_nv["ano"], [{'label': 'Nascidos vivos', 'values': df_nv['nascidos vivos']}], opts={'height': 220, 'table': True}, fonte=FONTE_DATASUS), "nascidos_vivos_por_ano"),
+    ("Óbitos raça · Absoluto", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS), "obitos_raca_ano"),
+    ("Óbitos raça · %", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"percentual_{r}" for r in RACAS], {f"percentual_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "percentual_mortalidade_raca_ano"),
+], 'grafico')
 
 h3('Mapas')
 df_map_nv = read("tabela_mapa_nascidos_vivos_2025.csv")
 df_map_raca_2025 = read("mortalidade_raca_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
 option_card([
     ("Nascidos vivos", lambda: mapa_svg(df_map_nv, "codigo", "nascidos vivos", "natalidade",
-        "Nascidos vivos por bairro (2025)", "Nascidos vivos", FONTE_DATASUS, bins=[200, 400, 800, 1500]), "Nascidos vivos"),
+        "Nascidos vivos por bairro (2025)", "Nascidos vivos", FONTE_DATASUS, bins=[200, 400, 800, 1500]), "mapa_nascidos_vivos_bairro_2025"),
     ("Óbitos 0-364 dias", lambda: mapa_svg(df_map_raca_2025, "codigo", "obitos_total", "mortalidade",
-        "Óbitos de 0 a 364 dias por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "Óbitos 0-364 dias"),
+        "Óbitos de 0 a 364 dias por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "mapa_obitos_raca_total_bairro_2025"),
     ("Taxa mortalidade infantil", lambda: mapa_svg(df_map_raca_2025, "codigo", "percentual_total", "mortalidade",
-        "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)", "% s/ nascidos vivos", FONTE_DATASUS, fmt="pct1"), "Taxa mortalidade infantil"),
+        "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)", "% s/ nascidos vivos", FONTE_DATASUS, fmt="pct1"), "mapa_taxa_obitos_raca_total_bairro_2025"),
 ], 'mapa')
 
 h3('Gravidez e puerpério')
 df_grav = read("obitos_gravidez_por_ano.csv")
 df_puerp = read("obitos_puerperio_por_ano.csv")
-viz('grafico', [
-    ("Gravidez", lambda: line_chart(df_grav["ano"], [{'label': 'Óbitos', 'values': df_grav['óbitos-gravidez']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)),
-    ("Puerpério", lambda: line_chart(df_puerp["ano"], [{'label': 'Óbitos', 'values': df_puerp['óbitos-puerpério']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)),
-])
+option_card([
+    ("Gravidez", lambda: line_chart(df_grav["ano"], [{'label': 'Óbitos', 'values': df_grav['óbitos-gravidez']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS), "obitos_gravidez_por_ano"),
+    ("Puerpério", lambda: line_chart(df_puerp["ano"], [{'label': 'Óbitos', 'values': df_puerp['óbitos-puerpério']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS), "obitos_puerperio_por_ano"),
+], 'grafico')
 df_map_grav = read("obitos_gravidez_bairro_ano.csv")
 df_map_grav_2025 = df_map_grav[df_map_grav["ano"] == 2025]
 df_map_puerp = read("obitos_puerperio_bairro_ano.csv")
 df_map_puerp_2025 = df_map_puerp[df_map_puerp["ano"] == 2025]
 option_card([
     ("Gravidez", lambda: mapa_svg(df_map_grav_2025, "codigo", "óbitos-gravidez", "mortalidade",
-        "Óbitos durante a gravidez por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[0, 1]), "Gravidez"),
+        "Óbitos durante a gravidez por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[0, 1]), "mapa_obitos_gravidez_bairro_2025"),
     ("Puerpério", lambda: mapa_svg(df_map_puerp_2025, "codigo", "óbitos-puerpério", "mortalidade",
-        "Óbitos durante o puerpério por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[0, 1, 2]), "Puerpério"),
+        "Óbitos durante o puerpério por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[0, 1, 2]), "mapa_obitos_puerperio_bairro_2025"),
 ], 'mapa')
 
 h3('Mortalidade neonatal')
 df_prec = read("mortalidade_neonatal_precoce_por_ano.csv")
 df_tard = read("mortalidade_neonatal_tardia_por_ano.csv")
 df_inf = read("mortalidade_infantil_pos_neonatal_total_por_ano.csv")
-viz('grafico', [
-    ("Precoce (0-6 dias)", lambda: line_chart(df_prec["ano"], [{'label': 'Taxa (‰)', 'values': df_prec['taxa_mortalidade_precoce'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
-    ("Tardia (7-27 dias)", lambda: line_chart(df_tard["ano"], [{'label': 'Taxa (‰)', 'values': df_tard['taxa_obitos_tardios'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
-    ("Pós-neonatal (28-364 dias)", lambda: line_chart(df_inf["ano"], [{'label': 'Taxa pós-neonatal (‰)', 'values': df_inf['taxa_mortalidade_pos_neonatal'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
-    ("Total (0-364 dias)", lambda: line_chart(df_inf["ano"], [{'label': 'Taxa infantil total (‰)', 'values': df_inf['taxa_mortalidade_infantil'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
-])
+option_card([
+    ("Precoce (0-6 dias)", lambda: line_chart(df_prec["ano"], [{'label': 'Taxa (‰)', 'values': df_prec['taxa_mortalidade_precoce'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "taxa_mortalidade_precoce_ano"),
+    ("Tardia (7-27 dias)", lambda: line_chart(df_tard["ano"], [{'label': 'Taxa (‰)', 'values': df_tard['taxa_obitos_tardios'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "taxa_obitos_tardios_ano"),
+    ("Pós-neonatal (28-364 dias)", lambda: line_chart(df_inf["ano"], [{'label': 'Taxa pós-neonatal (‰)', 'values': df_inf['taxa_mortalidade_pos_neonatal'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "taxa_mortalidade_pos_neonatal_ano"),
+    ("Total (0-364 dias)", lambda: line_chart(df_inf["ano"], [{'label': 'Taxa infantil total (‰)', 'values': df_inf['taxa_mortalidade_infantil'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "taxa_mortalidade_infantil_ano"),
+], 'grafico')
 
 df_map_neo_prec_2025 = read("mortalidade_neonatal_precoce_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
 df_map_neo_tard_2025 = read("mortalidade_neonatal_tardia_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
@@ -965,24 +973,24 @@ df_map_pos_neo_2025 = read("mortalidade_infantil_pos_neonatal_total_bairro_ano.c
 h6('Óbitos')
 option_card([
     ("Precoce", lambda: mapa_svg(df_map_neo_prec_2025, "codigo", "obitos precoces", "mortalidade",
-        "Óbitos precoces (0-6 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 3, 6, 12]), "Precoce · Óbitos"),
+        "Óbitos precoces (0-6 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 3, 6, 12]), "mapa_obitos_neonatal_precoce_bairro_2025"),
     ("Tardia", lambda: mapa_svg(df_map_neo_tard_2025, "codigo", "obitos_tardios", "mortalidade",
-        "Óbitos tardios (7-27 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "Tardia · Óbitos"),
+        "Óbitos tardios (7-27 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "mapa_obitos_neonatal_tardia_bairro_2025"),
     ("Pós-neonatal", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_28_364", "mortalidade",
-        "Óbitos pós-neonatais (28-364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "Pós-neonatal · Óbitos"),
+        "Óbitos pós-neonatais (28-364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "mapa_obitos_pos_neonatal_bairro_2025"),
     ("Total", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_0_364", "mortalidade",
-        "Óbitos infantis (0-364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "Total · Óbitos"),
+        "Óbitos infantis (0-364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "mapa_mortalidade_infantil_bairro_2025"),
 ], 'mapa')
 h6('Taxa')
 option_card([
     ("Precoce", lambda: mapa_svg(df_map_neo_prec_2025, "codigo", "taxa_mortalidade_precoce", "mortalidade",
-        "Taxa de óbitos precoces por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Precoce · Taxa"),
+        "Taxa de óbitos precoces por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "mapa_taxa_mortalidade_precoce_bairro_2025"),
     ("Tardia", lambda: mapa_svg(df_map_neo_tard_2025, "codigo", "taxa_obitos_tardios", "mortalidade",
-        "Taxa de óbitos tardios por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Tardia · Taxa"),
+        "Taxa de óbitos tardios por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "mapa_taxa_obitos_tardios_bairro_2025"),
     ("Pós-neonatal", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_pos_neonatal", "mortalidade",
-        "Taxa de mortalidade pós-neonatal por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Pós-neonatal · Taxa"),
+        "Taxa de mortalidade pós-neonatal por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "mapa_taxa_mortalidade_pos_neonatal_bairro_2025"),
     ("Total", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_infantil", "mortalidade",
-        "Taxa de mortalidade infantil por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "Total · Taxa"),
+        "Taxa de mortalidade infantil por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "mapa_taxa_mortalidade_infantil_bairro_2025"),
 ], 'mapa')
 
 h3('Óbitos por causas evitáveis')
@@ -994,11 +1002,13 @@ for faixa_id, faixa_titulo in [("", "0-364 dias"), ("_0_6", "0-6 dias"), ("_7_27
     df_g = read(f"mortalidade_causas_evitaveis_grupo{faixa_id}_ano.csv")
     gcols = [c for c in df_g.columns if c != "ano"]
     _lg = f"{faixa_titulo} · Grupo"
-    _entries_cid10.append((_lg, lambda df=df_g, cols=gcols: line_chart(df["ano"], series_from_cols(df, cols, {c: clean_causa(c) for c in cols}), opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _lg))
+    _seed_g = f"obitos_causas_evitaveis_grupo{faixa_id}_ano"
+    _entries_cid10.append((_lg, lambda df=df_g, cols=gcols: line_chart(df["ano"], series_from_cols(df, cols, {c: clean_causa(c) for c in cols}), opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _seed_g))
     df_s = read(f"mortalidade_causas_evitaveis_subgrupo{faixa_id}_ano.csv")
     scols = [c for c in df_s.columns if c != "ano"]
     _ls = f"{faixa_titulo} · Subgrupo"
-    _entries_cid10.append((_ls, lambda df=df_s, cols=scols: line_chart(df["ano"], series_from_cols(df, cols, {c: clean_causa(c) for c in cols}), opts={'height': 280, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _ls))
+    _seed_s = f"obitos_causas_evitaveis_subgrupo{faixa_id}_ano"
+    _entries_cid10.append((_ls, lambda df=df_s, cols=scols: line_chart(df["ano"], series_from_cols(df, cols, {c: clean_causa(c) for c in cols}), opts={'height': 280, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _seed_s))
 option_card(_entries_cid10, 'grafico')
 
 h5('Comparação entre faixas etárias (2025)')
@@ -1013,13 +1023,18 @@ for sg in subgrupos_2025:
         vals.append(float(row["obitos"].iloc[0]) if len(row) else None)
     series_2025.append({'label': clean_causa(sg), 'values': vals})
 # Solo -- nao e um corte comparavel aos outros grupos desta secao (specification.md §9)
-viz('grafico', [("Comparação entre faixas etárias (2025)", lambda: grouped_bar_chart(faixas_2025, series_2025, fonte=FONTE_EVITAVEIS))])
+option_card([("Comparação entre faixas etárias (2025)", lambda: grouped_bar_chart(faixas_2025, series_2025, fonte=FONTE_EVITAVEIS), "obitos_causas_evitaveis_subgrupo_faixa_2025")], 'grafico')
 
 h4('Primeira infância, por Área Programática de Saúde (CAP)')
 df_cap_faixa = read("mortalidade_evitaveis_cap_faixa_ano.csv")
 df_grupo_cap_faixa = read("mortalidade_evitaveis_grupo_cap_faixa_ano.csv")
 
 h5('Panorama municipal, por subgrupo')
+_SEED_PANORAMA_FAIXA = {
+    'menores de 1 ano': 'obitos_evitaveis_menores_1_ano_subgrupo_ano',
+    'de 1 a 4 anos': 'obitos_evitaveis_1_a_4_anos_subgrupo_ano',
+    'menores de 5 anos': 'obitos_evitaveis_menores_5_subgrupo_ano',
+}
 _entries_panorama_cap = []
 for faixa in ['menores de 1 ano', 'de 1 a 4 anos', 'menores de 5 anos']:
     sub = df_cap_faixa[df_cap_faixa["faixa_etaria"] == faixa].groupby(["subgrupo", "ano"], as_index=False)["obitos"].sum()
@@ -1030,7 +1045,7 @@ for faixa in ['menores de 1 ano', 'de 1 a 4 anos', 'menores de 5 anos']:
         d = sub[sub["subgrupo"] == sg].set_index("ano")["obitos"]
         series.append({'label': clean_causa(sg), 'values': [d.get(a) for a in anos]})
     _lbl = faixa.capitalize()
-    _entries_panorama_cap.append((_lbl, lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _lbl))
+    _entries_panorama_cap.append((_lbl, lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _SEED_PANORAMA_FAIXA[faixa]))
 option_card(_entries_panorama_cap, 'grafico')
 
 h5('Por CAP e faixa etária')
@@ -1070,6 +1085,15 @@ h5('Grupo evitável e subgrupos (gestação/parto), por CAP')
 # abs+pct) com "Gestação e parto por CAP" (2 subgrupos) num so grupo de 5
 # pills -- eram 2 option_card separados numa rodada anterior.
 GRUPO1_COL = "1. Causas evitáveis"
+# seed: par abs+pct exibido junto (out_pair) num unico card/pill -- so ha 1
+# seed por opcao, entao aponta para o arquivo do lado absoluto (primario);
+# o lado percentual (percentual_evitaveis_cap_*_ano.png) fica sem seed
+# proprio nesta rodada (aproximacao documentada, nao ha 2o slot de seed).
+_SEED_GRUPO_CAP_FAIXA = {
+    'menores de 1 ano': 'obitos_evitaveis_cap_menores_1_ano_ano',
+    'de 1 a 4 anos': 'obitos_evitaveis_cap_1_a_4_anos_ano',
+    'menores de 5 anos': 'obitos_evitaveis_cap_menores_5_anos_ano',
+}
 _entries_grupo_cap = []
 for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 anos', 'De 1 a 4 anos'), ('menores de 5 anos', 'Menores de 5 anos')]:
     sub = df_grupo_cap_faixa[df_grupo_cap_faixa["faixa_etaria"] == faixa]
@@ -1086,7 +1110,7 @@ for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 an
             lambda: line_chart(anos, series_abs, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS, titulo="Óbitos (absoluto)"),
             lambda: line_chart(anos, series_pct, opts={'height': 240, 'maxXLabels': 6, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS, titulo="% do total evitável"),
         ),
-        faixa_lbl,
+        _SEED_GRUPO_CAP_FAIXA[faixa],
     ))
 for subgrupo_full, subgrupo_lbl in [
     ('1.2.1. Red por at à mulher na gestação', 'Gestação'),
@@ -1116,10 +1140,10 @@ for sg in sgs:
     d = df_menores5_sub[df_menores5_sub["subgrupo"] == sg].set_index("ano")["obitos"]
     series_m5.append({'label': clean_causa(sg), 'values': [d.get(a) for a in anos_m5]})
 df_taxa_m5 = read("taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv")
-viz('grafico', [
-    ("Óbitos por subgrupo", lambda: line_chart(anos_m5, series_m5, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)),
-    ("Taxa por mil NV", lambda: line_chart(df_taxa_m5["ano"], [{'label': 'Taxa por mil NV', 'values': df_taxa_m5['taxa_por_mil'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)),
-])
+option_card([
+    ("Óbitos por subgrupo", lambda: line_chart(anos_m5, series_m5, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), "obitos_evitaveis_menores_5_subgrupo_ano"),
+    ("Taxa por mil NV", lambda: line_chart(df_taxa_m5["ano"], [{'label': 'Taxa por mil NV', 'values': df_taxa_m5['taxa_por_mil'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS), "taxa_mortalidade_evitaveis_menores_5_ano"),
+], 'grafico')
 
 h5('Mapas')
 # specification.md §9: os 8 mapas por CAP viravam uma grade solta (decisao
@@ -1139,12 +1163,12 @@ for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
     _entries_mapas_cap_faixa.append((_l1, lambda df=df_faixa_2025, info=info: mapa_svg(
         df, "cod_ap_sms", "evitaveis", "mortalidade",
         f"Óbitos por causas evitáveis, {info['rotulo']}, por CAP (2025)", "Óbitos",
-        FONTE_EVITAVEIS, bins=info['bins_absoluto'], nivel="cap"), _l1))
+        FONTE_EVITAVEIS, bins=info['bins_absoluto'], nivel="cap"), f"mapa_obitos_evitaveis_{sufixo}_cap_2025"))
     _l2 = f"{info['rotulo']} · %"
     _entries_mapas_cap_faixa.append((_l2, lambda df=df_faixa_2025, info=info: mapa_svg(
         df, "cod_ap_sms", "percentual_evitaveis", "mortalidade",
         f"Percentual de óbitos evitáveis, {info['rotulo']}, por CAP (2025)", "% evitáveis",
-        FONTE_EVITAVEIS, fmt="pct1", nivel="cap"), _l2))
+        FONTE_EVITAVEIS, fmt="pct1", nivel="cap"), f"mapa_percentual_evitaveis_{sufixo}_cap_2025"))
 # mapas de gestação/parto por CAP removidos: merge-waleska-changes descontinuou a
 # curadoria desses subgrupos em analise.py (tabela_mapa_obitos_evitaveis_*_menores_1_ano_cap_2025.csv
 # não é mais gerada) -- ver specs/merge-waleska-changes/specs.md
@@ -1165,10 +1189,10 @@ df_censo_raca = _ordenar_idade(read("censo_sidra_populacao_0_6_raca_2022.csv"), 
 raca_cols = [c for c in df_censo_raca.columns if c not in ("idade", "Total")]
 df_censo_sexo = _ordenar_idade(read("censo_sidra_populacao_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
 sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
-viz('grafico', [
-    ("Por raça", lambda: grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO)),
-    ("Por sexo", lambda: grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO)),
-])
+option_card([
+    ("Por raça", lambda: grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO), "censo_sidra_populacao_0_6_raca_2022"),
+    ("Por sexo", lambda: grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO), "censo_sidra_populacao_0_6_sexo_2022"),
+], 'grafico')
 
 h3('Frequência e taxa de frequência escolar, por raça/sexo')
 FONTE_SIDRA_EDU = "Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)"
@@ -1183,12 +1207,12 @@ df_taxa_raca = _ordenar_idade(read("sidra_taxa_frequencia_0_6_raca_2022.csv"), _
 tr_cols = [c for c in df_taxa_raca.columns if c not in ("idade", "Total")]
 df_taxa_sexo = _ordenar_idade(read("sidra_taxa_frequencia_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
 ts_cols = [c for c in df_taxa_sexo.columns if c not in ("idade", "Total")]
-viz('grafico', [
-    ("Frequência 0-5, por raça", lambda: grouped_bar_chart(df_freq_raca["idade"], series_from_cols(df_freq_raca, fr_cols), fonte=FONTE_SIDRA_EDU)),
-    ("Frequência 0-5, por sexo", lambda: grouped_bar_chart(df_freq_sexo["idade"], series_from_cols(df_freq_sexo, fs_cols), fonte=FONTE_SIDRA_EDU)),
-    ("Taxa 0-6, por raça", lambda: grouped_bar_chart(df_taxa_raca["idade"], series_from_cols(df_taxa_raca, tr_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU)),
-    ("Taxa 0-6, por sexo", lambda: grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU)),
-])
+option_card([
+    ("Frequência 0-5, por raça", lambda: grouped_bar_chart(df_freq_raca["idade"], series_from_cols(df_freq_raca, fr_cols), fonte=FONTE_SIDRA_EDU), "sidra_frequencia_escola_0_5_raca_2022"),
+    ("Frequência 0-5, por sexo", lambda: grouped_bar_chart(df_freq_sexo["idade"], series_from_cols(df_freq_sexo, fs_cols), fonte=FONTE_SIDRA_EDU), "sidra_frequencia_escola_0_5_sexo_2022"),
+    ("Taxa 0-6, por raça", lambda: grouped_bar_chart(df_taxa_raca["idade"], series_from_cols(df_taxa_raca, tr_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU), "sidra_taxa_frequencia_0_6_raca_2022"),
+    ("Taxa 0-6, por sexo", lambda: grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU), "sidra_taxa_frequencia_0_6_sexo_2022"),
+], 'grafico')
 
 emite_bloco_pendente("Famílias no CadÚnico com crianças até 6 anos, por sexo", "Fazer recorte — Léo")
 emite_bloco_pendente("Famílias no CadÚnico com crianças até 6 anos, por raça/cor", "Fazer recorte — Léo")
@@ -1209,27 +1233,32 @@ df_renda = read("cadunico_por_faixa_etaria_2026.csv")
 df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"]
 df_idade = read("cadunico_por_idade_2026.csv")
 df_idade["idade_lbl"] = df_idade["idade"].astype(int).map(lambda i: f"{i} ano" if i == 1 else f"{i} anos")
-viz('grafico', [
+# seed: cada opcao mostra um out_pair (Criancas + Familias lado a lado) sob
+# 1 unico bloco de texto/pill -- so ha 1 seed por opcao, entao aponta para o
+# arquivo do lado "Criancas" (primeiro do par, aproximacao documentada); o
+# lado "Familias" (cadunico_familias_por_faixa_renda.png / _por_idade.png)
+# fica sem seed proprio nesta rodada.
+option_card([
     ("Por faixa de renda", lambda: out_pair(
         lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Crianças"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
         lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Famílias"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
-    )),
+    ), "cadunico_criancas_por_faixa_renda"),
     ("Por idade", lambda: out_pair(
         lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Crianças"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
         lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Famílias"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
-    )),
-])
+    ), "cadunico_criancas_por_idade"),
+], 'grafico')
 
 h4('Mapas')
 df_map_cadunico_criancas = read("tabela_mapa_cadunico_criancas_2026.csv")
 df_map_cadunico_0_4 = read("tabela_mapa_cadunico_primeira_infancia_2026.csv")
 option_card([
     ("Crianças 0-6", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
-        "Crianças (0-6 anos) no CadÚnico, por bairro", "Crianças", FONTE_CADUNICO, bins=[250, 750, 1500, 3000]), "Crianças 0-6"),
+        "Crianças (0-6 anos) no CadÚnico, por bairro", "Crianças", FONTE_CADUNICO, bins=[250, 750, 1500, 3000]), "mapa_cadunico_criancas_bairro_2026"),
     ("Crianças 0-4", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
-        "Crianças (0-4 anos) no CadÚnico, por bairro", "Crianças", FONTE_CADUNICO, bins=[200, 500, 1000, 2000]), "Crianças 0-4"),
+        "Crianças (0-4 anos) no CadÚnico, por bairro", "Crianças", FONTE_CADUNICO, bins=[200, 500, 1000, 2000]), "mapa_cadunico_primeira_infancia_bairro_2026"),
     ("% s/ Censo", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Percentual Primeira Inf. Cadúnico", "cadunico",
-        "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro", "% CadÚnico/Censo", FONTE_CADUNICO, fmt="pct1"), "% s/ Censo"),
+        "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro", "% CadÚnico/Censo", FONTE_CADUNICO, fmt="pct1"), "mapa_percentual_cadunico_primeira_infancia_bairro_2026"),
 ], 'mapa')
 
 h3('Cobertura vacinal (EPI)')
@@ -1239,21 +1268,21 @@ vac_cols = [c for c in df_vac.columns if c != "ano"]
 df_vac_comp = read("cobertura_vacinal_epi_comparativo_anos.csv")
 df_vac_comp_wide = df_vac_comp.pivot(index="ano", columns="imunobiologico", values="cobertura").reset_index()
 comp_cols = [c for c in df_vac_comp_wide.columns if c != "ano"]
-viz('grafico', [
-    ("Série temporal por imunobiológico", lambda: line_chart(df_vac["ano"], series_from_cols(df_vac, vac_cols, fmt='pct1'), opts={'height': 280, 'maxXLabels': 8, 'table': True}, fonte=FONTE_EPI)),
-    ("Comparativo por ano", lambda: grouped_bar_chart(df_vac_comp_wide["ano"], series_from_cols(df_vac_comp_wide, comp_cols, fmt='pct1'), opts={'height': 320}, fonte=FONTE_EPI)),
-])
+option_card([
+    ("Série temporal por imunobiológico", lambda: line_chart(df_vac["ano"], series_from_cols(df_vac, vac_cols, fmt='pct1'), opts={'height': 280, 'maxXLabels': 8, 'table': True}, fonte=FONTE_EPI), "cobertura_vacinal_epi_ano"),
+    ("Comparativo por ano", lambda: grouped_bar_chart(df_vac_comp_wide["ano"], series_from_cols(df_vac_comp_wide, comp_cols, fmt='pct1'), opts={'height': 320}, fonte=FONTE_EPI), "cobertura_vacinal_epi_comparativo_anos"),
+], 'grafico')
 
 h3('Frequência escolar por idade (PNAD Contínua)')
 df_pnad = read("frequencia_escolar_pnad_por_idade.csv")
 # PNAD e Matrículas ficam soltos -- indicadores/fontes diferentes entre si,
 # nao um corte do mesmo dado (specification.md §9, mesmo criterio ja usado
 # para nao forcar pills na "Comparação entre faixas etárias" de evitáveis)
-viz('grafico', [("Frequência por idade", lambda: bar_chart([{'label': r["Idade"], 'value': r["Total"] * 100} for _, r in df_pnad.iterrows()], fonte="PNAD Contínua (IBGE)", fmt='pct1'))])
+option_card([("Frequência por idade", lambda: bar_chart([{'label': r["Idade"], 'value': r["Total"] * 100} for _, r in df_pnad.iterrows()], fonte="PNAD Contínua (IBGE)", fmt='pct1'), "pnad_frequencia_escolar_por_idade")], 'grafico')
 
 h3('Matrículas 0 a 6 anos')
 df_mat = read("matriculas_0_a_6_por_ano.csv").sort_values("ano")
-viz('grafico', [("Matrículas 0 a 6 anos", lambda: line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}], opts={'height': 200, 'table': True}, fonte="Censo Escolar/INEP"))])
+option_card([("Matrículas 0 a 6 anos", lambda: line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}], opts={'height': 200, 'table': True}, fonte="Censo Escolar/INEP"), "matriculas_0_a_6_por_ano")], 'grafico')
 # specs/estrutura_eixos.md: indicador "status: pendente" (atualizacao de dado,
 # nao falta de recorte -- ate 2020, precisa tratar microdados posteriores) --
 # mantem o grafico real (nao e um emite_bloco_pendente) e so acrescenta o selo.
@@ -1279,28 +1308,28 @@ emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e
 h2('🍽️ Alimentação')
 
 h3('Baixo peso ao nascer')
-viz('grafico', [
-    ("% abaixo do peso", lambda: line_chart(df_bp["ano"], [{'label': '% abaixo do peso', 'values': df_bp['percentual abaixo do peso'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)),
-])
+option_card([
+    ("% abaixo do peso", lambda: line_chart(df_bp["ano"], [{'label': '% abaixo do peso', 'values': df_bp['percentual abaixo do peso'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "nascidos_abaixo_peso_percentual_por_ano"),
+], 'grafico')
 
 h3('Mapas')
 df_map_bp_2025 = read("tabela_mapa_nascidos_baixo_peso_2025.csv").pipe(lambda d: d[d["ano"] == 2025])
 option_card([
     ("Baixo peso · Absoluto", lambda: mapa_svg(df_map_bp_2025, "codigo", "nascidos abaixo peso", "natalidade",
-        "Nascidos com baixo peso por bairro (2025)", "Nascidos abaixo do peso", FONTE_DATASUS, bins=[15, 30, 60, 120]), "Baixo peso · Absoluto"),
+        "Nascidos com baixo peso por bairro (2025)", "Nascidos abaixo do peso", FONTE_DATASUS, bins=[15, 30, 60, 120]), "mapa_nascidos_baixo_peso_bairro_2025"),
     ("Baixo peso · %", lambda: mapa_svg(df_map_bp_2025, "codigo", "percentual abaixo do peso", "natalidade",
-        "% de nascidos com baixo peso por bairro (2025)", "% baixo peso", FONTE_DATASUS, fmt="pct1"), "Baixo peso · %"),
+        "% de nascidos com baixo peso por bairro (2025)", "% baixo peso", FONTE_DATASUS, fmt="pct1"), "mapa_percentual_baixo_peso_bairro_2025"),
 ], 'mapa')
 
 h3('SISVAN')
 FONTE_SISVAN = "SISVAN/DATASUS"
 df_desn = read("sisvan_desnutricao_por_ano.csv")
 df_sobre = read("sisvan_sobrepeso_por_ano.csv")
-viz('grafico', [
-    ("Baixo peso", lambda: line_chart(df_desn["ano"], [{'label': '% baixo peso', 'values': df_desn['Percent. baixo peso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)),
-    ("Sobrepeso", lambda: line_chart(df_sobre["ano"], [{'label': '% sobrepeso', 'values': df_sobre['Percent. sobrepeso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)),
-    ("Obesidade", lambda: line_chart(df_sobre["ano"], [{'label': '% obesidade', 'values': df_sobre['obesidade_percentual'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)),
-])
+option_card([
+    ("Baixo peso", lambda: line_chart(df_desn["ano"], [{'label': '% baixo peso', 'values': df_desn['Percent. baixo peso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN), "sisvan_desnutricao_percentual_por_ano"),
+    ("Sobrepeso", lambda: line_chart(df_sobre["ano"], [{'label': '% sobrepeso', 'values': df_sobre['Percent. sobrepeso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN), "sisvan_sobrepeso_percentual_por_ano"),
+    ("Obesidade", lambda: line_chart(df_sobre["ano"], [{'label': '% obesidade', 'values': df_sobre['obesidade_percentual'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN), "sisvan_obesidade_percentual_por_ano"),
+], 'grafico')
 
 # =========================================================== MORADIA ======
 
