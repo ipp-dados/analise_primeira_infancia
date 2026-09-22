@@ -16,10 +16,15 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
    removidos, `relatorio/`, `tabelas_finais/`, `mapas/`, `visualizacoes/`
    regenerados de verdade (exceto CadÚnico, sem `.env` nesta sessão) — ver
    `specs/reorganize-naming/plan.md`.
-3. **Reorganizar a estrutura do relatório** — revisar a organização de
-   `relatorio/index.html` (seções, ordem, navegação) após o volume de
-   conteúdo acumulado por `specs/maps-and-ibge` e `specs/relatorio-interativo`.
-   Ainda sem spec próprio.
+3. **Reorganizar a estrutura do relatório** — ✅ concluído:
+   `relatorio/index.html`, o PDF e um novo DOCX de curadoria de textos
+   reorganizados por eixo da política municipal de primeira infância (em
+   vez de por fonte de dado), a partir de um crosswalk único e editável à
+   mão (`specs/estrutura_eixos.md`) — ver `specs/ajuste_eixos/`. Pendências
+   remanescentes já registradas lá, não aqui: reordenação física de
+   `analise.py` foi deliberadamente descartada (§9.1); HTML/PDF não leem o
+   `.md` em tempo de execução, só o DOCX (`specs.md` §9.3) — mudança de
+   agrupamento que afete HTML/PDF exige ajuste manual de código.
 4. **`publicar_teste_pages`** — em andamento: repositório está indo a
    público e `relatorio/index.html` ganhou uma faixa fixa "EM
    DESENVOLVIMENTO / TEMPORÁRIO" para permitir publicar antes do item 3

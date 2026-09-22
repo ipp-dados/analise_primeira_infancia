@@ -146,13 +146,16 @@
       sem divergência (`returncode=0`) nos dois testes de ponta a ponta.
 
 ## Bloco 8 — Documentação (plan.md §8)
-- [ ] **T8.1** — `requirements.txt` com `python-docx`.
-- [ ] **T8.2** — `CLAUDE.md` atualizado (Bloco 2).
-- [ ] **T8.3** — `specs/roadmap.md` item 3 marcado concluído, apontando para
-      `specs/ajuste_eixos/`.
-- [ ] **T8.4** — `specs/tech-stack.md` com entrada de DOCX/`python-docx`.
-- [ ] **T8.5** — `relatorio/specs.md` com nova entrada de versão descrevendo
-      a reorganização por eixo.
+- [x] **T8.1** — `requirements.txt` com `python-docx` (Bloco 5).
+- [x] **T8.2** — `CLAUDE.md` atualizado (Bloco 2).
+- [x] **T8.3** — `specs/roadmap.md` item 3 marcado concluído, apontando para
+      `specs/ajuste_eixos/` (com a ressalva §9.1/§9.3 registrada).
+- [x] **T8.4** — `specs/tech-stack.md` com entrada de DOCX/`python-docx`
+      (seção "Exportação em PDF/DOCX") e as 2 decisões descartadas
+      (reordenar `analise.py`, renderizador genérico guiado pelo `.md`).
+- [x] **T8.5** — `relatorio/specs.md` com nova entrada de versão (v7)
+      descrevendo a reorganização por eixo, o Sumário/Introdução, e as
+      limitações conhecidas da sincronização DOCX.
 
 ## Bloco 9 — Geração completa e validação (ver `validation.md`)
 - [ ] **T9.1** — Notebook reexecutado do zero, 0 erros (repetição do T2.5

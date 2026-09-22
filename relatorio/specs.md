@@ -405,6 +405,34 @@ pra roxo
   pediu uma cor própria em vez de cinza, mantendo a regra de nunca usar
   azul (reservado ao mar/água do fundo cartográfico).
 
+### v7 — reorganização por eixo da política municipal (`specs/ajuste_eixos`)
+
+- **9 `<h2>` por fonte de dado → 6 `<h2>` por eixo da política municipal**
+  (Prioridade sem secundário, Inclusão, Família e Cuidados, Proteção,
+  Alimentação, Moradia) — fonte de verdade do agrupamento é
+  `specs/estrutura_eixos.md`, um crosswalk editável à mão entre o catálogo
+  de 65 indicadores (`dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx`)
+  e os arquivos reais já produzidos por `analise.py`. **Importante:**
+  `build_html_report.py` não lê esse `.md` em tempo de execução — foi
+  reorganizado fisicamente uma vez para bater com ele; uma mudança de
+  agrupamento no `.md` exige o mesmo ajuste manual de novo (decisão
+  registrada em `specs/ajuste_eixos/specs.md` §9.3, não um bug).
+- **16 indicadores do catálogo sem dado real ainda** (Proteção e Moradia
+  quase inteiras, mais alguns em Inclusão/Família e Cuidados) aparecem como
+  um bloco "🚧 Indicador catalogado, ainda não disponível" com a razão —
+  nunca uma seção vazia sem explicação.
+- **Sumário reativado** (componente `.toc`/`.toc-list`, removido em v6 a
+  favor da navbar — os dois convivem agora, motivos diferentes) + um bloco
+  de Introdução (250 palavras, placeholder) logo após o cabeçalho.
+- Faixa de texto de análise por visualização ajustada de 150 palavras fixas
+  para 100-200 (`specs/ajuste_eixos/specs.md` §7).
+- **Seeds do texto de análise alinhados a nomes de arquivo reais** (antes
+  eram o rótulo legível da pill) — prepara a sincronização com o novo DOCX
+  de curadoria (`relatorio/curadoria_textos.docx`,
+  `.claude/skills/export_pdf_report/scripts/sincroniza_docx.py`): texto
+  editado à mão no Word passa a aparecer aqui automaticamente na próxima
+  geração, via `relatorio/textos_curados.json`.
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
@@ -425,6 +453,15 @@ pra roxo
   `feature_roadmap.md`.
 - (v6.3) Bloco "Principais achados" existe agora, mas com texto placeholder
   (lorem ipsum) — ainda precisa de curadoria editorial real.
+- (v7) Todo texto de análise por visualização também continua lorem ipsum —
+  a infraestrutura de curadoria (DOCX + script de sincronização) existe
+  desde `specs/ajuste_eixos` Bloco 5/7, mas ninguém editou o `.docx` ainda.
+- (v7) ~24 opções de gráfico (cortes granulares que o catálogo não
+  enumera um a um, ex. combinações CAP×subgrupo) e as 2 opções CadÚnico
+  renda/idade (que compartilham 1 seed combinado no PDF) não têm um
+  bookmark individual correspondente no DOCX — texto curado para essas
+  precisa ser colocado manualmente em `relatorio/textos_curados.json`, a
+  sincronização automática não alcança.
 - (v6.6) O fundo cartográfico real é a mesma imagem compartilhada pra
   bairro/AP/RP/CAP-saúde (coincidência de bounding box — todos os 4
   recortes cobrem o mesmo contorno do município).
