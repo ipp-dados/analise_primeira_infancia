@@ -1481,14 +1481,14 @@ fonte_evitaveis = 'SIM/SVS-Rio (TabWin), óbitos de residentes no município do 
 # **Versão sem `Não informada`:** já não inclui 1996 (a série só começa em 2011).
 
 # %%
-serie_temporal_multipla(
-    df_percentual_evitaveis_municipio,
-    tempo='ano',
-    colunas={rotulo: f'percentual_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis_sem_nao_informado.items()},
-    titulo='Percentual de óbitos evitáveis (0-364 dias) por raça/cor, sem "não informada" - Rio de Janeiro (2011-2025)',
-    nome_arquivo='percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano',
-    ylabel='Percentual (%)', fonte_dados=fonte_evitaveis,
-)
+# serie_temporal_multipla(
+#     df_percentual_evitaveis_municipio,
+#     tempo='ano',
+#     colunas={rotulo: f'percentual_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis_sem_nao_informado.items()},
+#     titulo='Percentual de óbitos evitáveis (0-364 dias) por raça/cor, sem "não informada" - Rio de Janeiro (2011-2025)',
+#     nome_arquivo='percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano',
+#     ylabel='Percentual (%)', fonte_dados=fonte_evitaveis,
+# )
 
 # %% [markdown]
 # ##### Óbitos por causas evitáveis, por grupo de causa (CID-10)
