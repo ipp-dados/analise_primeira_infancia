@@ -97,6 +97,8 @@ Key conventions enforced throughout, worth checking before adding a new call sit
   Área Programática de Saúde, SMS-Rio, 10 regions) are **different**
   administrative boundaries with similarly-formatted codes — don't conflate
   them; they use different geojson files and columns.
+  `'ra'` (Região Administrativa, 33 in the bairro geojson — no RA 32; key `codra`, via `dissolve` like AP/RP,
+  no extra geojson) is a third, distinct boundary; join RA data by the numeric `codra`, never by name.
 
 ### Directory layout
 

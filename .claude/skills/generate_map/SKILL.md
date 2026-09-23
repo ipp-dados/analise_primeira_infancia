@@ -671,3 +671,9 @@ DataSUS table is loaded. `mapas/` is gitignored, so regenerating these PNGs
 never shows up as a diff to review — only `analise.py` changes (new call
 sites) and any changes to `dados_locais/geo/` or `tabelas_finais/` schemas
 (e.g. adding a `codbairro` export column, as done for Censo) are.
+
+## Nível `ra` (Região Administrativa)
+
+`nivel='ra'`, `chave='codra'` (inteiro): une os bairros por `codra` (33 RAs, não existe a 32) — mesma rota de AP/RP, sem geojson extra.
+Junte sempre pelo `codra` numérico (o IPS traz numeral romano + nome; converta com `numeral_romano_para_int`). Se o basemap padrão
+(`Ocean_Basemap`) devolver HTTP 500, use `fundo='mapa_oceano_base'`.
