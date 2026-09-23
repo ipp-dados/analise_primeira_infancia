@@ -63,9 +63,9 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 - [x] **T9.4** — HTML regenerado; o diff estrutural contra o baseline mostra só as mudanças esperadas.
 
 ## Bloco 10 — PDF e DOCX
-- [ ] **T10.1** — PDF: 3 `pending` → blocos reais; A5, D6 e notas no trecho existente.
-- [ ] **T10.2** — `regen_missing_pngs.py`: leitor renomeado.
-- [ ] **T10.3** — PDF e DOCX regenerados (skill `export_pdf_report`).
+- [x] **T10.1** — PDF: 3 `pending` → blocos reais; A5, D6 e notas no trecho existente.
+- [x] **T10.2** — `regen_missing_pngs.py`: leitor renomeado.
+- [x] **T10.3** — PDF e DOCX regenerados (skill `export_pdf_report`).
 
 ## Bloco 11 — Documentação
 - [ ] **T11.1** — `README.md`: changelog curto.
