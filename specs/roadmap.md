@@ -30,11 +30,11 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
    disparado; `relatorio/index.html` no ar com a faixa "EM DESENVOLVIMENTO /
    TEMPORÁRIO"). Novas publicações seguem manuais e só após validação
    (ver `specs/inclusao_dados_protecao` §8).
-5. **Importar dados de violência** — em planejamento:
+5. **Importar dados de violência** — ✅ concluído:
    `specs/inclusao_dados_protecao` (branch `inclusao_dados_protecao`;
-   `dados_locais/protecao/`). Catálogo de indicadores em
-   `dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx` (eixo
-   "Proteção"). Deploy no GitHub Pages só após validação.
+   `dados_locais/protecao/`). Eixo "Proteção" implementado em `analise.py`,
+   HTML, PDF e DOCX; nível geográfico `ra` incorporado. Deploy no GitHub
+   Pages segue manual, só após validação.
 6. **População por bairro, ano a ano (referência fixa)** — spec **seguinte**
    a `inclusao_dados_protecao`. Extrair a população por bairro (idealmente por
    idade simples, 0 a 6 anos) para cada ano, em vez do único ponto do Censo
@@ -48,7 +48,9 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 7. (FIX). **Corrigir `nascidos_vivos_bairro_mae`: faltam mapas e visualizações de percentual.**
   A série por bairro/mãe não gera mapas coropléticos nem gráficos em % (só contagens, se tanto).
   Diagnosticar primeiro (não sei a causa: não abri esse trecho de `analise.py`). Depois seguir
-8. **Extrair novos recortes do CadÚnico** — levantar e extrair recortes
+8. **Extrair novos recortes do CadÚnico** — em planejamento:
+   `specs/recortes_cadunico` (branch `spec/recortes_cadunico`), 1ª leva =
+   sexo, raça/cor, renda × arranjo familiar (eixo Inclusão). Levantar e extrair recortes
    adicionais além dos já usados em `analise.py` (`tabelas_finais/cadunico_*`:
    por bairro, faixa etária, idade, faixa de renda), a definir ao abrir a
    spec (candidatos: indicadores do catálogo com fonte CadÚnico ainda
