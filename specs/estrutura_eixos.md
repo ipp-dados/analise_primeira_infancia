@@ -188,7 +188,6 @@
 - fonte: Cadastro Único (extração CTPE)
 - visualização: `cadunico_criancas_por_sexo.png`
 - visualização: `cadunico_familias_por_sexo_criancas.png`
-- mapa: `mapa_percentual_cadunico_meninas_bairro_2026.png`
 - tabela: `cadunico_por_sexo_2026.csv`
 - tabela: `tabela_mapa_cadunico_recortes_bairro_2026.csv`
 - nota: sexo da criança; famílias pela composição de sexo das crianças (só meninas / só meninos / ambos); 0 a 5 anos completos; bairros com menos de 20 famílias suprimidos

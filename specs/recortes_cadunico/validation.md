@@ -72,4 +72,4 @@ detecta isso.
 *Evidência: `analise.py` inteiro no `analises_env` (runner com `load_dotenv(".env")` explícito), exit 0 em ~3 min; saídas CadÚnico versionadas idênticas às commitadas; `jupytext --to notebook` ok. Ruído fora do escopo: `limpa_dados_sisvan` muda a ordem das linhas de `dados_locais/tratados/*.csv` e `sisvan_*_por_ano.csv` a cada execução (ordem de `Path.iterdir()`), revertido.*
 - [x] `analise.py` do zero (kernel limpo, `analises_env`, top-to-bottom) sem erro.
 - [x] `jupytext --sync` ok; `.ipynb` não versionado.
-- [ ] Revisão visual com o usuário. Registrar o que foi cortado (ex. mapa % meninas) em todos os artefatos.
+- [x] Revisão visual com o usuário. Registrar o que foi cortado (ex. mapa % meninas) em todos os artefatos. *(2026-09-23: mapa % meninas cortado. HTML 67 `map-svg-card`, PDF 128 páginas sem o mapa, DOCX 103 imagens; 2º bookmark órfão = texto do mapa cortado.)*

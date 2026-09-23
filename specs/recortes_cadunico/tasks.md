@@ -71,10 +71,10 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 - [x] **T11.1** — `README.md`: changelog curto.
 - [x] **T11.2** — `specs/roadmap.md`: item 8 (1ª leva) concluído, F1-F3 no backlog.
 - [x] **T11.3** — `CLAUDE.md`/`specs/tech-stack.md`: kernel `analises_env` e regra de supressão CadÚnico.
-- [ ] **T11.4** — `specs/constitution.md` §6: limiar 20. **Só com ok explícito do usuário.**
+- [x] **T11.4** — `specs/constitution.md` §6: limiar 20. **Só com ok explícito do usuário.**
 
 ## Bloco 12 — Validação e revisão
 - [x] **T12.1** — Notebook do zero, top-to-bottom, no `analises_env`, sem erro.
 - [x] **T12.2** — `validation.md` V1-V8 com evidência.
-- [ ] **T12.3** — Revisão visual com o usuário (candidato a corte: mapa % meninas).
-- [ ] **T12.4** — Merge em `planning` só depois do ok do usuário. Deploy no Pages fica fora desta rodada.
+- [x] **T12.3** — Revisão visual com o usuário: **mapa % meninas cortado** (2026-09-23) de `analise.py`, crosswalk, HTML, PDF e DOCX; a coluna segue na tabela gêmea.
+- [x] **T12.4** — Merge em `planning` (ok do usuário em 2026-09-23). Deploy no Pages fica fora desta rodada.

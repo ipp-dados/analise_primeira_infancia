@@ -1292,10 +1292,7 @@ option_card([
         lambda: bar_chart([{'label': r["categoria"], 'value': r["Famílias"]} for _, r in _fs.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias, por sexo das crianças"),
     ), "cadunico_criancas_por_sexo"),
 ], 'grafico')
-option_card([
-    ("% meninas", lambda: _mapa_cadunico_pct("% meninas", "% de meninas entre as crianças até 6 anos no CadÚnico, por bairro", "% meninas"),
-     "mapa_percentual_cadunico_meninas_bairro_2026"),
-], 'mapa')
+# mapa % meninas cortado na revisão visual (recortes_cadunico T12.3): ~49% em todo bairro
 
 h3("Famílias no CadÚnico com crianças até 6 anos, por raça/cor")
 nota_metodologica(

@@ -2,8 +2,8 @@
 
 Branch: `spec/recortes_cadunico` (a partir de `planning`)
 Status: **implementado** (2026-09-23, Blocos 1-12; ver `tasks.md`/`validation.md`). D1-D6 e D8 aprovadas
-pelo usuário; D7 adiada para a auditoria de faixas etárias do roadmap item 6 (§8). Abertos: revisão visual
-com o usuário (T12.3), limiar na constitution (T11.4, só com ok), merge (T12.4).
+pelo usuário; D7 adiada para a auditoria de faixas etárias do roadmap item 6 (§8). Revisão visual feita (mapa %
+meninas cortado), limiar de 20 incorporado à constitution §6 (ok do usuário), merge em `planning` (T12.4).
 
 > **Desvios registrados na implementação:** (1) A4: os PNG dos mapas de contagem **também** passaram a ser
 > desenhados a partir da tabela suprimida, não só a gêmea CSV, para o PNG e o HTML mostrarem os mesmos bairros
