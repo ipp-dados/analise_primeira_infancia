@@ -45,6 +45,19 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
    **corrigir os demais problemas** de denominador/cobertura que aparecerem
    (a levantar ao abrir a spec, começando pela lista de ressalvas D9 e pelas
    taxas por bairro que hoje usam o Censo 2022 como referência).
+   **Inclui (vindo de `specs/recortes_cadunico`, D7 e D8):**
+   - **Auditoria de faixas etárias entre fontes**, junto com o item 7: o que
+     cada dado representa de fato. O CadÚnico `'0-6'` são nascidos a partir de
+     2020-08-12 (0 a 5 anos completos, idade em ~2026-08-12), e as crianças de
+     6 anos caem no grupo `'7-14'`. O Censo usa 0-4, o Sinan 0-5, e assim por
+     diante. Só depois padronizar os rótulos "0-6"/"0 a 5"/"até 6 anos" em
+     títulos, legendas e textos, e decidir numeradores e denominadores
+     compatíveis.
+   - **Revisão de nomes** de tabelas (`tabelas_finais/`), visualizações
+     (`visualizacoes/`) e mapas (`mapas/`): nome ≠ conteúdo (caso real:
+     `cadunico_por_faixa_etaria_2026.csv` continha o recorte por renda,
+     renomeado em `recortes_cadunico`), faixa etária no nome ≠ faixa do dado,
+     órfãos e leitores nos scripts de relatório.
 7. (FIX). **Corrigir `nascidos_vivos_bairro_mae`: faltam mapas e visualizações de percentual.**
   A série por bairro/mãe não gera mapas coropléticos nem gráficos em % (só contagens, se tanto).
   Diagnosticar primeiro (não sei a causa: não abri esse trecho de `analise.py`). Depois seguir

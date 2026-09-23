@@ -4,8 +4,9 @@ Baseado em `specification.md` (rascunho 2). IDs R1-R3 (recortes), S1-S9 (achados
 D1-D8 (decisões) e F1-F3 (pendências) são os da spec. **Nada aqui é executado antes da aprovação do
 plano.**
 
-Defaults assumidos, **ainda sem resposta do usuário** e fáceis de reverter na revisão: D6 (mapa %
-CadÚnico/Censo sai do HTML/PDF), D7 ("0 a 5 anos" só em textos), D8 (renomear o CSV de renda).
+Decisões finais (usuário, 2026-09-23): D6 ✅ (o mapa % CadÚnico/Censo sai do HTML e do PDF), D8 ✅
+(renomear o CSV de renda; nenhum outro uso do nome antigo), **D7 ⏸️ adiada**. Os rótulos de idade
+existentes ficam como estão até a auditoria de faixas etárias entre fontes (roadmap item 6).
 
 ## Princípios
 
@@ -59,7 +60,7 @@ desta rodada: é manual e vem depois do ok do usuário.
 
 ## Bloco 0 — Aprovação
 - O usuário lê `plan.md`, `tasks.md` e `validation.md`.
-- Confirmar ou alterar D6, D7 e D8.
+- ✅ D6 e D8 confirmadas; D7 adiada para o roadmap item 6.
 
 ## Bloco 1 — Ambiente e baseline (V0)
 - Confirmar o kernel `analises_env` (`import psycopg; psycopg.__version__ == '3.3.4'`) e registrar a
@@ -94,14 +95,15 @@ Dentro da seção 🗂️ Cadúnico. Cada célula alterada ganha um comentário 
   lista)" em `cadunico_por_bairro_2026.csv` e reescreve a nota markdown com os números reais.
 - **A2:** reescreve a nota do mapa %, citando a causa (bairro do CEP ≠ bairro IPP) e os bairros
   afetados (S2). Mesma nota curta em todos os mapas CadÚnico. **D6** decide se o mapa sai do HTML/PDF.
-- **A3:** títulos e legendas "0-6" → "0 a 5 anos" no notebook (`grafico_barra`, `mapa_coropletico_bairros`),
-  no HTML (títulos, rótulos das opções `"Crianças 0-6"`) e no PDF. Nomes de arquivo não mudam (D7).
+- **A3 (D7 adiada):** nenhum título existente muda. Só entra uma nota markdown com a definição real
+  de idade (nascidos a partir de 2020-08-12; idade em ~2026-08-12; crianças de 6 anos no grupo
+  `'7-14'`). As saídas novas usam "crianças até 6 anos" + a nota "0 a 5 anos completos".
 - **A4:** `suprime_celulas_pequenas` antes do `to_csv` de `cadunico_por_bairro_2026`,
   `cadunico_por_bairro_ate_4_2026`, `tabela_mapa_cadunico_criancas_2026` e
   `tabela_mapa_cadunico_primeira_infancia_2026`. No %: denominador = crianças 0-4 no CadÚnico **ou**
   população Censo 0-4 < 20.
-- **A5 (D8):** `to_csv('tabelas_finais/cadunico_por_faixa_renda_2026.csv')`, 4 leitores atualizados
-  e `git rm` do nome antigo.
+- **A5 (D8):** `to_csv('tabelas_finais/cadunico_por_faixa_renda_2026.csv')`, 4 leitores + `README.md:74`
+  atualizados e `git rm` do nome antigo.
 - **A6:** notas de "famílias por idade não somam" e do sub-registro no 1º ano.
 - **A7:** gráficos de renda com `_ROTULOS_RENDA_CADUNICO`.
 - **A8:** nota sobre o filtro de cadastro desconhecido (F3).
@@ -149,11 +151,11 @@ Dentro da seção 🗂️ Cadúnico. Cada célula alterada ganha um comentário 
   mapa % uma adulta). Os textos de nota vêm da spec.
 - `mapa_svg`: novo parâmetro opcional `rotulo_nan` para exibir "suprimido (< 20)". O default não
   muda o comportamento dos outros ~30 mapas.
-- Bloco CadÚnico de Família e Cuidados: A3 (títulos e rótulos), A5 (leitor), A7 (rótulos de renda),
+- Bloco CadÚnico de Família e Cuidados: A5 (leitor), A7 (rótulos de renda),
   D6 (remove a opção "% s/ Censo" do `option_card` de mapas), `FONTE_CADUNICO` com a data da partição.
 
 ## Bloco 10 — PDF (`build_notebook_report.py`) e 10b — DOCX
-- PDF: trocar os 3 `pending` (502-504) por `chart_block`s e mapas. Aplicar A3, A5, D6 e as notas no
+- PDF: trocar os 3 `pending` (502-504) por `chart_block`s e mapas. Aplicar A5, D6 e as notas no
   trecho existente (~515-580).
 - DOCX: regenerar com `gera_docx_curadoria.py` (lê o `.md`). Seeds de texto de análise para os
   cards novos seguem o mecanismo `_texto_analise` já existente.

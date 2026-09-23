@@ -1,8 +1,8 @@
 # Especificação — Novos recortes do CadÚnico (`specs/recortes_cadunico`)
 
 Branch: `spec/recortes_cadunico` (a partir de `planning`)
-Status: **rascunho 2**. D1-D5 aprovadas pelo usuário em 2026-09-23 (§8). A revisão de sanidade das
-saídas CadÚnico existentes (§6) abriu D6-D8, com proposta de default. Nenhum código escrito.
+Status: **rascunho 3**. D1-D6 e D8 aprovadas pelo usuário em 2026-09-23. D7 adiada para a
+auditoria de faixas etárias do roadmap item 6 (§8). Nenhum código escrito.
 Roadmap: item 8 de `specs/roadmap.md` (itens 6 e 7 ficam para a rodada seguinte).
 Desdobramento: `plan.md` (blocos), `tasks.md` (checklist), `validation.md` (critérios).
 
@@ -221,7 +221,7 @@ reprocessamento do join no banco.
 |---|---|---|---|
 | S1 | **8,1% das crianças somem no join CEP→bairro, em silêncio.** A nota do notebook fala só em 380 crianças excluídas, de 178.329 | 194.138 crianças no banco × 178.329 na tabela por bairro. 15.809 têm CEP (todo CEP tem 8 dígitos) sem linha em `dados_locais/lista_bairros.csv` (25.535 CEPs, nenhum duplicado). Os prefixos são da cidade (235xx, 230xx, 218xx, ...) | alta |
 | S2 | **O bairro do CEP (Correios) ≠ o bairro oficial (IPP).** Bairros-favela ficam subcontados e os vizinhos, inflados | % CadÚnico/Censo 0-4 > 100% em 8 bairros: Camorim 510%, Bonsucesso 341%, Gávea 313%, Jacaré 242%, Anil 169%, ... Maré tem só 3.405 crianças contra Bonsucesso 2.936, Jacarezinho 277 contra Jacaré 1.409, Rocinha 1.237 contra Gávea 1.858. **Vila Kennedy, Jabour, Gericinó, Ilha de Guaratiba e Lapa não aparecem**: os CEPs caem em Bangu, Senador Camará, Guaratiba e Centro. A nota atual do mapa culpa a "metodologia de contagem diferente", mas a causa principal é essa | alta (mapas por bairro) |
-| S3 | O rótulo diz **"0-6 anos", mas os dados vão de 0 a 5** (`idade` ∈ {0..5}, sem 6) | `cadunico_por_idade_2026.csv`. Pelo Marco Legal da Primeira Infância (até 72 meses), 0-5 é o recorte certo, e o rótulo é que está errado | média |
+| S3 | O rótulo diz **"0-6 anos", mas os dados vão de 0 a 5** (`idade` ∈ {0..5}, sem 6) | `cadunico_por_idade_2026.csv`. Verificado no banco: `grupo_idade='0-6'` = nascidos entre **2020-08-12** e 2026-06-05. A `idade` é calculada numa data de referência **~2026-08-12**, e não na partição (2026-06-12): a idade recalculada na partição fica 1 ano abaixo em parte das crianças. As crianças com **6 anos** caem no grupo **`'7-14'`** (idade 6-8 nesse grupo), ou seja, o rótulo upstream também engana. Pelo Marco Legal (até 72 meses), 0-5 completos é o recorte da primeira infância, mas **outras fontes do projeto usam outros recortes** (Censo 0-4, etc.). Ver D7 | média |
 | S4 | **Células pequenas publicadas.** 10 bairros têm < 20 crianças e 6 têm < 10 (Argentino 3, Campo dos Afonsos 4, Lagoa 5, Joá 6, Urca 6, Zumbi 7). O HTML mostra o valor exato no tooltip e no CSV | `cadunico_por_bairro_2026.csv`, `tabela_mapa_*` | média (privacidade) |
 | S5 | `cadunico_por_faixa_etaria_2026.csv` contém o recorte **por renda**, não por faixa etária | `analise.py:1232`, lido por `build_html_report.py:1267`, `build_notebook_report.py:520,521,529`, `regen_missing_pngs.py:81` | baixa (nome) |
 | S6 | "Famílias por idade" **não soma** o total de famílias: uma família com 2 crianças de idades diferentes conta 2 vezes. Nada no gráfico avisa | Σ famílias por idade = 191.824 > 173.768 | baixa |
@@ -235,9 +235,9 @@ reprocessamento do join no banco.
 |---|---|---|
 | A1 | S1 | Tabela por bairro ganha a linha explícita **"Sem bairro identificado (CEP fora da lista)"**. A nota do notebook é reescrita com os números reais (15.809 sem CEP na lista + 380 em localidades sem bairro oficial) e o HTML/PDF citam a cobertura (~91,6%). Enriquecer `lista_bairros.csv` fica fora (F1) |
 | A2 | S2 | A nota do mapa % CadÚnico/Censo é reescrita com a causa real e a lista dos bairros afetados. Todos os mapas CadÚnico por bairro recebem a nota de viés de geocodificação. **D6** decide se o mapa % CadÚnico/Censo continua no relatório publicado |
-| A3 | S3 | Títulos, rótulos e legendas "0-6 anos" → **"0 a 5 anos"** (notebook, HTML, PDF), com uma nota de que primeira infância = até 72 meses. **Nomes de arquivo não mudam**, porque o crosswalk e o HTML dependem deles (**D7**) |
+| A3 | S3 | **Adiada (D7).** Os títulos e rótulos existentes **não** mudam nesta rodada. A definição de idade vai para a auditoria de faixas etárias entre fontes do roadmap item 6. Nesta rodada, só: (i) uma nota no notebook com a definição real (nascidos a partir de 2020-08-12; idade em ~2026-08-12; 6 anos no grupo `'7-14'`); (ii) as saídas **novas** usam a redação do catálogo ("crianças até 6 anos") com a nota "idades de 0 a 5 anos completos" |
 | A4 | S4 | `suprime_celulas_pequenas` (limiar 20) aplicada às tabelas e gêmeas de mapa **existentes** (`cadunico_por_bairro_2026`, `cadunico_por_bairro_ate_4_2026`, `tabela_mapa_cadunico_*`) antes de gravar. O PNG de contagem não muda (a menor classe já é < 200/250), mas o tooltip e o CSV do HTML passam a mostrar "suprimido" |
-| A5 | S5 | Renomear para `cadunico_por_faixa_renda_2026.csv` e atualizar os 4 leitores e o crosswalk. O arquivo antigo é removido do versionamento (**D8**) |
+| A5 | S5 | Renomear para `cadunico_por_faixa_renda_2026.csv` e atualizar os 4 leitores, o crosswalk e o `README.md:74`. O arquivo antigo é removido do versionamento (**D8**). Verificado em 2026-09-23 (`grep` no repo): **todos** os usos do nome antigo leem o conteúdo de renda, e nenhuma visualização precisa de uma tabela CadÚnico por faixa etária com esse nome. O recorte por idade simples já está em `cadunico_por_idade_2026.csv`. Se uma tabela CadÚnico por faixa etária for necessária no futuro (ex. 0-3 creche × 4-5 pré-escola), ela nasce com nome próprio, dentro da revisão de nomes do roadmap item 6 |
 | A6 | S6, S7 | Nota no notebook e texto no HTML/PDF: "famílias por idade não somam" e o sub-registro no 1º ano. Os gráficos não mudam |
 | A7 | S8 | Rótulos descritivos nas faixas de renda: "Extrema pobreza (até R$ 218)", "Pobreza/baixa renda (R$ 218-810)", "½ a 1 SM", "1 a 2 SM", "acima de 2 SM" per capita. Um dicionário único `_ROTULOS_RENDA_CADUNICO` é reusado nos gráficos novos e nos existentes |
 | A8 | S9 | Só registro: nota no notebook e pendência F3. Nenhuma mudança de número |
@@ -264,9 +264,9 @@ reprocessamento do join no banco.
 | D3 | Idade de corte de "adulto" | ✅ **18 anos** |
 | D4 | Recorte territorial e privacidade | ✅ **Ok**: bairro para sexo e arranjo (taxa), raça só como "% negra" por bairro, supressão < 20, **com nota de privacidade** (§5) |
 | D5 | Data da partição na fonte | ✅ **Sim**: `fonte_cadunico_particao = 'CadÚnico (extração CTPE, jun/2026)'` nas chamadas novas. As corrigidas em A1-A7 passam a usá-la também, e `fonte_cadunico` fica definida como está |
-| D6 | O mapa "% crianças 0-4 no CadÚnico sobre o Censo" (valores até 510% por viés de CEP, S2) continua no **relatório publicado**? | **Proposta:** sai do HTML e do PDF até o F1 ser resolvido; continua no notebook, com nota corrigida. *Aguardando o usuário* |
-| D7 | Corrigir "0-6" → "0 a 5 anos" só em textos, mantendo nomes de arquivo? | **Proposta:** sim. *Aguardando o usuário* |
-| D8 | Renomear `cadunico_por_faixa_etaria_2026.csv` → `cadunico_por_faixa_renda_2026.csv` | **Proposta:** sim, com os 4 leitores atualizados no mesmo commit. *Aguardando o usuário* |
+| D6 | O mapa "% crianças 0-4 no CadÚnico sobre o Censo" (valores até 510% por viés de CEP, S2) continua no **relatório publicado**? | ✅ **Sai do HTML e do PDF** até o F1 ser resolvido. Continua no notebook, com nota corrigida (usuário, 2026-09-23) |
+| D7 | Corrigir "0-6" → "0 a 5 anos" nos textos? | ⏸️ **Adiada** (usuário, 2026-09-23): "precisamos ter certeza do que o dado representa. CadÚnico é 0 a 6 (nossa extração), mas Censo e outros dados podem não ser". A definição real do CadÚnico está verificada (S3), mas a padronização de rótulos de idade é feita **junto com os itens 6 e 7 do roadmap**, numa auditoria de faixas etárias entre todas as fontes. Nesta rodada: nota de definição + redação do catálogo nas saídas novas (A3) |
+| D8 | Renomear `cadunico_por_faixa_etaria_2026.csv` → `cadunico_por_faixa_renda_2026.csv` | ✅ **Sim** (usuário, 2026-09-23), condicionado a checar se o original ainda serve a outra visualização. Checado: não serve (A5). A revisão geral de nomes (tabelas, visualizações, mapas) entrou no roadmap item 6 |
 
 ---
 
