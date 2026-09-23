@@ -266,15 +266,11 @@
 
 ### Violência territorial
 - fonte: Data.Rio / Índice de Progresso Social (IPS) 2024, por Região Administrativa
-- visualização: `violencia_territorial_homicidios_ra_2024.png`
-- visualização: `violencia_territorial_homicidios_acao_policial_ra_2024.png`
-- visualização: `violencia_territorial_homicidios_jovens_negros_ra_2024.png`
 - mapa: `mapa_violencia_territorial_homicidios_ra_2024.png`
 - mapa: `mapa_violencia_territorial_homicidios_acao_policial_ra_2024.png`
 - mapa: `mapa_violencia_territorial_homicidios_jovens_negros_ra_2024.png`
-- tabela: `violencia_territorial_por_ra_2024.csv`
 - tabela: `tabela_mapa_violencia_territorial_ra_2024.csv`
-- nota: só 2024 e todas as idades (não é específico de 0 a 6 anos), sem série temporal (barras, não linha); nível Região Administrativa; RA XXI Paquetá sem dado no IPS. Substitui a fonte "ISP" do catálogo
+- nota: dado GERAL da população (todas as idades) — não é específico de crianças (0 a 6 anos) nem de jovens; só 2024 e sem série temporal (apenas mapas, sem barras nem tabela por RA); nível Região Administrativa; RA XXI Paquetá sem dado no IPS. Substitui a fonte "ISP" do catálogo
 
 ### Violência familiar (0 a 5 anos, por vínculo do provável autor)
 - fonte: Sinan NET/Tabnet (SMS-Rio)
@@ -301,11 +297,10 @@
 - tabela: `violencia_familiar_top_bairros_2025.csv`
 - nota: contagem absoluta, ordenada pelo vínculo mãe; bairros populosos lideram
 
-### Violência familiar — por Região Administrativa e por CAP
+### Violência familiar — por CAP
 - fonte: Sinan NET/Tabnet (SMS-Rio); população 0 a 4 anos do Censo 2022
-- tabela: `violencia_familiar_por_ra.csv`
 - tabela: `violencia_familiar_por_cap.csv`
-- nota: casos somados por RA/CAP e taxa por 1.000 recalculada depois de somar casos e população (nunca média de taxas)
+- nota: casos somados por CAP e taxa por 1.000 recalculada depois de somar casos e população (nunca média de taxas)
 
 ### Notificações de violência interpessoal/autoprovocada (menores de 1 ano, 1 a 5 anos)
 - fonte: Sinan NET/Tabnet (SMS-Rio)
@@ -321,6 +316,9 @@
 - mapa: `mapa_violencia_familiar_mae_taxa_bairro_2025.png`
 - mapa: `mapa_violencia_familiar_pai_taxa_bairro_2025.png`
 - mapa: `mapa_violencia_familiar_outros_taxa_bairro_2021_2025.png`
+- mapa: `mapa_violencia_familiar_mae_taxa_ra_2025.png`
+- mapa: `mapa_violencia_familiar_pai_taxa_ra_2025.png`
+- mapa: `mapa_violencia_familiar_outros_taxa_ra_2021_2025.png`
 - tabela: `violencia_familiar_taxa_por_bairro.csv`
 - tabela: `violencia_familiar_taxa_top_bairros_2025.csv`
 - nota: ressalva de denominador — numerador com 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022), o que superestima a taxa em ~20% de forma uniforme; "outros" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: escala de cor limitada ao percentil 95

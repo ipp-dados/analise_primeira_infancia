@@ -140,7 +140,7 @@ def _out_div(elem_id, fonte, titulo=None, csv_attr=None, filename=None):
 
 FMT_MAP = {'int': 'v=>fmt(v)', 'pct': 'v=>pct(v)', 'pct1': 'v=>pct(v,1)',
            # 1 casa decimal sem '%' (taxas por 1.000/100 mil); fora de _eh_taxa_ou_percentual (sem remoção de outliers)
-           'dec1': 'v=>fmt(v,1)'}
+           'dec1': 'v=>fmt(v,1)', 'dec1f': 'v=>fmt(v,1)'}
 
 def _normaliza(vals):
     """pandas/list -> list[float|None], NaN->None (para comparar/filtrar outliers)."""
@@ -346,7 +346,7 @@ def _eh_taxa_ou_percentual(s):
     formato direto. Outliers so se aplicam a percentual/taxa, nao a
     contagem absoluta (specification.md §3.3, decisao O)."""
     fmt = s.get('format', 'int') if isinstance(s, dict) else s
-    return fmt in ('pct', 'pct1')
+    return fmt in ('pct', 'pct1', 'dec1')
 
 def remove_outliers_tukey(valores):
     """valores: list[float|None]. Retorna list[float|None] do mesmo tamanho,
@@ -702,8 +702,9 @@ def _svg_rosa_dos_ventos(x=None, y=30):
         '</g>'
     )
 
-def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro", teto=None):
+def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro", teto=None, zero_branco=False):
     """`teto`: limite superior só da escala de cor contínua (valores acima usam a cor máxima; o tooltip mostra o real).
+    `zero_branco` (só com `bins`): valor 0 vira branco, com linha própria "0 (sem casos)" na legenda.
     df: 1 linha por unidade geografica (chave_col identifica a unidade no nivel
     escolhido: codbairro/area_plane/cod_rp/cod_ap_sms). bins: lista de limites
     superiores (contagem absoluta, classes discretas) ou None (percentual/taxa,
@@ -737,6 +738,8 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
             d = _geom_path_d(row.geometry, project)
             if v is None:
                 fill = "var(--surface-2)"
+            elif bins is not None and zero_branco and v == 0:
+                fill = "#ffffff"
             elif bins is not None:
                 idx = next((i for i, edge in enumerate(bins) if v <= edge), len(bins))
                 fill = _cor_sequencial(tema, (idx + 1) / (len(bins) + 1))
@@ -752,6 +755,8 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
             rows.append((label, v))
         legend_bits = []
         if bins is not None:
+            if zero_branco:
+                legend_bits.append('<div class="map-legend-row"><span class="map-legend-sw" style="background:#ffffff;border:1px solid var(--ink-3, #888)"></span>0 (sem casos)</div>')
             edges = [None] + bins + [None]
             for i in range(len(bins) + 1):
                 lo, hi = edges[i], edges[i + 1]
@@ -1334,30 +1339,20 @@ FONTE_IPS = "Data.Rio / Índice de Progresso Social (IPS), 2024, por Região Adm
 # ---- Violência territorial (Data.Rio/IPS) ---------------------------------
 h3('Violência territorial (Data.Rio/IPS, 2024)')
 nota_metodologica(
-    "Um único ano (2024) e todas as idades — não é específico de 0 a 6 anos e não forma série (por isso barras, não linha). "
-    "Nível Região Administrativa; a RA XXI Paquetá não tem dado no IPS. A linha \"Município\" é a referência municipal."
+    "ATENÇÃO: são dados gerais da população, de todas as idades — NÃO são específicos de crianças (0 a 6 anos) nem de jovens; "
+    "o indicador \"homicídios de jovens negros\" também se refere à população geral. Um único ano (2024), sem série. "
+    "Nível Região Administrativa; a RA XXI Paquetá não tem dado no IPS."
 )
 df_terr_mapa = read("tabela_mapa_violencia_territorial_ra_2024.csv")
-_terr_all = read("violencia_territorial_por_ra_2024.csv")
-_terr_mun = _terr_all[_terr_all["codra"].isna()].iloc[0]
 _INDICADORES_TERR = [
     ("taxa_homicidios", "Taxa de homicídios", "violencia_territorial_homicidios_ra_2024", "mapa_violencia_territorial_homicidios_ra_2024"),
     ("homicidios_acao_policial", "Homicídios por ação policial", "violencia_territorial_homicidios_acao_policial_ra_2024", "mapa_violencia_territorial_homicidios_acao_policial_ra_2024"),
     ("homicidios_jovens_negros", "Homicídios de jovens negros", "violencia_territorial_homicidios_jovens_negros_ra_2024", "mapa_violencia_territorial_homicidios_jovens_negros_ra_2024"),
 ]
 
-def _barras_ra(coluna, rotulo):
-    itens = [{'label': str(r["regiao_adm"]).title(), 'value': r[coluna]} for _, r in df_terr_mapa.iterrows()]
-    itens.append({'label': "MUNICÍPIO (referência)", 'value': _terr_mun[coluna]})
-    itens.sort(key=lambda it: it['value'], reverse=True)
-    bar_chart(itens, fonte=FONTE_IPS, titulo=f"{rotulo} por Região Administrativa (2024)", fmt='dec1')
-
-h5('Barras por Região Administrativa')
-option_card([(rot, lambda c=col, r=rot: _barras_ra(c, r), seed_g) for col, rot, seed_g, _ in _INDICADORES_TERR], 'grafico')
-h5('Mapas por Região Administrativa')
 option_card([
-    (rot, lambda c=col, r=rot: mapa_svg(df_terr_mapa, "codra", c, "protecao", f"{r} por Região Administrativa (2024)",
-                                         f"{r} (taxa)", FONTE_IPS, fmt="dec1", nivel="ra"), seed_m)
+    (rot, lambda c=col, r=rot: mapa_svg(df_terr_mapa, "codra", c, "protecao", f"{r} por Região Administrativa (2024) — população geral, todas as idades",
+                                         "Taxa (IPS), todas as idades, não só crianças", FONTE_IPS, fmt="dec1", nivel="ra"), seed_m)
     for col, rot, _, seed_m in _INDICADORES_TERR
 ], 'mapa')
 
@@ -1398,25 +1393,22 @@ df_m_pai = read("tabela_mapa_violencia_familiar_pai_2025.csv")
 df_m_out = read("tabela_mapa_violencia_familiar_outros_2021_2025.csv")
 option_card([
     ("Mãe (2025)", lambda: mapa_svg(df_m_mae, "codbairro", "mae", "protecao", "Notificações de violência familiar por bairro — mãe (2025)",
-                                    "Notificações (mãe)", FONTE_SINAN, bins=[5, 15, 30, 60]), "mapa_violencia_familiar_mae_bairro_2025"),
+                                    "Notificações (mãe)", FONTE_SINAN, bins=[5, 15, 30, 60], zero_branco=True), "mapa_violencia_familiar_mae_bairro_2025"),
     ("Pai (2025)", lambda: mapa_svg(df_m_pai, "codbairro", "pai", "protecao", "Notificações de violência familiar por bairro — pai (2025)",
-                                    "Notificações (pai)", FONTE_SINAN, bins=[5, 15, 30, 60]), "mapa_violencia_familiar_pai_bairro_2025"),
+                                    "Notificações (pai)", FONTE_SINAN, bins=[5, 15, 30, 60], zero_branco=True), "mapa_violencia_familiar_pai_bairro_2025"),
     ("Outros (2021-2025)", lambda: mapa_svg(df_m_out, "codbairro", "outros_2021_2025", "protecao",
                                             "Notificações de violência familiar por bairro — outros vínculos (2021-2025, acumulado)",
-                                            "Notificações (outros)", FONTE_SINAN, bins=[1, 3, 6, 12]), "mapa_violencia_familiar_outros_bairro_2021_2025"),
+                                            "Notificações (outros)", FONTE_SINAN, bins=[1, 3, 6, 12], zero_branco=True), "mapa_violencia_familiar_outros_bairro_2021_2025"),
 ], 'mapa')
 
-h5('Por Região Administrativa e por CAP (2025)')
+h5('Por CAP (2025)')
 _COLS_TAB = {'mae': 'Mãe', 'pai': 'Pai', 'outros': 'Outros', 'pop_0_4': 'Crianças 0-4 (Censo 2022)',
              'taxa_por_mil_mae': 'Taxa mãe /1.000', 'taxa_por_mil_pai': 'Taxa pai /1.000', 'taxa_por_mil_outros': 'Taxa outros /1.000'}
 df_vf_cap = read("violencia_familiar_por_cap.csv"); df_vf_cap = df_vf_cap[df_vf_cap["ano"] == 2025]
-df_vf_ra = read("violencia_familiar_por_ra.csv"); df_vf_ra = df_vf_ra[df_vf_ra["ano"] == 2025]
 _tab_cap = df_vf_cap[['cod_ap_sms'] + list(_COLS_TAB)].rename(columns={'cod_ap_sms': 'CAP', **_COLS_TAB}).round(1)
-_tab_ra = df_vf_ra[['regiao_adm'] + list(_COLS_TAB)].rename(columns={'regiao_adm': 'Região Administrativa', **_COLS_TAB}).round(1)
 for _c in ['Mãe', 'Pai', 'Outros', 'Crianças 0-4 (Censo 2022)']:
-    _tab_cap[_c] = _tab_cap[_c].astype(int); _tab_ra[_c] = _tab_ra[_c].astype(int)
+    _tab_cap[_c] = _tab_cap[_c].astype(int)
 tabela_com_texto(lambda: plain_table(_tab_cap, fonte=FONTE_SINAN_CENSO), "violencia_familiar_por_cap")
-tabela_com_texto(lambda: plain_table(_tab_ra, fonte=FONTE_SINAN_CENSO), "violencia_familiar_por_ra")
 
 # ---- Notificações de lesão autoprovocada -----------------------------------
 h3('Notificações de violência interpessoal/autoprovocada (0 a 5 anos, Sinan)')
@@ -1433,14 +1425,15 @@ option_card([("2018-2025 × 2026", lambda: bar_chart([
 df_m_auto = read("tabela_mapa_notif_autoprovocada_2026.csv")
 option_card([("Bairro (2026)", lambda: mapa_svg(df_m_auto, "codbairro", "casos", "protecao",
     "Lesão autoprovocada notificada por bairro (2026, ano parcial)", "Notificações (2026)",
-    "Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos", bins=[1, 3]), "mapa_notif_autoprovocada_bairro_2026")], 'mapa')
+    "Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos", bins=[1, 3], zero_branco=True), "mapa_notif_autoprovocada_bairro_2026")], 'mapa')
 
 # ---- Taxa de notificações ---------------------------------------------------
 h3('Taxa de notificações de violência (por 1.000 crianças)')
 nota_metodologica(
     "Ressalva de denominador: numerador com crianças de 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022) — a taxa superestima ~20%, "
     "de forma uniforme, então o ranking entre bairros se preserva. \"Outros\" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: "
-    "a escala de cor é limitada ao percentil 95 (o valor real aparece ao passar o mouse)."
+    "nos mapas por bairro a escala de cor é limitada ao percentil 95 (o valor real aparece ao passar o mouse). "
+    "Nos mapas de taxa há o botão \"Remover outliers\"."
 )
 _mapas_taxa = []
 for _nome, _rot, _per in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
@@ -1450,13 +1443,19 @@ for _nome, _rot, _per in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '202
         d, "codbairro", f"taxa_por_mil_{n}", "protecao", f"Notificações de violência ({r}) por 1.000 crianças de 0 a 4 anos ({p})",
         "Por 1.000 crianças 0-4", FONTE_SINAN_CENSO, fmt="dec1", teto=t),
         f"mapa_violencia_familiar_{_nome.split('_')[0]}_taxa_bairro_{_nome.split('_', 1)[1]}"))
+for _nome, _rot, _per in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
+    _dfr = read(f"tabela_mapa_violencia_familiar_taxa_ra_{_nome}.csv")
+    _mapas_taxa.append((f"{_rot.capitalize()} · RA ({_per})", lambda d=_dfr, n=_nome, r=_rot, p=_per: mapa_svg(
+        d, "codra", f"taxa_por_mil_{n}", "protecao", f"Notificações de violência ({r}) por 1.000 crianças de 0 a 4 anos, por RA ({p})",
+        "Por 1.000 crianças 0-4", FONTE_SINAN_CENSO, fmt="dec1", nivel="ra"),
+        f"mapa_violencia_familiar_{_nome.split('_')[0]}_taxa_ra_{_nome.split('_', 1)[1]}"))
 option_card(_mapas_taxa, 'mapa')
 h5('Dez maiores taxas (2025, bairros com 100 ou mais crianças de 0 a 4 anos)')
 df_top_t = read("violencia_familiar_taxa_top_bairros_2025.csv")
 _bairros_t = list(dict.fromkeys(df_top_t["bairro"]))
 _ptt = df_top_t.pivot(index="bairro", columns="vinculo", values="taxa por 1.000").reindex(_bairros_t)
 option_card([("Mãe e pai (2025)", lambda: grouped_bar_chart(
-    _bairros_t, [{'label': 'Mãe', 'values': _ptt['Mãe'].tolist(), 'format': 'dec1'}, {'label': 'Pai', 'values': _ptt['Pai'].tolist(), 'format': 'dec1'}],
+    _bairros_t, [{'label': 'Mãe', 'values': _ptt['Mãe'].tolist(), 'format': 'dec1f'}, {'label': 'Pai', 'values': _ptt['Pai'].tolist(), 'format': 'dec1f'}],
     fonte=FONTE_SINAN_CENSO, titulo="Dez maiores taxas de notificação por 1.000 crianças de 0 a 4 anos (2025)"),
     "violencia_familiar_taxa_top_bairros_2025")], 'grafico')
 

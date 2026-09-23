@@ -23,6 +23,7 @@ from shapely.geometry import box
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
+from matplotlib.lines import Line2D
 import contextily as ctx
 import xyzservices
 import geopandas as gpd
@@ -541,7 +542,7 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
                               cmap='Oranges', legenda_titulo=None, fundo='mapa', alpha=None, fonte_dados=None,
                               caminho_geojson='dados_locais/geo/limite_bairros_rio.geojson',
                               caminho_uf='dados_locais/geo/limite_uf_brasil.geojson',
-                              caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson', formato='png'):
+                              caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson', formato='png', zero_branco=False):
     """Gera um mapa coroplético do Rio (limites IPP/Data.Rio, simplificados) e salva em mapas/.
 
     `nivel`: 'bairro' (padrão) | 'ap' (Área de Planejamento, 5 regiões) | 'rp' (Região de
@@ -563,6 +564,10 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
     vizinhos (não Rio de Janeiro) visíveis são rotulados, a vista é ampliada além dos bairros para
     dar contexto (região metropolitana, baía, mar), e o mapa recebe rosa dos ventos + escala gráfica
     (corrigida para a distorção de latitude do Web Mercator).
+    `zero_branco` (só com `bins`, contagens absolutas): quando True, valores iguais a 0 ficam brancos, com
+    entrada própria '0 (sem casos)' na legenda, em vez de cair na primeira classe ('Até X'). Padrão False
+    (comportamento anterior, usado pelos demais mapas).
+
     A figura usa proporção larga (~1,46:1, próxima de A4 paisagem) e é exportada a 300 DPI com
     `bbox_inches='tight'`, para que só o título ocupe espaço fora do mapa em si.
 
@@ -615,7 +620,8 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
         rotulos = [f"Até {_numero_ptbr(bins[0])}"]
         rotulos += [f"{_numero_ptbr(bins[i-1]+1)} a {_numero_ptbr(bins[i])}" for i in range(1, len(bins))]
         rotulos.append(f"Mais de {_numero_ptbr(bins[-1])}")
-        gdf['faixa'] = pd.cut(gdf[coluna_valor], bins=limites, labels=rotulos, ordered=True)
+        eh_zero = (gdf[coluna_valor] == 0) if zero_branco else pd.Series(False, index=gdf.index)
+        gdf['faixa'] = pd.cut(gdf[coluna_valor].where(~eh_zero), bins=limites, labels=rotulos, ordered=True)
         gdf.plot(
             column='faixa', ax=ax, cmap=cmap, linewidth=0.4, edgecolor='#616161', legend=True, alpha=alpha,
             zorder=2, missing_kwds=missing_kwds,
@@ -623,6 +629,20 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
                          'title_fontsize': 12, 'framealpha': 0.92, 'facecolor': 'white', 'edgecolor': '#c9c9c9',
                          'labelcolor': '#111111'},
         )
+        if zero_branco and eh_zero.any():
+            # zeros por cima do preenchimento 'Sem dado' (que os cobre com hachura), em branco liso
+            gdf[eh_zero].plot(ax=ax, color='white', linewidth=0.4, edgecolor='#616161', zorder=2.5)
+            legenda_antiga = ax.get_legend()
+            handles_ant = list(legenda_antiga.legend_handles)
+            rotulos_ant = [t.get_text() for t in legenda_antiga.get_texts()]
+            if not gdf[coluna_valor].isna().any():  # 'Sem dado' só se houver região realmente sem dado
+                manter = [i for i, r in enumerate(rotulos_ant) if r != 'Sem dado']
+                handles_ant, rotulos_ant = [handles_ant[i] for i in manter], [rotulos_ant[i] for i in manter]
+            handles = [Line2D([0], [0], marker='o', linestyle='', markerfacecolor='white', markeredgecolor='#616161', markersize=11)] + handles_ant
+            rotulos_leg = ['0 (sem casos)'] + rotulos_ant
+            legenda_antiga.remove()
+            ax.legend(handles=handles, labels=rotulos_leg, title=legenda_titulo or coluna_valor, loc='upper left', fontsize=10,
+                      title_fontsize=12, framealpha=0.92, facecolor='white', edgecolor='#c9c9c9', labelcolor='#111111')
         legenda = ax.get_legend()
         legenda.get_title().set_fontweight('bold')
         for texto in legenda.get_texts():
@@ -2742,7 +2762,7 @@ df_final.head()
 # >   de ficha/notificação, **a confirmar com a fonte**.
 # > - Contagem absoluta **não é risco**: bairros populosos concentram mais casos. A taxa por 1.000 crianças usa
 # >   numerador 0-5 anos e denominador 0-4 anos (Censo 2022) — superestima ~20%, de modo uniforme.
-# > - Violência territorial (IPS): só 2024, **todas as idades** (não é específico de 0-6 anos).
+# > - Violência territorial (IPS): dado da **população geral (todas as idades), NÃO específico de crianças nem de jovens**; só 2024.
 
 # %% [markdown]
 # ### Violência familiar por vínculo do provável autor
@@ -2834,19 +2854,19 @@ df_vf_outros_acum.to_csv('tabelas_finais/tabela_mapa_violencia_familiar_outros_2
 mapa_coropletico_bairros(
     df_vf_2025, coluna_valor='mae', chave='codbairro', bins=[5, 15, 30, 60],
     titulo='Notificações de violência familiar por bairro — mãe (2025)',
-    nome_arquivo='mapa_violencia_familiar_mae_bairro_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+    nome_arquivo='mapa_violencia_familiar_mae_bairro_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', zero_branco=True,
     legenda_titulo='Notificações (mãe)', fonte_dados=fonte_sinan,
 )
 mapa_coropletico_bairros(
     df_vf_2025, coluna_valor='pai', chave='codbairro', bins=[5, 15, 30, 60],
     titulo='Notificações de violência familiar por bairro — pai (2025)',
-    nome_arquivo='mapa_violencia_familiar_pai_bairro_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+    nome_arquivo='mapa_violencia_familiar_pai_bairro_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', zero_branco=True,
     legenda_titulo='Notificações (pai)', fonte_dados=fonte_sinan,
 )
 mapa_coropletico_bairros(
     df_vf_outros_acum, coluna_valor='outros_2021_2025', chave='codbairro', bins=[1, 3, 6, 12],
     titulo='Notificações de violência familiar por bairro — outros vínculos (2021-2025)',
-    nome_arquivo='mapa_violencia_familiar_outros_bairro_2021_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+    nome_arquivo='mapa_violencia_familiar_outros_bairro_2021_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', zero_branco=True,
     legenda_titulo='Notificações (outros,\nacumulado 5 anos)', fonte_dados=fonte_sinan,
 )
 
@@ -2922,14 +2942,14 @@ df_autoprov_2026.to_csv('tabelas_finais/tabela_mapa_notif_autoprovocada_2026.csv
 mapa_coropletico_bairros(
     df_autoprov_2026, coluna_valor='casos', chave='codbairro', bins=[1, 3],
     titulo='Lesão autoprovocada notificada por bairro (2026, ano parcial)',
-    nome_arquivo='mapa_notif_autoprovocada_bairro_2026', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+    nome_arquivo='mapa_notif_autoprovocada_bairro_2026', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', zero_branco=True,
     legenda_titulo='Notificações\n(2026, parcial)', fonte_dados='Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos',
 )
 
 # %% [markdown]
 # ### Violência territorial por Região Administrativa (Data.Rio/IPS, 2024)
 #
-# > Um único ano e todas as idades: **não é específico de 0-6 anos** e não forma série (por isso barras, não linha).
+# > **Dado geral da população, NÃO específico de crianças ou jovens:** um único ano (2024) e todas as idades.
 # > A RA XXI Paquetá não tem dado no IPS ("Sem dado" nos mapas).
 
 # %%
@@ -2947,17 +2967,13 @@ indicadores_territoriais = {
     'homicidios_acao_policial': ('Homicídios por ação policial', 'homicidios_acao_policial'),
     'homicidios_jovens_negros': ('Homicídios de jovens negros', 'homicidios_jovens_negros'),
 }
+# só mapas (índice/taxa -> colorbar contínua); sem gráficos de barra por RA. Dado da população geral, não infantil
 for coluna, (rotulo, sufixo) in indicadores_territoriais.items():
-    grafico_barra_ranking(
-        df_terr, categoria='regiao_adm', valor=coluna, titulo=f'{rotulo} por Região Administrativa (2024)',
-        nome_arquivo=f'violencia_territorial_{sufixo}_ra_2024', xlabel=f'{rotulo} (taxa, conforme IPS)',
-        linha_referencia=terr_municipio[coluna], rotulo_referencia=f'Município: {terr_municipio[coluna]:.1f}'.replace('.', ','),
-        cmap=_CORES_TEMA_MAPA['protecao'], fonte_dados=fonte_ips,
-    )
     mapa_coropletico_bairros(
         df_terr, coluna_valor=coluna, chave='codra', nivel='ra',
-        titulo=f'{rotulo} por Região Administrativa (2024)', nome_arquivo=f'mapa_violencia_territorial_{sufixo}_ra_2024',
-        cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', legenda_titulo=f'{rotulo}\n(taxa)', fonte_dados=fonte_ips,
+        titulo=f'{rotulo} por RA (2024) — população geral', nome_arquivo=f'mapa_violencia_territorial_{sufixo}_ra_2024',
+        cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+        legenda_titulo='Taxa (IPS)\ntodas as idades,\nnão só crianças', fonte_dados=fonte_ips,
     )
 
 # %% [markdown]
@@ -3002,6 +3018,32 @@ for _nome, _rotulo, _periodo in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai
         nome_arquivo=f'mapa_violencia_familiar_{_nome.split("_")[0]}_taxa_bairro_{_nome.split("_", 1)[1]}',
         cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', legenda_titulo=f'Notificações por\n1.000 crianças 0-4\n(escala até {_lim})',
         fonte_dados=fonte_sinan_censo,
+    )
+
+# %% [markdown]
+# ##### 🗺️ Mapas de taxa por Região Administrativa (M11-M13) — colorbar contínua
+#
+# Casos somados por RA e taxa recalculada sobre a população 0-4 da RA (nunca média de taxas de bairro).
+
+# %%
+_ra_2025 = df_vf_ra[df_vf_ra['ano'] == 2025][['codra', 'regiao_adm', 'pop_0_4', 'mae', 'pai']]
+_ra_outros = (df_vf_ra[df_vf_ra['ano'].between(2021, 2025)].groupby('codra', as_index=False)['outros'].sum()
+              .rename(columns={'outros': 'outros_2021_2025'}))
+df_vf_taxa_ra = _ra_2025.merge(_ra_outros, on='codra')
+for _nome, _casos in [('mae_2025', 'mae'), ('pai_2025', 'pai'), ('outros_2021_2025', 'outros_2021_2025')]:
+    df_vf_taxa_ra = taxa_por_mil(df_vf_taxa_ra, _casos, 'pop_0_4', f'taxa_por_mil_{_nome}')
+assert not np.isinf(df_vf_taxa_ra.select_dtypes('number')).any().any()
+
+for _nome, _rotulo, _periodo in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
+    _col = f'taxa_por_mil_{_nome}'
+    _mapa_ra = df_vf_taxa_ra[['codra', 'regiao_adm', 'pop_0_4', _col]].copy()
+    _mapa_ra.to_csv(f'tabelas_finais/tabela_mapa_violencia_familiar_taxa_ra_{_nome}.csv', index=False)
+    mapa_coropletico_bairros(
+        _mapa_ra, coluna_valor=_col, chave='codra', nivel='ra',
+        titulo=f'Notificações de violência ({_rotulo}) por 1.000 crianças de 0 a 4 anos, por RA ({_periodo})',
+        nome_arquivo=f'mapa_violencia_familiar_{_nome.split("_")[0]}_taxa_ra_{_nome.split("_", 1)[1]}',
+        cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+        legenda_titulo=f'Notificações por\n1.000 crianças 0-4', fonte_dados=fonte_sinan_censo,
     )
 
 # %% [markdown]
