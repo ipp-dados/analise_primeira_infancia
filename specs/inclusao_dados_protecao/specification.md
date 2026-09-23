@@ -2,6 +2,7 @@
 
 Branch: `inclusao_dados_protecao`
 Status: **rascunho 2 para revisão** — decisões D1, D2/D3b e D4 incorporadas (§9); nenhum código escrito.
+Desdobramento: `plan.md` (blocos), `tasks.md` (checklist), `validation.md` (critérios).
 Complementa `inventario_dados.md` (formato dos arquivos e decisões da abertura da rodada).
 Pasta de dados renomeada para `dados_locais/protecao/` (sem acento).
 
@@ -103,7 +104,7 @@ Toda lógica reutilizável vai lá; as seções de análise só chamam. Nomes se
 | `bairro_para_nivel(df, nivel)` | anexa `codra` / `cod_ap_sms` (via `_RA_PARA_CAP`) / `cod_rp` a uma tabela por bairro, a partir do geojson — para agregar contagens (soma de numeradores, nunca média de taxa) |
 
 Além disso, chaves de configuração novas: `'ra'` em `_NIVEIS_AGREGACAO` (§3.3) e um tema de cor
-para Proteção em `_CORES_TEMA_MAPA` (proposta: sequencial `Purples`; `RdPu` já é mortalidade —
+para Proteção em `_CORES_TEMA_MAPA` (proposta: sequencial `OrRd`; `RdPu` já é mortalidade —
 decisão D5).
 
 Uma seção nova **"🛡️ Proteção"** de análise é inserida **antes** da seção final "Análise / Relatório"
@@ -248,11 +249,13 @@ diferente é regressão (exceto metadados/timestamps, tratados caso a caso).
 | D2 | Ano dos mapas de bairro | mãe/pai em 2025; **acumulado 2021-2025 para "outros"** (padrão proposto, não contestado) |
 | D3 / D3b | 2026 excluído das séries de vínculo (decidido). Autoprovocada | **DECIDIDO:** gráfico de barras "antes de 2026 × 2026" (G7) e mapa com **2026 como referência** (M7); texto explica a possível mudança de registro administrativo — **hipótese, a confirmar com a fonte (SMS/Sinan) antes de afirmar como fato** |
 | D4 | Pasta de dados | **DECIDIDO:** renomeada para `dados_locais/protecao/` (feito). **Zip extraído** para `dados_locais/protecao/violencia_familiar/` (7 CSVs commitados; o `.zip` original segue ignorado pelo `.gitignore` `*.zip`) e lido como CSV comum |
-| D5 | Cor do tema Proteção nos mapas/gráficos | `Purples` (`RdPu` = mortalidade, `BuGn` = natalidade, `YlOrBr` = CadÚnico, `Blues` = censo) |
+| D5 | Cor do tema Proteção nos mapas/gráficos | **`OrRd`** (novo tema `protecao`). `Purples` foi descartado: no HTML já é o tema `censo` (`_CMAP_TEMA`), embora em `analise.py` `censo` seja `Blues` — divergência preexistente, registrada para a tarefa de documentação (roadmap item 9). Os dois dicionários (`_CORES_TEMA_MAPA` e `_CMAP_TEMA`) recebem a chave nova |
 | D6 | "Outros" = padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a) soma casos de possíveis mesmas notificações (vínculos não excludentes; a mesma vítima pode ter >1 autor) | Aceitar e **rotular explicitamente** "vínculos não excludentes — soma pode contar uma notificação mais de uma vez"; o mesmo vale para o par mãe/pai (nunca somá-los) |
 | D7 | Orçamento de peso do HTML (~17 MB) para os até 10 mapas novos | Medir; limite proposto +2,5 MB |
 | D8 | Itens redundantes: G3, G8 (top bairros) e M8-M10 (mapas de taxa vs. contagem) | Gerar tudo, avaliar na revisão visual e cortar o redundante (você já sinalizou essa abordagem) |
 | D9 | **Denominador da taxa**: por bairro só há população **0-4** (Censo 2022); o Sinan cobre **0-5** (numerador com 6 idades, denominador com 5) e é de 2025 vs pop. 2022 | (a) padrão: casos 0-5 ÷ pop 0-4, **rotulado "por 1.000 crianças de 0-4 anos (numerador inclui 5 anos)"**, superestima ~20%, mas uniformemente, então o *ranking* entre bairros se preserva; (b) estimar pop 0-5 = 0-4 + 1/5 de 5-9 (mais próximo, porém é estimativa); recomendação: **(a)**, por transparência |
+
+| D10 | Piso de população para taxa de bairro (bairros muito pequenos, ex. Grumari, geram taxas instáveis) — surgiu no `plan.md` | Não suprimir; sinalizar em nota e listar bairros com pop 0-4 < 100 |
 
 ---
 
