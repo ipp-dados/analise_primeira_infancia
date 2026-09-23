@@ -12,7 +12,8 @@ detecta isso.
 - [ ] Seção CadÚnico sem alteração reproduz as 6 tabelas `cadunico_*` versionadas byte a byte (ou com diferença só de float/ordem, justificada).
 
 ## V1 — Totais de referência
-- [ ] `grupo_idade='0-6'`: **194.138 crianças, 173.768 famílias**; `idade` ∈ {0,…,5}.
+- [ ] `grupo_idade='0-6'`: **194.138 crianças, 173.768 famílias**; `idade` ∈ {0,…,5}; `data_nascimento` de 2020-08-12 a 2026-06-05.
+- [x] Definição de idade verificada (2026-09-23): crianças de 6 anos estão no grupo `'7-14'` (idade 6-8, nascidos de 2017-08-13 a 2020-08-11), e a `idade` é calculada em ~2026-08-12, não na partição. Nota no notebook (A3).
 - [ ] Por idade: 0 = 11.328; 1 = 27.357; 2 = 33.116; 3 = 37.838; 4 = 41.312; 5 = 43.187.
 - [ ] Sexo: F 94.778 / M 99.360 crianças; famílias com ≥1: F 89.463 / M 93.769 (não somar).
 - [ ] Composição de sexo exclusiva (só meninas + só meninos + ambos) = 173.768; ambos = 183.232 − 173.768 = **9.464**.
@@ -51,8 +52,8 @@ detecta isso.
 - [ ] Nomes: tabelas `cadunico_*_2026.csv`, gêmea `tabela_mapa_cadunico_recortes_bairro_2026.csv`, mapas `mapa_percentual_cadunico_*_bairro_2026.png`.
 
 ## V6 — Correções A1-A8
-- [ ] A3: nenhum título, legenda ou rótulo publicado diz "0-6" para dados CadÚnico (`grep` no HTML, PDF e notebook). Nomes de arquivo inalterados.
-- [ ] A5 (D8): `cadunico_por_faixa_etaria_2026.csv` removido e nenhum leitor aponta para ele (`grep -r`).
+- [ ] A3 (D7 adiada): títulos existentes **inalterados** (diff). Nota de definição de idade presente no notebook. Saídas novas com "até 6 anos" + nota "0 a 5 anos completos".
+- [ ] A5 (D8): `cadunico_por_faixa_etaria_2026.csv` removido e nenhum leitor aponta para ele (`grep -r`, incluindo `README.md`).
 - [ ] A2 (D6): se aprovada, o mapa % CadÚnico/Censo está ausente do HTML/PDF e presente no notebook com nota corrigida.
 - [ ] A6/A7/A8: notas e rótulos de renda presentes.
 

@@ -7,7 +7,7 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 - [x] **T0.1** — Spec rascunho 1 revisada e D1-D5 aprovadas (usuário, 2026-09-23).
 - [x] **T0.2** — Revisão de sanidade das saídas CadÚnico existentes incorporada à spec (§6).
 - [ ] **T0.3** — Usuário leu `plan.md`, `tasks.md` e `validation.md`.
-- [ ] **T0.4** — D6 (mapa % CadÚnico/Censo fora do HTML/PDF?), D7 ("0 a 5 anos" só em textos?) e D8 (renomear o CSV de renda?) confirmadas.
+- [x] **T0.4** — D6 ✅ (mapa % fora do HTML/PDF), D8 ✅ (renomear; checado que nenhum outro uso precisa do nome antigo), D7 ⏸️ adiada para o roadmap item 6 (auditoria de faixas etárias entre fontes).
 
 ## Bloco 1 — Ambiente e baseline (V0)
 - [ ] **T1.1** — Kernel `analises_env` confirmado (`psycopg` 3.3.4) e cwd na raiz do repo.
@@ -25,9 +25,9 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 ## Bloco 3 — Correções nas saídas existentes
 - [ ] **T3.1** — A1: linha "Sem bairro identificado" + nota reescrita com os números reais.
 - [ ] **T3.2** — A2: nota do mapa % reescrita (causa CEP→bairro, bairros afetados) + nota curta nos 3 mapas CadÚnico.
-- [ ] **T3.3** — A3: "0-6" → "0 a 5 anos" nos títulos e legendas do notebook, nomes de arquivo intocados.
+- [ ] **T3.3** — A3 (D7 adiada): **títulos existentes intocados**. Só a nota markdown com a definição real de idade CadÚnico (nascidos ≥ 2020-08-12, idade em ~2026-08-12, 6 anos no grupo `'7-14'`).
 - [ ] **T3.4** — A4: supressão < 20 nas 2 tabelas por bairro e nas 2 gêmeas de mapa.
-- [ ] **T3.5** — A5: `cadunico_por_faixa_renda_2026.csv` + `git rm` do nome antigo (leitores atualizados nos Blocos 9-10, mesmo PR).
+- [ ] **T3.5** — A5: `cadunico_por_faixa_renda_2026.csv` + `git rm` do nome antigo; `README.md:74` atualizado (leitores nos Blocos 9-10, mesmo PR).
 - [ ] **T3.6** — A6 + A8: notas (famílias por idade não somam, sub-registro no 1º ano, filtro de cadastro).
 - [ ] **T3.7** — A7: rótulos descritivos nos 2 gráficos de renda.
 - [ ] **T3.8** — `fonte_cadunico_particao` nas chamadas corrigidas.
@@ -59,11 +59,11 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 ## Bloco 9 — HTML
 - [ ] **T9.1** — 3 `emite_bloco_pendente` → `option_card`s reais no eixo Inclusão.
 - [ ] **T9.2** — `mapa_svg(rotulo_nan=…)` com default inalterado; tooltip "suprimido (< 20)".
-- [ ] **T9.3** — Bloco CadÚnico existente: A3, A5, A7, D6, fonte com partição.
+- [ ] **T9.3** — Bloco CadÚnico existente: A5, A7, D6, fonte com partição (títulos de idade intocados, D7).
 - [ ] **T9.4** — HTML regenerado; o diff estrutural contra o baseline mostra só as mudanças esperadas.
 
 ## Bloco 10 — PDF e DOCX
-- [ ] **T10.1** — PDF: 3 `pending` → blocos reais; A3, A5, D6 e notas no trecho existente.
+- [ ] **T10.1** — PDF: 3 `pending` → blocos reais; A5, D6 e notas no trecho existente.
 - [ ] **T10.2** — `regen_missing_pngs.py`: leitor renomeado.
 - [ ] **T10.3** — PDF e DOCX regenerados (skill `export_pdf_report`).
 
