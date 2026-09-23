@@ -185,19 +185,32 @@
 - tabela: `sidra_taxa_frequencia_0_6_sexo_2022.csv`
 
 ### Famílias no CadÚnico com crianças até 6 anos, por sexo
-- fonte: Cadastro Único
-- status: pendente
-- nota: Fazer recorte — Léo
+- fonte: Cadastro Único (extração CTPE)
+- visualização: `cadunico_criancas_por_sexo.png`
+- visualização: `cadunico_familias_por_sexo_criancas.png`
+- mapa: `mapa_percentual_cadunico_meninas_bairro_2026.png`
+- tabela: `cadunico_por_sexo_2026.csv`
+- tabela: `tabela_mapa_cadunico_recortes_bairro_2026.csv`
+- nota: sexo da criança; famílias pela composição de sexo das crianças (só meninas / só meninos / ambos); 0 a 5 anos completos; bairros com menos de 20 famílias suprimidos
 
 ### Famílias no CadÚnico com crianças até 6 anos, por raça/cor
-- fonte: Cadastro Único
-- status: pendente
-- nota: Fazer recorte — Léo
+- fonte: Cadastro Único (extração CTPE)
+- visualização: `cadunico_criancas_por_raca_cor.png`
+- visualização: `cadunico_familias_por_raca_cor.png`
+- mapa: `mapa_percentual_cadunico_criancas_negras_bairro_2026.png`
+- tabela: `cadunico_por_raca_cor_2026.csv`
+- tabela: `tabela_mapa_cadunico_recortes_bairro_2026.csv`
+- nota: raça/cor da criança; famílias com ao menos uma criança da categoria (não somam); por bairro só o % de crianças negras (privacidade)
 
 ### Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar
-- fonte: Cadastro Único
-- status: pendente
-- nota: Fazer recorte — Léo
+- fonte: Cadastro Único (extração CTPE)
+- visualização: `cadunico_familias_por_arranjo.png`
+- visualização: `cadunico_familias_arranjo_renda.png`
+- mapa: `mapa_percentual_cadunico_familias_uma_adulta_bairro_2026.png`
+- tabela: `cadunico_familias_por_arranjo_2026.csv`
+- tabela: `cadunico_familias_arranjo_renda_2026.csv`
+- tabela: `tabela_mapa_cadunico_recortes_bairro_2026.csv`
+- nota: arranjo aproximado pela composição do cadastro (adultos de 18+ por sexo), não é o conceito de monoparental do MDS; renda per capita
 
 ### Crianças no CadÚnico com alguma deficiência
 - fonte: Cadastro Único
@@ -221,7 +234,6 @@
 - visualização: `cadunico_criancas_por_idade.png`
 - mapa: `mapa_cadunico_criancas_bairro_2026.png`
 - mapa: `mapa_cadunico_primeira_infancia_bairro_2026.png`
-- mapa: `mapa_percentual_cadunico_primeira_infancia_bairro_2026.png`
 - tabela: `cadunico_por_idade_2026.csv`
 - tabela: `cadunico_por_bairro_2026.csv`
 - tabela: `cadunico_por_bairro_ate_4_2026.csv`

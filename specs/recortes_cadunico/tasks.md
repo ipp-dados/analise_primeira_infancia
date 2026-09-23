@@ -53,8 +53,8 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 - [x] **T7.3** — 3 mapas de taxa (`bins=None`, `cadunico`, fonte + rodapé de supressão e geocodificação).
 
 ## Bloco 8 — Crosswalk
-- [ ] **T8.1** — As 3 entradas de Inclusão preenchidas em `specs/estrutura_eixos.md`.
-- [ ] **T8.2** — Família e Cuidados: CSV renomeado (D8) e mapa % retirado (D6), se aprovados.
+- [x] **T8.1** — As 3 entradas de Inclusão preenchidas em `specs/estrutura_eixos.md`.
+- [x] **T8.2** — Família e Cuidados: CSV renomeado (D8) e mapa % retirado (D6), se aprovados.
 
 ## Bloco 9 — HTML
 - [ ] **T9.1** — 3 `emite_bloco_pendente` → `option_card`s reais no eixo Inclusão.
