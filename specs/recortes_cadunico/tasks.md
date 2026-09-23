@@ -6,14 +6,14 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 ## Bloco 0 — Aprovação e decisões
 - [x] **T0.1** — Spec rascunho 1 revisada e D1-D5 aprovadas (usuário, 2026-09-23).
 - [x] **T0.2** — Revisão de sanidade das saídas CadÚnico existentes incorporada à spec (§6).
-- [ ] **T0.3** — Usuário leu `plan.md`, `tasks.md` e `validation.md`.
+- [x] **T0.3** — Usuário leu `plan.md`, `tasks.md` e `validation.md`.
 - [x] **T0.4** — D6 ✅ (mapa % fora do HTML/PDF), D8 ✅ (renomear; checado que nenhum outro uso precisa do nome antigo), D7 ⏸️ adiada para o roadmap item 6 (auditoria de faixas etárias entre fontes).
 
 ## Bloco 1 — Ambiente e baseline (V0)
-- [ ] **T1.1** — Kernel `analises_env` confirmado (`psycopg` 3.3.4) e cwd na raiz do repo.
-- [ ] **T1.2** — Checksums SHA-256 de `tabelas_finais/`, `visualizacoes/`, `mapas/`, `relatorio/*` salvos no scratchpad.
-- [ ] **T1.3** — Contagens do HTML (`<h2>/<h3>`, cards, mapas SVG, tamanho), páginas do PDF e headings do DOCX.
-- [ ] **T1.4** — Seção CadÚnico rodada sem alteração. As 6 tabelas `cadunico_*` saem idênticas às versionadas (mesma partição). Se não saírem: parar e reportar.
+- [x] **T1.1** — Kernel `analises_env` confirmado (`psycopg` 3.3.4) e cwd na raiz do repo.
+- [x] **T1.2** — Checksums SHA-256 de `tabelas_finais/`, `visualizacoes/`, `mapas/`, `relatorio/*` salvos no scratchpad.
+- [x] **T1.3** — Contagens do HTML (`<h2>/<h3>`, cards, mapas SVG, tamanho), páginas do PDF e headings do DOCX.
+- [x] **T1.4** — Seção CadÚnico rodada sem alteração. As 6 tabelas `cadunico_*` saem idênticas às versionadas (mesma partição). Se não saírem: parar e reportar.
 
 ## Bloco 2 — Funções (topo de `analise.py`)
 - [ ] **T2.1** — `_ROTULOS_RENDA_CADUNICO`, `_ORDEM_RENDA_CADUNICO` e o agrupamento de 3 faixas.
