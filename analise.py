@@ -62,7 +62,7 @@ def convert_numeric_safe(s):
 
 # %%
 def limpa_dados_sisvan(colunas, dataset):
-    path = Path(f"dados_locais\\{dataset}\\")
+    path = Path(f"dados_locais/sisvan/{dataset}/")
     arquivos = [f.name for f in path.iterdir() if f.is_file() and not f.name.startswith('.') and f.name != 'example_file']
 
     colunas_ajustadas = ['ano']
@@ -76,14 +76,14 @@ def limpa_dados_sisvan(colunas, dataset):
     df_final = pd.DataFrame(columns=colunas_ajustadas)
 
     for arquivo in arquivos:
-        df = pd.read_excel(f"dados_locais\\{dataset}\\{arquivo}")
+        df = pd.read_excel(f"dados_locais/sisvan/{dataset}/{arquivo}")
         df_infos = df.iloc[[10],5:]
         df_infos.columns = colunas_ajustadas[1:]
         df_infos['ano'] = arquivo[-9:-5]
         df_final = pd.concat([df_final,df_infos])
     df_final.reset_index(inplace=True, drop=True)
 
-    df_final.to_csv(f"dados_locais\\tratados\\{dataset}.csv")
+    df_final.to_csv(f"dados_locais/tratados/{dataset}.csv")
 
 def limpa_dados_datasus(df):
     df = df.melt(id_vars=['Bairro Residencia'])
@@ -166,7 +166,7 @@ def carrega_cobertura_vacinal(caminho):
     return df[['ano','IMUNO','cobertura']].rename(columns={'IMUNO':'imunobiologico'})
 
 # a planilha TabWin de causas evitáveis por CAP só traz os 8 subgrupos CID (nunca o nível
-# 'grupo' como linha própria, e nunca um terceiro nível 'causa' -- ver SPEC-mortalidade-AP/
+# 'grupo' como linha própria, e nunca um terceiro nível 'causa' -- ver specs/mortalidade-ap/
 # specification.md §2.4); o rótulo bruto de 3 das 8 categorias ('1.2.*') traz um trecho 'ad '
 # redundante que não aparece no texto de subgrupo canônico -- este dicionário normaliza os 8
 # rótulos possíveis para esse texto canônico, usado em toda tabela derivada desta planilha
@@ -287,7 +287,7 @@ def carrega_sidra_longo(caminho, coluna_corte=None):
     """Lê um export longo do IBGE SIDRA (uma linha de município, dimensões em colunas) e
     devolve só as colunas relevantes: idade, `coluna_corte` (raça/sexo, se houver) e valor.
 
-    As tabelas de `dados_locais/IBGE SIDRA/` trazem sempre Rio de Janeiro (código 3304557),
+    As tabelas de `dados_locais/ibge_sidra/` trazem sempre Rio de Janeiro (código 3304557),
     2022, e uma coluna de idade (`Idade` na tabela 9606, `Grupo de idade` nas 10056/10057) --
     normalizada aqui para 'idade'. `Valor == '-'` (0 ocorrências, mesma convenção já usada nos
     arquivos Tabnet do projeto) é convertido para 0."""
@@ -307,7 +307,7 @@ def carrega_sidra_longo(caminho, coluna_corte=None):
 
 # %%
 # Identidade visual compartilhada por todas as funções de visualização desta seção --
-# mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver SPEC-visual-identity).
+# mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver specs/visual-identity).
 
 # paleta categórica de 11 cores -- mesmos hex do motor JS de relatorio/index.html (--c1..--c11),
 # para a mesma série ter a mesma cor no notebook, no PDF e no HTML.
@@ -436,7 +436,7 @@ _NIVEIS_AGREGACAO = {
 
 # geojson oficial das 10 CAPs (Coordenadoria de Área Programática de Saúde, SMS-Rio -- não
 # aninha no geojson de bairros do IPP, que só traz Área/Região de Planejamento), Data.Rio
-# ("Áreas Programáticas da Saúde"); ver SPEC-mortalidade-AP/specification.md §4
+# ("Áreas Programáticas da Saúde"); ver specs/mortalidade-ap/specification.md §4
 _CAMINHO_GEO_CAP = 'dados_locais/geo/limite_ap_saude_rio.geojson'
 
 # de-para RA -> CAP, derivado do cruzamento espacial com o polígono oficial acima (não de
@@ -700,6 +700,16 @@ limpa_dados_sisvan(colunas=['peso_muito_baixo','peso_baixo','peso_adequado','pes
 extrai_planilha_evitaveis_cap('dados_locais/mortalidade/obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx')
 
 # %% [markdown]
+# > **Nota de organização:** as seções abaixo seguem a ordem técnica de
+# > construção dos dados (fonte de dado, na ordem em que cada tabela é
+# > extraída/limpa/agregada) — não a ordem de apresentação final. A
+# > apresentação em `relatorio/index.html`, no PDF e no DOCX de curadoria é
+# > reorganizada por **eixo da política municipal de primeira infância**,
+# > definida em `specs/estrutura_eixos.md` (crosswalk e decisões de projeto em
+# > `specs/ajuste_eixos/specs.md`). Editar esse `.md` e pedir a atualização do
+# > relatório não exige reordenar nenhuma célula deste notebook.
+
+# %% [markdown]
 # ---
 # ## 🧭 Visualização dos Dados (entregáveis dia 12 & 19)
 
@@ -718,7 +728,7 @@ extrai_planilha_evitaveis_cap('dados_locais/mortalidade/obitos_causas_evitaveis_
 
 # %%
 ## dados censo
-df_censo = pd.read_csv("dados_locais\\censo\\pop_censo_2022_datario.csv", encoding='Latin-1', sep=';')
+df_censo = pd.read_csv("dados_locais/censo/pop_censo_2022_datario.csv", encoding='Latin-1', sep=';')
 df_censo.head()
 
 # %%
@@ -736,7 +746,7 @@ df_censo['Percentual 0 a 4'] = (df_censo['0 a 4 anos']/df_censo['Total'])*100
 df_censo['Percentual 5 a 9'] = (df_censo['5 a 9 anos']/df_censo['Total'])*100
 
 # %%
-df_censo[['bairro','codbairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 9']].sort_values(by='0 a 4 anos',ascending=False).to_csv('tabelas_finais\\censo_por_bairro.csv')
+df_censo[['bairro','codbairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Percentual 5 a 9']].sort_values(by='0 a 4 anos',ascending=False).to_csv('tabelas_finais/censo_por_bairro.csv')
 
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
@@ -764,8 +774,8 @@ df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4'
 # há mapa aqui, só tabelas e gráficos comparativos.
 
 # %%
-df_censo_sidra_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Censo//tabela9606_populacao_raca_cor.csv', coluna_corte='Cor ou raça')
-df_censo_sidra_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Censo//tabela9606_populacao_sexo.csv', coluna_corte='Sexo')
+df_censo_sidra_raca = carrega_sidra_longo('dados_locais//ibge_sidra//Censo//tabela9606_populacao_raca_cor.csv', coluna_corte='Cor ou raça')
+df_censo_sidra_sexo = carrega_sidra_longo('dados_locais//ibge_sidra//Censo//tabela9606_populacao_sexo.csv', coluna_corte='Sexo')
 
 fonte_sidra_censo = 'Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)'
 
@@ -811,7 +821,7 @@ grafico_barra_agrupado(
 # dos ventos e escala gráfica. Exportado a 300 DPI, em formato largo.
 
 # %%
-df_mapa_censo = pd.read_csv('tabelas_finais\\censo_por_bairro.csv')
+df_mapa_censo = pd.read_csv('tabelas_finais/censo_por_bairro.csv')
 
 fonte_censo = 'Censo Demográfico 2022 (IBGE/Data.Rio)'
 
@@ -883,9 +893,9 @@ for nivel, info in niveis_planejamento.items():
 # Evolução da população de 0 a 4 anos entre os Censos 2000, 2010 e 2022 (Tabela 2974/IBGE), agregada para o município.
 
 # %%
-df_2000 = pd.read_csv('dados_locais\\censo\\tabela 2974_2000.csv', sep=';')
-df_2010 = pd.read_csv('dados_locais\\censo\\tabela 2974_2010.csv', sep=';')
-df_2022 = pd.read_csv('dados_locais\\censo\\tabela 2974_2022.csv', sep=';')
+df_2000 = pd.read_csv('dados_locais/censo/tabela 2974_2000.csv', sep=';')
+df_2010 = pd.read_csv('dados_locais/censo/tabela 2974_2010.csv', sep=';')
+df_2022 = pd.read_csv('dados_locais/censo/tabela 2974_2022.csv', sep=';')
 
 df_serie_censo = pd.DataFrame()
 
@@ -909,6 +919,8 @@ df_serie_censo['Percentual 0 a 4 anos'] = (
     df_serie_censo['0 a 4 anos'] /
     df_serie_censo['Total']
 ) * 100
+
+df_serie_censo.to_csv('tabelas_finais//censo_0_a_4_anos_por_ano.csv')
 
 # %%
 plt.figure(figsize=(12, 6))
@@ -970,7 +982,7 @@ df_original
 df = df.rename(columns={'id_pessoa':'Crianças','id_familia':'Famílias','grupo_renda_pct':'faixa de renda'})
 
 # %%
-df_bairro = pd.read_csv('dados_locais\\lista_bairros.csv', dtype={'cep': str})
+df_bairro = pd.read_csv('dados_locais/lista_bairros.csv', dtype={'cep': str})
 df['cep'] = df['cep'].astype(str)
 
 # 2. Faz o JOIN (Merge) trazendo apenas a coluna 'bairros' baseada no 'cep'
@@ -985,7 +997,7 @@ df_renda = df.groupby(by='faixa de renda').agg({'Crianças':'count','Famílias':
 df_renda.loc['Total'] = df_renda.sum()
 custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 df_renda = df_renda.reindex(custom_order)
-df_renda.to_csv('tabelas_finais\\cadunico_por_faixa_etaria_2026.csv')
+df_renda.to_csv('tabelas_finais/cadunico_por_faixa_etaria_2026.csv')
 
 # %%
 df_renda.head(10)
@@ -1007,7 +1019,7 @@ grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Crianças',
 #quantitativos por idade
 df #fazer one hot da coluna sexo
 df_idade = df.groupby(by='idade').agg({'Crianças':'count','Famílias':'nunique'})#,'sexo_m':'sum','sexo_f':'sum'})
-df_idade.to_csv('tabelas_finais\\cadunico_por_idade_2026.csv')
+df_idade.to_csv('tabelas_finais/cadunico_por_idade_2026.csv')
 df_idade.head(10)
 
 
@@ -1028,7 +1040,7 @@ df_bairro = df.groupby(by=['bairro']).agg({'Crianças':'count','Famílias':'nuni
 df_bairro.loc['Total'] = df_bairro.sum()
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro.to_csv('tabelas_finais\\cadunico_por_bairro_2026.csv')
+df_bairro.to_csv('tabelas_finais/cadunico_por_bairro_2026.csv')
 
 # %% [markdown]
 # **Nota sobre bairros do CadÚnico sem correspondência oficial:** o CadÚnico geocodifica
@@ -1069,7 +1081,7 @@ df_bairro_ate_4 = df_ate_4.groupby(by=['bairro']).agg({'Crianças':'count','Fam�
 df_bairro_ate_4.loc['Total'] = df_bairro_ate_4.sum()
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro_ate_4.to_csv('tabelas_finais\\cadunico_por_bairro_ate_4_2026.csv')
+df_bairro_ate_4.to_csv('tabelas_finais/cadunico_por_bairro_ate_4_2026.csv')
 # mesma normalização/exclusão de nomes sem correspondência oficial que df_bairro_mapa (nota acima) --
 # sem isso, o merge 'right' abaixo já dropava essas linhas em silêncio (nenhum erro, só sumia o dado)
 df_bairro_ate_4 = df_bairro_ate_4.rename(index=_ALIAS_BAIRRO_CADUNICO).drop(index=_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA, errors='ignore')
@@ -1136,7 +1148,7 @@ mapa_coropletico_bairros(
 
 # %%
 #Nascidos vivos
-df_vivos = pd.read_csv("dados_locais\\mortalidade\\nascidos_vivos_bairros_2006_a_2025.csv")
+df_vivos = pd.read_csv("dados_locais/nascidos_vivos/nascidos_vivos_bairros_2006_a_2025.csv")
 df_vivos = limpa_dados_datasus(df_vivos)
 df_vivos = limpeza_tabnet_bairros(df_vivos,categoria='nascidos vivos')
 df_vivos.head()
@@ -1166,7 +1178,7 @@ df_vivos_por_ano = df_vivos.loc[:,['ano','nascidos vivos']].groupby(by='ano').su
 df_vivos_por_ano.reset_index(inplace=True)
 df_vivos_por_ano.rename({'variable':'ano','value':'nascidos vivos'},axis=1, inplace=True)
 print(df_vivos_por_ano.head(25))
-df_vivos_por_ano.to_csv('tabelas_finais\\nascidos_vivos_por_ano.csv')
+df_vivos_por_ano.to_csv('tabelas_finais/nascidos_vivos_por_ano.csv')
 
 # %%
 serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nascidos vivos por ano',
@@ -1180,7 +1192,7 @@ serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nasc
 
 # %%
 #Nascidos abaixo do peso
-df_baixo_peso = pd.read_csv("dados_locais\\mortalidade\\nascidos_vivos_baixo_peso_ao_nascer_bairros_2006_a_2025.csv")
+df_baixo_peso = pd.read_csv("dados_locais/nascidos_vivos/nascidos_vivos_baixo_peso_ao_nascer_bairros_2006_a_2025.csv")
 df_baixo_peso = limpa_dados_datasus(df_baixo_peso)
 df_baixo_peso = limpeza_tabnet_bairros(df_baixo_peso,categoria='nascidos abaixo peso')
 df_baixo_peso.head()
@@ -1212,7 +1224,7 @@ mapa_coropletico_bairros(
 df_baixo_ano = df_baixo_peso.loc[:,['ano','nascidos abaixo peso']].groupby(by='ano').sum()
 df_baixo_ano.reset_index(inplace=True)
 df_baixo_ano['percentual abaixo do peso'] = (df_baixo_ano['nascidos abaixo peso']/df_vivos_por_ano['nascidos vivos'])*100
-df_baixo_ano.to_csv('tabelas_finais\\nascidos_abaixo_peso_por_ano.csv')
+df_baixo_ano.to_csv('tabelas_finais/nascidos_abaixo_peso_por_ano.csv')
 df_baixo_ano.head(25)
 
 # %%
@@ -1479,14 +1491,14 @@ fonte_evitaveis = 'SIM/SVS-Rio (TabWin), óbitos de residentes no município do 
 # **Versão sem `Não informada`:** já não inclui 1996 (a série só começa em 2011).
 
 # %%
-serie_temporal_multipla(
-    df_percentual_evitaveis_municipio,
-    tempo='ano',
-    colunas={rotulo: f'percentual_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis_sem_nao_informado.items()},
-    titulo='Percentual de óbitos evitáveis (0-364 dias) por raça/cor, sem "não informada" - Rio de Janeiro (2011-2025)',
-    nome_arquivo='percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano',
-    ylabel='Percentual (%)', fonte_dados=fonte_evitaveis,
-)
+# serie_temporal_multipla(
+#     df_percentual_evitaveis_municipio,
+#     tempo='ano',
+#     colunas={rotulo: f'percentual_evitaveis_{raca}' for rotulo, raca in rotulos_raca_evitaveis_sem_nao_informado.items()},
+#     titulo='Percentual de óbitos evitáveis (0-364 dias) por raça/cor, sem "não informada" - Rio de Janeiro (2011-2025)',
+#     nome_arquivo='percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano',
+#     ylabel='Percentual (%)', fonte_dados=fonte_evitaveis,
+# )
 
 # %% [markdown]
 # ##### Óbitos por causas evitáveis, por grupo de causa (CID-10)
@@ -2020,7 +2032,7 @@ for sufixo, info in faixas_primeira_infancia.items():
 # Óbitos maternos durante a gravidez e o puerpério, por bairro de residência (2006-2025).
 
 # %%
-df_obitos_gravidez = pd.read_csv('dados_locais\\mortalidade\\obitos_gravidez_bairro_2006_2025.csv')
+df_obitos_gravidez = pd.read_csv('dados_locais/mortalidade/obitos_gravidez_bairro_2006_2025.csv')
 df_obitos_gravidez = limpa_dados_datasus(df_obitos_gravidez)
 df_obitos_gravidez = limpeza_tabnet_bairros(df_obitos_gravidez,categoria='óbitos-gravidez')
 df_obitos_gravidez.to_csv('tabelas_finais//obitos_gravidez_bairro_ano.csv', index=False)
@@ -2055,7 +2067,7 @@ df_obitos_gravidez_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_gravidez_2025
 # )
 
 # %%
-df_obitos_puerperio = pd.read_csv('dados_locais\\mortalidade\\obitos_puerperio_bairro_2006_2025.csv')
+df_obitos_puerperio = pd.read_csv('dados_locais/mortalidade/obitos_puerperio_bairro_2006_2025.csv')
 df_obitos_puerperio = limpa_dados_datasus(df_obitos_puerperio)
 df_obitos_puerperio = limpeza_tabnet_bairros(df_obitos_puerperio,categoria='óbitos-puerpério')
 df_obitos_puerperio.to_csv('tabelas_finais//obitos_puerperio_bairro_ano.csv', index=False)
@@ -2231,7 +2243,7 @@ mapa_coropletico_bairros(
 # %%
 anos_infantil = list(range(2006, 2026))
 
-df_nascidos_total = carrega_raca_bairro('dados_locais//mortalidade//nascidos_vivos_bairros_2006_a_2025.csv', categoria='nascidos_vivos', anos_validos=anos_infantil, sep=',')
+df_nascidos_total = carrega_raca_bairro('dados_locais//nascidos_vivos//nascidos_vivos_bairros_2006_a_2025.csv', categoria='nascidos_vivos', anos_validos=anos_infantil, sep=',')
 df_obitos_0_364_total = carrega_raca_bairro('dados_locais//mortalidade//obitos_0_364_dias_bairro_2006_2025.csv', categoria='obitos_0_364', anos_validos=anos_infantil)
 df_obitos_0_6_total = carrega_raca_bairro('dados_locais//mortalidade//obitos_0_6_dias_bairro_2006_2025.csv', categoria='obitos_0_6', anos_validos=anos_infantil)
 df_obitos_7_27_total = carrega_raca_bairro('dados_locais//mortalidade//obitos_7_27_dias_bairro_2006_2025.csv', categoria='obitos_7_27', anos_validos=anos_infantil)
@@ -2326,26 +2338,26 @@ df_mortalidade_infantil_mapa.to_csv('tabelas_finais//tabela_mapa_mortalidade_inf
 # %%
 fonte_sisvan = 'SISVAN/DATASUS'
 
-df_desnutricao = pd.read_csv(r"dados_locais\tratados\desnutrição.csv", index_col=0)
+df_desnutricao = pd.read_csv("dados_locais/tratados/desnutrição.csv", index_col=0)
 df_desnutricao.tail()
 
 # %%
 df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
-df_desnutricao.to_csv('tabelas_finais\\sisvan_desnutricao_por_ano.csv')
+df_desnutricao.to_csv('tabelas_finais/sisvan_desnutricao_por_ano.csv')
 serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual de crianças de 0 a 6 anos com baixo peso - SISVAN',
                nome_arquivo='sisvan_desnutricao_percentual_por_ano', fonte_dados=fonte_sisvan)
 
 # %%
-df_sobrepeso = pd.read_csv(r"dados_locais\tratados\sobrepeso.csv", index_col=0)
+df_sobrepeso = pd.read_csv("dados_locais/tratados/sobrepeso.csv", index_col=0)
 df_sobrepeso.head()
 
 # %%
 df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
-df_sobrepeso.to_csv('tabelas_finais\\sisvan_sobrepeso_por_ano.csv')
+df_sobrepeso.to_csv('tabelas_finais/sisvan_sobrepeso_por_ano.csv')
 serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual de crianças de 0 a 6 anos com sobrepeso e obesidade - SISVAN',
                nome_arquivo='sisvan_sobrepeso_percentual_por_ano', fonte_dados=fonte_sisvan)
 
@@ -2430,10 +2442,10 @@ grafico_barra_agrupado(
 # %%
 fonte_sidra_educacao = 'Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)'
 
-df_sidra_freq_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_raca_cor.csv', coluna_corte='Cor ou raça')
-df_sidra_freq_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_sexo.csv', coluna_corte='Sexo')
-df_sidra_taxa_raca = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_raca_cor.csv', coluna_corte='Cor ou raça')
-df_sidra_taxa_sexo = carrega_sidra_longo('dados_locais//IBGE SIDRA//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_sexo.csv', coluna_corte='Sexo')
+df_sidra_freq_raca = carrega_sidra_longo('dados_locais//ibge_sidra//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_raca_cor.csv', coluna_corte='Cor ou raça')
+df_sidra_freq_sexo = carrega_sidra_longo('dados_locais//ibge_sidra//Educacao_freq_escolar_ate5//tabela10057_frequencia_escola_sexo.csv', coluna_corte='Sexo')
+df_sidra_taxa_raca = carrega_sidra_longo('dados_locais//ibge_sidra//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_raca_cor.csv', coluna_corte='Cor ou raça')
+df_sidra_taxa_sexo = carrega_sidra_longo('dados_locais//ibge_sidra//Educacao_freq_escolar_ate6//tabela10056_taxa_frequencia_sexo.csv', coluna_corte='Sexo')
 
 df_sidra_freq_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//sidra_frequencia_escola_0_5_raca_2022.csv')
 df_sidra_freq_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//sidra_frequencia_escola_0_5_sexo_2022.csv')
@@ -2545,6 +2557,12 @@ df_final.head()
 # %% [markdown]
 # ---
 # ## 📝 Análise / Relatório
+#
+# *(Pendente)* Síntese narrativa dos achados, organizada pelos 6 eixos ativos
+# da política municipal de primeira infância (`specs/estrutura_eixos.md`,
+# `specs/ajuste_eixos/specs.md`) — substitui os 5 subtítulos antigos por
+# fonte de dado (Demografia e População, Assistência Social, Educação,
+# Saúde, Proteção).
 
 # %% [markdown]
 # ### Análise dos resultados
@@ -2774,7 +2792,7 @@ df_final.head()
 ###
 
 # %% [markdown]
-# ### Demografia e População
+# ### 🎯 Prioridade (sem secundário)
 
 # %%
 #### Resumo dos achados
@@ -2791,13 +2809,16 @@ df_final.head()
 #### Dimensão geográfica
 
 # %% [markdown]
-# ### Assistência Social
+# ### 🤝 Inclusão
 
 # %% [markdown]
-# ### Educação
+# ### 👨‍👩‍👧 Família e Cuidados
 
 # %% [markdown]
-# ### Saúde
+# ### 🛡️ Proteção
 
 # %% [markdown]
-# ### Proteção
+# ### 🍽️ Alimentação
+
+# %% [markdown]
+# ### 🏠 Moradia
