@@ -585,12 +585,81 @@ emit_map_gallery(MAP_GROUPS_FAMILIA)
 # 4. Proteção
 # =====================================================================
 add(h2('\U0001F6E1️ Proteção'))
-add(h3('\U0001F6A7 Indicadores catalogados'))
-add(pending("Violência territorial", 'dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório — ver `specs/roadmap.md`, "Educação e Violência")'))
-add(pending("Violência familiar (menores de 1 ano, 1 a 5 anos)", "dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)"))
-add(pending("Notificações de violência interpessoal/autoprovocada (menores de 1 ano, 1 a 5 anos)", "dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)"))
-add(pending("Taxa de notificações de violência (0 a 6 anos)", "dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)"))
-add(pending("Crianças que sofrem violência, por tipificação (sexo e idade)", "dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)"))
+
+# ---- Violência territorial (Data.Rio/IPS) ---------------------------------
+add(h3('Violência territorial (Data.Rio/IPS, 2024)'))
+add(note('<b>Nota metodológica.</b> Um único ano (2024) e todas as idades — não é específico de 0 a 6 anos e não forma série (por isso barras, não linha). '
+         'Nível Região Administrativa; a RA XXI Paquetá não tem dado no IPS. A linha tracejada é a referência do município.'))
+for _png, _stem in [("violencia_territorial_homicidios_ra_2024.png", "Taxa de homicídios"),
+                    ("violencia_territorial_homicidios_acao_policial_ra_2024.png", "Homicídios por ação policial"),
+                    ("violencia_territorial_homicidios_jovens_negros_ra_2024.png", "Homicídios de jovens negros")]:
+    add(h4(_stem))
+    add(chart_block(_png, "violencia_territorial_por_ra_2024.csv"))
+    add(p(_texto_analise(Path(_png).stem)))
+_terr = read("violencia_territorial_por_ra_2024.csv")
+add(registra_tabela("Violência territorial por Região Administrativa (IPS, 2024)", table_html(
+    _terr[["regiao_adm", "taxa_homicidios", "homicidios_acao_policial", "homicidios_jovens_negros"]],
+    dec=1, rename={"regiao_adm": "Região Administrativa", "taxa_homicidios": "Taxa de homicídios",
+                   "homicidios_acao_policial": "Homicídios por ação policial", "homicidios_jovens_negros": "Homicídios de jovens negros"})))
+
+# ---- Violência familiar (Sinan) --------------------------------------------
+add(h3('Violência familiar (0 a 5 anos, Sinan)'))
+add(note('<b>Nota metodológica.</b> Faixa 0 a 5 anos agregada (o recorte menor de 1 ano × 1 a 5 anos está pendente). Os vínculos do provável autor <b>não são excludentes</b> '
+         'e não existe "total de violência familiar": nunca somar mãe + pai; "outros" (padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a)) pode contar a mesma notificação mais de uma vez. '
+         'Possível quebra de série em 2017 (salto de 600 para 1.514 notificações de mãe) — hipótese de mudança de ficha/notificação, a confirmar com a fonte. '
+         '2026 é ano parcial e fica fora da série. Contagem absoluta não é risco.'))
+add(chart_block("violencia_familiar_serie_vinculos.png", "violencia_familiar_por_vinculo_ano.csv"))
+add(p(_texto_analise("violencia_familiar_serie_vinculos")))
+add(registra_tabela("Violência familiar por vínculo e ano (município)", table_html(read("violencia_familiar_por_vinculo_ano.csv")[["ano", "mae", "pai", "padrasto", "irmao", "conjuge", "exconjuge", "filho", "outros"]],
+    rename={"ano": "Ano", "mae": "Mãe", "pai": "Pai", "padrasto": "Padrasto", "irmao": "Irmão(ã)", "conjuge": "Cônjuge", "exconjuge": "Ex-cônjuge", "filho": "Filho(a)", "outros": "Outros (soma)"})))
+add(h4('Composição de "outros"'))
+add(chart_block("violencia_familiar_outros_serie.png", "violencia_familiar_outros_detalhe.csv"))
+add(p(_texto_analise("violencia_familiar_outros_serie")))
+add(h4('Dez bairros com mais notificações (2025)'))
+add(chart_block("violencia_familiar_top_bairros_2025.png", "violencia_familiar_top_bairros_2025.csv"))
+add(p(_texto_analise("violencia_familiar_top_bairros_2025")))
+add(h4('Mapas por bairro'))
+emit_map_gallery([
+    ("Notificações por bairro", [
+        ("mapa_violencia_familiar_mae_bairro_2025.png", "Notificações de violência familiar por bairro — mãe (2025)"),
+        ("mapa_violencia_familiar_pai_bairro_2025.png", "Notificações de violência familiar por bairro — pai (2025)"),
+        ("mapa_violencia_familiar_outros_bairro_2021_2025.png", "Notificações de violência familiar por bairro — outros vínculos (2021-2025, acumulado)"),
+    ]),
+])
+_cols_ra = {"mae": "Mãe", "pai": "Pai", "outros": "Outros", "pop_0_4": "Crianças 0-4", "taxa_por_mil_mae": "Taxa mãe /1.000",
+            "taxa_por_mil_pai": "Taxa pai /1.000", "taxa_por_mil_outros": "Taxa outros /1.000"}
+_vf_cap = read("violencia_familiar_por_cap.csv"); _vf_cap = _vf_cap[_vf_cap["ano"] == 2025]
+_vf_ra = read("violencia_familiar_por_ra.csv"); _vf_ra = _vf_ra[_vf_ra["ano"] == 2025]
+add(registra_tabela("Violência familiar por CAP (2025), com taxa por 1.000 crianças de 0 a 4 anos",
+                    table_html(_vf_cap[["cod_ap_sms"] + list(_cols_ra)], dec=1, rename={"cod_ap_sms": "CAP", **_cols_ra})))
+add(registra_tabela("Violência familiar por Região Administrativa (2025), com taxa por 1.000 crianças de 0 a 4 anos",
+                    table_html(_vf_ra[["regiao_adm"] + list(_cols_ra)], dec=1, rename={"regiao_adm": "Região Administrativa", **_cols_ra})))
+
+# ---- Notificações de lesão autoprovocada -----------------------------------
+add(h3('Notificações de violência interpessoal/autoprovocada (0 a 5 anos, Sinan)'))
+add(note('<b>Nota metodológica.</b> Parcial: o arquivo cobre apenas lesão autoprovocada (a violência interpessoal total e o recorte menor de 1 ano × 1 a 5 anos estão pendentes). '
+         'Série muito esparsa: 40 notificações em 2018-2026, 33 delas em 2026 (ano parcial, usado aqui como referência). O salto em 2026 pode refletir mudança de registro administrativo — '
+         'hipótese, a confirmar com a fonte (SMS/Sinan).'))
+add(chart_block("notif_autoprovocada_antes_2026_vs_2026.png", "notif_autoprovocada_por_bairro_ano.csv"))
+add(p(_texto_analise("notif_autoprovocada_antes_2026_vs_2026")))
+emit_map_gallery([("Lesão autoprovocada, por bairro", [
+    ("mapa_notif_autoprovocada_bairro_2026.png", "Lesão autoprovocada notificada por bairro (2026, ano parcial)")])])
+
+# ---- Taxa de notificações ---------------------------------------------------
+add(h3('Taxa de notificações de violência (por 1.000 crianças)'))
+add(note('<b>Nota metodológica.</b> Ressalva de denominador: numerador com crianças de 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022) — a taxa superestima ~20%, '
+         'de forma uniforme, então o ranking entre bairros se preserva. "Outros" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: '
+         'a escala de cor é limitada ao percentil 95 (a tabela guarda o valor real).'))
+emit_map_gallery([("Taxa por 1.000 crianças de 0 a 4 anos", [
+    ("mapa_violencia_familiar_mae_taxa_bairro_2025.png", "Notificações de violência (mãe) por 1.000 crianças de 0 a 4 anos (2025)"),
+    ("mapa_violencia_familiar_pai_taxa_bairro_2025.png", "Notificações de violência (pai) por 1.000 crianças de 0 a 4 anos (2025)"),
+    ("mapa_violencia_familiar_outros_taxa_bairro_2021_2025.png", "Notificações de violência (outros vínculos) por 1.000 crianças de 0 a 4 anos (2021-2025)"),
+])])
+add(h4('Dez maiores taxas (2025, bairros com 100 ou mais crianças de 0 a 4 anos)'))
+add(chart_block("violencia_familiar_taxa_top_bairros_2025.png", "violencia_familiar_taxa_top_bairros_2025.csv"))
+add(p(_texto_analise("violencia_familiar_taxa_top_bairros_2025")))
+
+add(pending("Crianças que sofrem violência, por tipificação (sexo e idade)", "dado ainda não extraído do Tabnet municipal"))
 
 # =====================================================================
 # 5. Alimentação
@@ -632,7 +701,6 @@ add(h2('\U0001F3E0 Moradia'))
 add(h3('\U0001F6A7 Indicadores catalogados'))
 add(pending("Crianças no CadÚnico em domicílios com inadequação habitacional", "Posterior"))
 add(pending("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)", "Posterior"))
-add(pending("Territórios com risco a inundação e/ou movimento de massa", 'Posterior (Eixo/fonte de dado do catálogo é "Proteção", mas a Política Municipal Prioritária é "Moradia" — entra só aqui, por specs/ajuste_eixos/specs.md §9.2/§4.3)'))
 add(pending("Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)", "Posterior (apenas cad)"))
 
 # =====================================================================
