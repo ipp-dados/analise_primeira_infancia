@@ -33,24 +33,24 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 - [x] **T3.8** — `fonte_cadunico_particao` nas chamadas corrigidas.
 
 ## Bloco 4 — R1 sexo
-- [ ] **T4.1** — `df_familias` carregado uma vez (Blocos 4-7).
-- [ ] **T4.2** — `cadunico_por_sexo_2026.csv` (crianças por sexo + famílias por composição, Σ = 173.768).
-- [ ] **T4.3** — `cadunico_criancas_por_sexo.png`, `cadunico_familias_por_sexo_criancas.png`.
+- [x] **T4.1** — `df_familias` carregado uma vez (Blocos 4-7).
+- [x] **T4.2** — `cadunico_por_sexo_2026.csv` (crianças por sexo + famílias por composição, Σ = 173.768).
+- [x] **T4.3** — `cadunico_criancas_por_sexo.png`, `cadunico_familias_por_sexo_criancas.png`.
 
 ## Bloco 5 — R2 raça/cor
-- [ ] **T5.1** — `cadunico_por_raca_cor_2026.csv` (5 categorias + "Negra"; famílias não exclusivas, com nota).
-- [ ] **T5.2** — `cadunico_criancas_por_raca_cor.png`, `cadunico_familias_por_raca_cor.png`.
+- [x] **T5.1** — `cadunico_por_raca_cor_2026.csv` (5 categorias + "Negra"; famílias não exclusivas, com nota).
+- [x] **T5.2** — `cadunico_criancas_por_raca_cor.png`, `cadunico_familias_por_raca_cor.png`.
 
 ## Bloco 6 — R3 arranjo × renda
-- [ ] **T6.1** — `cadunico_familias_por_arranjo_2026.csv`.
-- [ ] **T6.2** — `cadunico_familias_arranjo_renda_2026.csv` (3 faixas, contagem e %, supressão < 20).
-- [ ] **T6.3** — `cadunico_familias_por_arranjo.png`, `cadunico_familias_arranjo_renda.png`.
-- [ ] **T6.4** — Célula markdown com a nota metodológica + inspeção agregada das famílias sem adulto.
+- [x] **T6.1** — `cadunico_familias_por_arranjo_2026.csv`.
+- [x] **T6.2** — `cadunico_familias_arranjo_renda_2026.csv` (3 faixas, contagem e %, supressão < 20).
+- [x] **T6.3** — `cadunico_familias_por_arranjo.png`, `cadunico_familias_arranjo_renda.png`.
+- [x] **T6.4** — Célula markdown com a nota metodológica + inspeção agregada das famílias sem adulto.
 
 ## Bloco 7 — Mapas por bairro
-- [ ] **T7.1** — Tabela por bairro (join por `codbairro` via `junta_codbairro_por_bairro`), 3 taxas recalculadas de absolutos.
-- [ ] **T7.2** — Supressão < 20 → `tabela_mapa_cadunico_recortes_bairro_2026.csv`.
-- [ ] **T7.3** — 3 mapas de taxa (`bins=None`, `cadunico`, fonte + rodapé de supressão e geocodificação).
+- [x] **T7.1** — Tabela por bairro (join por `codbairro` via `junta_codbairro_por_bairro`), 3 taxas recalculadas de absolutos.
+- [x] **T7.2** — Supressão < 20 → `tabela_mapa_cadunico_recortes_bairro_2026.csv`.
+- [x] **T7.3** — 3 mapas de taxa (`bins=None`, `cadunico`, fonte + rodapé de supressão e geocodificação).
 
 ## Bloco 8 — Crosswalk
 - [ ] **T8.1** — As 3 entradas de Inclusão preenchidas em `specs/estrutura_eixos.md`.
