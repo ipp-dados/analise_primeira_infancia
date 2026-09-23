@@ -45,16 +45,19 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
    **corrigir os demais problemas** de denominador/cobertura que aparecerem
    (a levantar ao abrir a spec, começando pela lista de ressalvas D9 e pelas
    taxas por bairro que hoje usam o Censo 2022 como referência).
-7. **Extrair novos recortes do CadÚnico** — levantar e extrair recortes
+7. (FIX). **Corrigir `nascidos_vivos_bairro_mae`: faltam mapas e visualizações de percentual.**
+  A série por bairro/mãe não gera mapas coropléticos nem gráficos em % (só contagens, se tanto).
+  Diagnosticar primeiro (não sei a causa: não abri esse trecho de `analise.py`). Depois seguir
+8. **Extrair novos recortes do CadÚnico** — levantar e extrair recortes
    adicionais além dos já usados em `analise.py` (`tabelas_finais/cadunico_*`:
    por bairro, faixa etária, idade, faixa de renda), a definir ao abrir a
    spec (candidatos: indicadores do catálogo com fonte CadÚnico ainda
    pendentes em `specs/estrutura_eixos.md`, ex. Moradia). Requer `.env`
    com acesso ao banco (`connect_db_ctpe`).
-8. **Outros dados faltantes** — levantar e importar bases pendentes além de
+9. **Outros dados faltantes** — levantar e importar bases pendentes além de
    violência (a detalhar; nenhuma listada formalmente ainda além dos itens
    de Matrículas/Mortalidade abaixo).
-9. **Atualizar a documentação do projeto** — revisar e alinhar `CLAUDE.md`,
+10. **Atualizar a documentação do projeto** — revisar e alinhar `CLAUDE.md`,
    `README.md`, `CHANGELOG.md`, `specs/tech-stack.md`, `specs/constitution.md`,
    `relatorio/specs.md` e os `SKILL.md` (`generate_map`, `export_pdf_report`)
    ao estado real após `inclusao_dados_protecao` (nível geográfico `ra`,
