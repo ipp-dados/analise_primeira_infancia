@@ -517,8 +517,8 @@ add(note('<b>Nota:</b> requer conexão ativa com o banco CTPE (credenciais em <c
 
 add(h4('Análise por renda'))
 add('<div class="out-pair">')
-add(chart_block("cadunico_familias_por_faixa_renda.png", "cadunico_por_faixa_etaria_2026.csv"))
-add(chart_block("cadunico_criancas_por_faixa_renda.png", "cadunico_por_faixa_etaria_2026.csv"))
+add(chart_block("cadunico_familias_por_faixa_renda.png", "cadunico_por_faixa_renda_2026.csv"))
+add(chart_block("cadunico_criancas_por_faixa_renda.png", "cadunico_por_faixa_renda_2026.csv"))
 add('</div>')
 # Par compartilha uma unica tabela no apendice (registra_tabela chamado uma
 # vez abaixo) -- por isso tambem compartilha UM bloco de texto, com seed
@@ -526,7 +526,7 @@ add('</div>')
 # PDF-only: nao existe um bookmark equivalente no DOCX de curadoria (que
 # ainda trata os dois arquivos separadamente), so este texto combinado.
 add(p(_texto_analise("cadunico_familias_por_faixa_renda_cadunico_criancas_por_faixa_renda")))
-add(registra_tabela("CadÚnico por faixa de renda", table_html(read("cadunico_por_faixa_etaria_2026.csv"), rename={"faixa de renda": "Faixa de renda"})))
+add(registra_tabela("CadÚnico por faixa de renda", table_html(read("cadunico_por_faixa_renda_2026.csv"), rename={"faixa de renda": "Faixa de renda"})))
 
 add(h4('Análise por idade'))
 add('<div class="out-pair">')
