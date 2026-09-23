@@ -61,14 +61,27 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 7. (FIX). **Corrigir `nascidos_vivos_bairro_mae`: faltam mapas e visualizações de percentual.**
   A série por bairro/mãe não gera mapas coropléticos nem gráficos em % (só contagens, se tanto).
   Diagnosticar primeiro (não sei a causa: não abri esse trecho de `analise.py`). Depois seguir
-8. **Extrair novos recortes do CadÚnico** — em planejamento:
-   `specs/recortes_cadunico` (branch `spec/recortes_cadunico`), 1ª leva =
-   sexo, raça/cor, renda × arranjo familiar (eixo Inclusão). Levantar e extrair recortes
+8. **Extrair novos recortes do CadÚnico** — ✅ 1ª leva concluída:
+   `specs/recortes_cadunico` (branch `spec/recortes_cadunico`): sexo, raça/cor,
+   renda × arranjo familiar (eixo Inclusão), supressão < 20 e correções nas
+   saídas CadÚnico existentes. Pendências dessa rodada viraram os itens 8a-8c
+   abaixo. Texto original do item: levantar e extrair recortes
    adicionais além dos já usados em `analise.py` (`tabelas_finais/cadunico_*`:
    por bairro, faixa etária, idade, faixa de renda), a definir ao abrir a
    spec (candidatos: indicadores do catálogo com fonte CadÚnico ainda
    pendentes em `specs/estrutura_eixos.md`, ex. Moradia). Requer `.env`
    com acesso ao banco (`connect_db_ctpe`).
+   - **8a. Geocodificação CadÚnico por bairro oficial** (F1 de `recortes_cadunico`):
+     o bairro vem do CEP dos Correios (`lista_bairros.csv`), que deixa 8,1% das
+     crianças sem bairro e desloca bairros-favela para os vizinhos (Maré →
+     Bonsucesso, Rocinha → Gávea; Vila Kennedy/Jabour/Gericinó/Ilha de Guaratiba/
+     Lapa ausentes). Refazer por join espacial ou código de bairro do CTPE; só
+     então o mapa "% CadÚnico/Censo" pode voltar ao relatório.
+   - **8b. Pedido ao CTPE** (F2): extração com parentesco/responsável familiar
+     (arranjo real), deficiência (3 itens de Inclusão) e características do
+     domicílio (2 itens de Moradia).
+   - **8c. Filtro de cadastro da silver** (F3): confirmar com o CTPE se
+     `silver_cadunico_geral` já exclui cadastros inativos/desatualizados.
 9. **Outros dados faltantes** — levantar e importar bases pendentes além de
    violência (a detalhar; nenhuma listada formalmente ainda além dos itens
    de Matrículas/Mortalidade abaixo).
