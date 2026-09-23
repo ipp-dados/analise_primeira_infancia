@@ -1,8 +1,18 @@
 # Especificação — Novos recortes do CadÚnico (`specs/recortes_cadunico`)
 
 Branch: `spec/recortes_cadunico` (a partir de `planning`)
-Status: **rascunho 3**. D1-D6 e D8 aprovadas pelo usuário em 2026-09-23. D7 adiada para a
-auditoria de faixas etárias do roadmap item 6 (§8). Nenhum código escrito.
+Status: **implementado** (2026-09-23, Blocos 1-12; ver `tasks.md`/`validation.md`). D1-D6 e D8 aprovadas
+pelo usuário; D7 adiada para a auditoria de faixas etárias do roadmap item 6 (§8). Abertos: revisão visual
+com o usuário (T12.3), limiar na constitution (T11.4, só com ok), merge (T12.4).
+
+> **Desvios registrados na implementação:** (1) A4: os PNG dos mapas de contagem **também** passaram a ser
+> desenhados a partir da tabela suprimida, não só a gêmea CSV, para o PNG e o HTML mostrarem os mesmos bairros
+> sem cor (o plano previa o PNG inalterado); (2) os Blocos 4-7 viraram um commit só, porque foram testados
+> juntos (mesma carga do banco); (3) `regen_missing_pngs.py` só regenera os 4 PNG CadÚnico se estiverem
+> faltando, porque a cópia de `grafico_barra` dele não tem os rótulos de renda nem o rodapé de fonte; (4) a nova
+> tabela `cadunico_por_faixa_renda_2026.csv` e as saídas novas **não são versionadas**: `.gitignore` ignora
+> `tabelas_finais/`, `mapas/` e `visualizacoes/` desde 2026-09-22, e só os arquivos já rastreados antes seguem
+> no git. O aviso da constitution §3 sobre regras comentadas está desatualizado.
 Roadmap: item 8 de `specs/roadmap.md` (itens 6 e 7 ficam para a rodada seguinte).
 Desdobramento: `plan.md` (blocos), `tasks.md` (checklist), `validation.md` (critérios).
 

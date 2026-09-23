@@ -74,7 +74,7 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 - [ ] **T11.4** — `specs/constitution.md` §6: limiar 20. **Só com ok explícito do usuário.**
 
 ## Bloco 12 — Validação e revisão
-- [ ] **T12.1** — Notebook do zero, top-to-bottom, no `analises_env`, sem erro.
-- [ ] **T12.2** — `validation.md` V1-V8 com evidência.
+- [x] **T12.1** — Notebook do zero, top-to-bottom, no `analises_env`, sem erro.
+- [x] **T12.2** — `validation.md` V1-V8 com evidência.
 - [ ] **T12.3** — Revisão visual com o usuário (candidato a corte: mapa % meninas).
 - [ ] **T12.4** — Merge em `planning` só depois do ok do usuário. Deploy no Pages fica fora desta rodada.
