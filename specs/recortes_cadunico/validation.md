@@ -8,8 +8,8 @@ detecta isso.
 ## V0 — Ambiente e baseline
 - [x] Conexão via `.env` ok: 5 chaves presentes, PostgreSQL 15.12, schema `ctpe`, UTF8. *(abertura da rodada)*
 - [x] Python base do Anaconda sem `psycopg` 3 → usar `analises_env` (`psycopg 3.3.4`, `geopandas 1.1.4`). *(abertura)*
-- [ ] Checksums de `tabelas_finais/`, `visualizacoes/`, `mapas/` e `relatorio/*` gravados, com as contagens do HTML, PDF e DOCX.
-- [ ] Seção CadÚnico sem alteração reproduz as 6 tabelas `cadunico_*` versionadas byte a byte (ou com diferença só de float/ordem, justificada).
+- [x] Checksums de `tabelas_finais/`, `visualizacoes/`, `mapas/` e `relatorio/*` gravados, com as contagens do HTML, PDF e DOCX. *(2026-09-23: 180 arquivos em `scratchpad/baseline/sha256.txt`; HTML 20.331.573 bytes, 7 `<h2`, 24 `<h3`, 65 `map-svg-card`; PDF 44,3 MB; DOCX 5,7 MB)*
+- [x] Seção CadÚnico sem alteração reproduz as 6 tabelas `cadunico_*` versionadas byte a byte (ou com diferença só de float/ordem, justificada). *(2026-09-23: `analise.py` linhas 1-1369 no `analises_env`, **6/6 idênticas** (`cmp`). Efeito colateral fora do escopo: `dados_locais/tratados/{sobrepeso,desnutrição}.csv` mudam de **ordem de linhas** a cada execução, porque `limpa_dados_sisvan` usa `Path.iterdir()`, cuja ordem depende do SO. Nenhum valor muda, e os arquivos foram restaurados. Os PNG também mudam de bytes ao ser re-renderizados, sem mudança visual.)*
 
 ## V1 — Totais de referência
 - [ ] `grupo_idade='0-6'`: **194.138 crianças, 173.768 famílias**; `idade` ∈ {0,…,5}; `data_nascimento` de 2020-08-12 a 2026-06-05.
