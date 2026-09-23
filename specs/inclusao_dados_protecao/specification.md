@@ -28,7 +28,7 @@ Fora de escopo: itens do catálogo sem dado fornecido (tipificação, recortes <
 
 | Fonte | Arquivo | Nível | Período | Natureza |
 |---|---|---|---|---|
-| Sinan NET / Tabnet | `Violência Familiar.zip` (7 CSVs por vínculo) | bairro de residência | 2011-2026 | contagem absoluta, 0-5 anos |
+| Sinan NET / Tabnet | `violencia_familiar/` (7 CSVs por vínculo, extraídos do zip original) | bairro de residência | 2011-2026 | contagem absoluta, 0-5 anos |
 | Sinan NET / Tabnet | `notif_viol_ interpes_ autoprovocada_...csv` | bairro de residência | 2018-2026 | contagem absoluta; **só lesão autoprovocada** (40 casos, 33 em 2026 — 2026 é o ano de referência **desta** série, D3b) |
 | Data.Rio / IPS 2024 | `violencia_territorial.xlsx` | **Região Administrativa (RA)** | 2024 | 3 taxas, todas as idades |
 
@@ -92,8 +92,8 @@ Toda lógica reutilizável vai lá; as seções de análise só chamam. Nomes se
 
 | Função | Faz |
 |---|---|
-| `carrega_sinan_bairro(origem, categoria, anos_validos)` | Lê 1 export Sinan (CSV solto **ou** membro do zip, latin-1, 6 linhas de metadados), formato largo → longo, remove `Total`, separa `codigo`/`bairro`, **reindexa numa grade bairro × ano completa preenchendo 0** (colunas de ano esparsas) — mesma ideia de `carrega_raca_bairro` |
-| `carrega_violencia_familiar(caminho_zip, anos_validos)` | Chama a anterior para os 7 vínculos e devolve um único longo (`vinculo`, `codigo`, `bairro`, `ano`, `casos`); agrupa `outros` = padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a) (ver D6 sobre dupla contagem) |
+| `carrega_sinan_bairro(origem, categoria, anos_validos)` | Lê 1 export Sinan (CSV, latin-1, 6 linhas de metadados), formato largo → longo, remove `Total`, separa `codigo`/`bairro`, **reindexa numa grade bairro × ano completa preenchendo 0** (colunas de ano esparsas) — mesma ideia de `carrega_raca_bairro` |
+| `carrega_violencia_familiar(pasta, anos_validos)` | Chama a anterior para os 7 vínculos e devolve um único longo (`vinculo`, `codigo`, `bairro`, `ano`, `casos`); agrupa `outros` = padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a) (ver D6 sobre dupla contagem) |
 | `carrega_violencia_territorial_ra(caminho)` | Lê o xlsx (pula cabeçalho Data.Rio), extrai `codra` do numeral romano, valida contra `regiao_adm` do geojson, devolve `codra`, `regiao_adm`, 3 taxas; linha "RIO DE JANEIRO" separada como referência municipal |
 | `numeral_romano_para_int(s)` | auxiliar do de-para RA |
 | `taxa_por_mil(df, col_casos, col_pop)` | recalcula a taxa **depois** de somar numerador e denominador no nível (nunca média de taxas), regra do projeto |
@@ -238,7 +238,7 @@ diferente é regressão (exceto metadados/timestamps, tratados caso a caso).
 | D1 | Derivar taxa por 1.000 crianças | **DECIDIDO: sim** — T7, M8-M10, colunas de taxa em T3 |
 | D2 | Ano dos mapas de bairro | mãe/pai em 2025; **acumulado 2021-2025 para "outros"** (padrão proposto, não contestado) |
 | D3 / D3b | 2026 excluído das séries de vínculo (decidido). Autoprovocada | **DECIDIDO:** gráfico de barras "antes de 2026 × 2026" (G7) e mapa com **2026 como referência** (M7); texto explica a possível mudança de registro administrativo — **hipótese, a confirmar com a fonte (SMS/Sinan) antes de afirmar como fato** |
-| D4 | Pasta de dados | **DECIDIDO:** renomeada para `dados_locais/protecao/` (feito). Zip lido direto com `zipfile`, sem commitar CSVs extraídos |
+| D4 | Pasta de dados | **DECIDIDO:** renomeada para `dados_locais/protecao/` (feito). **Zip extraído** para `dados_locais/protecao/violencia_familiar/` (7 CSVs commitados; o `.zip` original segue ignorado pelo `.gitignore` `*.zip`) e lido como CSV comum |
 | D5 | Cor do tema Proteção nos mapas/gráficos | `Purples` (`RdPu` = mortalidade, `BuGn` = natalidade, `YlOrBr` = CadÚnico, `Blues` = censo) |
 | D6 | "Outros" = padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a) soma casos de possíveis mesmas notificações (vínculos não excludentes; a mesma vítima pode ter >1 autor) | Aceitar e **rotular explicitamente** "vínculos não excludentes — soma pode contar uma notificação mais de uma vez"; o mesmo vale para o par mãe/pai (nunca somá-los) |
 | D7 | Orçamento de peso do HTML (~17 MB) para os até 10 mapas novos | Medir; limite proposto +2,5 MB |
