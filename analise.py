@@ -1568,6 +1568,190 @@ mapa_coropletico_bairros(
 )
 
 # %% [markdown]
+# #### 👨‍👩‍👧 Recortes por família: sexo, raça/cor, arranjo familiar e renda
+#
+# Indicadores do eixo **Inclusão** (`specs/estrutura_eixos.md`; spec `specs/recortes_cadunico`). "Crianças
+# até 6 anos" segue a redação do catálogo e corresponde a **0 a 5 anos completos** (ver a nota de idade no
+# início da seção). Sexo e raça/cor são atributos **da criança** (D1): uma família com um menino e uma
+# menina tem as duas categorias. O arranjo familiar é aproximado pela composição do cadastro (D2), porque
+# a silver não tem parentesco com o responsável familiar -- por isso esta célula também lê os adultos das
+# famílias, não só as crianças.
+
+# %%
+df_membros_cadunico = carrega_cadunico_familias_0_6(engine)
+df_familias = classifica_arranjo_familiar(df_membros_cadunico, idade_adulto=18)  # D3: adulto = 18+
+# fecha com o recorte de crianças da seção (mesma partição, mesmas famílias)
+assert len(df_familias) == df['Famílias'].nunique(), 'nº de famílias diverge do recorte de crianças'
+assert df_familias['n_criancas'].sum() == len(df), 'nº de crianças diverge do recorte de crianças'
+print(f"{_numero_ptbr(len(df_familias))} famílias, {_numero_ptbr(df_familias['n_criancas'].sum())} crianças, "
+      f"{_numero_ptbr(len(df_membros_cadunico))} pessoas no total")
+
+# %% [markdown]
+# ##### Por sexo
+#
+# Duas leituras na mesma tabela: **crianças** por sexo, e **famílias** pela composição de sexo das
+# crianças (só meninas / só meninos / meninas e meninos) -- categorias exclusivas, que somam o total de
+# famílias. Contar "famílias com ao menos uma menina" e "com ao menos um menino" contaria duas vezes as
+# famílias com crianças dos dois sexos.
+
+# %%
+df_sexo_criancas = agrega_cadunico_criancas(df, 'sexo', ['Feminino', 'Masculino'])
+df_sexo_familias = agrega_cadunico_familias(df_familias, 'composicao_sexo_criancas', _ORDEM_COMPOSICAO_SEXO)
+tabela_sexo = pd.concat({'Crianças por sexo': df_sexo_criancas,
+                         'Famílias por sexo das crianças': df_sexo_familias}, names=['recorte', 'categoria'])
+tabela_sexo = tabela_sexo.astype({c: 'Int64' for c in tabela_sexo.columns if not c.startswith('%')})
+tabela_sexo.to_csv('tabelas_finais/cadunico_por_sexo_2026.csv')
+tabela_sexo
+
+# %%
+grafico_barra(df_sexo_criancas.drop(index='Total (famílias não somam)').rename_axis('sexo da criança').reset_index(),
+              categoria='sexo da criança', valor='Crianças',
+              titulo='CADÚNICO: Crianças até 6 anos, por sexo',
+              nome_arquivo='cadunico_criancas_por_sexo', fonte_dados=fonte_cadunico_particao)
+
+# %%
+grafico_barra(df_sexo_familias.drop(index='Total').rename_axis('sexo das crianças da família').reset_index(),
+              categoria='sexo das crianças da família', valor='Famílias',
+              titulo='CADÚNICO: Famílias com crianças até 6 anos, por sexo das crianças',
+              nome_arquivo='cadunico_familias_por_sexo_criancas', fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# ##### Por raça/cor
+#
+# As 5 categorias do CadÚnico, mais o agregado **negra = preta + parda** (convenção IBGE). A coluna de
+# famílias conta as famílias com **ao menos uma** criança da categoria -- não somam entre linhas (famílias
+# com crianças de raça/cor diferentes aparecem em mais de uma). Amarela e indígena são grupos pequenos na
+# cidade (1.208 e 69 crianças) e **nunca aparecem abaixo do nível município** (privacidade, spec §5); por
+# bairro só se publica o % de crianças negras.
+
+# %%
+df_raca = agrega_cadunico_criancas(df, 'raca_cor', _ORDEM_RACA_CADUNICO)
+_negras = df[df['raca_cor'].isin(['Preta', 'Parda'])]
+df_raca.loc['Negra (preta + parda)'] = [len(_negras), _negras['Famílias'].nunique(), round(len(_negras) / len(df) * 100, 1)]
+df_raca = df_raca.reindex(_ORDEM_RACA_CADUNICO + ['Negra (preta + parda)', 'Total (famílias não somam)'])
+df_raca = df_raca.astype({'Crianças': int, 'Famílias com ao menos uma': int}).rename_axis('raça/cor da criança')
+df_raca['nota'] = 'famílias não exclusivas entre categorias; não somar'
+df_raca.to_csv('tabelas_finais/cadunico_por_raca_cor_2026.csv')
+df_raca
+
+# %%
+df_raca_grafico = df_raca.loc[_ORDEM_RACA_CADUNICO].reset_index()
+grafico_barra(df_raca_grafico, categoria='raça/cor da criança', valor='Crianças',
+              titulo='CADÚNICO: Crianças até 6 anos, por raça/cor',
+              nome_arquivo='cadunico_criancas_por_raca_cor', fonte_dados=fonte_cadunico_particao)
+
+# %%
+grafico_barra(df_raca_grafico, categoria='raça/cor da criança', valor='Famílias com ao menos uma',
+              titulo='CADÚNICO: Famílias com ao menos uma criança até 6 anos de cada raça/cor',
+              nome_arquivo='cadunico_familias_por_raca_cor', fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# ##### Por arranjo familiar e renda
+#
+# **Arranjo familiar (aproximado):** membros de 18 anos ou mais da família, por sexo. **"Uma adulta
+# (mulher)" não é o conceito de família monoparental do MDS**, que depende do parentesco com o responsável
+# familiar (campo ausente na extração -- pendência F2). Um companheiro que não está no cadastro não aparece;
+# a sub-declaração de cônjuges é um viés conhecido do CadÚnico (reforçado pela regra de renda per capita)
+# e provavelmente infla essa categoria. O cadastro de cada família está completo (nº de pessoas na tabela =
+# `n_pessoas_familia`, conferido em `classifica_arranjo_familiar`).
+#
+# **Renda:** faixa de renda per capita da família (`grupo_renda_pct`). No cruzamento com o arranjo, as
+# faixas acima de 1/2 salário mínimo se juntam numa só, para não gerar células pequenas; células com menos
+# de 20 famílias seriam suprimidas.
+
+# %%
+df_arranjo = agrega_cadunico_familias(df_familias, 'arranjo', _ORDEM_ARRANJO_CADUNICO).rename_axis('arranjo familiar')
+df_arranjo.to_csv('tabelas_finais/cadunico_familias_por_arranjo_2026.csv')
+df_arranjo
+
+# %%
+# famílias sem nenhum membro de 18+: inspeção só em agregado (idade do membro mais velho)
+df_familias.loc[df_familias['arranjo'] == 'Sem adulto (18+)', 'idade_mais_velho'].value_counts().sort_index()
+
+# %% [markdown]
+# **Famílias sem adulto (713, partição jun/2026):** em 554 o membro mais velho tem 16 ou 17 anos -- responsável
+# familiar adolescente, permitido pelo CadÚnico a partir de 16 anos. Em 85 o membro mais velho tem até 5 anos
+# (cadastro só com a criança), o que indica cadastro incompleto ou inconsistente. As 713 ficam como categoria
+# própria, sem descarte; são 0,4% das famílias.
+
+# %%
+_renda_3 = df_familias['grupo_renda_pct'].map(_RENDA_CADUNICO_3_FAIXAS)
+df_arranjo_renda = (df_familias.assign(renda=_renda_3).groupby(['arranjo', 'renda']).size()
+                    .rename('Famílias').reset_index())
+assert df_arranjo_renda['Famílias'].sum() == len(df_familias)
+df_arranjo_renda['% no arranjo'] = (df_arranjo_renda['Famílias'] /
+                                    df_arranjo_renda.groupby('arranjo')['Famílias'].transform('sum') * 100).round(1)
+df_arranjo_renda['arranjo'] = pd.Categorical(df_arranjo_renda['arranjo'], _ORDEM_ARRANJO_CADUNICO, ordered=True)
+df_arranjo_renda['faixa de renda per capita'] = df_arranjo_renda['renda'].map(_ROTULOS_RENDA_CADUNICO_3).str.replace('\n', ' ')
+df_arranjo_renda = df_arranjo_renda.sort_values(['arranjo', 'renda']).drop(columns='renda')
+# nível município, mas a regra de célula pequena vale igual (spec §5)
+df_arranjo_renda_pub = suprime_celulas_pequenas(df_arranjo_renda, 'Famílias', ['Famílias', '% no arranjo'])
+df_arranjo_renda_pub.to_csv('tabelas_finais/cadunico_familias_arranjo_renda_2026.csv', index=False)
+df_arranjo_renda_pub
+
+# %%
+# rótulos do eixo x em 2 linhas (os nomes de arranjo são longos)
+_rotulo_arranjo = {a: a.replace(' (', '\n(') for a in _ORDEM_ARRANJO_CADUNICO}
+grafico_barra(df_arranjo.drop(index='Total').rename(index=_rotulo_arranjo).reset_index(),
+              categoria='arranjo familiar', valor='Famílias',
+              titulo='CADÚNICO: Famílias com crianças até 6 anos, por arranjo familiar',
+              nome_arquivo='cadunico_familias_por_arranjo', fonte_dados=fonte_cadunico_particao)
+
+# %%
+_graf_arranjo_renda = df_arranjo_renda_pub.assign(arranjo=df_arranjo_renda_pub['arranjo'].astype(str).map(_rotulo_arranjo))
+grafico_barra_agrupado(_graf_arranjo_renda, categoria='arranjo', valor='% no arranjo', agrupador='faixa de renda per capita',
+                       titulo='CADÚNICO: Renda per capita das famílias com crianças até 6 anos, por arranjo familiar',
+                       nome_arquivo='cadunico_familias_arranjo_renda', ylabel='% das famílias do arranjo',
+                       legend_title='Renda per capita', ordem_categoria=list(_rotulo_arranjo.values()), rotacao_x=0,
+                       fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# ##### 🗺️ Mapas por bairro: % de meninas, de crianças negras e de famílias com uma só adulta
+#
+# Taxas **internas ao CadÚnico** (numerador e denominador da mesma base e do mesmo bairro atribuído pelo
+# CEP), recalculadas a partir das contagens absolutas de cada bairro -- sofrem bem menos com o viés de
+# CEP -> bairro do que a razão CadÚnico/Censo, mas o bairro continua sendo o dos Correios (nota acima). Mesma
+# normalização de nomes e join por `codbairro` de `df_bairro_mapa`. Bairros com menos de 20 famílias no
+# CadÚnico ficam sem cor (supressão, spec §5); escala contínua (convenção de taxas).
+
+# %%
+_fam_bairro = atribui_bairro_por_cep(df_familias)
+df_recortes_bairro = pd.concat([
+    df.groupby('bairro').agg(**{'Crianças': ('Crianças', 'count'),
+                                'Meninas': ('sexo', lambda s: (s == 'Feminino').sum()),
+                                'Crianças negras': ('raca_cor', lambda s: s.isin(['Preta', 'Parda']).sum())}),
+    _fam_bairro.groupby('bairro').agg(**{'Famílias': ('id_familia', 'count'),
+                                         'Famílias com uma adulta': ('arranjo', lambda s: (s == 'Uma adulta (mulher)').sum())}),
+], axis=1).fillna(0).astype(int).reset_index()
+df_recortes_bairro['bairro'] = df_recortes_bairro['bairro'].replace(_ALIAS_BAIRRO_CADUNICO)
+df_recortes_bairro = df_recortes_bairro[~df_recortes_bairro['bairro'].isin(_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA)]
+df_recortes_bairro = junta_codbairro_por_bairro(df_recortes_bairro, df_censo)
+# taxa sempre de absolutos (nunca média de percentuais)
+df_recortes_bairro['% meninas'] = df_recortes_bairro['Meninas'] / df_recortes_bairro['Crianças'] * 100
+df_recortes_bairro['% crianças negras'] = df_recortes_bairro['Crianças negras'] / df_recortes_bairro['Crianças'] * 100
+df_recortes_bairro['% famílias com uma adulta'] = df_recortes_bairro['Famílias com uma adulta'] / df_recortes_bairro['Famílias'] * 100
+
+_cols_recortes = ['Crianças', 'Meninas', 'Crianças negras', 'Famílias', 'Famílias com uma adulta',
+                  '% meninas', '% crianças negras', '% famílias com uma adulta']
+df_recortes_bairro_pub = suprime_celulas_pequenas(df_recortes_bairro, 'Famílias', _cols_recortes)
+df_recortes_bairro_pub.to_csv('tabelas_finais/tabela_mapa_cadunico_recortes_bairro_2026.csv', index=False)
+df_recortes_bairro_pub.sort_values('% famílias com uma adulta', ascending=False).head(10)
+
+# %%
+for _coluna, _titulo, _arquivo, _legenda in [
+    ('% meninas', '% de meninas entre as crianças até 6 anos no CadÚnico, por bairro',
+     'mapa_percentual_cadunico_meninas_bairro_2026', '% meninas'),
+    ('% crianças negras', '% de crianças negras (pretas e pardas) até 6 anos no CadÚnico, por bairro',
+     'mapa_percentual_cadunico_criancas_negras_bairro_2026', '% negras'),
+    ('% famílias com uma adulta', 'Famílias com crianças até 6 anos no CadÚnico: % com uma só adulta, por bairro',
+     'mapa_percentual_cadunico_familias_uma_adulta_bairro_2026', '% uma adulta'),
+]:
+    mapa_coropletico_bairros(
+        df_recortes_bairro_pub, coluna_valor=_coluna, titulo=_titulo, nome_arquivo=_arquivo, chave='codbairro',
+        cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo=_legenda, fonte_dados=fonte_mapa_cadunico,
+    )
+
+# %% [markdown]
 # ### 🏥 DataSus - tabnet
 
 # %% [markdown]
