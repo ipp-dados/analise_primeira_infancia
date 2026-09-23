@@ -321,6 +321,7 @@ _CORES_TEMA_MAPA = {
     'mortalidade': 'RdPu',   # óbitos (neonatal, gravidez, puerpério, raça, evitáveis/CAP)
     'cadunico': 'YlOrBr',    # CadÚnico
     'censo': 'Blues',        # Censo/população
+    'protecao': 'OrRd',      # violência/notificações (eixo Proteção)
 }
 
 _LIMIAR_DESTAQUE_SERIES = 6  # acima disso, serie_temporal_multipla destaca só as mais relevantes
@@ -432,6 +433,7 @@ _NIVEIS_AGREGACAO = {
     'ap':     {'coluna_geo': 'area_plane', 'tipo': int},
     'rp':     {'coluna_geo': 'cod_rp', 'tipo': str},
     'cap':    {'coluna_geo': 'cod_ap_sms', 'tipo': str},
+    'ra':     {'coluna_geo': 'codra', 'tipo': int},  # Região Administrativa (33 no geojson de bairros; não existe RA 32)
 }
 
 # geojson oficial das 10 CAPs (Coordenadoria de Área Programática de Saúde, SMS-Rio -- não
@@ -531,7 +533,7 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
     """Gera um mapa coroplético do Rio (limites IPP/Data.Rio, simplificados) e salva em mapas/.
 
     `nivel`: 'bairro' (padrão) | 'ap' (Área de Planejamento, 5 regiões) | 'rp' (Região de
-    Planejamento, 16 regiões) -- une (`dissolve`) os polígonos de bairro nesse nível antes do join
+    Planejamento, 16 regiões) | 'ra' (Região Administrativa, 33 regiões, chave `codra`) -- une (`dissolve`) os polígonos de bairro nesse nível antes do join
     com `df`. `chave` é a coluna de `df` usada no join; se None, usa o nome padrão de cada nível
     ('codbairro', 'area_plane' ou 'cod_rp') -- `df` deve trazer essa coluna já agregada (ver
     `agrega_bairros_por_nivel` para ir de uma tabela por bairro a uma por AP/RP).
@@ -679,6 +681,146 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
     plt.tight_layout()
     plt.savefig(f"mapas/{nome_arquivo}.{formato}", dpi=300, bbox_inches='tight', pad_inches=0.15)
     plt.show()
+
+# %% [markdown]
+# ### 🛡️ Proteção — carregadores e utilitários
+#
+# Funções do eixo Proteção (violência familiar/autoprovocada — Sinan/Tabnet por bairro;
+# violência territorial — Data.Rio/IPS por Região Administrativa) e utilitários de taxa e de
+# agregação geográfica. Ver `specs/inclusao_dados_protecao/`.
+
+# %%
+import unicodedata
+
+_CAMINHO_GEO_BAIRROS = 'dados_locais/geo/limite_bairros_rio.geojson'
+
+# vínculo do provável autor -> arquivo Sinan/Tabnet (violência familiar, 0 a 5 anos)
+_VINCULOS_VIOLENCIA_FAMILIAR = {
+    'mae': 'violencia_familiar_mae.csv',
+    'pai': 'violencia_familiar_pai.csv',
+    'padrasto': 'violencia_familiar_padrasto.csv',
+    'irmao': 'violencia_familiar_irmao(a).csv',
+    'conjuge': 'violencia_familiar_conjuge.csv',
+    'exconjuge': 'violencia_familiar_exconjuge.csv',
+    'filho': 'violencia_familiar_filho(a).csv',
+}
+# vínculos agrupados em 'outros' (mãe e pai ficam de fora e nunca são somados entre si)
+_VINCULOS_OUTROS = ['padrasto', 'irmao', 'conjuge', 'exconjuge', 'filho']
+
+# grafia do IPS/Data.Rio que difere do geojson de bairros (regiao_adm), só para a checagem cruzada
+_ALIAS_RA_IPS = {'SANTA TERESA': 'SANTA TEREZA'}
+
+def _sem_acento_maiusculo(texto):
+    return ''.join(c for c in unicodedata.normalize('NFKD', str(texto)) if not unicodedata.combining(c)).upper().strip()
+
+def numeral_romano_para_int(s):
+    """Converte um numeral romano (ex.: 'XXXIV') em inteiro (34) -- usado no de-para RA do IPS."""
+    valores = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100}
+    s = s.strip().upper()
+    if not s or any(c not in valores for c in s):
+        raise ValueError(f'numeral romano inválido: {s!r}')
+    total = 0
+    for atual, proximo in zip(s, s[1:] + ' '):
+        v = valores[atual]
+        total += -v if proximo in valores and valores[proximo] > v else v
+    return total
+
+def _bairros_referencia(caminho_geojson=_CAMINHO_GEO_BAIRROS):
+    """Tabela dos 166 bairros do geojson (codbairro int, nome, codra int, cod_rp, area_plane)."""
+    g = gpd.read_file(caminho_geojson).drop(columns='geometry')
+    g['codbairro'] = g['codbairro'].astype(int)
+    g['codra'] = g['codra'].astype(int)
+    g['regiao_adm'] = g['regiao_adm'].str.strip()  # o geojson traz espaços à direita em algumas RAs
+    return g[['codbairro', 'nome', 'regiao_adm', 'codra', 'cod_rp', 'area_plane']].sort_values('codbairro').reset_index(drop=True)
+
+def carrega_sinan_bairro(caminho, categoria, anos_validos):
+    """Lê um export Sinan NET/Tabnet por bairro de residência (6 linhas de metadados, latin-1, formato
+    largo com colunas de ano esparsas) e devolve o formato longo `codbairro, bairro, ano, <categoria>`
+    numa grade completa dos 166 bairros do geojson x `anos_validos`, com 0 onde não havia linha
+    (bairro sem caso = 0, não ausente). A linha de filtro do export vai em `df.attrs['filtro']`."""
+    with open(caminho, encoding='latin-1') as f:
+        filtro = [next(f).strip() for _ in range(6)][4]
+    df = pd.read_csv(caminho, sep=';', encoding='latin-1', skiprows=6)
+    df = df.rename(columns={df.columns[0]: 'bairro_resid'})
+    df = df[df['bairro_resid'] != 'Total']
+    df[['codbairro', 'bairro']] = df['bairro_resid'].str.split(n=1, expand=True)
+    df['codbairro'] = df['codbairro'].astype(int)
+    colunas_ano = [c for c in df.columns if str(c).isdigit()]
+    longo = df.melt(id_vars=['codbairro'], value_vars=colunas_ano, var_name='ano', value_name=categoria)
+    longo['ano'] = longo['ano'].astype(int)
+    ref = _bairros_referencia()
+    assert set(longo['codbairro']) <= set(ref['codbairro']), 'código de bairro do Sinan fora do geojson'
+    grade = ref[['codbairro', 'nome']].rename(columns={'nome': 'bairro'}).merge(pd.DataFrame({'ano': list(anos_validos)}), how='cross')
+    out = grade.merge(longo, on=['codbairro', 'ano'], how='left')
+    out[categoria] = out[categoria].fillna(0).astype(int)
+    out.attrs['filtro'] = filtro
+    return out
+
+def carrega_violencia_familiar(pasta, anos_validos):
+    """Lê os 7 exports de violência familiar por vínculo (mãe, pai, padrasto, irmão(ã), cônjuge,
+    ex-cônjuge, filho(a)) e devolve um longo `vinculo, codbairro, bairro, ano, casos`. Acrescenta o
+    vínculo `outros` (padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a)) SEM remover os originais.
+    Os vínculos não são excludentes: nunca somar mãe + pai, nem tratar `outros` como total."""
+    partes = []
+    for vinculo, arquivo in _VINCULOS_VIOLENCIA_FAMILIAR.items():
+        d = carrega_sinan_bairro(Path(pasta) / arquivo, 'casos', anos_validos)
+        d.insert(0, 'vinculo', vinculo)
+        partes.append(d)
+    longo = pd.concat(partes, ignore_index=True)
+    outros = (longo[longo['vinculo'].isin(_VINCULOS_OUTROS)]
+              .groupby(['codbairro', 'bairro', 'ano'], as_index=False)['casos'].sum())
+    outros.insert(0, 'vinculo', 'outros')
+    return pd.concat([longo, outros], ignore_index=True)
+
+def carrega_violencia_territorial_ra(caminho):
+    """Lê `violencia_territorial.xlsx` (Data.Rio/IPS 2024, por Região Administrativa; todas as idades).
+    Devolve `codra, regiao_adm, taxa_homicidios, homicidios_acao_policial, homicidios_jovens_negros`
+    (32 RAs); a linha 'RIO DE JANEIRO' (referência municipal) vai em `df.attrs['municipio']`.
+    A chave é o numeral romano do IPS convertido em `codra`; o nome só serve de checagem cruzada."""
+    bruto = pd.read_excel(caminho, header=None)
+    linha_cab = next(i for i, v in bruto[1].items() if 'homic' in _sem_acento_maiusculo(v).lower())
+    dados = bruto.iloc[linha_cab + 1:, :4].dropna(how='all').copy()
+    dados.columns = ['regiao', 'taxa_homicidios', 'homicidios_acao_policial', 'homicidios_jovens_negros']
+    cols_num = ['taxa_homicidios', 'homicidios_acao_policial', 'homicidios_jovens_negros']
+    dados[cols_num] = dados[cols_num].astype(float)
+    eh_municipio = dados['regiao'].str.strip().str.upper() == 'RIO DE JANEIRO'
+    municipio = dados[eh_municipio].iloc[0]
+    ras = dados[~eh_municipio].copy()
+    ras['codra'] = ras['regiao'].str.split().str[0].map(numeral_romano_para_int)
+    ras['nome_ips'] = ras['regiao'].str.split(n=1).str[1].map(_sem_acento_maiusculo)
+    ref = _bairros_referencia()[['codra', 'regiao_adm']].drop_duplicates('codra')
+    ras = ras.merge(ref, on='codra', how='left')
+    assert ras['regiao_adm'].notna().all(), 'RA do IPS sem correspondência no geojson'
+    esperado = ras['regiao_adm'].map(_sem_acento_maiusculo)
+    assert (ras['nome_ips'].map(lambda n: _ALIAS_RA_IPS.get(n, n)) == esperado).all(), 'nome da RA diverge do geojson'
+    out = ras[['codra', 'regiao_adm'] + cols_num].sort_values('codra').reset_index(drop=True)
+    out.attrs['municipio'] = {c: float(municipio[c]) for c in cols_num}
+    return out
+
+def carrega_pop_0_4_bairro(caminho='dados_locais/censo/pop_censo_2022_datario.csv'):
+    """População de 0 a 4 anos por bairro (Censo 2022) -- `codbairro, pop_0_4`. Lê o CSV direto,
+    sem depender de `df_censo` ter sido calculado antes."""
+    d = pd.read_csv(caminho, encoding='latin-1', sep=';')
+    return d[['codbairro', '0 a 4 anos']].rename(columns={'0 a 4 anos': 'pop_0_4'}).astype({'codbairro': int})
+
+def taxa_por_mil(df, col_casos, col_pop, nome_taxa='taxa_por_mil'):
+    """Taxa por 1.000 = casos / população * 1000. Chamar SEMPRE depois de somar casos e população
+    no nível desejado (nunca média de taxas). População 0 ou ausente -> NaN (nunca inf)."""
+    df = df.copy()
+    pop = df[col_pop].where(df[col_pop] > 0)
+    df[nome_taxa] = df[col_casos] / pop * 1000
+    return df
+
+def bairro_para_nivel(df, nivel, chave='codbairro'):
+    """Anexa a `df` (tabela por bairro) a coluna administrativa do nível: 'ra' -> codra; 'cap' ->
+    cod_ap_sms (via `_RA_PARA_CAP` sobre codra); 'rp' -> cod_rp; 'ap' -> area_plane. Serve para
+    depois somar contagens com `agrega_bairros_por_nivel` (e só então recalcular taxas)."""
+    ref = _bairros_referencia()
+    ref['cod_ap_sms'] = ref['codra'].map(_RA_PARA_CAP)
+    coluna = _NIVEIS_AGREGACAO[nivel]['coluna_geo']
+    if coluna not in ref.columns:
+        raise ValueError(f'nível {nivel!r} não suportado por bairro_para_nivel')
+    return df.merge(ref[['codbairro', coluna]].rename(columns={'codbairro': chave}), on=chave, how='left')
 
 # %% [markdown]
 # ### ⚙️ Setup
