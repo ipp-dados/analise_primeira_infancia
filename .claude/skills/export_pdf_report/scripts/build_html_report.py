@@ -1264,7 +1264,7 @@ FONTE_CADUNICO = "CadÚnico (extração CTPE)"
 h3('CadÚnico')
 
 h4('Por faixa de renda e idade')
-df_renda = read("cadunico_por_faixa_etaria_2026.csv")
+df_renda = read("cadunico_por_faixa_renda_2026.csv")
 df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"]
 df_idade = read("cadunico_por_idade_2026.csv")
 df_idade["idade_lbl"] = df_idade["idade"].astype(int).map(lambda i: f"{i} ano" if i == 1 else f"{i} anos")

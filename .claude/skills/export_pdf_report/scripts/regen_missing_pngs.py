@@ -78,7 +78,7 @@ plt.savefig(f"{OUT}/censo_0_a_4_serie_percentual_ano.png")
 plt.close()
 
 # ---- CadÚnico (from already-exported tabelas_finais CSVs, no DB needed) ----
-df_renda = pd.read_csv("tabelas_finais/cadunico_por_faixa_etaria_2026.csv")
+df_renda = pd.read_csv("tabelas_finais/cadunico_por_faixa_renda_2026.csv")
 df_renda = df_renda[df_renda['faixa de renda'] != 'Total']
 grafico_barra(df_renda, categoria='faixa de renda', valor='Famílias',
               titulo='CADÚNICO: Famílias c/crianças 0-6 por faixa de renda per capita',

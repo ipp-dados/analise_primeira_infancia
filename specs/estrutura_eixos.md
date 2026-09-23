@@ -238,7 +238,7 @@
 - fonte: Cadastro Único (extração CTPE)
 - visualização: `cadunico_familias_por_faixa_renda.png`
 - visualização: `cadunico_criancas_por_faixa_renda.png`
-- tabela: `cadunico_por_faixa_etaria_2026.csv`
+- tabela: `cadunico_por_faixa_renda_2026.csv`
 
 ### Taxa bruta de frequência escolar da população até 6 anos
 - fonte: PNAD Contínua

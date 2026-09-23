@@ -23,14 +23,14 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 - [x] **T2.5** — `suprime_celulas_pequenas(df, coluna_denominador, colunas, limiar=20)`, testada à mão num df de 3 linhas.
 
 ## Bloco 3 — Correções nas saídas existentes
-- [ ] **T3.1** — A1: linha "Sem bairro identificado" + nota reescrita com os números reais.
-- [ ] **T3.2** — A2: nota do mapa % reescrita (causa CEP→bairro, bairros afetados) + nota curta nos 3 mapas CadÚnico.
-- [ ] **T3.3** — A3 (D7 adiada): **títulos existentes intocados**. Só a nota markdown com a definição real de idade CadÚnico (nascidos ≥ 2020-08-12, idade em ~2026-08-12, 6 anos no grupo `'7-14'`).
-- [ ] **T3.4** — A4: supressão < 20 nas 2 tabelas por bairro e nas 2 gêmeas de mapa.
-- [ ] **T3.5** — A5: `cadunico_por_faixa_renda_2026.csv` + `git rm` do nome antigo; `README.md:74` atualizado (leitores nos Blocos 9-10, mesmo PR).
-- [ ] **T3.6** — A6 + A8: notas (famílias por idade não somam, sub-registro no 1º ano, filtro de cadastro).
-- [ ] **T3.7** — A7: rótulos descritivos nos 2 gráficos de renda.
-- [ ] **T3.8** — `fonte_cadunico_particao` nas chamadas corrigidas.
+- [x] **T3.1** — A1: linha "Sem bairro identificado" + nota reescrita com os números reais.
+- [x] **T3.2** — A2: nota do mapa % reescrita (causa CEP→bairro, bairros afetados) + nota curta nos 3 mapas CadÚnico.
+- [x] **T3.3** — A3 (D7 adiada): **títulos existentes intocados**. Só a nota markdown com a definição real de idade CadÚnico (nascidos ≥ 2020-08-12, idade em ~2026-08-12, 6 anos no grupo `'7-14'`).
+- [x] **T3.4** — A4: supressão < 20 nas 2 tabelas por bairro e nas 2 gêmeas de mapa.
+- [x] **T3.5** — A5: `cadunico_por_faixa_renda_2026.csv` + `git rm` do nome antigo; `README.md:74` atualizado (leitores nos Blocos 9-10, mesmo PR).
+- [x] **T3.6** — A6 + A8: notas (famílias por idade não somam, sub-registro no 1º ano, filtro de cadastro).
+- [x] **T3.7** — A7: rótulos descritivos nos 2 gráficos de renda.
+- [x] **T3.8** — `fonte_cadunico_particao` nas chamadas corrigidas.
 
 ## Bloco 4 — R1 sexo
 - [ ] **T4.1** — `df_familias` carregado uma vez (Blocos 4-7).

@@ -1051,8 +1051,10 @@ def suprime_celulas_pequenas(df, colunas_denominador, colunas, limiar=_LIMIAR_SU
     if isinstance(colunas_denominador, str):
         colunas_denominador = [colunas_denominador]
     out = df.copy()
+    inteiras = [c for c in colunas if pd.api.types.is_integer_dtype(out[c])]
     mascara = (out[colunas_denominador] < limiar).any(axis=1)
     out.loc[mascara, colunas] = np.nan
+    out[inteiras] = out[inteiras].astype('Int64')  # contagens seguem inteiras (vazio, não '15809.0')
     out['suprimido'] = mascara
     return out
 
@@ -1341,6 +1343,22 @@ plt.show()
 # Fonte: CadÚnico via banco CTPE (`silver_cadunico_geral`), recorte de crianças 0-6 anos.
 #
 # > **Nota:** requer conexão ativa com o banco CTPE (credenciais em `.env`) para reproduzir; não roda apenas com os arquivos em `dados_locais/`.
+# > O driver é `psycopg` 3 (`requirements.txt`) -- rode com o kernel/env `analises_env`; o Python base do
+# > Anaconda só tem `psycopg2` e falha na conexão.
+#
+# **O que o grupo `'0-6'` representa (verificado no banco em 2026-09-23, `specs/recortes_cadunico` S3):**
+# crianças nascidas a partir de **2020-08-12**, ou seja, **0 a 5 anos completos** (até 72 meses, o recorte
+# de primeira infância do Marco Legal). A `idade` da silver é calculada numa data de referência
+# (~2026-08-12) posterior à partição (2026-06-12). **Crianças com 6 anos completos NÃO estão aqui** -- caem
+# no grupo `'7-14'` do CTPE. Os títulos "0-6" abaixo são mantidos até a auditoria de faixas etárias entre
+# fontes (roadmap item 6); outras fontes do projeto usam outros recortes (Censo 0-4, Sinan 0-5...).
+#
+# **Filtro de cadastro (S9):** a silver não traz `estado_cadastral`/`ativo` (só a bronze); não se sabe se
+# ela já exclui cadastros inativos ou desatualizados -- a confirmar com o CTPE. Vale para todos os números
+# CadÚnico do projeto.
+#
+# **Privacidade:** toda saída CadÚnico abaixo do nível município passa por `suprime_celulas_pequenas`
+# (< 20 famílias vira vazio + coluna `suprimido`) antes de ir para `tabelas_finais/`/mapas.
 
 # %% [markdown]
 # #### Recorte 0-6 anos
@@ -1352,6 +1370,12 @@ fonte_cadunico = 'CadÚnico (extração CTPE)'
 engine = connect_db_ctpe()
 df_original = pd.read_sql("SELECT * FROM silver_cadunico_geral WHERE grupo_idade='0-6'", engine)
 df =  df_original.copy()
+# recortes_cadunico D5: fonte com o mês da extração (a silver guarda uma única partição)
+fonte_cadunico_particao = fonte_cadunico_com_particao(df_original['data_particao'].max())
+# nota de rodapé dos mapas CadÚnico por bairro (A2/A4)
+# (quebra de linha: numa linha só o rodapé invade a atribuição do basemap no canto inferior esquerdo)
+fonte_mapa_cadunico = (f"{fonte_cadunico_particao}.\nBairro atribuído pelo CEP (Correios), pode divergir do bairro oficial; "
+                       f"bairros com menos de {_LIMIAR_SUPRESSAO_CADUNICO} famílias suprimidos")
 df_original
 
 # %%
@@ -1373,23 +1397,35 @@ df_renda = df.groupby(by='faixa de renda').agg({'Crianças':'count','Famílias':
 df_renda.loc['Total'] = df_renda.sum()
 custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 df_renda = df_renda.reindex(custom_order)
-df_renda.to_csv('tabelas_finais/cadunico_por_faixa_etaria_2026.csv')
+# recortes_cadunico A5 (D8): o arquivo se chamava cadunico_por_faixa_etaria_2026.csv, mas o conteúdo é por renda
+# recortes_cadunico A7: rótulo descritivo da faixa (renda per capita), sem quebra de linha no CSV
+df_renda['faixa de renda (descrição)'] = [_ROTULOS_RENDA_CADUNICO.get(f, f).replace('\n', ' ') for f in df_renda.index]
+df_renda.to_csv('tabelas_finais/cadunico_por_faixa_renda_2026.csv')
 
 # %%
 df_renda.head(10)
 
 # %%
-grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Famílias',
+# recortes_cadunico A7: eixo x com o significado da faixa, não só o intervalo em R$
+df_renda_grafico = df_renda.iloc[:-1,:].reset_index()
+df_renda_grafico['faixa de renda'] = df_renda_grafico['faixa de renda'].map(_ROTULOS_RENDA_CADUNICO)
+grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Famílias',
               titulo='CADÚNICO: Famílias c/crianças 0-6 por faixa de renda per capita',
-              nome_arquivo='cadunico_familias_por_faixa_renda', fonte_dados=fonte_cadunico)
+              nome_arquivo='cadunico_familias_por_faixa_renda', fonte_dados=fonte_cadunico_particao)
 
 # %%
-grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Crianças',
+grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Crianças',
               titulo='CADÚNICO: Crianças 0-6 por faixa de renda per capita',
-              nome_arquivo='cadunico_criancas_por_faixa_renda', fonte_dados=fonte_cadunico)
+              nome_arquivo='cadunico_criancas_por_faixa_renda', fonte_dados=fonte_cadunico_particao)
 
 # %% [markdown]
 # #### Análise por idade
+#
+# **Leitura (recortes_cadunico A6):** a coluna `Famílias` conta, em cada idade, as famílias com ao menos
+# uma criança daquela idade -- uma família com crianças de 1 e 4 anos aparece nas duas barras, então as
+# barras **não somam** o total de famílias (Σ = 191.824 contra 173.768 famílias distintas). E há
+# **sub-registro no 1º ano** (11.328 crianças com 0 anos contra 43.187 com 5): o recém-nascido entra no
+# cadastro com defasagem, então a barra de 0 anos não é uma estimativa de nascimentos.
 
 # %%
 #quantitativos por idade
@@ -1401,11 +1437,11 @@ df_idade.head(10)
 
 # %%
 grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: Famílias c/ crianças 0-6 por idade',
-              nome_arquivo='cadunico_familias_por_idade', fonte_dados=fonte_cadunico)
+              nome_arquivo='cadunico_familias_por_idade', fonte_dados=fonte_cadunico_particao)
 
 # %%
 grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças 0-6 por idade',
-              nome_arquivo='cadunico_criancas_por_idade', fonte_dados=fonte_cadunico)
+              nome_arquivo='cadunico_criancas_por_idade', fonte_dados=fonte_cadunico_particao)
 
 # %% [markdown]
 # #### Análise por bairros
@@ -1413,20 +1449,30 @@ grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: C
 # %%
 #quantitativos por grupo de renda pct
 df_bairro = df.groupby(by=['bairro']).agg({'Crianças':'count','Famílias':'nunique'})
+# recortes_cadunico A1: crianças cujo CEP não está em lista_bairros.csv sumiam do groupby em silêncio
+_sem_bairro = df[df['bairro'].isna()]
+df_bairro.loc[_ROTULO_SEM_BAIRRO_CADUNICO] = [len(_sem_bairro), _sem_bairro['Famílias'].nunique()]
 df_bairro.loc['Total'] = df_bairro.sum()
+assert df_bairro.loc['Total', 'Crianças'] == len(df), 'tabela por bairro não fecha com o total de crianças'
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro.to_csv('tabelas_finais/cadunico_por_bairro_2026.csv')
+# recortes_cadunico A4: CSV publicado com supressão < 20 (df_bairro em memória segue completo)
+suprime_celulas_pequenas(df_bairro, 'Famílias', ['Crianças', 'Famílias']).to_csv('tabelas_finais/cadunico_por_bairro_2026.csv')
 
 # %% [markdown]
-# **Nota sobre bairros do CadÚnico sem correspondência oficial:** o CadÚnico geocodifica
-# endereços por bairro autodeclarado/histórico, que nem sempre bate com a lista oficial de
-# 166 bairros do IPP usada em `df_censo`. Duas situações, tratadas de formas diferentes:
-# 4 nomes são variações de grafia do mesmo bairro oficial (normalizados via
-# `_ALIAS_BAIRRO_CADUNICO` antes do join); 6 são localidades informais/históricas sem bairro
-# oficial correspondente (ex. Dendê, Tubiacanga -- localidades da Ilha do Governador), juntos
-# **380 crianças de 178.329 (~0,2%)** -- excluídas só do mapa por bairro (a tabela completa,
-# `cadunico_por_bairro_2026.csv`, mantém todos os nomes originais).
+# **Nota sobre a atribuição de bairro no CadÚnico** (reescrita em `specs/recortes_cadunico`, A1/A2):
+# o CadÚnico não traz bairro; ele é obtido pelo CEP da família em `dados_locais/lista_bairros.csv`
+# (bairro dos **Correios**, não o bairro oficial IPP usado em `df_censo`). Três perdas/distorções:
+# 1. **15.809 crianças (8,1% de 194.138) têm CEP fora da lista** e ficam sem bairro -- antes sumiam em
+#    silêncio do groupby; agora aparecem na linha "Sem bairro identificado" de `cadunico_por_bairro_2026.csv`.
+# 2. Dos nomes que casam, 4 são variações de grafia do mesmo bairro oficial (normalizados via
+#    `_ALIAS_BAIRRO_CADUNICO`) e 6 são localidades sem bairro oficial (ex. Dendê, Tubiacanga -- Ilha do
+#    Governador), juntos **380 crianças** excluídas só dos mapas.
+# 3. **O bairro dos Correios não é o bairro oficial:** bairros-favela ficam subcontados e os vizinhos
+#    inflados (Maré 3.405 x Bonsucesso 2.936; Jacarezinho 277 x Jacaré 1.409; Rocinha 1.237 x Gávea
+#    1.858), e **Vila Kennedy, Jabour, Gericinó, Ilha de Guaratiba e Lapa não aparecem** (os CEPs caem em
+#    Bangu, Senador Camará, Guaratiba e Centro) -- ficam "Sem dado" nos mapas. Corrigir exige
+#    geocodificação espacial (pendência F1 da spec).
 
 # %%
 _ALIAS_BAIRRO_CADUNICO = {
@@ -1439,8 +1485,8 @@ _BAIRROS_CADUNICO_SEM_CORRESPONDENCIA = [
     'Dendê', 'Dumas', 'Guarabu', 'Itacolomi', 'Nossa Senhora das Graças', 'Tubiacanga',
 ]
 
-# versão com codbairro (via df_censo), sem a linha 'Total' -- insumo do mapa por bairro (ver Mapas)
-df_bairro_mapa = df_bairro.drop(index='Total').reset_index()
+# versão com codbairro (via df_censo), sem as linhas 'Total' e 'Sem bairro' -- insumo do mapa por bairro (ver Mapas)
+df_bairro_mapa = df_bairro.drop(index=['Total', _ROTULO_SEM_BAIRRO_CADUNICO]).reset_index()
 df_bairro_mapa['bairro'] = df_bairro_mapa['bairro'].replace(_ALIAS_BAIRRO_CADUNICO)
 df_bairro_mapa = df_bairro_mapa[~df_bairro_mapa['bairro'].isin(_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA)]
 df_bairro_mapa = junta_codbairro_por_bairro(df_bairro_mapa, df_censo)
@@ -1457,7 +1503,8 @@ df_bairro_ate_4 = df_ate_4.groupby(by=['bairro']).agg({'Crianças':'count','Fam�
 df_bairro_ate_4.loc['Total'] = df_bairro_ate_4.sum()
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro_ate_4.to_csv('tabelas_finais/cadunico_por_bairro_ate_4_2026.csv')
+# recortes_cadunico A4: CSV publicado com supressão < 20
+suprime_celulas_pequenas(df_bairro_ate_4, 'Famílias', ['Crianças', 'Famílias']).to_csv('tabelas_finais/cadunico_por_bairro_ate_4_2026.csv')
 # mesma normalização/exclusão de nomes sem correspondência oficial que df_bairro_mapa (nota acima) --
 # sem isso, o merge 'right' abaixo já dropava essas linhas em silêncio (nenhum erro, só sumia o dado)
 df_bairro_ate_4 = df_bairro_ate_4.rename(index=_ALIAS_BAIRRO_CADUNICO).drop(index=_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA, errors='ignore')
@@ -1475,19 +1522,26 @@ df_bairro.loc[['Complexo do Alemão']]
 # #### 🗺️ Mapas por bairro
 
 # %%
-df_bairro_mapa.to_csv('tabelas_finais//tabela_mapa_cadunico_criancas_2026.csv', index=False)
+# recortes_cadunico A4: mapa e gêmea (lida pelo HTML, que mostra o valor no tooltip) saem da mesma
+# tabela suprimida -- bairro com < 20 famílias fica sem cor ('Sem dado') e sem valor no tooltip
+df_bairro_mapa_pub = suprime_celulas_pequenas(df_bairro_mapa, 'Famílias', ['Crianças', 'Famílias'])
+df_bairro_mapa_pub.to_csv('tabelas_finais//tabela_mapa_cadunico_criancas_2026.csv', index=False)
 mapa_coropletico_bairros(
-    df_bairro_mapa, coluna_valor='Crianças', titulo='Crianças (0-6 anos) no CadÚnico, por bairro',
+    df_bairro_mapa_pub, coluna_valor='Crianças', titulo='Crianças (0-6 anos) no CadÚnico, por bairro',
     nome_arquivo='mapa_cadunico_criancas_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'],
-    bins=[250, 750, 1500, 3000], legenda_titulo='Crianças', fonte_dados=fonte_cadunico,
+    bins=[250, 750, 1500, 3000], legenda_titulo='Crianças', fonte_dados=fonte_mapa_cadunico,
 )
 
 # %% [markdown]
-# **Nota:** o percentual abaixo tem um valor atípico (>500% num bairro pequeno) -- a base do
-# CadÚnico e a do Censo usam metodologias de contagem diferentes (registro administrativo x
-# recenseamento), e bairros com poucos residentes no Censo amplificam qualquer descompasso
-# nessa razão. Mantido sem ajuste (dado real, não erro de processamento); leia com cautela.
+# **Nota (reescrita em `specs/recortes_cadunico`, A2):** o percentual abaixo passa de 100% em 8 bairros
+# (Camorim ~510%, Bonsucesso ~341%, Gávea ~313%, Jacaré ~242%, Anil, Ramos, Gardênia Azul, Cidade de
+# Deus). A **causa principal é a atribuição de bairro pelo CEP** (nota da seção de bairros acima): o
+# numerador usa o bairro dos Correios e o denominador (Censo 2022) o bairro oficial IPP -- crianças de
+# Maré, Jacarezinho e Rocinha são contadas em Bonsucesso, Jacaré e Gávea, que ficam acima de 100%, e as
+# favelas ficam abaixo. Diferenças de método (registro administrativo x recenseamento) e de data
+# (2026 x 2022) contribuem, mas são secundárias. **Por isso este mapa fica só no notebook** e não entra
+# no relatório HTML/PDF (decisão D6) até a geocodificação ser refeita (pendência F1).
 
 # %%
 df_ate_4_mapa = df_bairro_ate_4[df_bairro_ate_4['bairro'] != 'Total'].copy()
@@ -1495,19 +1549,22 @@ df_ate_4_mapa = df_bairro_ate_4[df_bairro_ate_4['bairro'] != 'Total'].copy()
 # usada nas células acima; o mapa segue a convenção do projeto de percentual em escala 0-100
 # (mesma de 'Percentual 0 a 4' do Censo)
 df_ate_4_mapa['Percentual Primeira Inf. Cadúnico'] = df_ate_4_mapa['Primeira Inf. Cadúnico'] * 100
+# recortes_cadunico A4: suprime quando o numerador (famílias CadÚnico) OU o denominador (pop. Censo 0-4) < 20
+df_ate_4_mapa = suprime_celulas_pequenas(df_ate_4_mapa, ['Famílias', '0 a 4 anos'],
+                                         ['Crianças', 'Famílias', 'Primeira Inf. Cadúnico', 'Percentual Primeira Inf. Cadúnico'])
 df_ate_4_mapa.to_csv('tabelas_finais//tabela_mapa_cadunico_primeira_infancia_2026.csv', index=False)
 
 mapa_coropletico_bairros(
     df_ate_4_mapa, coluna_valor='Crianças', titulo='Crianças (0-4 anos) no CadÚnico, por bairro',
     nome_arquivo='mapa_cadunico_primeira_infancia_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'],
-    bins=[200, 500, 1000, 2000], legenda_titulo='Crianças', fonte_dados=fonte_cadunico,
+    bins=[200, 500, 1000, 2000], legenda_titulo='Crianças', fonte_dados=fonte_mapa_cadunico,
 )
 mapa_coropletico_bairros(
     df_ate_4_mapa, coluna_valor='Percentual Primeira Inf. Cadúnico', titulo='% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro',
     nome_arquivo='mapa_percentual_cadunico_primeira_infancia_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'],
-    legenda_titulo='% CadÚnico/Censo', fonte_dados=fonte_cadunico,
+    legenda_titulo='% CadÚnico/Censo', fonte_dados=fonte_mapa_cadunico,
 )
 
 # %% [markdown]
