@@ -92,7 +92,7 @@ O script `analise.py` realiza as seguintes operações, em ordem prática:
     ```bash
     pip install -r requirements.txt
     ```
-4.  **Configure as variáveis de ambiente**: Crie um arquivo `.env` na raiz do projeto com as credenciais do banco de dados, seguindo o exemplo de `connect_db_ctpe` em `analise.py`.
+4.  **Configure as variáveis de ambiente**: Crie um arquivo `.env` na raiz do projeto com as credenciais do banco de dados, seguindo o exemplo de `connect_db_ctpe` em `analise.py`. A seção CadÚnico usa o driver `psycopg` 3 (`requirements.txt`) — o kernel precisa ter esse pacote (no ambiente de desenvolvimento, o conda env `analises_env`; o Python base do Anaconda só tem `psycopg2`).
 5.  **Adicione os dados**: Baixe os arquivos de dados do Google Drive e coloque-os na pasta `dados_locais/`.
 6.  **Execute a análise**: Utilize o Jupytext para abrir o `analise.py` como um notebook em seu ambiente Jupyter.
 
@@ -109,6 +109,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.20.0 | 2026-09-23 | CadÚnico: recortes por sexo, raça/cor e arranjo familiar × renda (eixo Inclusão), supressão de células < 20 e correções nas saídas existentes (`specs/recortes_cadunico`). |
 | 0.19.1 | 2026-09-22 | Revertido o rename de `relatorio/index.html` para `relatorio/relatorio.html` (0.19.0) — de volta a `index.html`. |
 | 0.19.0 | 2026-09-22 | Relatório/mapas/tabelas regenerados de verdade; `relatorio/index.html` renomeado para `relatorio/relatorio.html` (deploy continua publicando como `index.html`); primeiro deploy de teste no GitHub Pages; README reestruturado. |
 | 0.18.0 | 2026-09-22 | `dados_locais/` reorganizado por tema; convenção de nomes de `tabelas_finais/`/`visualizacoes/`/`mapas/` documentada em `specs/tech-stack.md`. |

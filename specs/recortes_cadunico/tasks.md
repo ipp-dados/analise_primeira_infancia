@@ -68,9 +68,9 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 - [x] **T10.3** — PDF e DOCX regenerados (skill `export_pdf_report`).
 
 ## Bloco 11 — Documentação
-- [ ] **T11.1** — `README.md`: changelog curto.
-- [ ] **T11.2** — `specs/roadmap.md`: item 8 (1ª leva) concluído, F1-F3 no backlog.
-- [ ] **T11.3** — `CLAUDE.md`/`specs/tech-stack.md`: kernel `analises_env` e regra de supressão CadÚnico.
+- [x] **T11.1** — `README.md`: changelog curto.
+- [x] **T11.2** — `specs/roadmap.md`: item 8 (1ª leva) concluído, F1-F3 no backlog.
+- [x] **T11.3** — `CLAUDE.md`/`specs/tech-stack.md`: kernel `analises_env` e regra de supressão CadÚnico.
 - [ ] **T11.4** — `specs/constitution.md` §6: limiar 20. **Só com ok explícito do usuário.**
 
 ## Bloco 12 — Validação e revisão
