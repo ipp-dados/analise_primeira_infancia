@@ -702,8 +702,12 @@ def _svg_rosa_dos_ventos(x=None, y=30):
         '</g>'
     )
 
-def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro", teto=None, zero_branco=False):
+def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro", teto=None, zero_branco=False,
+             col_suprimido=None, rotulo_suprimido="suprimido (< 20)"):
     """`teto`: limite superior só da escala de cor contínua (valores acima usam a cor máxima; o tooltip mostra o real).
+    `col_suprimido` (specs/recortes_cadunico §5): coluna booleana de `df` marcando regiões suprimidas por
+    privacidade (valor já vazio na tabela) -- o tooltip mostra `rotulo_suprimido` em vez de "—" e a legenda
+    ganha uma linha própria. None (padrão) = comportamento anterior, usado pelos demais mapas.
     `zero_branco` (só com `bins`): valor 0 vira branco, com linha própria "0 (sem casos)" na legenda.
     df: 1 linha por unidade geografica (chave_col identifica a unidade no nivel
     escolhido: codbairro/area_plane/cod_rp/cod_ap_sms). bins: lista de limites
@@ -713,12 +717,15 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
     tooltip por regiao + toggle de outliers + download CSV."""
     gdf, project, nomes = _geo_nivel(nivel)
     valores = {}
+    suprimidas = set()
     for _, r in df.iterrows():
         try:
             chave = _chave_norm(r[chave_col], nivel)
         except (ValueError, TypeError):
             continue  # linhas de agregado tipo "Em branco"/"Ignorado" (nao sao uma unidade geografica real)
         valores[chave] = None if pd.isna(r[valor_col]) else float(r[valor_col])
+        if col_suprimido is not None and bool(r[col_suprimido]):
+            suprimidas.add(chave)
     brutos = list(valores.values())
     # outliers so em percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
     limpos = remove_outliers_tukey(brutos) if _eh_taxa_ou_percentual(fmt) else brutos
@@ -748,6 +755,8 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 fill = _cor_sequencial(tema, frac)
             label = nomes.get(chave, str(chave))
             val_txt = _fmt_ptbr(v, 1 if fmt in ("pct1", "dec1") else 0) + ("%" if fmt == "pct1" and v is not None else "")
+            if chave in suprimidas:
+                val_txt = rotulo_suprimido
             paths.append(
                 f'<path d="{d}" class="map-region" fill="{fill}" stroke="var(--page)" stroke-width="0.7" '
                 f'data-label="{_esc(label)}" data-valor="{_esc(val_txt)}"></path>'
@@ -770,6 +779,9 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 v = vmin + (vmax - vmin) * frac
                 sw = _cor_sequencial(tema, frac)
                 legend_bits.append(f'<div class="map-legend-row"><span class="map-legend-sw" style="background:{sw}"></span>{"≥ " if teto is not None and i == steps - 1 else ""}{_fmt_ptbr(v, 1)}{"%" if fmt == "pct1" else ""}</div>')
+        if suprimidas:
+            legend_bits.append('<div class="map-legend-row"><span class="map-legend-sw" style="background:var(--surface-2);border:1px solid var(--ink-3, #888)"></span>'
+                               f'Sem dado / {_esc(rotulo_suprimido)}</div>')
         bg_class = _basemap_css_class(project)
         overlay = _svg_rosa_dos_ventos() + _svg_barra_escala(project)
         svg = (
@@ -1249,9 +1261,82 @@ option_card([
     ("Taxa 0-6, por sexo", lambda: grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU), "sidra_taxa_frequencia_0_6_sexo_2022"),
 ], 'grafico')
 
-emite_bloco_pendente("Famílias no CadÚnico com crianças até 6 anos, por sexo", "Fazer recorte — Léo")
-emite_bloco_pendente("Famílias no CadÚnico com crianças até 6 anos, por raça/cor", "Fazer recorte — Léo")
-emite_bloco_pendente("Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar", "Fazer recorte — Léo")
+# ---- CadÚnico: recortes por sexo, raça/cor, arranjo familiar e renda (specs/recortes_cadunico) ----
+FONTE_CADUNICO = "CadÚnico (extração CTPE, jun/2026)"
+FONTE_MAPA_CADUNICO = (FONTE_CADUNICO + ". Bairro atribuído pelo CEP (Correios), pode divergir do bairro oficial; "
+                       "bairros com menos de 20 famílias suprimidos")
+df_cad_sexo = read("cadunico_por_sexo_2026.csv")
+df_cad_raca = read("cadunico_por_raca_cor_2026.csv")
+df_cad_arranjo = read("cadunico_familias_por_arranjo_2026.csv")
+df_cad_arranjo_renda = read("cadunico_familias_arranjo_renda_2026.csv")
+df_cad_recortes_mapa = read("tabela_mapa_cadunico_recortes_bairro_2026.csv")
+_ORDEM_RACA_CAD = ["Parda", "Branca", "Preta", "Amarela", "Indígena"]
+
+def _mapa_cadunico_pct(col, titulo, legenda):
+    return mapa_svg(df_cad_recortes_mapa, "codbairro", col, "cadunico", titulo, legenda, FONTE_MAPA_CADUNICO,
+                    fmt="pct1", col_suprimido="suprimido")
+
+h3("Famílias no CadÚnico com crianças até 6 anos, por sexo")
+nota_metodologica(
+    "Sexo da criança. \"Até 6 anos\" = 0 a 5 anos completos (quem já fez 6 anos não está nesta extração). "
+    "As famílias estão classificadas pelo sexo das suas crianças (só meninas, só meninos ou meninas e meninos) — "
+    "cada família conta uma vez só."
+)
+_cs = df_cad_sexo[df_cad_sexo["recorte"] == "Crianças por sexo"]
+_cs = _cs[~_cs["categoria"].str.startswith("Total")]
+_fs = df_cad_sexo[df_cad_sexo["recorte"] == "Famílias por sexo das crianças"]
+_fs = _fs[_fs["categoria"] != "Total"]
+option_card([
+    ("Crianças e famílias", lambda: out_pair(
+        lambda: bar_chart([{'label': r["categoria"], 'value': r["Crianças"]} for _, r in _cs.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças, por sexo"),
+        lambda: bar_chart([{'label': r["categoria"], 'value': r["Famílias"]} for _, r in _fs.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias, por sexo das crianças"),
+    ), "cadunico_criancas_por_sexo"),
+], 'grafico')
+# mapa % meninas cortado na revisão visual (recortes_cadunico T12.3): ~49% em todo bairro
+
+h3("Famílias no CadÚnico com crianças até 6 anos, por raça/cor")
+nota_metodologica(
+    "Raça/cor da criança. Uma família com crianças de raça/cor diferentes aparece em mais de uma categoria, por isso as "
+    "famílias não somam o total. Negra = preta + parda. Por bairro, só o percentual de crianças negras é publicado "
+    "(grupos pequenos, como indígena e amarela, só aparecem no total da cidade)."
+)
+_rc = df_cad_raca.set_index("raça/cor da criança").loc[_ORDEM_RACA_CAD].reset_index()
+option_card([
+    ("Crianças e famílias", lambda: out_pair(
+        lambda: bar_chart([{'label': r["raça/cor da criança"], 'value': r["Crianças"]} for _, r in _rc.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças, por raça/cor"),
+        lambda: bar_chart([{'label': r["raça/cor da criança"], 'value': r["Famílias com ao menos uma"]} for _, r in _rc.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias com ao menos uma criança da raça/cor"),
+    ), "cadunico_criancas_por_raca_cor"),
+], 'grafico')
+option_card([
+    ("% negras", lambda: _mapa_cadunico_pct("% crianças negras", "% de crianças negras (pretas e pardas) até 6 anos no CadÚnico, por bairro", "% negras"),
+     "mapa_percentual_cadunico_criancas_negras_bairro_2026"),
+], 'mapa')
+
+h3("Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar")
+nota_metodologica(
+    "Arranjo familiar aproximado pela composição do cadastro: número e sexo das pessoas de 18 anos ou mais na família. "
+    "\"Uma adulta\" NÃO é o conceito oficial de família monoparental (que depende do parentesco, ausente nesta extração) — "
+    "um companheiro que não está no cadastro não aparece. Renda per capita da família; acima de meio salário mínimo "
+    "(R$ 810) as faixas estão agrupadas. Células com menos de 20 famílias são suprimidas."
+)
+_arr = df_cad_arranjo[df_cad_arranjo["arranjo familiar"] != "Total"]
+_ordem_arr = _arr["arranjo familiar"].tolist()
+_faixas_renda = list(dict.fromkeys(df_cad_arranjo_renda["faixa de renda per capita"]))
+_serie_renda = []
+for _fx in _faixas_renda:
+    _d = df_cad_arranjo_renda[df_cad_arranjo_renda["faixa de renda per capita"] == _fx].set_index("arranjo")["% no arranjo"]
+    _serie_renda.append({'label': _fx, 'values': [None if pd.isna(_d.get(a)) else float(_d.get(a)) for a in _ordem_arr], 'format': 'pct1'})
+option_card([
+    ("Por arranjo", lambda: bar_chart([{'label': r["arranjo familiar"], 'value': r["Famílias"]} for _, r in _arr.iterrows()],
+                                      fonte=FONTE_CADUNICO, titulo="Famílias, por arranjo familiar"), "cadunico_familias_por_arranjo"),
+    ("Arranjo × renda", lambda: grouped_bar_chart(_ordem_arr, _serie_renda, fonte=FONTE_CADUNICO,
+                                                  titulo="% das famílias de cada arranjo, por renda per capita"), "cadunico_familias_arranjo_renda"),
+], 'grafico')
+option_card([
+    ("% uma adulta", lambda: _mapa_cadunico_pct("% famílias com uma adulta", "Famílias com crianças até 6 anos no CadÚnico: % com uma só adulta, por bairro", "% uma adulta"),
+     "mapa_percentual_cadunico_familias_uma_adulta_bairro_2026"),
+], 'mapa')
+
 emite_bloco_pendente("Crianças no CadÚnico com alguma deficiência", "baixar dados — Léo")
 emite_bloco_pendente("Famílias no CadÚnico com criança com deficiência", "baixar dados — Léo")
 emite_bloco_pendente("Crianças no CadÚnico por tipo de deficiência", "baixar dados — Léo")
@@ -1259,13 +1344,14 @@ emite_bloco_pendente("Crianças no CadÚnico por tipo de deficiência", "baixar 
 # ===================================================== FAMILIA E CUIDADOS ==
 
 h2('👨‍👩‍👧 Família e Cuidados')
-FONTE_CADUNICO = "CadÚnico (extração CTPE)"
 
 h3('CadÚnico')
 
 h4('Por faixa de renda e idade')
-df_renda = read("cadunico_por_faixa_etaria_2026.csv")
-df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"]
+df_renda = read("cadunico_por_faixa_renda_2026.csv")
+df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"].copy()
+# recortes_cadunico A7: rótulo descritivo da faixa de renda per capita (coluna gerada por analise.py)
+df_renda_sem_total["faixa de renda"] = df_renda_sem_total["faixa de renda (descrição)"]
 df_idade = read("cadunico_por_idade_2026.csv")
 df_idade["idade_lbl"] = df_idade["idade"].astype(int).map(lambda i: f"{i} ano" if i == 1 else f"{i} anos")
 # seed: cada opcao mostra um out_pair (Criancas + Familias lado a lado) sob
@@ -1289,11 +1375,12 @@ df_map_cadunico_criancas = read("tabela_mapa_cadunico_criancas_2026.csv")
 df_map_cadunico_0_4 = read("tabela_mapa_cadunico_primeira_infancia_2026.csv")
 option_card([
     ("Crianças 0-6", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
-        "Crianças (0-6 anos) no CadÚnico, por bairro", "Crianças", FONTE_CADUNICO, bins=[250, 750, 1500, 3000]), "mapa_cadunico_criancas_bairro_2026"),
+        "Crianças (0-6 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[250, 750, 1500, 3000],
+        col_suprimido="suprimido"), "mapa_cadunico_criancas_bairro_2026"),
     ("Crianças 0-4", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
-        "Crianças (0-4 anos) no CadÚnico, por bairro", "Crianças", FONTE_CADUNICO, bins=[200, 500, 1000, 2000]), "mapa_cadunico_primeira_infancia_bairro_2026"),
-    ("% s/ Censo", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Percentual Primeira Inf. Cadúnico", "cadunico",
-        "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro", "% CadÚnico/Censo", FONTE_CADUNICO, fmt="pct1"), "mapa_percentual_cadunico_primeira_infancia_bairro_2026"),
+        "Crianças (0-4 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[200, 500, 1000, 2000],
+        col_suprimido="suprimido"), "mapa_cadunico_primeira_infancia_bairro_2026"),
+    # recortes_cadunico D6: mapa "% s/ Censo" retirado do relatório (até 510% por viés CEP -> bairro; fica só no notebook)
 ], 'mapa')
 
 h3('Cobertura vacinal (EPI)')

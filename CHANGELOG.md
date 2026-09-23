@@ -301,3 +301,18 @@ processo um `NameError` real (célula ativa sobrevivente da curadoria). Detalhes
 - `specs/estrutura_eixos.md`: Proteção com arquivos reais; SGB/inundação removido da V1 (Moradia).
 - `build_html_report.py`: níveis `ra`, formato `dec1`, parâmetro `teto` em `mapa_svg`, `nota_metodologica`, fundo cartográfico via `World_Ocean_Base`.
 - `build_notebook_report.py`, DOCX de curadoria e `relatorio/index.html` regenerados.
+
+---
+
+## 2026-09-23 — `specs/recortes_cadunico` (CadÚnico, eixo Inclusão)
+
+- `analise.py`: funções `carrega_cadunico_familias_0_6`, `classifica_arranjo_familiar` (arranjo aproximado pela composição
+  do cadastro), `agrega_cadunico_familias`, `agrega_cadunico_criancas`, `atribui_bairro_por_cep`, `suprime_celulas_pequenas`
+  (regra de privacidade: < 20 famílias vira vazio) e `fonte_cadunico_com_particao`; recortes por sexo, raça/cor e arranjo × renda
+  com 3 mapas de taxa por bairro.
+- Correções nas saídas CadÚnico existentes: 15.809 crianças sem bairro (CEP fora da lista) agora aparecem numa linha própria;
+  notas reescritas com a causa real do viés de bairro (bairro dos Correios ≠ bairro IPP); definição real de idade documentada
+  (0 a 5 anos completos); supressão < 20 nas tabelas/gêmeas por bairro; `cadunico_por_faixa_etaria_2026.csv` renomeado para
+  `cadunico_por_faixa_renda_2026.csv` (o conteúdo sempre foi por renda); rótulos descritivos de renda; fonte com a data da extração.
+- Relatórios: HTML/PDF/DOCX com os 3 itens de Inclusão; mapa "% CadÚnico/Censo" retirado do HTML/PDF (fica no notebook);
+  `mapa_svg(col_suprimido=...)` mostra "suprimido (< 20)" no tooltip.

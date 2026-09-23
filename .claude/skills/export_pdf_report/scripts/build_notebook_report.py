@@ -499,9 +499,52 @@ add(chart_block("sidra_taxa_frequencia_0_6_sexo_2022.png", "sidra_taxa_frequenci
 add(p(_texto_analise("sidra_taxa_frequencia_0_6_sexo_2022")))
 
 add(h3('\U0001F5C2️ CadÚnico'))
-add(pending("Famílias no CadÚnico com crianças até 6 anos, por sexo", "Fazer recorte — Léo"))
-add(pending("Famílias no CadÚnico com crianças até 6 anos, por raça/cor", "Fazer recorte — Léo"))
-add(pending("Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar", "Fazer recorte — Léo"))
+# ---- recortes por sexo, raça/cor, arranjo familiar e renda (specs/recortes_cadunico) ----
+add(p('Fonte: CadÚnico (extração CTPE, jun/2026). "Até 6 anos" = 0 a 5 anos completos (quem já fez 6 anos não está nesta extração). '
+      'Nos mapas, o bairro é atribuído pelo CEP (Correios) e pode divergir do bairro oficial; bairros com menos de 20 famílias são suprimidos.'))
+
+add(h4('Famílias no CadÚnico com crianças até 6 anos, por sexo'))
+add(note('<b>Nota metodológica.</b> Sexo da criança. As famílias estão classificadas pelo sexo das suas crianças '
+         '(só meninas, só meninos ou meninas e meninos) — cada família conta uma vez só.'))
+add('<div class="out-pair">')
+add(chart_block("cadunico_criancas_por_sexo.png", "cadunico_por_sexo_2026.csv"))
+add(chart_block("cadunico_familias_por_sexo_criancas.png", "cadunico_por_sexo_2026.csv"))
+add('</div>')
+add(p(_texto_analise("cadunico_criancas_por_sexo")))
+df_cad_sexo = read("cadunico_por_sexo_2026.csv")
+add(registra_tabela("CadÚnico: crianças e famílias por sexo", table_html(df_cad_sexo, pct_cols=["% das crianças", "% das famílias"], dec_cols={"% das crianças": 1, "% das famílias": 1}, rename={"recorte": "Recorte", "categoria": "Categoria"})))
+# mapa % meninas cortado na revisão visual (recortes_cadunico T12.3): ~49% em todo bairro
+
+add(h4('Famílias no CadÚnico com crianças até 6 anos, por raça/cor'))
+add(note('<b>Nota metodológica.</b> Raça/cor da criança. Uma família com crianças de raça/cor diferentes aparece em mais de uma '
+         'categoria, por isso as famílias <b>não somam</b> o total. Negra = preta + parda. Por bairro, só o percentual de crianças '
+         'negras é publicado (grupos pequenos, como indígena e amarela, só aparecem no total da cidade).'))
+add('<div class="out-pair">')
+add(chart_block("cadunico_criancas_por_raca_cor.png", "cadunico_por_raca_cor_2026.csv"))
+add(chart_block("cadunico_familias_por_raca_cor.png", "cadunico_por_raca_cor_2026.csv"))
+add('</div>')
+add(p(_texto_analise("cadunico_criancas_por_raca_cor")))
+add(registra_tabela("CadÚnico: crianças e famílias por raça/cor", table_html(read("cadunico_por_raca_cor_2026.csv").drop(columns="nota"), pct_cols=["% das crianças"], dec_cols={"% das crianças": 1})))
+emit_map_gallery([("Por bairro", [
+    ("mapa_percentual_cadunico_criancas_negras_bairro_2026.png", "% de crianças negras (pretas e pardas) até 6 anos no CadÚnico, por bairro"),
+])])
+
+add(h4('Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar'))
+add(note('<b>Nota metodológica.</b> Arranjo familiar aproximado pela composição do cadastro: número e sexo das pessoas de 18 anos ou mais '
+         'na família. <b>"Uma adulta" não é o conceito oficial de família monoparental</b> (que depende do parentesco, ausente nesta '
+         'extração) — um companheiro que não está no cadastro não aparece. Renda per capita da família; acima de meio salário mínimo '
+         '(R$ 810) as faixas estão agrupadas. Células com menos de 20 famílias são suprimidas.'))
+add(chart_block("cadunico_familias_por_arranjo.png", "cadunico_familias_por_arranjo_2026.csv"))
+add(p(_texto_analise("cadunico_familias_por_arranjo")))
+add(registra_tabela("CadÚnico: famílias por arranjo familiar", table_html(read("cadunico_familias_por_arranjo_2026.csv"), pct_cols=["% das famílias"], dec_cols={"% das famílias": 1})))
+add(chart_block("cadunico_familias_arranjo_renda.png", "cadunico_familias_arranjo_renda_2026.csv"))
+add(p(_texto_analise("cadunico_familias_arranjo_renda")))
+add(registra_tabela("CadÚnico: famílias por arranjo familiar e renda per capita",
+                    table_html(read("cadunico_familias_arranjo_renda_2026.csv").drop(columns="suprimido"), pct_cols=["% no arranjo"], dec_cols={"% no arranjo": 1}, na="suprimido (< 20)", rename={"arranjo": "Arranjo familiar"})))
+emit_map_gallery([("Por bairro", [
+    ("mapa_percentual_cadunico_familias_uma_adulta_bairro_2026.png", "Famílias com crianças até 6 anos no CadÚnico: % com uma só adulta, por bairro"),
+])])
+
 add(pending("Crianças no CadÚnico com alguma deficiência", "baixar dados — Léo"))
 add(pending("Famílias no CadÚnico com criança com deficiência", "baixar dados — Léo"))
 add(pending("Crianças no CadÚnico por tipo de deficiência", "baixar dados — Léo"))
@@ -512,13 +555,13 @@ add(pending("Crianças no CadÚnico por tipo de deficiência", "baixar dados —
 add(h2('\U0001F468‍\U0001F469‍\U0001F467 Família e Cuidados'))
 
 add(h3('\U0001F5C2️ Cadúnico'))
-add(p('Fonte: CadÚnico via banco CTPE (<code>silver_cadunico_geral</code>), recorte de crianças 0-6 anos.'))
+add(p('Fonte: CadÚnico via banco CTPE (<code>silver_cadunico_geral</code>, extração jun/2026), recorte de crianças 0-6 anos (0 a 5 anos completos).'))
 add(note('<b>Nota:</b> requer conexão ativa com o banco CTPE (credenciais em <code>.env</code>) para reproduzir; não roda apenas com os arquivos em <code>dados_locais/</code>. Os gráficos abaixo refletem o último export salvo em <code>tabelas_finais/</code>.'))
 
 add(h4('Análise por renda'))
 add('<div class="out-pair">')
-add(chart_block("cadunico_familias_por_faixa_renda.png", "cadunico_por_faixa_etaria_2026.csv"))
-add(chart_block("cadunico_criancas_por_faixa_renda.png", "cadunico_por_faixa_etaria_2026.csv"))
+add(chart_block("cadunico_familias_por_faixa_renda.png", "cadunico_por_faixa_renda_2026.csv"))
+add(chart_block("cadunico_criancas_por_faixa_renda.png", "cadunico_por_faixa_renda_2026.csv"))
 add('</div>')
 # Par compartilha uma unica tabela no apendice (registra_tabela chamado uma
 # vez abaixo) -- por isso tambem compartilha UM bloco de texto, com seed
@@ -526,7 +569,7 @@ add('</div>')
 # PDF-only: nao existe um bookmark equivalente no DOCX de curadoria (que
 # ainda trata os dois arquivos separadamente), so este texto combinado.
 add(p(_texto_analise("cadunico_familias_por_faixa_renda_cadunico_criancas_por_faixa_renda")))
-add(registra_tabela("CadÚnico por faixa de renda", table_html(read("cadunico_por_faixa_etaria_2026.csv"), rename={"faixa de renda": "Faixa de renda"})))
+add(registra_tabela("CadÚnico por faixa de renda", table_html(read("cadunico_por_faixa_renda_2026.csv"), rename={"faixa de renda": "Faixa de renda"})))
 
 add(h4('Análise por idade'))
 add('<div class="out-pair">')
@@ -534,6 +577,8 @@ add(chart_block("cadunico_familias_por_idade.png", "cadunico_por_idade_2026.csv"
 add(chart_block("cadunico_criancas_por_idade.png", "cadunico_por_idade_2026.csv"))
 add('</div>')
 # Mesmo caso do par acima: um bloco de texto compartilhado, PDF-only.
+add(note('<b>Leitura.</b> Em cada idade, conta as famílias com ao menos uma criança daquela idade — as barras de famílias '
+         '<b>não somam</b> o total de famílias. A barra de 0 anos é baixa porque o recém-nascido entra no cadastro com atraso.'))
 add(p(_texto_analise("cadunico_familias_por_idade_cadunico_criancas_por_idade")))
 df_idade = read("cadunico_por_idade_2026.csv")
 df_idade["idade"] = df_idade["idade"].astype(int)
@@ -576,7 +621,7 @@ MAP_GROUPS_FAMILIA = [
     ("CadÚnico", [
         ("mapa_cadunico_criancas_bairro_2026.png", "Crianças (0-6 anos) no CadÚnico, por bairro"),
         ("mapa_cadunico_primeira_infancia_bairro_2026.png", "Crianças (0-4 anos) no CadÚnico, por bairro"),
-        ("mapa_percentual_cadunico_primeira_infancia_bairro_2026.png", "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro"),
+        # recortes_cadunico D6: mapa % CadÚnico/Censo retirado (até 510% por viés CEP -> bairro; fica só no notebook)
     ]),
 ]
 emit_map_gallery(MAP_GROUPS_FAMILIA)

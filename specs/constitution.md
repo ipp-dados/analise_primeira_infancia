@@ -72,6 +72,13 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   regeneração completa nem apague esses arquivos achando que são
   recuperáveis via regeneração até isso ser decidido — confirme com o
   usuário antes.
+  **Atualização 2026-09-23 (`specs/recortes_cadunico`):** o achado acima
+  não vale mais. As regras foram reativadas em 2026-09-22 (commit
+  `5907196`), então `tabelas_finais/`, `mapas/` e `visualizacoes/` voltaram a
+  ser ignorados. Só os arquivos rastreados **antes** disso seguem no git e
+  são atualizados quando regenerados; saídas novas não são versionadas (o
+  pipeline de relatório as lê do disco local). A cautela de não apagar
+  saídas sem regenerá-las continua valendo.
 
 ## 4. Não editar artefatos gerados à mão
 
@@ -114,6 +121,17 @@ deve expor granularidade abaixo do agregado por bairro/AP/RP/CAP definido
 nas specs existentes — não adicionar um recorte mais fino (indivíduo,
 endereço, faixa etária de 1 em 1 ano em grupos pequenos) sem confirmar
 antes que é apropriado.
+
+**Limiar de supressão (aprovado pelo usuário em 2026-09-23, `specs/recortes_cadunico` §5):**
+nenhuma saída publicada (`tabelas_finais/`, `relatorio/index.html` com os
+tooltips e CSV de download, PDF, DOCX) mostra uma contagem de crianças ou
+famílias do CadÚnico **menor que 20** abaixo do nível município. O mesmo vale
+para o denominador de uma taxa. A célula vira vazia, com a marcação
+"suprimido (< 20)", via `suprime_celulas_pequenas` em `analise.py`, aplicada
+*depois* do cálculo e só no que é gravado ou publicado (agregações usam o
+dado completo). Grupos pequenos na cidade inteira (ex. raça/cor amarela e
+indígena) só aparecem no total do município. Microdados de pessoa ou
+família nunca são gravados em disco.
 
 ## 7. Git
 
