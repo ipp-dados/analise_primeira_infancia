@@ -1706,7 +1706,7 @@ grafico_barra_agrupado(_graf_arranjo_renda, categoria='arranjo', valor='% no arr
                        fonte_dados=fonte_cadunico_particao)
 
 # %% [markdown]
-# ##### 🗺️ Mapas por bairro: % de meninas, de crianças negras e de famílias com uma só adulta
+# ##### 🗺️ Mapas por bairro: % de crianças negras e de famílias com uma só adulta
 #
 # Taxas **internas ao CadÚnico** (numerador e denominador da mesma base e do mesmo bairro atribuído pelo
 # CEP), recalculadas a partir das contagens absolutas de cada bairro -- sofrem bem menos com o viés de
@@ -1738,9 +1738,9 @@ df_recortes_bairro_pub.to_csv('tabelas_finais/tabela_mapa_cadunico_recortes_bair
 df_recortes_bairro_pub.sort_values('% famílias com uma adulta', ascending=False).head(10)
 
 # %%
+# mapa de % meninas cortado na revisão visual (recortes_cadunico T12.3): ~49% em todo bairro, sem
+# informação territorial -- a coluna segue na tabela gêmea
 for _coluna, _titulo, _arquivo, _legenda in [
-    ('% meninas', '% de meninas entre as crianças até 6 anos no CadÚnico, por bairro',
-     'mapa_percentual_cadunico_meninas_bairro_2026', '% meninas'),
     ('% crianças negras', '% de crianças negras (pretas e pardas) até 6 anos no CadÚnico, por bairro',
      'mapa_percentual_cadunico_criancas_negras_bairro_2026', '% negras'),
     ('% famílias com uma adulta', 'Famílias com crianças até 6 anos no CadÚnico: % com uma só adulta, por bairro',

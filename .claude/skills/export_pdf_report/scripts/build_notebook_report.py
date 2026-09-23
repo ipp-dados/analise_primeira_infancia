@@ -513,9 +513,7 @@ add('</div>')
 add(p(_texto_analise("cadunico_criancas_por_sexo")))
 df_cad_sexo = read("cadunico_por_sexo_2026.csv")
 add(registra_tabela("CadÚnico: crianças e famílias por sexo", table_html(df_cad_sexo, pct_cols=["% das crianças", "% das famílias"], dec_cols={"% das crianças": 1, "% das famílias": 1}, rename={"recorte": "Recorte", "categoria": "Categoria"})))
-emit_map_gallery([("Por bairro", [
-    ("mapa_percentual_cadunico_meninas_bairro_2026.png", "% de meninas entre as crianças até 6 anos no CadÚnico, por bairro"),
-])])
+# mapa % meninas cortado na revisão visual (recortes_cadunico T12.3): ~49% em todo bairro
 
 add(h4('Famílias no CadÚnico com crianças até 6 anos, por raça/cor'))
 add(note('<b>Nota metodológica.</b> Raça/cor da criança. Uma família com crianças de raça/cor diferentes aparece em mais de uma '
