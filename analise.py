@@ -2547,7 +2547,228 @@ df_final.head()
 # ## 📝 Análise / Relatório
 
 # %% [markdown]
-# *(Pendente)* Síntese narrativa dos achados.
+# ### Análise dos resultados
+#
+# As análises a seguir sintetizam os principais achados dos dados
+# apresentados no relatório, priorizando tendências, diferenças
+# territoriais e aspectos relevantes para a compreensão da primeira
+# infância no município do Rio de Janeiro.
+
+## %% [markdown]
+# ### Censo 2022 — população na primeira infância
+#
+# Os dados do Censo Demográfico 2022 permitem dimensionar a população
+# infantil do município do Rio de Janeiro e observar sua distribuição
+# territorial. No recorte analisado, são consideradas as crianças de
+# 0 a 4 anos, tanto em números absolutos quanto em sua participação na
+# população de cada bairro. Essa distinção é importante porque bairros
+# com populações totais muito diferentes podem apresentar números
+# absolutos semelhantes de crianças, enquanto a proporção de crianças
+# revela outra dimensão da composição demográfica.
+#
+# O recorte também é complementado pelos dados do IBGE/SIDRA para a
+# população de 0 a 6 anos, permitindo observar a distribuição por idade,
+# raça/cor e sexo no nível municipal. Esses dados ajudam a caracterizar
+# o público da primeira infância antes da análise dos indicadores de
+# saúde, mortalidade, proteção social e educação. A leitura conjunta
+# dos números absolutos e percentuais, especialmente na escala dos
+# bairros, contribui para contextualizar os demais resultados
+# apresentados no relatório.
+
+# %% [markdown]
+# ### Mortalidade infantil
+#
+# A mortalidade infantil é analisada a partir dos óbitos ocorridos entre
+# 0 e 364 dias de vida, relacionados ao número de nascidos vivos no
+# município. A taxa apresentada é calculada por mil nascidos vivos,
+# permitindo acompanhar a evolução do indicador ao longo do período
+# analisado. O recorte também possibilita distinguir os óbitos
+# pós-neonatais, correspondentes ao período de 28 a 364 dias de vida,
+# dos óbitos ocorridos nos primeiros 27 dias.
+#
+# A análise territorial complementa a série temporal municipal ao
+# apresentar a distribuição dos óbitos e das taxas entre os bairros,
+# com destaque para o ano de 2025. Essa combinação entre magnitude,
+# taxa e localização permite observar o fenômeno em diferentes
+# escalas e evita interpretar o número absoluto de óbitos isoladamente.
+# Para a leitura territorial, é importante considerar que bairros com
+# diferentes números de nascidos vivos podem apresentar taxas distintas
+# mesmo quando o número absoluto de óbitos é semelhante. Dessa forma,
+# os resultados devem ser interpretados conjuntamente com o denominador
+# utilizado no cálculo e com as demais dimensões da mortalidade infantil.
+
+# %% [markdown]
+# **Principais achados**
+#
+# Entre 2006 e 2025, o número absoluto de óbitos de menores de 1 ano no
+# município do Rio de Janeiro apresentou redução, passando de 1.097 para
+# 773 óbitos. Essa redução ocorreu simultaneamente à queda expressiva no
+# número de nascidos vivos, de 82.068 para 59.171 no mesmo período. Por
+# isso, a evolução da taxa de mortalidade infantil apresenta um comportamento
+# diferente do observado nos números absolutos: a taxa passou de 13,37
+# óbitos por mil nascidos vivos em 2006 para 13,06 em 2025, tendo atingido
+# seu menor valor em 2017, com 11,26 por mil.
+#
+# Nos últimos anos da série, observa-se aumento da taxa em relação ao
+# menor nível registrado, apesar de a quantidade absoluta de óbitos
+# continuar abaixo dos valores observados no início do período. Em 2025,
+# foram registrados 773 óbitos infantis e uma taxa de 13,06 por mil
+# nascidos vivos. Os resultados mostram, portanto, a importância de
+# analisar conjuntamente os números absolutos e as taxas, especialmente
+# diante da redução do número de nascidos vivos ao longo da série.
+
+# %% [markdown]
+# **Principais achados — mortalidade neonatal**
+#
+# A mortalidade neonatal apresenta comportamentos distintos entre os
+# componentes precoce e tardio. Entre 2006 e 2025, os óbitos ocorridos
+# de 0 a 6 dias passaram de 728 para 420, enquanto os óbitos de 7 a 27
+# dias passaram de 250 para 170. As taxas também apresentaram redução no
+# período: de 7,86 para 6,42 óbitos por mil nascidos vivos no componente
+# neonatal precoce e de 2,70 para 2,60 por mil no componente tardio.
+#
+# A trajetória, entretanto, não foi linear. No componente precoce, o
+# menor número de óbitos ocorreu em 2024, com 389 registros, seguido de
+# aumento para 420 em 2025. No componente tardio, houve maior oscilação,
+# com a taxa atingindo 3,46 por mil em 2020 e 2,29 em 2022, antes de
+# chegar a 2,60 em 2025. Os dados mostram que o componente neonatal
+# precoce concentra maior número de óbitos e permanece como parte
+# relevante da mortalidade infantil. A análise conjunta dos componentes
+# permite compreender melhor a composição dos óbitos ocorridos no
+# primeiro mês de vida.
+
+
+# %% [markdown]
+# **Principais achados — componente pós-neonatal**
+#
+# O componente pós-neonatal, correspondente aos óbitos ocorridos entre
+# 28 e 364 dias de vida, também apresenta redução no número absoluto de
+# óbitos ao longo da série analisada. Em 2006 foram registrados 376 óbitos
+# nessa faixa etária, enquanto em 2025 foram registrados 265. A taxa,
+# entretanto, apresentou variações ao longo do período e não acompanhou
+# de forma proporcional à redução dos números absolutos. O menor valor da
+# série ocorreu em 2021, com 3,70 óbitos por mil nascidos vivos, enquanto
+# em 2024 a taxa chegou a 4,65 por mil e, em 2025, ficou em 4,48 por mil.
+#
+# Esse comportamento reforça a importância de interpretar conjuntamente
+# o número de óbitos e a taxa calculada sobre os nascidos vivos. A redução
+# dos nascimentos ao longo do período altera o denominador utilizado no
+# indicador e pode fazer com que oscilações relativamente pequenas no
+# número de óbitos resultem em mudanças perceptíveis na taxa. Assim, o
+# componente pós-neonatal deve ser analisado em conjunto com os demais
+# períodos da mortalidade infantil, especialmente os componentes neonatal
+# precoce e tardio, para compreender a composição do indicador.
+
+# %% [markdown]
+# **Principais achados — causas evitáveis**
+#
+# Entre 1996 e 2025, os óbitos classificados como causas evitáveis
+# apresentaram redução expressiva no município do Rio de Janeiro,
+# passando de 1.599 para 502 óbitos, uma redução de aproximadamente 69%.
+# A trajetória, entretanto, não foi linear ao longo de todo o período.
+# Nos anos mais recentes, foram registrados 592 óbitos em 2021, 518 em
+# 2022, 527 em 2023, 469 em 2024 e 502 em 2025. Assim, embora o número
+# observado em 2025 permaneça muito abaixo do registrado no início da
+# série, houve aumento em relação ao menor valor observado em 2024.
+#
+# As causas mal definidas também apresentaram redução importante,
+# passando de 163 óbitos em 1996 para 15 em 2025. Já as demais causas,
+# não claramente evitáveis, passaram de 376 para 206 óbitos no mesmo
+# período. A leitura conjunta dos grupos evidencia uma redução dos
+# óbitos ao longo da série, com comportamentos distintos entre as
+# categorias. Para as causas evitáveis, a análise dos recortes por
+# faixa etária e território permite aprofundar quais componentes
+# concentram os óbitos e como eles se distribuem no município.
+
+# %% [markdown]
+# **Principais achados — subgrupos das causas evitáveis**
+#
+# A análise dos subgrupos mostra que a redução dos óbitos por causas
+# evitáveis entre 1996 e 2025 ocorreu de forma diferente entre as
+# categorias. Em 1996, destacavam-se os óbitos relacionados à adequada
+# atenção ao recém-nascido, com 543 registros, à atenção à mulher na
+# gestação, com 438, e às ações de diagnóstico e tratamento adequado,
+# com 301. Em 2025, esses valores passaram para 67, 263 e 46 óbitos,
+# respectivamente.
+#
+# A maior redução ocorreu no grupo relacionado à adequada atenção ao
+# recém-nascido, que apresentou queda de 543 para 67 óbitos. Também
+# houve redução expressiva no grupo relacionado a diagnóstico e
+# tratamento adequado. Apesar da redução observada em relação ao início
+# da série, a categoria relacionada à atenção à mulher na gestação
+# permanece como a de maior número de óbitos em 2025. Os resultados
+# indicam, portanto, mudanças na composição das causas evitáveis ao longo
+# do período, justificando a análise dos diferentes componentes em vez
+# de considerar apenas o total de óbitos evitáveis.
+
+# %% [markdown]
+# **Principais achados — causas evitáveis por faixa etária**
+#
+# A distribuição das causas evitáveis apresenta diferenças importantes
+# conforme a faixa etária do óbito. Entre os óbitos ocorridos de 0 a 6
+# dias de vida, destacam-se as causas relacionadas à atenção à mulher
+# na gestação e à adequada atenção ao recém-nascido. Em 2025, foram
+# registrados 183 óbitos relacionados à atenção à mulher na gestação e
+# 36 relacionados à atenção ao recém-nascido nesse período. Entre 7 e
+# 27 dias, essas categorias também permanecem entre as principais, com
+# 64 e 20 óbitos, respectivamente.
+#
+# No período de 28 a 364 dias, observa-se uma composição diferente:
+# em 2025, destacaram-se os óbitos relacionados a diagnóstico e
+# tratamento adequado, com 43 registros, e às ações de promoção
+# vinculadas às ações de atenção, com 56. Esse padrão também se
+# diferenciava no início da série, quando essas categorias apresentavam
+# 283 e 129 óbitos, respectivamente. Os resultados mostram que a
+# composição das causas evitáveis varia ao longo do primeiro ano de
+# vida, reforçando a importância de analisar os períodos neonatal e
+# pós-neonatal separadamente.
+
+# %% [markdown]
+# **Principais achados — distribuição territorial das causas evitáveis**
+#
+# Em 2025, a distribuição dos óbitos por causas evitáveis apresentou
+# diferenças entre as áreas de planejamento e também entre as faixas
+# etárias. Entre os menores de 1 ano, foram registrados 491 óbitos
+# evitáveis no conjunto das CAPs analisadas. A maior quantidade ocorreu
+# na CAP 4.0, com 89 óbitos, seguida pela CAP 3.3, com 84, e pela CAP
+# 5.2, com 67. Entre as crianças de 1 a 4 anos, foram registrados 66
+# óbitos evitáveis, com maior concentração na CAP 3.3, com 12 registros,
+# seguida pelas CAPs 5.3 e 5.1, com 10 e 9, respectivamente.
+#
+# Considerando os menores de 5 anos, as CAPs 4.0 e 3.3 apresentaram os
+# maiores números absolutos, com 96 óbitos evitáveis cada. As proporções
+# também apresentam diferenças territoriais, mas devem ser interpretadas
+# com cautela quando o número total de óbitos é pequeno. Assim, os mapas
+# de quantidade e proporção são complementares: o primeiro evidencia a
+# magnitude do fenômeno, enquanto o segundo mostra o peso das causas
+# evitáveis entre os óbitos registrados em cada território.
+#
+# O recorte territorial complementa a análise municipal ao mostrar como
+# os óbitos por causas evitáveis se distribuem entre as diferentes áreas
+# de planejamento. Essa dimensão territorial contribui para compreender
+# desigualdades na mortalidade infantil que não aparecem quando se observa
+# apenas o resultado agregado do município.
+
+# %% [markdown]
+# **Principais achados — gravidez e puerpério**
+#
+# Os indicadores de óbitos relacionados à gravidez e ao puerpério
+# apresentam trajetórias distintas ao longo do período analisado. Entre
+# 2006 e 2025, os óbitos relacionados à gravidez passaram de 78 para 15
+# registros, representando uma redução de aproximadamente 81%. No
+# puerpério, a redução no período foi menor, passando de 67 para 35
+# óbitos, aproximadamente 48%.
+#
+# A série de puerpério apresenta ainda uma oscilação importante nos anos
+# mais recentes. Foram registrados 74 óbitos em 2020 e 109 em 2021,
+# seguidos por redução para 42 em 2022, 40 em 2023, 33 em 2024 e 35 em
+# 2025. Assim, embora os valores de 2025 estejam abaixo dos observados
+# no início da série, a trajetória não foi linear. A leitura conjunta
+# dos dois indicadores complementa a análise das causas evitáveis,
+# especialmente aquelas relacionadas à atenção à mulher durante a
+# gestação, mas os resultados devem ser interpretados separadamente,
+# considerando as diferenças observadas entre as duas séries.
+
 
 # %%
 ###
