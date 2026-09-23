@@ -1,0 +1,344 @@
+# Estrutura por Eixos da Política Municipal
+
+> Este arquivo implementa `specs/ajuste_eixos/specs.md` (Bloco 1 de
+> `specs/ajuste_eixos/plan.md`) — é a fonte única e editável à mão da
+> organização de `relatorio/index.html`/PDF/DOCX por eixo de política
+> municipal de primeira infância, em vez de por fonte de dado. Formato:
+> `##` = eixo, `###` = subseção (um indicador do catálogo
+> `dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx`), lista
+> `- chave: valor` = campos da subseção. Sem YAML/front matter, de propósito
+> (edição manual sem quebrar o parser — ver `parse_estrutura_eixos()` em
+> `.claude/skills/export_pdf_report/scripts/gera_estrutura_eixos.py`).
+>
+> **Convenção de chave repetida**: quando um indicador do catálogo tem mais
+> de um corte real em `analise.py` (ex. causas evitáveis por grupo/subgrupo/
+> CAP/faixa etária), a subseção lista várias linhas `- visualização: ...`/
+> `- mapa: ...`/`- tabela: ...` em sequência — o parser as coleta numa lista,
+> não sobrescreve.
+
+## 🎯 Prioridade (sem secundário)
+
+### Crianças até 4 anos (número)
+- fonte: Censo Demográfico 2022 (IBGE)
+- visualização: `censo_0_a_4_serie_total_ano.png`
+- mapa: `mapa_censo_0_4_absoluto.png`
+- tabela: `censo_0_a_4_anos_por_ano.csv`
+- tabela: `censo_por_bairro.csv`
+
+### Crianças até 4 anos (percentual)
+- fonte: Censo Demográfico 2022 (IBGE)
+- visualização: `censo_0_a_4_serie_percentual_ano.png`
+- mapa: `mapa_censo_0_4_percentual.png`
+- tabela: `censo_0_a_4_anos_por_ano.csv`
+
+### Crianças até 6 anos (número)
+- fonte: Censo Demográfico 2022 (IBGE SIDRA)
+
+### Nascidos vivos por bairro de residência da mãe (número)
+- fonte: DataSUS/Tabnet (nascidos vivos)
+- visualização: `nascidos_vivos_por_ano.png`
+- mapa: `mapa_nascidos_vivos_bairro_2025.png`
+- tabela: `nascidos_vivos_por_ano.csv`
+- tabela: `tabela_mapa_nascidos_vivos_2025.csv`
+
+### Nascidos vivos por bairro de residência da mãe (percentual)
+- fonte: DataSUS/Tabnet (nascidos vivos)
+
+### Taxa de mortalidade neonatal precoce (0 a 6 dias)
+- fonte: DataSUS/Tabnet (SIM/SINASC)
+- visualização: `taxa_mortalidade_precoce_ano.png`
+- mapa: `mapa_obitos_neonatal_precoce_bairro_2025.png`
+- mapa: `mapa_taxa_mortalidade_precoce_bairro_2025.png`
+- tabela: `mortalidade_neonatal_precoce_por_ano.csv`
+- tabela: `mortalidade_neonatal_precoce_bairro_ano.csv`
+- tabela: `tabela_mapa_obitos_neonatal_precoce_2025.csv`
+
+### Taxa de mortalidade neonatal tardia (7 a 27 dias)
+- fonte: DataSUS/Tabnet (SIM/SINASC)
+- visualização: `taxa_obitos_tardios_ano.png`
+- mapa: `mapa_obitos_neonatal_tardia_bairro_2025.png`
+- mapa: `mapa_taxa_obitos_tardios_bairro_2025.png`
+- tabela: `mortalidade_neonatal_tardia_por_ano.csv`
+- tabela: `mortalidade_neonatal_tardia_bairro_ano.csv`
+- tabela: `tabela_mapa_obitos_neonatal_tardia_2025.csv`
+
+### Razão de mortalidade materna (durante a gravidez)
+- fonte: DataSUS/Tabnet (SIM)
+- visualização: `obitos_gravidez_por_ano.png`
+- mapa: `mapa_obitos_gravidez_bairro_2025.png`
+- tabela: `obitos_gravidez_por_ano.csv`
+- tabela: `obitos_gravidez_bairro_ano.csv`
+- tabela: `tabela_mapa_obitos_gravidez_2025.csv`
+
+### Razão de mortalidade materna (durante puerpério)
+- fonte: DataSUS/Tabnet (SIM)
+- visualização: `obitos_puerperio_por_ano.png`
+- mapa: `mapa_obitos_puerperio_bairro_2025.png`
+- tabela: `obitos_puerperio_por_ano.csv`
+- tabela: `obitos_puerperio_bairro_ano.csv`
+- tabela: `tabela_mapa_obitos_puerperio_2025.csv`
+
+### Mortalidade infantil por raça/cor (menores de 1 ano)
+- fonte: DataSUS/Tabnet (SIM)
+- visualização: `obitos_raca_ano.png`
+- visualização: `percentual_mortalidade_raca_ano.png`
+- mapa: `mapa_obitos_raca_total_bairro_2025.png`
+- mapa: `mapa_taxa_obitos_raca_total_bairro_2025.png`
+- tabela: `mortalidade_raca_bairro_ano.csv`
+- tabela: `mortalidade_raca_municipio_ano.csv`
+- tabela: `tabela_mapa_obitos_raca_total_2025.csv`
+
+### Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias)
+- fonte: DataSUS (SIM, classificação de evitabilidade)
+- visualização: `obitos_evitaveis_total_cap_ano.png`
+- visualização: `obitos_evitaveis_cap_menores_1_ano_ano.png`
+- visualização: `obitos_evitaveis_cap_1_a_4_anos_ano.png`
+- visualização: `obitos_evitaveis_cap_menores_5_anos_ano.png`
+- visualização: `percentual_evitaveis_cap_menores_1_ano_ano.png`
+- visualização: `percentual_evitaveis_cap_1_a_4_anos_ano.png`
+- visualização: `percentual_evitaveis_cap_menores_5_anos_ano.png`
+- visualização: `taxa_mortalidade_evitaveis_menores_5_ano.png`
+- mapa: `mapa_obitos_evitaveis_menores_1_ano_cap_2025.png`
+- mapa: `mapa_obitos_evitaveis_1_a_4_anos_cap_2025.png`
+- mapa: `mapa_obitos_evitaveis_menores_5_anos_cap_2025.png`
+- mapa: `mapa_percentual_evitaveis_menores_1_ano_cap_2025.png`
+- mapa: `mapa_percentual_evitaveis_1_a_4_anos_cap_2025.png`
+- mapa: `mapa_percentual_evitaveis_menores_5_anos_cap_2025.png`
+- tabela: `mortalidade_evitaveis_cap_faixa_ano.csv`
+- tabela: `mortalidade_evitaveis_cap_2025.csv`
+- tabela: `taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv`
+
+### Taxa de mortalidade na primeira infância (menores de 1, 1-4, 0-5 anos)
+- fonte: DataSUS/Tabnet municipal
+- visualização: `taxa_mortalidade_infantil_ano.png`
+- visualização: `taxa_mortalidade_pos_neonatal_ano.png`
+- mapa: `mapa_mortalidade_infantil_bairro_2025.png`
+- mapa: `mapa_taxa_mortalidade_infantil_bairro_2025.png`
+- mapa: `mapa_obitos_pos_neonatal_bairro_2025.png`
+- mapa: `mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png`
+- tabela: `mortalidade_infantil_pos_neonatal_total_por_ano.csv`
+- tabela: `mortalidade_infantil_pos_neonatal_total_bairro_ano.csv`
+- tabela: `tabela_mapa_mortalidade_infantil_2025.csv`
+
+### Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10)
+- fonte: DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis)
+- visualização: `obitos_causas_evitaveis_grupo_ano.png`
+- visualização: `obitos_causas_evitaveis_subgrupo_ano.png`
+- visualização: `obitos_causas_evitaveis_grupo_0_6_ano.png`
+- visualização: `obitos_causas_evitaveis_subgrupo_0_6_ano.png`
+- visualização: `obitos_causas_evitaveis_grupo_7_27_ano.png`
+- visualização: `obitos_causas_evitaveis_subgrupo_7_27_ano.png`
+- visualização: `obitos_causas_evitaveis_grupo_28_364_ano.png`
+- visualização: `obitos_causas_evitaveis_subgrupo_28_364_ano.png`
+- visualização: `obitos_causas_evitaveis_subgrupo_faixa_2025.png`
+- visualização: `obitos_evitaveis_menores_1_ano_subgrupo_ano.png`
+- visualização: `obitos_evitaveis_1_a_4_anos_subgrupo_ano.png`
+- visualização: `obitos_evitaveis_menores_5_subgrupo_ano.png`
+- tabela: `mortalidade_causas_evitaveis_grupo_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_subgrupo_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_grupo_0_6_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_subgrupo_0_6_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_grupo_7_27_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_subgrupo_7_27_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_grupo_28_364_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_subgrupo_28_364_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_subgrupo_faixa_2025.csv`
+- tabela: `obitos_evitaveis_menores_5_subgrupo_municipio_ano.csv`
+- tabela: `mortalidade_evitaveis_grupo_cap_faixa_ano.csv`
+- tabela: `mortalidade_evitaveis_subgrupo_cap_2025.csv`
+
+### Mortalidade infantil por causas evitáveis, por raça/cor
+- fonte: DataSUS (SIM)
+- visualização: `obitos_causas_evitaveis_raca_ano.png`
+- visualização: `obitos_causas_evitaveis_raca_sem_nao_informado_ano.png`
+- visualização: `percentual_mortalidade_causas_evitaveis_raca_ano.png`
+- visualização: `percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano.png`
+- tabela: `mortalidade_causas_evitaveis_raca_municipio_ano.csv`
+
+### Mortalidade infantil por causas evitáveis, por sexo
+- fonte: DataSUS (SIM)
+
+## 🤝 Inclusão
+
+### Crianças até 6 anos, por sexo
+- fonte: Censo Demográfico 2022 (IBGE SIDRA)
+- visualização: `censo_sidra_populacao_0_6_sexo_2022.png`
+- tabela: `censo_sidra_populacao_0_6_sexo_2022.csv`
+
+### Crianças até 6 anos, por raça/cor
+- fonte: Censo Demográfico 2022 (IBGE SIDRA)
+- visualização: `censo_sidra_populacao_0_6_raca_2022.png`
+- tabela: `censo_sidra_populacao_0_6_raca_2022.csv`
+
+### Crianças até 6 anos frequentando escola/creche, por raça/cor
+- fonte: Censo Demográfico 2022 (IBGE SIDRA)
+- visualização: `sidra_frequencia_escola_0_5_raca_2022.png`
+- visualização: `sidra_taxa_frequencia_0_6_raca_2022.png`
+- tabela: `sidra_frequencia_escola_0_5_raca_2022.csv`
+- tabela: `sidra_taxa_frequencia_0_6_raca_2022.csv`
+
+### Crianças até 6 anos frequentando escola/creche, por sexo
+- fonte: Censo Demográfico 2022 (IBGE SIDRA)
+- visualização: `sidra_frequencia_escola_0_5_sexo_2022.png`
+- visualização: `sidra_taxa_frequencia_0_6_sexo_2022.png`
+- tabela: `sidra_frequencia_escola_0_5_sexo_2022.csv`
+- tabela: `sidra_taxa_frequencia_0_6_sexo_2022.csv`
+
+### Famílias no CadÚnico com crianças até 6 anos, por sexo
+- fonte: Cadastro Único
+- status: pendente
+- nota: Fazer recorte — Léo
+
+### Famílias no CadÚnico com crianças até 6 anos, por raça/cor
+- fonte: Cadastro Único
+- status: pendente
+- nota: Fazer recorte — Léo
+
+### Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar
+- fonte: Cadastro Único
+- status: pendente
+- nota: Fazer recorte — Léo
+
+### Crianças no CadÚnico com alguma deficiência
+- fonte: Cadastro Único
+- status: pendente
+- nota: baixar dados — Léo
+
+### Famílias no CadÚnico com criança com deficiência
+- fonte: Cadastro Único
+- status: pendente
+- nota: baixar dados — Léo
+
+### Crianças no CadÚnico por tipo de deficiência
+- fonte: Cadastro Único
+- status: pendente
+- nota: baixar dados — Léo
+
+## 👨‍👩‍👧 Família e Cuidados
+
+### Crianças até 6 anos no Cadastro Único (número)
+- fonte: Cadastro Único (extração CTPE)
+- visualização: `cadunico_criancas_por_idade.png`
+- mapa: `mapa_cadunico_criancas_bairro_2026.png`
+- mapa: `mapa_cadunico_primeira_infancia_bairro_2026.png`
+- mapa: `mapa_percentual_cadunico_primeira_infancia_bairro_2026.png`
+- tabela: `cadunico_por_idade_2026.csv`
+- tabela: `cadunico_por_bairro_2026.csv`
+- tabela: `cadunico_por_bairro_ate_4_2026.csv`
+- tabela: `tabela_mapa_cadunico_criancas_2026.csv`
+- tabela: `tabela_mapa_cadunico_primeira_infancia_2026.csv`
+
+### Famílias com crianças até 6 anos no Cadastro Único (número)
+- fonte: Cadastro Único (extração CTPE)
+- visualização: `cadunico_familias_por_idade.png`
+- tabela: `cadunico_por_idade_2026.csv`
+- tabela: `cadunico_por_bairro_2026.csv`
+
+### Famílias com crianças até 6 anos no Cadastro Único, por renda
+- fonte: Cadastro Único (extração CTPE)
+- visualização: `cadunico_familias_por_faixa_renda.png`
+- visualização: `cadunico_criancas_por_faixa_renda.png`
+- tabela: `cadunico_por_faixa_etaria_2026.csv`
+
+### Taxa bruta de frequência escolar da população até 6 anos
+- fonte: PNAD Contínua
+- visualização: `pnad_frequencia_escolar_por_idade.png`
+- tabela: `frequencia_escolar_pnad_por_idade.csv`
+
+### Cobertura vacinal de rotina em crianças até 2 anos
+- fonte: Epi Rio
+- visualização: `cobertura_vacinal_epi_ano.png`
+- visualização: `cobertura_vacinal_epi_comparativo_anos.png`
+- tabela: `cobertura_vacinal_epi_por_ano.csv`
+- tabela: `cobertura_vacinal_epi_comparativo_anos.csv`
+
+### Crianças até 6 anos frequentando escola/creche (geral)
+- fonte: Censo Demográfico 2022 (IBGE SIDRA)
+
+### Matrículas na educação básica de crianças até 6 anos
+- fonte: INEP
+- visualização: `matriculas_0_a_6_por_ano.png`
+- tabela: `matriculas_0_a_6_por_ano.csv`
+- status: pendente
+- nota: até 2020, necessário tratar microdados posteriores
+
+## 🛡️ Proteção
+
+### Violência territorial
+- fonte: ISP
+- status: pendente
+- nota: dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório — ver `specs/roadmap.md`, "Educação e Violência")
+
+### Violência familiar (menores de 1 ano, 1 a 5 anos)
+- fonte: Sinan
+- status: pendente
+- nota: dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)
+
+### Notificações de violência interpessoal/autoprovocada (menores de 1 ano, 1 a 5 anos)
+- fonte: Sinan
+- status: pendente
+- nota: dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)
+
+### Taxa de notificações de violência (0 a 6 anos)
+- fonte: (não informada no catálogo)
+- status: pendente
+- nota: dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)
+
+### Crianças que sofrem violência, por tipificação (sexo e idade)
+- fonte: Tabnet municipal
+- status: pendente
+- nota: dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)
+
+## 🍽️ Alimentação
+
+### Baixo peso ao nascer (número)
+- fonte: DataSUS/Tabnet (`limpeza_tabnet_bairros`)
+- mapa: `mapa_nascidos_baixo_peso_bairro_2025.png`
+- tabela: `nascidos_abaixo_peso_por_ano.csv`
+
+### Baixo peso ao nascer (percentual)
+- fonte: DataSUS/Tabnet (`limpeza_tabnet_bairros`)
+- visualização: `nascidos_abaixo_peso_percentual_por_ano.png`
+- mapa: `mapa_percentual_baixo_peso_bairro_2025.png`
+- tabela: `nascidos_abaixo_peso_por_ano.csv`
+
+### Desnutrição SISVAN (número)
+- fonte: SISVAN
+- tabela: `sisvan_desnutricao_por_ano.csv`
+
+### Desnutrição SISVAN (percentual)
+- fonte: SISVAN
+- visualização: `sisvan_desnutricao_percentual_por_ano.png`
+- tabela: `sisvan_desnutricao_por_ano.csv`
+
+### Sobrepeso SISVAN (número)
+- fonte: SISVAN
+- tabela: `sisvan_sobrepeso_por_ano.csv`
+
+### Sobrepeso SISVAN (percentual)
+- fonte: SISVAN
+- visualização: `sisvan_sobrepeso_percentual_por_ano.png`
+- visualização: `sisvan_obesidade_percentual_por_ano.png`
+- tabela: `sisvan_sobrepeso_por_ano.csv`
+
+## 🏠 Moradia
+
+### Crianças no CadÚnico em domicílios com inadequação habitacional
+- fonte: Cadastro Único
+- status: pendente
+- nota: Posterior
+
+### Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)
+- fonte: Cadastro Único
+- status: pendente
+- nota: Posterior
+
+### Territórios com risco a inundação e/ou movimento de massa
+- fonte: SGB
+- status: pendente
+- nota: Posterior (Eixo/fonte de dado do catálogo é "Proteção", mas a Política Municipal Prioritária é "Moradia" — entra só aqui, por `specs/ajuste_eixos/specs.md` §9.2/§4.3)
+
+### Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)
+- fonte: (não informada no catálogo)
+- status: pendente
+- nota: Posterior (apenas cad)

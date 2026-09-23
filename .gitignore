@@ -3,12 +3,13 @@
 *.ipynb
 *.zip
 !/relatorio/index.html
-#*.png
+*.png
 *.svg
 *.vscode
-#/tabelas_finais/*
+/tabelas_finais/*
 !/tabelas_finais/.gitkeep
-#/mapas/*
+/mapas/*
 !/mapas/.gitkeep
-#/visualizacoes/*
+/visualizacoes/*
 !/visualizacoes/.gitkeep
+*env

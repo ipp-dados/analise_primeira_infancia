@@ -11,7 +11,7 @@ identidade visual diferente:
 | `relatorio/*.html` (3 arquivos: `index`, `lighter`, `white`) | Espelha o notebook quase 1:1 (mesmos títulos/notas), ~32 gráficos SVG interativos | Motor JS próprio (`lineChart`/`barChart`/`groupedBarChart`), paleta pastel de 11 cores já validada | Interativo (hover, tabela de dados alternativa), tema claro/escuro |
 | `relatorio/analise_primeira_infancia.pdf` | Espelha o notebook seção a seção, mas usa os PNGs reais de `visualizacoes/` (não o motor JS) | Os mesmos PNGs matplotlib/seaborn do notebook | Herda o que quer que o notebook tenha |
 
-Desde a última rodada (`SPEC-maps-and-ibge`), o notebook ganhou **~35 novos
+Desde a última rodada (`specs/maps-and-ibge`), o notebook ganhou **~35 novos
 gráficos/mapas** (11 mapas de bairro, 2 mapas por CAP, 6 gráficos SIDRA, 22
 séries temporais de evitáveis) que **não existem ainda em nenhum dos dois
 relatórios** — eles ficaram desatualizados. Este spec cobre atualizar os três
@@ -27,7 +27,7 @@ outputs e, ao mesmo tempo, unificar a identidade visual entre eles.
 2. Restilizar os gráficos matplotlib/seaborn do próprio notebook (hoje sem
    padrão), não só os relatórios.
 3. Atualizar `relatorio/*.html` e o PDF com todo o conteúdo novo de
-   `SPEC-maps-and-ibge`.
+   `specs/maps-and-ibge`.
 4. Redefinir o papel do HTML: **só visualização**, sem o texto/notas que hoje
    espelham o notebook — ver §5.
 5. Dar destaque a séries temporais com muitas linhas, evitando "espaguete"
@@ -98,7 +98,7 @@ segurança (o próprio `relatorio/specs.md` já registra isso para cobertura
 vacinal, "11 séries está fora do que a validação formal de distinguibilidade
 cobre"). Candidatos identificados:
 - `cobertura_vacinal_epi_comparativo_anos` (11 imunobiológicos)
-- As 18 séries de evitáveis por subgrupo × CAP (`SPEC-maps-and-ibge` D.2a,
+- As 18 séries de evitáveis por subgrupo × CAP (`specs/maps-and-ibge` D.2a,
   10 CAPs por gráfico)
 - Painéis por raça/cor (5-6 séries) — provavelmente ok sem destaque
 
@@ -117,7 +117,7 @@ regra, duas implementações.
 | B | Remover a prosa/notas de método do HTML (§2)? | **Sim**, mantendo só título + fonte por gráfico — a descrição completa fica no notebook/PDF. |
 | C | Limiar de "muitas séries" para o destaque em §3.3 | **6 séries** por gráfico |
 | D | DPI dos gráficos não-mapa | **200** (upgrade de 100, sem chegar aos 300 dos mapas — arquivos menores, ainda nítidos) |
-| E | O PDF deve ganhar as ~35 visualizações novas de `SPEC-maps-and-ibge` nesta rodada? | **Sim** — é parte do "atualizar HTML e PDF" pedido |
+| E | O PDF deve ganhar as ~35 visualizações novas de `specs/maps-and-ibge` nesta rodada? | **Sim** — é parte do "atualizar HTML e PDF" pedido |
 | F | Versionar `relatorio/*.html` no git (hoje ignorado por `*.html` no `.gitignore`)? | Manter como está (não versionado) — fora do escopo pedido, mas registrar no roadmap se quiser revisitar |
 
 ## 5. Fora de escopo (registrar no roadmap)

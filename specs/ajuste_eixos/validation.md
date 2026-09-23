@@ -1,0 +1,154 @@
+# Validation — specs/ajuste_eixos
+
+Critérios objetivos por bloco. Um bloco só é marcado `[x]` em `tasks.md`
+depois de passar aqui. Nenhum resultado preenchido ainda — este arquivo é
+escrito antes da implementação, junto com `plan.md`/`tasks.md`.
+
+## V1 — Crosswalk e `specs/estrutura_eixos.md`
+- `specs/estrutura_eixos.md` existe, com exatamente 6 headings `##` (eixos
+  ativos, na ordem de `specs.md` §4.3: Prioridade, Inclusão, Família e
+  Cuidados, Proteção, Alimentação, Moradia).
+- Contagem de subseções (`###`) por eixo bate com o total ativo de
+  `specs.md` §4.3 (15/10/7/5/6/4 = 47).
+- `valida_estrutura()` roda sem apontar nenhuma referência quebrada (todo
+  `visualização`/`mapa`/`tabela` citado existe de fato em
+  `visualizacoes/`/`mapas/`/`tabelas_finais/`).
+- Todos os 16 indicadores "a reservar" (`specs.md` §4.3) têm
+  `status: pendente` + `nota` não-vazia.
+- Nenhum dos 18 indicadores descartados (`specs.md` §4.4) aparece em
+  `estrutura_eixos.md`, em nenhum eixo.
+- "Territórios com risco a inundação" aparece **uma única vez**, em
+  Moradia (não duplicado, não também em Proteção).
+
+## V2 — `analise.py`/`analise.ipynb`
+- Seção final "Análise / Relatório" tem exatamente 6 subtítulos, nomeados
+  igual aos 6 eixos ativos (não mais os 5 antigos por fonte de dado).
+- Nota apontando para `specs/estrutura_eixos.md` presente logo após
+  "📦 Pacotes e Funções Auxiliares".
+- `git diff analise.py` mostra **só mudanças de markdown** — nenhuma célula
+  de código (`# %%` sem `[markdown]`) alterada, nenhuma célula movida de
+  posição.
+- `jupyter nbconvert --to notebook --execute --inplace` a partir de kernel
+  limpo termina com **0 células com erro**; contagem de células de código
+  idêntica à de antes deste spec (nenhuma célula perdida/duplicada).
+- `jupytext --sync analise.py` não reporta divergência entre `.py` e
+  `.ipynb` depois de rodado.
+
+## V3 — `relatorio/index.html`
+- Exatamente 6 `<h2>`, na ordem dos 6 eixos ativos (confirmar via
+  `grep -o '<h2[^>]*>[^<]*'`).
+- Nº de blocos "🚧 pendente" no HTML bate com os 16 indicadores "a
+  reservar" de V1 (contagem de `emite_bloco_pendente` no código gerado ==
+  contagem de `status: pendente` em `estrutura_eixos.md`).
+- Nenhuma seção/subseção do catálogo descartado (18 indicadores) aparece no
+  HTML gerado.
+- Abre sem erro de console (Edge/Chrome headless, `--dump-dom
+  --enable-logging=stderr`, sem exceção de JavaScript da própria página).
+- Bloco de texto de análise: amostra de 5 blocos, contagem de palavras
+  entre 100 e 200 em todos.
+- Navbar lista as 6 seções (não 9).
+
+## V4 — PDF
+- `pypdf` reporta contagem de páginas coerente com 6 seções + 16 blocos
+  pendentes (não comparável 1:1 com a versão anterior por fonte de dado,
+  mas sem queda abrupta que sugira conteúdo perdido).
+- Amostra rasterizada (capa, 1 seção com conteúdo real — Alimentação —, 1
+  seção majoritariamente pendente — Proteção ou Moradia —, última página)
+  inspecionada visualmente: selo de pendente legível, nenhuma
+  imagem/gráfico quebrado.
+- Gerado a partir da mesma `estrutura_eixos.md` final que o HTML (mesma
+  execução do skill, não duas rodadas divergentes).
+
+## V5 — DOCX de curadoria
+- `relatorio/curadoria_textos.docx` existe, abre no Word (ou LibreOffice)
+  sem erro de formato corrompido.
+- Contagem de headings nível 1 (eixo) = 6; nível 2 (subseção) = 47 (ativos)
+  + pendentes com seu próprio heading também.
+- Toda visualização/mapa do catálogo ativo tem pelo menos 1 imagem PNG
+  embutida no documento (não um placeholder de imagem quebrada).
+- Bookmarks presentes: extrair `word/document.xml` do `.docx` (é um zip) e
+  confirmar `<w:bookmarkStart>` em contagem igual à de blocos de texto.
+- **Teste de não-destrutividade** (`tasks.md` T5.5): editar 1 texto à mão,
+  regenerar, texto editado sobrevive — comparar antes/depois byte a byte
+  no parágrafo daquele bookmark específico.
+- **Teste de órfão** (`tasks.md` T5.6): remover 1 indicador com texto já
+  editado da estrutura, regenerar, texto aparece no apêndice "Textos
+  órfãos" em vez de desaparecer.
+- Bloco com seletor de opções no HTML (ex. algum indicador com múltiplos
+  cortes) aparece no DOCX como múltiplos headings nível 3 + texto próprio
+  cada, em sequência — não como 1 heading só com o texto da 1ª opção.
+
+## V6 — Skills (Blocos 6-7)
+- Pipeline do Bloco 6 roda de ponta a ponta (5 passos) sem intervenção
+  manual entre eles, a partir de um estado limpo.
+- **Teste do fluxo real do usuário** (`specs.md` §5.2/§9.3, `tasks.md`
+  T6.3): mover 1 indicador de eixo em `estrutura_eixos.md` à mão, pedir a
+  atualização em linguagem natural — **critério revisado após o teste
+  real**: confirma que o DOCX regenerado reflete a mudança (a única via
+  `parse_estrutura_eixos()` de verdade); HTML/PDF **não** são obrigados a
+  refletir uma mudança de agrupamento só pela edição do `.md` (limitação
+  documentada, decisão do usuário) — nesse caso o critério é que o
+  `SKILL.md` diga isso claramente e que eu (ou quem operar o skill) saiba
+  que precisa ajustar `build_html_report.py`/`build_notebook_report.py` à
+  mão antes de regerá-los.
+- **Teste de sincronização do DOCX** (`tasks.md` T7.4) — **PASSOU**, testado
+  duas vezes independentemente (uma vez pelo agente que implementou o
+  Bloco 7, uma vez pela sessão coordenadora, em bookmarks diferentes):
+  editar 1 bloco de texto numa cópia de teste do DOCX e rodar
+  `sincroniza_docx.py` confirma (a) `relatorio/textos_curados.json` ganha
+  a entrada certa, (b) o HTML regenerado mostra o texto novo no card
+  certo, (c) a HTML-fonte do PDF idem, (d) `analise.py` ganha a nota
+  markdown correspondente logo após a célula de código certa (`git diff`
+  mostra só a célula nova), (e) `jupytext --sync` roda limpo, (f) nenhum
+  outro bookmark (ainda lorem ipsum) foi alterado, (g) rodar a
+  sincronização de novo sobre a mesma edição é idempotente (nota
+  substituída in-place, não duplicada). Contra o `.docx` real (ainda 100%
+  lorem ipsum) a detecção de edição não dá nenhum falso positivo.
+
+## V7 — Documentação
+- `requirements.txt` lista `python-docx`.
+- `CLAUDE.md` reflete a nota do Bloco 2 (organização de apresentação vs.
+  ordem técnica do arquivo).
+- `specs/roadmap.md` item 3 marcado concluído.
+- `specs/tech-stack.md` documenta a dependência/pipeline de DOCX.
+- `relatorio/specs.md` tem uma entrada nova de versão para esta
+  reorganização.
+
+## V8 — Consistência entre os 3 artefatos de saída
+- HTML, PDF e DOCX gerados na mesma execução do skill (mesmo timestamp de
+  `estrutura_eixos.md` usado pelos 3) — mesma contagem de eixos (6), mesma
+  contagem de indicadores pendentes destacados (16), mesmos 47 indicadores
+  ativos presentes nos 3.
+- Nenhum dos 3 artefatos referencia qualquer um dos 18 indicadores
+  descartados.
+
+## Resultado final
+
+Todos os critérios V1-V8 passaram. Duas descobertas mudaram o escopo
+originalmente previsto (registradas com decisão do usuário, não reabertas
+sem motivo novo — `specs.md` §9.3):
+
+1. **`build_html_report.py`/`build_notebook_report.py` não leem
+   `specs/estrutura_eixos.md` em tempo de execução** (V6) — só o DOCX
+   (`gera_docx_curadoria.py`) importa `parse_estrutura_eixos()` de
+   verdade. Uma mudança de *agrupamento* no `.md` que afete HTML/PDF
+   precisa do mesmo ajuste manual de código usado para construir os
+   Blocos 3-4, não é automática. Decisão do usuário: manter assim
+   (reescrever os dois geradores como renderizadores genéricos foi
+   avaliado e descartado por custo/risco).
+2. **Pedidos adicionais do usuário durante a implementação, fora do
+   `plan.md` original**: apêndice de tabelas no PDF (Bloco 4), Sumário +
+   Introdução nos 3 artefatos (HTML/PDF/DOCX), blocos de texto de análise
+   por gráfico/mapa no PDF (faltava, `specs.md` §7 só cobria HTML/DOCX até
+   então), e o alinhamento dos seeds de texto do HTML a nomes de arquivo
+   reais (pré-requisito descoberto para a sincronização do Bloco 7
+   funcionar de ponta a ponta). Todos implementados e validados nesta
+   rodada, registrados nos commits e em `relatorio/specs.md` v7.
+
+Estado final: 6 eixos ativos, 47 indicadores (31 implementados, 16
+pendentes com selo+razão), 18 descartados ausentes dos 3 artefatos,
+infraestrutura de curadoria (DOCX + sincronização) construída e testada de
+ponta a ponta duas vezes — mas **nenhum texto real foi curado ainda**
+(todo texto de análise continua lorem ipsum de propósito, por decisão do
+projeto). Merge em `staging_main` pendente de aval explícito do usuário
+(Bloco 10, `specs/constitution.md` §7).

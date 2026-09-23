@@ -3,6 +3,22 @@ name: generate_map
 description: Generate a choropleth (coroplético) PNG map of Rio de Janeiro -- by bairro, Área de Planejamento, or Região de Planejamento -- from any bairro-level table in this project (Censo, DataSUS/Tabnet, CadÚnico, etc.), using geopandas, a drawn-style basemap (contextily), surrounding state/UF and neighboring-municipality context, a north arrow, scale bar, and a cartographic footnote (spatial reference + data source). Discrete classes for absolute counts, continuous colorbar for percentages/rates -- a fixed project convention. Use when the user asks for a map, mapa coroplético, or "mapa por bairro/AP/RP" of some indicator, or to refresh/regenerate an existing one in mapas/.
 ---
 
+**Note (v6, `specs/relatorio-interativo`):** this skill's PNG pipeline is still
+the source for the notebook, the PDF export, and the geometry itself, but
+`relatorio/index.html` (the interactive HTML report) no longer embeds these
+PNGs for most indicators — `.claude/skills/export_pdf_report/scripts/build_html_report.py`
+now renders an inline interactive SVG choropleth instead (`mapa_svg()`:
+GeoJSON → SVG paths, tooltip per bairro/AP/RP/CAP, outlier toggle, CSV
+download), reusing the same `dados_locais/geo/*.geojson` files and
+`_CORES_TEMA_MAPA` palette this skill documents. If you're asked to add a
+new map to the interactive HTML report specifically, check whether
+`mapa_svg()` already covers the needed nivel/join before reaching for this
+skill's PNG output — this skill is still the right (only) tool for the
+notebook/PDF, and for `nivel='cap'` it points at a **different** geojson
+(`dados_locais/geo/limite_ap_saude_rio.geojson`, key `cod_ap_sms`) than the
+`ap`/`rp` planning levels below — don't conflate the two, they're different
+administrative boundaries with similarly-formatted codes.
+
 # Generate map (mapa coroplético por bairro / AP / RP)
 
 Produces a matplotlib/geopandas choropleth PNG of the Rio de Janeiro
@@ -185,7 +201,7 @@ in this project:
 - Every DataSUS/Tabnet export cleaned via `limpeza_tabnet_bairros` /
   `carrega_raca_bairro` produces a `codigo` column (e.g. `"001"` for Saúde,
   `"144"` for Campo Grande) — **verified to use the same numbering as
-  `codbairro`** (checked against `dados_locais/mortalidade/nascidos_vivos_bairros_2006_a_2025.csv`:
+  `codbairro`** (checked against `dados_locais/nascidos_vivos/nascidos_vivos_bairros_2006_a_2025.csv`:
   `001 SAUDE`, `002 GAMBOA`, `003 SANTO CRISTO`... lines up 1:1 with the
   geojson's `codbairro` order). So any of the `df_vivos`, `df_baixo_peso`,
   `df_mortalidade_raca_bairro`, `df_final` (datasus_por_bairro) tables can

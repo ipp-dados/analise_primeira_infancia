@@ -1,21 +1,56 @@
 # -*- coding: utf-8 -*-
 """Build the single consolidated interactive HTML report (relatorio/index.html).
 
+Note (specs/ajuste_eixos, Bloco 3): the report's 9 h2 sections used to mirror
+analise.py's section order (one per data source: Censo, CadUnico, DataSUS/
+Tabnet, causas evitaveis, gravidez/puerperio, mortalidade neonatal, SISVAN,
+cobertura vacinal, Educacao). As of this round they were regrouped into 6 h2
+"eixos da politica municipal" (Prioridade sem secundario, Inclusao, Familia e
+Cuidados, Protecao, Alimentacao, Moradia), per specs/estrutura_eixos.md (the
+authoritative crosswalk) and specs/ajuste_eixos/specs.md (the decision
+record for the classification rules and the 18 discarded indicators). Some
+old h2 sections (CadUnico, causas evitaveis, gravidez/puerperio, mortalidade
+neonatal, SISVAN, cobertura vacinal) now appear as h3 subsections nested
+inside their new eixo, with their own former h3/h4/h5 headings demoted one
+level; others (Censo, DataSUS/Tabnet, Educacao) had their content split
+across more than one eixo at the h3/pill level -- see specs/estrutura_eixos.md
+for the indicator-by-indicator mapping, not this docstring. 16 catalog
+indicators with no real analise.py output yet are rendered via
+emite_bloco_pendente() (a labeled placeholder, never a silent empty section).
+
 Replaces the old 3-file setup (index.html / lighter_index.html / white_index.html),
 which was hand-built by unsaved ad-hoc scripts (see relatorio/specs.md). This script
 is the first *persisted* generator: it reads tabelas_finais/*.csv (same source the
-PDF pipeline uses) and mapas/*.png, and renders interactive SVG charts via a small
-JS engine (lineChart/barChart/groupedBarChart, lifted from the old lighter_index.html
-and extended with the "many-series" highlight logic used in analise.py's
-serie_temporal_multipla). Per SPEC-visual-identity decision B, this report is
+PDF pipeline uses) and renders interactive SVG charts via a small JS engine
+(lineChart/barChart/groupedBarChart, lifted from the old lighter_index.html and
+extended with the "many-series" highlight logic used in analise.py's
+serie_temporal_multipla). Per specs/visual-identity decision B, this report is
 visualization-only: title + source + chart/map + optional data table, no prose/notes
 (those stay in the notebook and the PDF). Maps are interleaved in the same position
 they appear in analise.py (not grouped in one trailing section), and the page opens
-with a two-level table of contents (h2+h3) linking to every section.
+with a persistent navbar linking every h2 section.
 
 This is a direct transcription of analise.py's chart/map call sites, in the same
 order they appear there -- if analise.py's sections, column names, exported
 filenames, or cell order change, this needs matching edits.
+
+v6 (specs/relatorio-interativo) rebuilt the visual identity and interaction model to
+match a reviewed wireframe/mockup -- brutalist bordered cards (no shadow/radius),
+retractable h2 sections, a pill-selector (`option_card`) replacing what used to be a
+wall of near-identical repeated charts, an outlier toggle (Tukey fences, applied
+centrally in line_chart/bar_chart/grouped_bar_chart/mapa_svg -- not per call site),
+per-chart-card CSV download, fixed max/min/most-recent labels on every line chart, and
+institutional IPP/Prefeitura-do-Rio colors (navy/cyan) scoped to the navbar/footer
+chrome only, never the data palette. Maps are now inline interactive SVG (`mapa_svg()`
+-- GeoJSON/dissolve -> paths, tooltip per region) instead of the matplotlib PNGs in
+mapas/, covering bairro, AP/RP (dissolved from the bairro geojson, same as
+mapa_coropletico_bairros in analise.py) and CAP-saude (a separate geojson, see
+`_geo_nivel`) levels; `map_card`/`maps_block`/`check_maps` (the old PNG embedder) are
+kept only as a fallback for any future indicator that doesn't fit one of those 4
+geometry regimes. Known tradeoff: embedding real SVG geometry per map instance (166
+bairro paths, repeated per indicator) makes the output much heavier than the old
+base64-PNG version (~20MB vs ~5MB) -- not yet optimized (e.g. sharing paths via
+<defs>/<use>), tracked in specs/roadmap.md.
 
 Usage (from project root):
     python .claude/skills/export_pdf_report/scripts/build_html_report.py [out_path]
@@ -23,11 +58,13 @@ Usage (from project root):
 import base64
 import io
 import json
+import random
 import math
 import os
 import re
 import sys
 import datetime
+from pathlib import Path
 
 import pandas as pd
 from PIL import Image
@@ -77,9 +114,12 @@ def slugify(text):
     _slugs.add(slug)
     return slug
 
+section_starts = []  # (index_in_parts, title, sid) -- 1 per h2, used to wrap sections (retratil)
+
 def h2(t):
     sid = slugify(t)
     toc.append((2, t, sid))
+    section_starts.append((len(parts), t, sid))
     parts.append(f'<h2 id="{sid}">{t}</h2>')
 
 def h3(t):
@@ -91,57 +131,109 @@ def h4(t): parts.append(f"<h4>{t}</h4>")
 def h5(t): parts.append(f"<h5>{t}</h5>")
 def h6(t): parts.append(f"<h6>{t}</h6>")
 
-def _out_div(elem_id, fonte, titulo=None):
+def _out_div(elem_id, fonte, titulo=None, csv_attr=None, filename=None):
     tit = f'<div class="chart-subtitle">{titulo}</div>' if titulo else ""
     src = f'<div class="out-src">{fonte}</div>' if fonte else ""
-    return f'<div class="out">{tit}<div id="{elem_id}"></div>{src}</div>'
+    dl = '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>' if csv_attr else ""
+    attrs = f' data-csv="{csv_attr}" data-filename="{_esc(filename or "dados")}.csv"' if csv_attr else ""
+    return f'<div class="out"{attrs}>{dl}{tit}<div id="{elem_id}"></div>{src}</div>'
 
 FMT_MAP = {'int': 'v=>fmt(v)', 'pct': 'v=>pct(v)', 'pct1': 'v=>pct(v,1)'}
 
-def line_chart(x, series, opts=None, fonte=None, titulo=None):
-    elem_id = new_id('c')
-    opts = dict(opts or {})
-    js_series = []
-    for s in series:
-        fmt_fn = FMT_MAP.get(s.get('format', 'int'), FMT_MAP['int'])
-        js_series.append(
-            "{label:%s, values:%s, format:%s}" % (json.dumps(s['label'], ensure_ascii=False), json.dumps(jsvals(s['values'])), fmt_fn)
-        )
-    scripts.append(
-        "lineChart(byId(%s), {x:%s, series:[%s], opts:%s});" % (
-            json.dumps(elem_id), json.dumps(jsvals(list(x))), ",".join(js_series), json.dumps(opts)
-        )
-    )
-    parts.append(_out_div(elem_id, fonte, titulo))
-    return elem_id
+def _normaliza(vals):
+    """pandas/list -> list[float|None], NaN->None (para comparar/filtrar outliers)."""
+    out = []
+    for v in vals:
+        if v is None or (isinstance(v, float) and math.isnan(v)) or pd.isna(v):
+            out.append(None)
+        else:
+            out.append(float(v))
+    return out
 
-def bar_chart(items, fonte=None, titulo=None):
-    elem_id = new_id('c')
-    js_items = [
-        "{label:%s, value:%s}" % (json.dumps(str(it['label']), ensure_ascii=False), json.dumps(round(float(it['value']), 4)))
-        for it in items
-    ]
-    scripts.append("barChart(byId(%s), {items:[%s]});" % (json.dumps(elem_id), ",".join(js_items)))
-    parts.append(_out_div(elem_id, fonte, titulo))
-    return elem_id
+def line_chart(x, series, opts=None, fonte=None, titulo=None):
+    opts = dict(opts or {})
+    x_list = list(x)
+    norm = [_normaliza(s['values']) for s in series]
+    # outliers so em series percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
+    limpos = [remove_outliers_tukey(v) if _eh_taxa_ou_percentual(s) else v for s, v in zip(series, norm)]
+    has_outliers = any(c != n for c, n in zip(limpos, norm))
+
+    def build(valores_por_serie):
+        elem_id = new_id('c')
+        js_series = []
+        for s, vals in zip(series, valores_por_serie):
+            fmt_fn = FMT_MAP.get(s.get('format', 'int'), FMT_MAP['int'])
+            js_series.append(
+                "{label:%s, values:%s, format:%s}" % (json.dumps(s['label'], ensure_ascii=False), json.dumps(vals), fmt_fn)
+            )
+        scripts.append(
+            "lineChart(byId(%s), {x:%s, series:[%s], opts:%s});" % (
+                json.dumps(elem_id), json.dumps(jsvals(x_list)), ",".join(js_series), json.dumps(opts)
+            )
+        )
+        csv = _csv_data_attr(["Ano"] + [s['label'] for s in series],
+                              [[x_list[i]] + [vv[i] for vv in valores_por_serie] for i in range(len(x_list))])
+        parts.append(_out_div(elem_id, fonte, titulo, csv_attr=csv, filename=titulo or (series[0]['label'] if series else 'serie')))
+        return elem_id
+
+    if has_outliers:
+        with_outliers_toggle(lambda: build(norm), lambda: build(limpos), True)
+    else:
+        build(norm)
+
+def bar_chart(items, fonte=None, titulo=None, fmt='int'):
+    norm = _normaliza([it['value'] for it in items])
+    # outliers so em percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
+    limpos = remove_outliers_tukey(norm) if _eh_taxa_ou_percentual(fmt) else norm
+    has_outliers = limpos != norm
+
+    def build(valores):
+        elem_id = new_id('c')
+        fmt_fn = FMT_MAP.get(fmt, FMT_MAP['int'])
+        js_items = [
+            "{label:%s, value:%s, format:%s}" % (json.dumps(str(it['label']), ensure_ascii=False), json.dumps(v), fmt_fn)
+            for it, v in zip(items, valores) if v is not None
+        ]
+        scripts.append("barChart(byId(%s), {items:[%s]});" % (json.dumps(elem_id), ",".join(js_items)))
+        csv = _csv_data_attr(["Categoria", "Valor"], [(it['label'], v) for it, v in zip(items, valores)])
+        parts.append(_out_div(elem_id, fonte, titulo, csv_attr=csv, filename=titulo or 'barras'))
+        return elem_id
+
+    if has_outliers:
+        with_outliers_toggle(lambda: build(norm), lambda: build(limpos), True)
+    else:
+        build(norm)
 
 def grouped_bar_chart(groups, series, opts=None, fonte=None, titulo=None):
-    elem_id = new_id('c')
     opts = dict(opts or {})
     opts.setdefault('table', True)
-    js_series = []
-    for s in series:
-        fmt_fn = FMT_MAP.get(s.get('format', 'int'), FMT_MAP['int'])
-        js_series.append(
-            "{label:%s, values:%s, format:%s}" % (json.dumps(s['label'], ensure_ascii=False), json.dumps(jsvals(s['values'])), fmt_fn)
+    groups_list = [str(g) for g in groups]
+    norm = [_normaliza(s['values']) for s in series]
+    # outliers so em series percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
+    limpos = [remove_outliers_tukey(v) if _eh_taxa_ou_percentual(s) else v for s, v in zip(series, norm)]
+    has_outliers = any(c != n for c, n in zip(limpos, norm))
+
+    def build(valores_por_serie):
+        elem_id = new_id('c')
+        js_series = []
+        for s, vals in zip(series, valores_por_serie):
+            fmt_fn = FMT_MAP.get(s.get('format', 'int'), FMT_MAP['int'])
+            js_series.append(
+                "{label:%s, values:%s, format:%s}" % (json.dumps(s['label'], ensure_ascii=False), json.dumps(vals), fmt_fn)
+            )
+        scripts.append(
+            "groupedBarChart(byId(%s), {groups:%s, series:[%s], opts:%s});" % (
+                json.dumps(elem_id), json.dumps(groups_list, ensure_ascii=False), ",".join(js_series), json.dumps(opts)
+            )
         )
-    scripts.append(
-        "groupedBarChart(byId(%s), {groups:%s, series:[%s], opts:%s});" % (
-            json.dumps(elem_id), json.dumps([str(g) for g in groups], ensure_ascii=False), ",".join(js_series), json.dumps(opts)
-        )
-    )
-    parts.append(_out_div(elem_id, fonte, titulo))
-    return elem_id
+        csv = _csv_data_attr([""] + groups_list, [[s['label']] + vv for s, vv in zip(series, valores_por_serie)])
+        parts.append(_out_div(elem_id, fonte, titulo, csv_attr=csv, filename=titulo or 'barras-agrupadas'))
+        return elem_id
+
+    if has_outliers:
+        with_outliers_toggle(lambda: build(norm), lambda: build(limpos), True)
+    else:
+        build(norm)
 
 def out_pair(fn1, fn2):
     """Wrap two chart-producing calls (each appending one .out div) as a side-by-side pair."""
@@ -187,18 +279,564 @@ def check_maps(imgs):
     if missing:
         raise SystemExit(f"missing map PNGs: {missing}")
 
-# ================================================================= HEADER ==
+# ------------------------------------------------ specs/relatorio-interativo --
+# Outliers, option-card (pill selector), CSV download, institutional identity,
+# and the SVG choropleth pipeline -- see specs/relatorio-interativo/plan.md.
+
+def _esc(s):
+    return str(s).replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
+
+def _fmt_ptbr(v, dec=0):
+    if v is None:
+        return "—"
+    s = f"{v:,.{dec}f}"
+    s = s.replace(",", "\x00").replace(".", ",").replace("\x00", ".")
+    return s
+
+# ---- texto de analise: lorem ipsum, por opcao (specs/relatorio-interativo/plan.md §10.3) --
+# Placeholder deliberado (specification.md §3.4/§3.13): marca onde o texto real
+# vai entrar depois, sem fabricar uma leitura analitica dos dados que ninguem
+# validou. Deterministico por `seed` (o label da opcao) para o texto nao mudar
+# a cada rodada de geracao -- facilita revisar diffs.
+_LOREM_WORDS = (
+    "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod "
+    "tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam "
+    "quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo "
+    "consequat duis aute irure in reprehenderit voluptate velit esse cillum "
+    "eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident "
+    "sunt culpa qui officia deserunt mollit anim id est laborum curabitur "
+    "vitae purus eget nunc porttitor sollicitudin nec eget metus vestibulum "
+    "ante primis faucibus orci luctus posuere cubilia curae mauris blandit "
+    "aliquet nibh praesent tristique senectus netus fames turpis egestas"
+).split()
+
+def _lorem(seed, palavras=None):
+    rng = random.Random(seed)
+    if palavras is None:
+        # specs/ajuste_eixos/specs.md §7: faixa 100-200 palavras por bloco de
+        # analise (era um valor fixo de 150 ate a rodada ajuste_eixos) --
+        # RNG proprio (nao consome do `rng` de escolha de palavras acima) e
+        # deterministico por seed, pra nao mudar a cada regeracao do relatorio.
+        palavras = random.Random(f"{seed}-palavras").randint(100, 200)
+    corpo = " ".join(rng.choice(_LOREM_WORDS) for _ in range(palavras))
+    return corpo[:1].upper() + corpo[1:] + "."
+
+_CAMINHO_TEXTOS_CURADOS = "relatorio/textos_curados.json"
+
+def _carrega_textos_curados():
+    p = Path(_CAMINHO_TEXTOS_CURADOS)
+    if not p.exists():
+        return {}
+    return json.loads(p.read_text(encoding="utf-8"))
+
+_TEXTOS_CURADOS = _carrega_textos_curados()
+
+def _texto_analise(seed, palavras=None):
+    return _TEXTOS_CURADOS.get(seed) or _lorem(seed, palavras)
+
+def _lorem_bullets(seed, n=5, palavras=8):
+    """n frases curtas (placeholder) para o bloco 'principais achados' --
+    mesmo gerador deterministico do _lorem, seed derivado por indice."""
+    return [_lorem(f"{seed}-kt-{i}", palavras) for i in range(n)]
+
+def _eh_taxa_ou_percentual(s):
+    """s: dict de serie ({'label','values','format',...}) ou a string do
+    formato direto. Outliers so se aplicam a percentual/taxa, nao a
+    contagem absoluta (specification.md §3.3, decisao O)."""
+    fmt = s.get('format', 'int') if isinstance(s, dict) else s
+    return fmt in ('pct', 'pct1')
+
+def remove_outliers_tukey(valores):
+    """valores: list[float|None]. Retorna list[float|None] do mesmo tamanho,
+    outliers substituidos por None (mantem o eixo alinhado -- nao remove o
+    ponto, so mascara o valor). Cercas de Tukey 1.5xIQR (specification.md §3.3).
+    Series com menos de 4 pontos finitos voltam inalteradas (IQR pouco confiavel)."""
+    finitos = [v for v in valores if v is not None]
+    if len(finitos) < 4:
+        return list(valores)
+    s = pd.Series(finitos)
+    q1, q3 = s.quantile(0.25), s.quantile(0.75)
+    iqr = q3 - q1
+    lo, hi = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+    return [v if (v is None or (lo <= v <= hi)) else None for v in valores]
+
+def _csv_data_attr(headers, rows):
+    """Monta um CSV (pt-BR: ; como separador, , decimal) e devolve como atributo
+    HTML data-csv já escapado -- o botao de download so precisa ler o atributo."""
+    def cell(v):
+        if v is None:
+            return ""
+        if isinstance(v, float):
+            return _fmt_ptbr(v, 2 if v != int(v) else 0)
+        return str(v).replace(';', ',')
+    lines = [";".join(cell(h) for h in headers)]
+    for r in rows:
+        lines.append(";".join(cell(c) for c in r))
+    return _esc("\n".join(lines))
+
+def with_outliers_toggle(build_full, build_clean, has_outliers):
+    """build_full/build_clean: funcoes sem argumento que emitem exatamente 1
+    construto (1 chamada a line_chart/bar_chart/... -- 1 div .out) cada. Se
+    has_outliers, envolve as duas em um card com toggle; senao so renderiza
+    build_full (sem chrome de toggle morto numa serie sem outlier)."""
+    if not has_outliers:
+        build_full()
+        return
+    start = len(parts)
+    build_full()
+    full_html = "".join(parts[start:]); del parts[start:]
+    build_clean()
+    clean_html = "".join(parts[start:]); del parts[start:]
+    parts.append(
+        '<div class="outlier-card">'
+        '<div class="outlier-toolbar"><button type="button" class="outlier-btn"><span class="outlier-x">×</span> Remover outliers</button></div>'
+        f'<div class="outlier-pane" data-variant="full">{full_html}</div>'
+        f'<div class="outlier-pane" data-variant="clean" hidden>{clean_html}</div>'
+        '</div>'
+    )
+
+def option_card(entries, padrao='grafico'):
+    """entries: list de (label, build_fn, seed_texto). build_fn emite
+    exatamente 1 construto (pode por sua vez conter um outlier-card). Cada
+    opcao ganha seu proprio bloco de texto (lorem ipsum, seed=seed_texto --
+    determinístico, nao muda a cada geracao), que troca junto quando a pill
+    muda (specification.md §3.13). padrao: 'grafico' (texto abaixo, largura
+    total) | 'mapa' (texto na 3a coluna, ao lado). len==1 -> sem coluna de
+    pills, texto ainda emitido (so nao ha nada para trocar)."""
+    if len(entries) == 1:
+        label, build_fn, seed = entries[0]
+        start = len(parts)
+        build_fn()
+        html = "".join(parts[start:]); del parts[start:]
+        parts.append(
+            f'<div class="option-card option-card-{padrao} option-card-single">'
+            f'<div class="opt-panes">{html}</div>'
+            f'<div class="opt-texts"><div class="opt-text"><div class="opt-text-inner">{_texto_analise(seed)}</div></div></div>'
+            '</div>'
+        )
+        return
+    panes, texts, pills = [], [], []
+    for i, (label, build_fn, seed) in enumerate(entries):
+        start = len(parts)
+        build_fn()
+        html = "".join(parts[start:]); del parts[start:]
+        panes.append(f'<div class="opt-pane"{" hidden" if i else ""}>{html}</div>')
+        texts.append(f'<div class="opt-text"{" hidden" if i else ""}><div class="opt-text-inner">{_texto_analise(seed)}</div></div>')
+        active = ' data-active="true"' if i == 0 else ''
+        pills.append(f'<button type="button" class="pill"{active}>{_esc(label)}</button>')
+    parts.append(
+        f'<div class="option-card option-card-{padrao}">'
+        '<div class="pill-col">' + "".join(pills) + '</div>'
+        '<div class="opt-panes">' + "".join(panes) + '</div>'
+        '<div class="opt-texts">' + "".join(texts) + '</div>'
+        '</div>'
+    )
+
+def tabela_com_texto(build_fn, seed):
+    """Padrao C (specification.md §3.13): texto a esquerda, tabela a
+    direita -- unica ordem invertida em relacao aos padroes grafico/mapa.
+    Sem pills nesta rodada (nenhuma tabela do relatorio tem corte
+    alternativo ainda)."""
+    start = len(parts)
+    build_fn()
+    html = "".join(parts[start:]); del parts[start:]
+    parts.append(
+        '<div class="table-with-text">'
+        f'<div class="opt-text">{_lorem(seed)}</div>'
+        f'<div class="opt-panes">{html}</div>'
+        '</div>'
+    )
+
+def emite_bloco_pendente(titulo, nota):
+    """Subsecao 'a reservar' (catalogo tem o indicador, analise.py ainda nao o
+    implementa) -- specs/ajuste_eixos/specs.md §3-E: nunca uma secao vazia sem
+    explicacao, sempre com o selo + a razao (Status da planilha). Mesmo
+    padrao visual do key-takeaways (--surface-2), com um selo proprio para
+    nao ser confundido com 'Principais achados'. Sem bloco de texto lorem --
+    nao ha conteudo real a comentar ainda (specs.md §7)."""
+    h3(titulo)
+    parts.append(
+        '<div class="pending-block">'
+        '<div class="eyebrow pending-label">🚧 INDICADOR CATALOGADO, AINDA NÃO DISPONÍVEL</div>'
+        f'<p>{_esc(nota)}</p>'
+        '</div>'
+    )
+
+# ---- institutional logo (embedded once, reused in navbar + footer) --------
+
+def _logo_b64():
+    with open("relatorio/assets/ipp-logo.png", "rb") as f:
+        return base64.b64encode(f.read()).decode("ascii")
+
+LOGO_B64 = _logo_b64()
+LOGO_IMG = f'<img src="data:image/png;base64,{LOGO_B64}" alt="Prefeitura do Rio de Janeiro — Instituto Pereira Passos" class="ipp-logo">'
+
+# ---- SVG choropleth pipeline (Bloco 3) -------------------------------------
+# Aplicado nesta rodada ao mapa do Censo por bairro (prova de conceito real,
+# ver specs/relatorio-interativo/tasks.md T3.4) -- os demais ~30 mapas
+# continuam como PNG (map_card acima) ate uma rodada de conversao mecanica.
+
+# altura reduzida ~20% (560->448, pedido explicito do usuario) -- checado
+# antes de aplicar: a altura de conteudo real do mapa (poligonos) e so
+# ~335px dentro dos 560px originais (a largura e o eixo que restringe a
+# escala, ja que a cidade e bem mais larga que alta), entao os 224px de
+# margem em branco (topo+base) absorvem o corte sem cortar poligono algum
+_MAP_W, _MAP_H = 640, 448
+# 'censo' era 'Blues' (igual analise.py), depois 'Greys' -- agora 'Purples':
+# azul e reservado exclusivamente pro mar/agua no fundo do mapa (nunca
+# terra/dado), e o usuario pediu uma cor propria em vez de cinza tambem
+_CMAP_TEMA = {'censo': 'Purples', 'natalidade': 'BuGn', 'mortalidade': 'RdPu', 'cadunico': 'YlOrBr'}
+_GEO_CACHE = {}
+
+def _bounds_project(gdf, width, height, pad_frac=0.03):
+    minx, miny, maxx, maxy = gdf.total_bounds
+    cos_lat = math.cos(math.radians((miny + maxy) / 2))
+    padx, pady = (maxx - minx) * pad_frac, (maxy - miny) * pad_frac
+    minx -= padx; maxx += padx; miny -= pady; maxy += pady
+    geo_w, geo_h = (maxx - minx) * cos_lat, (maxy - miny)
+    scale = min(width / geo_w, height / geo_h) if geo_w and geo_h else 1
+    off_x, off_y = (width - geo_w * scale) / 2, (height - geo_h * scale) / 2
+    def project(lon, lat):
+        x = (lon - minx) * cos_lat * scale + off_x
+        y = height - ((lat - miny) * scale + off_y)
+        return x, y
+    # expostos para a barra de escala (metros reais) e o fundo cartografico
+    # (posicionar o mosaico de tiles no mesmo espaco de pixels dos poligonos)
+    project.bounds = (minx, miny, maxx, maxy)
+    project.scale = scale  # px por grau ajustado por cos(lat) ~= px por grau de latitude real
+    return project
+
+def _ring_path(coords, project):
+    pts = [project(x, y) for x, y in coords]
+    return "M" + " L".join(f"{px:.1f},{py:.1f}" for px, py in pts) + " Z"
+
+def _geom_path_d(geom, project):
+    polys = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
+    d = []
+    for poly in polys:
+        d.append(_ring_path(list(poly.exterior.coords), project))
+        for interior in poly.interiors:
+            d.append(_ring_path(list(interior.coords), project))
+    return " ".join(d)
+
+_NIVEL_COL = {"ap": "area_plane", "rp": "cod_rp"}
+_NIVEL_LABEL = {"ap": "AP", "rp": "RP", "cap": "CAP"}
+
+def _geo_base_bairros():
+    if "_base_bairro" not in _GEO_CACHE:
+        import geopandas as gpd
+        gdf = gpd.read_file("dados_locais/geo/limite_bairros_rio.geojson")
+        gdf["codbairro"] = gdf["codbairro"].astype(int)
+        _GEO_CACHE["_base_bairro"] = gdf
+    return _GEO_CACHE["_base_bairro"]
+
+def _geo_nivel(nivel):
+    """nivel: 'bairro' | 'ap' | 'rp' | 'cap'. Retorna (gdf, project, nomes) cacheado.
+    gdf tem 1 linha por unidade; `nomes` mapeia chave -> rotulo legivel para o
+    tooltip. bairro/ap/rp vem do mesmo geojson de bairros (ap/rp via dissolve --
+    mesmas colunas area_plane/cod_rp que mapa_coropletico_bairros usa em
+    analise.py); cap tem geometria propria (limite_ap_saude_rio.geojson,
+    fronteiras de saude da SMS-Rio, DIFERENTES das AP/RP de planejamento
+    urbano do IPP apesar da numeracao parecida -- ver analise.py
+    _CAMINHO_GEO_CAP)."""
+    if nivel in _GEO_CACHE:
+        return _GEO_CACHE[nivel]
+    if nivel == "bairro":
+        base = _geo_base_bairros()
+        g = base.copy()
+        g["_chave"] = g["codbairro"]
+        nomes = dict(zip(g["_chave"], g["nome"]))
+    elif nivel in ("ap", "rp"):
+        base = _geo_base_bairros()
+        col = _NIVEL_COL[nivel]
+        g = base.dissolve(by=col, as_index=False)
+        g["_chave"] = g[col].astype(str) if nivel == "rp" else g[col].astype(int)
+        nomes = {c: f"{_NIVEL_LABEL[nivel]} {c}" for c in g["_chave"]}
+    elif nivel == "cap":
+        import geopandas as gpd
+        g = gpd.read_file("dados_locais/geo/limite_ap_saude_rio.geojson")
+        g["_chave"] = g["cod_ap_sms"].astype(float).astype(str)
+        nomes = {c: f"CAP {c}" for c in g["_chave"]}
+    else:
+        raise ValueError(f"nivel desconhecido: {nivel}")
+    result = (g, _bounds_project(g, _MAP_W, _MAP_H), nomes)
+    _GEO_CACHE[nivel] = result
+    return result
+
+def _cor_sequencial(tema, frac):
+    import matplotlib
+    r, g, b, _ = matplotlib.colormaps[_CMAP_TEMA[tema]](0.22 + 0.68 * max(0.0, min(1.0, frac)))
+    return "#%02x%02x%02x" % (int(r * 255), int(g * 255), int(b * 255))
+
+def _chave_norm(v, nivel):
+    if nivel == "bairro":
+        return int(v)
+    if nivel == "ap":
+        return int(v)
+    if nivel == "rp":
+        return str(v)
+    if nivel == "cap":
+        return str(float(v))
+    raise ValueError(nivel)
+
+# ---- fundo cartografico real (Esri Ocean Basemap, mesmo provedor do PNG em
+# analise.py) ----
+# Restaurado apos uma rodada que removeu isso por preocupacao com terra
+# aparecer azul -- esclarecido pelo usuario: o problema era o CHOROPLETH dos
+# dados (censo em tons de azul, agora 'Greys') representar TERRA em azul, nao
+# o basemap em si. O basemap real pode voltar; so os dados (shapefile
+# colorido por valor) nunca usam azul.
+_BASEMAP_CACHE = {}   # bbox (arredondado) -> (classe css, b64 jpeg)
+_BASEMAP_CSS_RULES = []
+
+def _merc_para_lonlat(mx, my):
+    r = 20037508.342789244
+    lon = mx / r * 180
+    lat = math.degrees(math.atan(math.sinh(my / r * math.pi)))
+    return lon, lat
+
+def _basemap_css_class(project):
+    """Busca (1x, cacheado por bbox) um mosaico de tiles Esri Ocean Basemap
+    cobrindo os limites geograficos de `project` e reamostra pra caber
+    EXATAMENTE no espaco de pixels do SVG (mesma bbox/escala usada pelos
+    poligonos) -- resultado widthxheight identico a _MAP_W/_MAP_H, aplicado
+    como CSS background compartilhado (1 copia do base64, nao 1 por mapa)."""
+    minx, miny, maxx, maxy = project.bounds
+    key = (round(minx, 4), round(miny, 4), round(maxx, 4), round(maxy, 4))
+    if key in _BASEMAP_CACHE:
+        return _BASEMAP_CACHE[key][0]
+    class_name = ""
+    try:
+        import contextily as ctx
+        import numpy as np
+        # zoom 10 -- checado manualmente: o Esri Ocean Basemap so tem cobertura real
+        # de terreno pra area do Rio ate zoom ~10; zoom 11+ devolve um tile placeholder
+        # cinza-azulado com o texto 'Map data not yet available' (bytes identicos em
+        # zoom 11 e 13, confirmado por probe manual dos tiles) -- e um basemap voltado
+        # a oceano/costa, a cobertura terrestre em alta resolucao nao acompanha
+        img, ext = ctx.bounds2img(minx, miny, maxx, maxy, zoom=10, source=ctx.providers.Esri.OceanBasemap, ll=True)
+        mx0, mx1, my0, my1 = ext
+        lon0, lat0 = _merc_para_lonlat(mx0, my0)
+        lon1, lat1 = _merc_para_lonlat(mx1, my1)
+        tile_img = Image.fromarray(np.asarray(img)).convert("RGB")
+        x0, y1 = project(lon0, lat0)
+        x1, y0 = project(lon1, lat1)
+        w, h = max(1, round(x1 - x0)), max(1, round(y1 - y0))
+        tile_img = tile_img.resize((w, h), Image.LANCZOS)
+        canvas = Image.new("RGB", (_MAP_W, _MAP_H), "#eef3f6")
+        canvas.paste(tile_img, (round(x0), round(y0)))
+        buf = io.BytesIO()
+        canvas.save(buf, format="JPEG", quality=72)
+        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+        class_name = f"map-bg-{len(_BASEMAP_CACHE) + 1}"
+        _BASEMAP_CSS_RULES.append(
+            f'.{class_name}{{background-image:url(data:image/jpeg;base64,{b64});background-size:100% 100%;}}'
+        )
+    except Exception as exc:
+        # sem internet/timeout etc -- mapa cai de volta pro fundo neutro
+        # (--surface-2 em .map-svg-frame), nao trava a geracao do relatorio inteiro
+        print(f"[aviso] fundo cartografico indisponivel para bbox {key}: {exc}", file=sys.stderr)
+    _BASEMAP_CACHE[key] = (class_name, None)
+    return class_name
+
+def _escala_legivel(distancia_m):
+    """Arredonda pra 1/2/5 x 10^n mais proximo -- convencao de barra de escala."""
+    if distancia_m <= 0:
+        return 100
+    exp = math.floor(math.log10(distancia_m))
+    base = distancia_m / (10 ** exp)
+    nice = 1 if base < 1.5 else 2 if base < 3.5 else 5 if base < 7.5 else 10
+    return nice * (10 ** exp)
+
+def _svg_barra_escala(project, x=16, y=None):
+    """Barra de escala SVG (canto inferior esquerdo), distancia real calculada a
+    partir de project.scale (px por grau ~= px por metro via 111.320m/grau)."""
+    y = _MAP_H - 14 if y is None else y
+    px_por_m = project.scale / 111320.0
+    nice_m = _escala_legivel(110 / px_por_m)
+    bar_px = nice_m * px_por_m
+    label = f"{nice_m / 1000:.0f} km" if nice_m >= 1000 else f"{nice_m:.0f} m"
+    return (
+        f'<g class="map-scalebar" transform="translate({x},{y})">'
+        f'<rect x="0" y="-4" width="{bar_px:.1f}" height="4" fill="#262626"></rect>'
+        f'<rect x="0" y="-4" width="{bar_px:.1f}" height="4" fill="none" stroke="#fff" stroke-width="0.6"></rect>'
+        f'<text x="{bar_px / 2:.1f}" y="-8" text-anchor="middle" class="map-scalebar-label">{label}</text>'
+        '</g>'
+    )
+
+def _svg_rosa_dos_ventos(x=None, y=30):
+    """Seta 'N' simples (rosa dos ventos), canto superior direito -- mesma ideia
+    de _adiciona_rosa_dos_ventos em analise.py."""
+    x = _MAP_W - 30 if x is None else x
+    return (
+        f'<g class="map-compass" transform="translate({x},{y})">'
+        '<path d="M0,-16 L6,6 L0,1.5 L-6,6 Z" fill="#262626" stroke="#fff" stroke-width="0.8"></path>'
+        '<text x="0" y="20" text-anchor="middle" class="map-compass-label">N</text>'
+        '</g>'
+    )
+
+def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro"):
+    """df: 1 linha por unidade geografica (chave_col identifica a unidade no nivel
+    escolhido: codbairro/area_plane/cod_rp/cod_ap_sms). bins: lista de limites
+    superiores (contagem absoluta, classes discretas) ou None (percentual/taxa,
+    escala continua) -- mesma convencao de mapa_coropletico_bairros em
+    analise.py. Emite 1 construto (option_card-compativel) com SVG + legenda +
+    tooltip por regiao + toggle de outliers + download CSV."""
+    gdf, project, nomes = _geo_nivel(nivel)
+    valores = {}
+    for _, r in df.iterrows():
+        try:
+            chave = _chave_norm(r[chave_col], nivel)
+        except (ValueError, TypeError):
+            continue  # linhas de agregado tipo "Em branco"/"Ignorado" (nao sao uma unidade geografica real)
+        valores[chave] = None if pd.isna(r[valor_col]) else float(r[valor_col])
+    brutos = list(valores.values())
+    # outliers so em percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
+    limpos = remove_outliers_tukey(brutos) if _eh_taxa_ou_percentual(fmt) else brutos
+    limpos_map = dict(zip(valores.keys(), limpos))
+    has_outliers = limpos != brutos
+
+    def build(valor_por_regiao):
+        elem_id = new_id("m")
+        finitos = [v for v in valor_por_regiao.values() if v is not None]
+        vmin, vmax = (min(finitos), max(finitos)) if finitos else (0, 1)
+        paths, rows = [], []
+        for _, row in gdf.iterrows():
+            chave = row["_chave"]
+            v = valor_por_regiao.get(chave)
+            d = _geom_path_d(row.geometry, project)
+            if v is None:
+                fill = "var(--surface-2)"
+            elif bins is not None:
+                idx = next((i for i, edge in enumerate(bins) if v <= edge), len(bins))
+                fill = _cor_sequencial(tema, (idx + 1) / (len(bins) + 1))
+            else:
+                frac = (v - vmin) / (vmax - vmin) if vmax > vmin else 0.5
+                fill = _cor_sequencial(tema, frac)
+            label = nomes.get(chave, str(chave))
+            val_txt = _fmt_ptbr(v, 1 if fmt == "pct1" else 0) + ("%" if fmt == "pct1" and v is not None else "")
+            paths.append(
+                f'<path d="{d}" class="map-region" fill="{fill}" stroke="var(--page)" stroke-width="0.7" '
+                f'data-label="{_esc(label)}" data-valor="{_esc(val_txt)}"></path>'
+            )
+            rows.append((label, v))
+        legend_bits = []
+        if bins is not None:
+            edges = [None] + bins + [None]
+            for i in range(len(bins) + 1):
+                lo, hi = edges[i], edges[i + 1]
+                lbl = f"Até {_fmt_ptbr(hi)}" if lo is None else (f"Mais de {_fmt_ptbr(lo)}" if hi is None else f"{_fmt_ptbr(lo)} a {_fmt_ptbr(hi)}")
+                sw = _cor_sequencial(tema, (i + 1) / (len(bins) + 1))
+                legend_bits.append(f'<div class="map-legend-row"><span class="map-legend-sw" style="background:{sw}"></span>{lbl}</div>')
+        else:
+            steps = 5
+            for i in range(steps):
+                frac = i / (steps - 1)
+                v = vmin + (vmax - vmin) * frac
+                sw = _cor_sequencial(tema, frac)
+                legend_bits.append(f'<div class="map-legend-row"><span class="map-legend-sw" style="background:{sw}"></span>{_fmt_ptbr(v, 1)}{"%" if fmt == "pct1" else ""}</div>')
+        bg_class = _basemap_css_class(project)
+        overlay = _svg_rosa_dos_ventos() + _svg_barra_escala(project)
+        svg = (
+            f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg {bg_class}" id="{elem_id}">'
+            + "".join(paths) + overlay + "</svg>"
+        )
+        csv = _csv_data_attr([_NIVEL_LABEL.get(nivel, "Bairro"), legenda_titulo or valor_col], rows)
+        # estilo cartografico (specification.md §7): fundo real (Esri Ocean Basemap,
+        # igual ao PNG) -- azul fica reservado ao mar/basemap, o choropleth dos DADOS
+        # (censo etc.) nunca usa azul (Greys/BuGn/RdPu/YlOrBr). Rosa dos ventos + barra
+        # de escala, titulo serifado, legenda como overlay DENTRO do mapa + rodape com
+        # sistema de referencia (convencao do PNG).
+        ref_txt = "Sistema de referência: SIRGAS 2000, UTM - Fuso 23S"
+        parts.append(
+            f'<div class="out map-svg-card" data-csv="{csv}" data-filename="{_esc(titulo)}.csv">'
+            '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>'
+            f'<div class="map-title">{_esc(titulo)}</div>'
+            '<div class="map-svg-frame">'
+            f'{svg}'
+            f'<div class="map-legend-overlay"><div class="eyebrow map-legend-title">{_esc(legenda_titulo or "")}</div>{"".join(legend_bits)}</div>'
+            '</div>'
+            f'<div class="map-ref">{ref_txt}<br>Fonte: {_esc(fonte_dados)}</div>'
+            '</div>'
+        )
+        return elem_id
+
+    if has_outliers:
+        with_outliers_toggle(lambda: build(valores), lambda: build(limpos_map), True)
+    else:
+        build(valores)
+
+# ============================================================ NAVBAR/HEADER ==
+
+# Faixa de aviso "em desenvolvimento" -- publicação de teste no GitHub Pages
+# (repositório passou a ser público). Remover só quando o relatório for
+# considerado pronto para divulgação oficial -- ver specs/roadmap.md
+# "publicar_teste_pages".
+parts.append(
+    '<div class="dev-banner" role="alert">'
+    '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
+    'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
+    '</div>'
+)
+
+parts.append('<div class="topbar-accent"></div>')
+parts.append('<nav class="navbar"><div class="navbar-inner">')
+parts.append(
+    '<button type="button" class="navbar-burger" id="navbar-burger" aria-expanded="false" aria-controls="navbar-menu">'
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">'
+    '<line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line>'
+    '</svg><span class="eyebrow navbar-label">NAVEGAÇÃO</span></button>'
+)
+parts.append(f'<div class="navbar-logo">{LOGO_IMG}</div>')
+parts.append('</div></nav>')
+parts.append('<div class="navbar-menu" id="navbar-menu" hidden><!--NAVBAR--></div>')
 
 parts.append('<header class="doc-head">')
+parts.append('<div class="doc-head-row">')
+parts.append('<div class="doc-head-title">')
+parts.append('<div class="eyebrow doc-eyebrow">PROJETO · RELATÓRIO INTERATIVO</div>')
 parts.append('<h1><span class="glyph">\U0001F3DB️</span>Análise Primeira Infância Carioca</h1>')
+parts.append('</div>')
+parts.append('<div class="doc-head-desc">')
 parts.append('<p class="sub">Visualizações dos indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro. Cada gráfico tem a fonte no rodapé e uma opção de ver os dados em tabela; a descrição metodológica completa fica no notebook (<code>analise.py</code>) e no relatório em PDF.</p>')
-parts.append('<div class="meta"><span>Instituto Pereira Passos</span><span id="gen-date">—</span></div>')
+parts.append('<p class="meta"><span id="gen-date">—</span></p>')
+parts.append('</div>')
+parts.append('</div>')
+parts.append('<div class="spectrum-bar">' + "".join(f'<span style="background:var(--c{i})"></span>' for i in range(1, 12)) + '</div>')
 parts.append('</header>')
-parts.append('<!--TOC-->')
 
-# ================================================================== CENSO ==
+# ---- sumario + introducao (specs/ajuste_eixos, pedido do usuario) --------
+# O Sumario antigo (com ancoras h2+h3) foi removido em specification.md v6
+# em favor da navbar persistente (relatorio/specs.md linha ~175); a CSS
+# .toc/.toc-list ficou no arquivo sem uso desde entao. Reativada aqui, nao
+# reescrita -- convive com a navbar (motivos diferentes: navbar e navegacao
+# rapida sempre visivel, Sumario e a abertura formal do documento). Preenchido
+# via placeholder (mesmo padrao do <!--NAVBAR-->) porque os ids das secoes so
+# existem depois que h2()/h3() rodam mais abaixo no script.
+parts.append(
+    '<section class="doc-toc" aria-label="Sumário">'
+    '<div class="toc">'
+    '<div class="toc-label">SUMÁRIO</div>'
+    '<ul class="toc-list"><!--SUMARIO--></ul>'
+    '</div>'
+    '</section>'
+)
+# Introducao: bloco placeholder (lorem ipsum, 250 palavras fixas -- nao a
+# faixa 100-200 dos blocos de analise por visualizacao, specs.md §7; texto
+# final e' trabalho de curadoria futura, fora do escopo desta rodada) com
+# <h2> real só para herdar a tipografia/first-of-type do CSS -- não passa
+# por h2() de proposito (não deve virar seção retrátil, nem entrar na
+# navbar/Sumário listando a si mesma).
+parts.append(
+    '<section class="doc-intro" id="introducao">'
+    '<h2>Introdução</h2>'
+    f'<p class="lede">{_lorem("introducao-relatorio", 250)}</p>'
+    '</section>'
+)
 
-h2('\U0001F3D8️ Censo 2022')
+# ============================================================== PRIORIDADE ==
+
+h2('🎯 Prioridade (sem secundário)')
 
 h3('Por bairro')
 df_censo_bairro = read("censo_por_bairro.csv")
@@ -206,131 +844,174 @@ top10 = df_censo_bairro.sort_values("0 a 4 anos", ascending=False).head(10)[["ba
 top10 = top10.rename(columns={"bairro": "Bairro", "0 a 4 anos": "Crianças 0-4", "Percentual 0 a 4": "% do bairro"})
 top10["% do bairro"] = top10["% do bairro"].map(lambda v: f"{v:.1f}%".replace(".", ","))
 FONTE_CENSO = "Censo Demográfico 2022 (IBGE/Data.Rio)"
-plain_table(top10, fonte=FONTE_CENSO)
-
-h3('População 0-6 por idade/raça/sexo (IBGE SIDRA, 2022)')
-FONTE_SIDRA_CENSO = "Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)"
-_ORDEM_IDADE_SIDRA_0_6 = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
-
-def _ordenar_idade(df, ordem):
-    return df[df["idade"].isin(ordem)].set_index("idade").reindex(ordem).reset_index()
-
-df_censo_raca = _ordenar_idade(read("censo_sidra_populacao_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
-raca_cols = [c for c in df_censo_raca.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO)
-df_censo_sexo = _ordenar_idade(read("censo_sidra_populacao_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
-sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO)
+tabela_com_texto(lambda: plain_table(top10, fonte=FONTE_CENSO), "Top 10 bairros por população 0-4 anos")
 
 h3('Mapas')
-_censo_maps = [
-    ("mapa_censo_0_4_absoluto.png", "Crianças de 0 a 4 anos, por bairro (Censo 2022)"),
-    ("mapa_censo_0_4_percentual.png", "% de crianças de 0 a 4 anos, por bairro (Censo 2022)"),
-    ("mapa_censo_0_4_absoluto_ap.png", "Crianças de 0 a 4 anos, por Área de Planejamento"),
-    ("mapa_censo_0_4_percentual_ap.png", "% de crianças de 0 a 4 anos, por Área de Planejamento"),
-    ("mapa_censo_0_4_absoluto_rp.png", "Crianças de 0 a 4 anos, por Região de Planejamento"),
-    ("mapa_censo_0_4_percentual_rp.png", "% de crianças de 0 a 4 anos, por Região de Planejamento"),
+
+def _agrega_censo_por_nivel(df_bairro, nivel):
+    """Agrega censo por bairro para AP/RP, somando o absoluto e recompondo o
+    percentual a partir da soma (nao a media das taxas por bairro) -- mesma
+    logica de agrega_bairros_por_nivel em analise.py. 'Total' (denominador) nao
+    vem exportado em censo_por_bairro.csv; recuperado por algebra exata
+    (Total = absoluto / (percentual/100)) a partir das 2 colunas que ja
+    existem -- nao e uma aproximacao, e a mesma conta invertida."""
+    base = _geo_base_bairros()
+    col = _NIVEL_COL[nivel]
+    mapa_nivel = dict(zip(base["codbairro"], base[col]))
+    d = df_bairro.copy()
+    d["_nivel"] = d["codbairro"].map(mapa_nivel)
+    d["_total"] = d["0 a 4 anos"] / (d["Percentual 0 a 4"] / 100)
+    agg = d.groupby("_nivel", as_index=False)[["0 a 4 anos", "_total"]].sum()
+    agg["Percentual 0 a 4"] = agg["0 a 4 anos"] / agg["_total"] * 100
+    return agg.rename(columns={"_nivel": col})
+
+NIVEIS_PLANEJAMENTO = {
+    'ap': {'nome': 'Área de Planejamento', 'bins': [25000, 50000, 75000, 100000]},
+    'rp': {'nome': 'Região de Planejamento', 'bins': [12000, 18000, 24000, 30000]},
+}
+_entries_mapas_censo_abs = [
+    ("Bairro", lambda: mapa_svg(df_censo_bairro, "codbairro", "0 a 4 anos", "censo",
+        "Crianças de 0 a 4 anos, por bairro (Censo 2022)", "Crianças 0-4", FONTE_CENSO, bins=[1000, 2500, 5000, 10000]), "mapa_censo_0_4_absoluto"),
 ]
-check_maps(_censo_maps)
-maps_block(_censo_maps)
+_entries_mapas_censo_pct = [
+    ("Bairro", lambda: mapa_svg(df_censo_bairro, "codbairro", "Percentual 0 a 4", "censo",
+        "% de crianças de 0 a 4 anos, por bairro (Censo 2022)", "% 0-4 anos", FONTE_CENSO, fmt='pct1'), "mapa_censo_0_4_percentual"),
+]
+for _nivel, _info in NIVEIS_PLANEJAMENTO.items():
+    df_censo_nivel = _agrega_censo_por_nivel(df_censo_bairro, _nivel)
+    _l1 = _info['nome']
+    _entries_mapas_censo_abs.append((_l1, lambda df=df_censo_nivel, nivel=_nivel, info=_info: mapa_svg(
+        df, _NIVEL_COL[nivel], "0 a 4 anos", "censo",
+        f"Crianças de 0 a 4 anos, por {info['nome']} (Censo 2022)", "Crianças 0-4",
+        FONTE_CENSO, bins=info['bins'], nivel=nivel), f"{_l1} · Absoluto"))
+    _l2 = _info['nome']
+    _entries_mapas_censo_pct.append((_l2, lambda df=df_censo_nivel, nivel=_nivel, info=_info: mapa_svg(
+        df, _NIVEL_COL[nivel], "Percentual 0 a 4", "censo",
+        f"% de crianças de 0 a 4 anos, por {info['nome']} (Censo 2022)", "% da população",
+        FONTE_CENSO, fmt='pct1', nivel=nivel), f"{_l2} · %"))
+# 6 mapas era demais numa unica fileira de pills -- dividido em 2 grupos
+# (Absoluto / %), specification.md §9 revisao
+h5('Valores absolutos')
+option_card(_entries_mapas_censo_abs, 'mapa')
+h5('Percentual')
+option_card(_entries_mapas_censo_pct, 'mapa')
 
 h3('Série temporal')
 df_censo_serie = read("censo_0_a_4_anos_por_ano.csv")
-line_chart(df_censo_serie["ano"], [
-    {'label': 'Total 0–4 anos', 'values': df_censo_serie['0 a 4 anos']},
-    {'label': 'Feminino', 'values': df_censo_serie['Sexo feminino, 0 a 4 anos']},
-    {'label': 'Masculino', 'values': df_censo_serie['Sexo masculino, 0 a 4 anos']},
-], opts={'height': 230, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)")
-line_chart(df_censo_serie["ano"], [
-    {'label': 'Percentual 0–4 anos', 'values': df_censo_serie['Percentual 0 a 4 anos'], 'format': 'pct1'},
-], opts={'height': 200, 'zeroBase': False, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)")
+option_card([
+    ("Total/Feminino/Masculino", lambda: line_chart(df_censo_serie["ano"], [
+        {'label': 'Total 0–4 anos', 'values': df_censo_serie['0 a 4 anos']},
+        {'label': 'Feminino', 'values': df_censo_serie['Sexo feminino, 0 a 4 anos']},
+        {'label': 'Masculino', 'values': df_censo_serie['Sexo masculino, 0 a 4 anos']},
+    ], opts={'height': 230, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)"), "censo_0_a_4_serie_total_ano"),
+    ("% 0-4 anos", lambda: line_chart(df_censo_serie["ano"], [
+        {'label': 'Percentual 0–4 anos', 'values': df_censo_serie['Percentual 0 a 4 anos'], 'format': 'pct1'},
+    ], opts={'height': 200, 'zeroBase': False, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)"), "censo_0_a_4_serie_percentual_ano"),
+], 'grafico')
 
-# ================================================================ CADUNICO ==
-
-h2('\U0001F5C2️ CadÚnico')
-FONTE_CADUNICO = "CadÚnico (extração CTPE)"
-
-h3('Por faixa de renda')
-df_renda = read("cadunico_por_faixa_etaria_2026.csv")
-df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"]
-out_pair(
-    lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Crianças"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
-    lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Famílias"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
-)
-
-h3('Por idade')
-df_idade = read("cadunico_por_idade_2026.csv")
-df_idade["idade_lbl"] = df_idade["idade"].astype(int).map(lambda i: f"{i} ano" if i == 1 else f"{i} anos")
-out_pair(
-    lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Crianças"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
-    lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Famílias"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
-)
-
-h3('Mapas')
-_cadunico_maps = [
-    ("mapa_cadunico_criancas_bairro_2026.png", "Crianças (0-6 anos) no CadÚnico, por bairro"),
-    ("mapa_cadunico_primeira_infancia_bairro_2026.png", "Crianças (0-4 anos) no CadÚnico, por bairro"),
-    ("mapa_percentual_cadunico_primeira_infancia_bairro_2026.png", "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro"),
-]
-check_maps(_cadunico_maps)
-maps_block(_cadunico_maps)
-
-# ============================================================== DATASUS ===
-
-h2('\U0001F3E5 DataSUS/Tabnet')
 FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro"
 
-h3('Nascidos vivos')
-maps_block([("mapa_nascidos_vivos_bairro_2025.png", "Nascidos vivos por bairro (2025)")])
-df_nv = read("nascidos_vivos_por_ano.csv")
-line_chart(df_nv["ano"], [{'label': 'Nascidos vivos', 'values': df_nv['nascidos vivos']}], opts={'height': 220, 'table': True}, fonte=FONTE_DATASUS)
-
-h3('Nascidos abaixo do peso')
-maps_block([
-    ("mapa_nascidos_baixo_peso_bairro_2025.png", "Nascidos com baixo peso por bairro (2025)"),
-    ("mapa_percentual_baixo_peso_bairro_2025.png", "% de nascidos com baixo peso por bairro (2025)"),
-])
-df_bp = read("nascidos_abaixo_peso_por_ano.csv")
-line_chart(df_bp["ano"], [{'label': '% abaixo do peso', 'values': df_bp['percentual abaixo do peso'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-
-h3('Mortalidade por raça/cor (0-364 dias)')
 RACA_LABEL = {"amarela": "Amarela", "branca": "Branca", "indigena": "Indígena", "parda": "Parda", "preta": "Preta", "nao_informado": "Não informado"}
 RACAS = list(RACA_LABEL)
+df_nv = read("nascidos_vivos_por_ano.csv")
+df_bp = read("nascidos_abaixo_peso_por_ano.csv")
 df_raca = read("mortalidade_raca_municipio_ano.csv")
-line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS)
-line_chart(df_raca["ano"], series_from_cols(df_raca, [f"percentual_{r}" for r in RACAS], {f"percentual_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([
-    ("mapa_obitos_raca_total_bairro_2025.png", "Óbitos de 0 a 364 dias por bairro (2025)"),
-    ("mapa_taxa_obitos_raca_total_bairro_2025.png", "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)"),
-])
 
-# ============================================================ EVITAVEIS ===
+h3('Nascidos vivos e mortalidade por raça/cor')
+option_card([
+    ("Nascidos vivos", lambda: line_chart(df_nv["ano"], [{'label': 'Nascidos vivos', 'values': df_nv['nascidos vivos']}], opts={'height': 220, 'table': True}, fonte=FONTE_DATASUS), "nascidos_vivos_por_ano"),
+    ("Óbitos raça · Absoluto", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS), "obitos_raca_ano"),
+    ("Óbitos raça · %", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"percentual_{r}" for r in RACAS], {f"percentual_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "percentual_mortalidade_raca_ano"),
+], 'grafico')
 
-h2('⛓️ Óbitos por causas evitáveis')
+h3('Mapas')
+df_map_nv = read("tabela_mapa_nascidos_vivos_2025.csv")
+df_map_raca_2025 = read("mortalidade_raca_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
+option_card([
+    ("Nascidos vivos", lambda: mapa_svg(df_map_nv, "codigo", "nascidos vivos", "natalidade",
+        "Nascidos vivos por bairro (2025)", "Nascidos vivos", FONTE_DATASUS, bins=[200, 400, 800, 1500]), "mapa_nascidos_vivos_bairro_2025"),
+    ("Óbitos 0-364 dias", lambda: mapa_svg(df_map_raca_2025, "codigo", "obitos_total", "mortalidade",
+        "Óbitos de 0 a 364 dias por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "mapa_obitos_raca_total_bairro_2025"),
+    ("Taxa mortalidade infantil", lambda: mapa_svg(df_map_raca_2025, "codigo", "percentual_total", "mortalidade",
+        "Taxa de mortalidade infantil (0-364 dias) por bairro (2025)", "% s/ nascidos vivos", FONTE_DATASUS, fmt="pct1"), "mapa_taxa_obitos_raca_total_bairro_2025"),
+], 'mapa')
+
+h3('Gravidez e puerpério')
+df_grav = read("obitos_gravidez_por_ano.csv")
+df_puerp = read("obitos_puerperio_por_ano.csv")
+option_card([
+    ("Gravidez", lambda: line_chart(df_grav["ano"], [{'label': 'Óbitos', 'values': df_grav['óbitos-gravidez']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS), "obitos_gravidez_por_ano"),
+    ("Puerpério", lambda: line_chart(df_puerp["ano"], [{'label': 'Óbitos', 'values': df_puerp['óbitos-puerpério']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS), "obitos_puerperio_por_ano"),
+], 'grafico')
+df_map_grav = read("obitos_gravidez_bairro_ano.csv")
+df_map_grav_2025 = df_map_grav[df_map_grav["ano"] == 2025]
+df_map_puerp = read("obitos_puerperio_bairro_ano.csv")
+df_map_puerp_2025 = df_map_puerp[df_map_puerp["ano"] == 2025]
+option_card([
+    ("Gravidez", lambda: mapa_svg(df_map_grav_2025, "codigo", "óbitos-gravidez", "mortalidade",
+        "Óbitos durante a gravidez por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[0, 1]), "mapa_obitos_gravidez_bairro_2025"),
+    ("Puerpério", lambda: mapa_svg(df_map_puerp_2025, "codigo", "óbitos-puerpério", "mortalidade",
+        "Óbitos durante o puerpério por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[0, 1, 2]), "mapa_obitos_puerperio_bairro_2025"),
+], 'mapa')
+
+h3('Mortalidade neonatal')
+df_prec = read("mortalidade_neonatal_precoce_por_ano.csv")
+df_tard = read("mortalidade_neonatal_tardia_por_ano.csv")
+df_inf = read("mortalidade_infantil_pos_neonatal_total_por_ano.csv")
+option_card([
+    ("Precoce (0-6 dias)", lambda: line_chart(df_prec["ano"], [{'label': 'Taxa (‰)', 'values': df_prec['taxa_mortalidade_precoce'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "taxa_mortalidade_precoce_ano"),
+    ("Tardia (7-27 dias)", lambda: line_chart(df_tard["ano"], [{'label': 'Taxa (‰)', 'values': df_tard['taxa_obitos_tardios'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "taxa_obitos_tardios_ano"),
+    ("Pós-neonatal (28-364 dias)", lambda: line_chart(df_inf["ano"], [{'label': 'Taxa pós-neonatal (‰)', 'values': df_inf['taxa_mortalidade_pos_neonatal'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "taxa_mortalidade_pos_neonatal_ano"),
+    ("Total (0-364 dias)", lambda: line_chart(df_inf["ano"], [{'label': 'Taxa infantil total (‰)', 'values': df_inf['taxa_mortalidade_infantil'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "taxa_mortalidade_infantil_ano"),
+], 'grafico')
+
+df_map_neo_prec_2025 = read("mortalidade_neonatal_precoce_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
+df_map_neo_tard_2025 = read("mortalidade_neonatal_tardia_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
+df_map_pos_neo_2025 = read("mortalidade_infantil_pos_neonatal_total_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
+# 8 mapas era demais numa unica fileira de pills -- dividido em 2 grupos
+# (Óbitos / Taxa), specification.md §9 revisao
+h6('Óbitos')
+option_card([
+    ("Precoce", lambda: mapa_svg(df_map_neo_prec_2025, "codigo", "obitos precoces", "mortalidade",
+        "Óbitos precoces (0-6 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 3, 6, 12]), "mapa_obitos_neonatal_precoce_bairro_2025"),
+    ("Tardia", lambda: mapa_svg(df_map_neo_tard_2025, "codigo", "obitos_tardios", "mortalidade",
+        "Óbitos tardios (7-27 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "mapa_obitos_neonatal_tardia_bairro_2025"),
+    ("Pós-neonatal", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_28_364", "mortalidade",
+        "Óbitos pós-neonatais (28-364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "mapa_obitos_pos_neonatal_bairro_2025"),
+    ("Total", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_0_364", "mortalidade",
+        "Óbitos infantis (0-364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "mapa_mortalidade_infantil_bairro_2025"),
+], 'mapa')
+h6('Taxa')
+option_card([
+    ("Precoce", lambda: mapa_svg(df_map_neo_prec_2025, "codigo", "taxa_mortalidade_precoce", "mortalidade",
+        "Taxa de óbitos precoces por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "mapa_taxa_mortalidade_precoce_bairro_2025"),
+    ("Tardia", lambda: mapa_svg(df_map_neo_tard_2025, "codigo", "taxa_obitos_tardios", "mortalidade",
+        "Taxa de óbitos tardios por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "mapa_taxa_obitos_tardios_bairro_2025"),
+    ("Pós-neonatal", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_pos_neonatal", "mortalidade",
+        "Taxa de mortalidade pós-neonatal por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "mapa_taxa_mortalidade_pos_neonatal_bairro_2025"),
+    ("Total", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_infantil", "mortalidade",
+        "Taxa de mortalidade infantil por bairro (2025)", "Taxa por mil NV", FONTE_DATASUS, fmt="pct1"), "mapa_taxa_mortalidade_infantil_bairro_2025"),
+], 'mapa')
+
+h3('Óbitos por causas evitáveis')
 FONTE_EVITAVEIS = "SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro"
 
-h3('Por raça/cor (0-364 dias)')
-df_evit_raca = read("mortalidade_causas_evitaveis_raca_municipio_ano.csv")
-line_chart(df_evit_raca["ano"], series_from_cols(df_evit_raca, [f"obitos_evitaveis_{r}" for r in RACAS], {f"obitos_evitaveis_{r}": RACA_LABEL[r] for r in RACAS}), opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
-line_chart(df_evit_raca["ano"], series_from_cols(df_evit_raca, [f"percentual_evitaveis_{r}" for r in RACAS], {f"percentual_evitaveis_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pct1'), opts={'height': 260, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)
-
-h4('Sem "não informada" (a partir de 1997)')
-RACAS_SEM_NI = [r for r in RACAS if r != "nao_informado"]
-df_evit_raca_sem = df_evit_raca[df_evit_raca["ano"] > 1996]
-line_chart(df_evit_raca_sem["ano"], series_from_cols(df_evit_raca_sem, [f"obitos_evitaveis_{r}" for r in RACAS_SEM_NI], {f"obitos_evitaveis_{r}": RACA_LABEL[r] for r in RACAS_SEM_NI}), opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
-line_chart(df_evit_raca_sem["ano"], series_from_cols(df_evit_raca_sem, [f"percentual_evitaveis_{r}" for r in RACAS_SEM_NI], {f"percentual_evitaveis_{r}": RACA_LABEL[r] for r in RACAS_SEM_NI}, fmt='pct1'), opts={'height': 240, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)
-
-h3('Por grupo/subgrupo de causa (CID-10)')
+h4('Por grupo/subgrupo de causa (CID-10)')
+_entries_cid10 = []
 for faixa_id, faixa_titulo in [("", "0-364 dias"), ("_0_6", "0-6 dias"), ("_7_27", "7-27 dias"), ("_28_364", "28-364 dias")]:
-    h5(faixa_titulo)
     df_g = read(f"mortalidade_causas_evitaveis_grupo{faixa_id}_ano.csv")
     gcols = [c for c in df_g.columns if c != "ano"]
-    line_chart(df_g["ano"], series_from_cols(df_g, gcols, {c: clean_causa(c) for c in gcols}), opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
+    _lg = f"{faixa_titulo} · Grupo"
+    _seed_g = f"obitos_causas_evitaveis_grupo{faixa_id}_ano"
+    _entries_cid10.append((_lg, lambda df=df_g, cols=gcols: line_chart(df["ano"], series_from_cols(df, cols, {c: clean_causa(c) for c in cols}), opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _seed_g))
     df_s = read(f"mortalidade_causas_evitaveis_subgrupo{faixa_id}_ano.csv")
     scols = [c for c in df_s.columns if c != "ano"]
-    line_chart(df_s["ano"], series_from_cols(df_s, scols, {c: clean_causa(c) for c in scols}), opts={'height': 280, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
+    _ls = f"{faixa_titulo} · Subgrupo"
+    _seed_s = f"obitos_causas_evitaveis_subgrupo{faixa_id}_ano"
+    _entries_cid10.append((_ls, lambda df=df_s, cols=scols: line_chart(df["ano"], series_from_cols(df, cols, {c: clean_causa(c) for c in cols}), opts={'height': 280, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _seed_s))
+option_card(_entries_cid10, 'grafico')
 
-h4('Comparação entre faixas etárias (2025)')
+h5('Comparação entre faixas etárias (2025)')
 df_faixa2025 = read("mortalidade_causas_evitaveis_subgrupo_faixa_2025.csv")
 subgrupos_2025 = list(dict.fromkeys(df_faixa2025["subgrupo"]))
 faixas_2025 = ["0-6 dias", "7-27 dias", "28-364 dias"]
@@ -341,15 +1022,21 @@ for sg in subgrupos_2025:
         row = df_faixa2025[(df_faixa2025["subgrupo"] == sg) & (df_faixa2025["faixa_etaria"] == fx)]
         vals.append(float(row["obitos"].iloc[0]) if len(row) else None)
     series_2025.append({'label': clean_causa(sg), 'values': vals})
-grouped_bar_chart(faixas_2025, series_2025, fonte=FONTE_EVITAVEIS)
+# Solo -- nao e um corte comparavel aos outros grupos desta secao (specification.md §9)
+option_card([("Comparação entre faixas etárias (2025)", lambda: grouped_bar_chart(faixas_2025, series_2025, fonte=FONTE_EVITAVEIS), "obitos_causas_evitaveis_subgrupo_faixa_2025")], 'grafico')
 
-h3('Primeira infância, por Área Programática de Saúde (CAP)')
+h4('Primeira infância, por Área Programática de Saúde (CAP)')
 df_cap_faixa = read("mortalidade_evitaveis_cap_faixa_ano.csv")
 df_grupo_cap_faixa = read("mortalidade_evitaveis_grupo_cap_faixa_ano.csv")
 
-h4('Panorama municipal, por subgrupo')
+h5('Panorama municipal, por subgrupo')
+_SEED_PANORAMA_FAIXA = {
+    'menores de 1 ano': 'obitos_evitaveis_menores_1_ano_subgrupo_ano',
+    'de 1 a 4 anos': 'obitos_evitaveis_1_a_4_anos_subgrupo_ano',
+    'menores de 5 anos': 'obitos_evitaveis_menores_5_subgrupo_ano',
+}
+_entries_panorama_cap = []
 for faixa in ['menores de 1 ano', 'de 1 a 4 anos', 'menores de 5 anos']:
-    h5(faixa.capitalize())
     sub = df_cap_faixa[df_cap_faixa["faixa_etaria"] == faixa].groupby(["subgrupo", "ano"], as_index=False)["obitos"].sum()
     subgrupos = list(dict.fromkeys(sub["subgrupo"]))
     anos = sorted(sub["ano"].unique().tolist())
@@ -357,9 +1044,14 @@ for faixa in ['menores de 1 ano', 'de 1 a 4 anos', 'menores de 5 anos']:
     for sg in subgrupos:
         d = sub[sub["subgrupo"] == sg].set_index("ano")["obitos"]
         series.append({'label': clean_causa(sg), 'values': [d.get(a) for a in anos]})
-    line_chart(anos, series, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
+    _lbl = faixa.capitalize()
+    _entries_panorama_cap.append((_lbl, lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), _SEED_PANORAMA_FAIXA[faixa]))
+option_card(_entries_panorama_cap, 'grafico')
 
-h4('Por CAP e faixa etária')
+h5('Por CAP e faixa etária')
+# 18 combinacoes (3 faixas x 6 subgrupos) -- antes eram 18 line_chart em sequencia
+# (h5 por faixa + h6 por subgrupo); viram 1 chart-card com seletor de opcoes
+# (specification.md §3.2/§4-E), pill = "faixa · subgrupo".
 _SLUG_SUBGRUPO = {
     '1.1. Reduzível pelas ações de imunização': 'Imunização',
     '1.2.1. Red por at à mulher na gestação': 'Gestação',
@@ -368,8 +1060,8 @@ _SLUG_SUBGRUPO = {
     '1.3. Red por ações de diag e trat adequado': 'Diagnóstico/tratamento',
     '1.4. Red por ações promoção vinc a atenção': 'Promoção/vinculação',
 }
+_entries_cap_faixa = []
 for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 anos', 'De 1 a 4 anos'), ('menores de 5 anos', 'Menores de 5 anos')]:
-    h5(faixa_lbl)
     for subgrupo_full, subgrupo_lbl in _SLUG_SUBGRUPO.items():
         sub = df_cap_faixa[(df_cap_faixa["subgrupo"] == subgrupo_full) & (df_cap_faixa["faixa_etaria"] == faixa)]
         if not len(sub):
@@ -380,13 +1072,30 @@ for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 an
         for cap in caps:
             d = sub[sub["cod_ap_sms"] == cap].set_index("ano")["obitos"]
             series.append({'label': f"CAP {cap}", 'values': [d.get(a) for a in anos]})
-        h6(subgrupo_lbl)
-        line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'legendTitle': 'CAP', 'table': True}, fonte=FONTE_EVITAVEIS)
+        _label = f"{faixa_lbl} · {subgrupo_lbl}"
+        _entries_cap_faixa.append((
+            _label,
+            lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'legendTitle': 'CAP', 'table': True}, fonte=FONTE_EVITAVEIS),
+            _label,
+        ))
+option_card(_entries_cap_faixa, 'grafico')
 
-h4('Grupo evitável, por CAP')
+h5('Grupo evitável e subgrupos (gestação/parto), por CAP')
+# specification.md §9: merge de "Grupo evitável por CAP" (3 faixas, par
+# abs+pct) com "Gestação e parto por CAP" (2 subgrupos) num so grupo de 5
+# pills -- eram 2 option_card separados numa rodada anterior.
 GRUPO1_COL = "1. Causas evitáveis"
+# seed: par abs+pct exibido junto (out_pair) num unico card/pill -- so ha 1
+# seed por opcao, entao aponta para o arquivo do lado absoluto (primario);
+# o lado percentual (percentual_evitaveis_cap_*_ano.png) fica sem seed
+# proprio nesta rodada (aproximacao documentada, nao ha 2o slot de seed).
+_SEED_GRUPO_CAP_FAIXA = {
+    'menores de 1 ano': 'obitos_evitaveis_cap_menores_1_ano_ano',
+    'de 1 a 4 anos': 'obitos_evitaveis_cap_1_a_4_anos_ano',
+    'menores de 5 anos': 'obitos_evitaveis_cap_menores_5_anos_ano',
+}
+_entries_grupo_cap = []
 for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 anos', 'De 1 a 4 anos'), ('menores de 5 anos', 'Menores de 5 anos')]:
-    h5(faixa_lbl)
     sub = df_grupo_cap_faixa[df_grupo_cap_faixa["faixa_etaria"] == faixa]
     anos = sorted(sub["ano"].unique().tolist())
     caps = sorted(sub["cod_ap_sms"].unique().tolist())
@@ -395,10 +1104,14 @@ for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 an
         d = sub[sub["cod_ap_sms"] == cap].set_index("ano")
         series_abs.append({'label': f"CAP {cap}", 'values': [d[GRUPO1_COL].get(a) for a in anos]})
         series_pct.append({'label': f"CAP {cap}", 'values': [d['percentual_evitaveis'].get(a) for a in anos], 'format': 'pct1'})
-    line_chart(anos, series_abs, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
-    line_chart(anos, series_pct, opts={'height': 240, 'maxXLabels': 6, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)
-
-h4('Gestação e parto, menores de 1 ano, por CAP')
+    _entries_grupo_cap.append((
+        faixa_lbl,
+        lambda anos=anos, series_abs=series_abs, series_pct=series_pct: out_pair(
+            lambda: line_chart(anos, series_abs, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS, titulo="Óbitos (absoluto)"),
+            lambda: line_chart(anos, series_pct, opts={'height': 240, 'maxXLabels': 6, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS, titulo="% do total evitável"),
+        ),
+        _SEED_GRUPO_CAP_FAIXA[faixa],
+    ))
 for subgrupo_full, subgrupo_lbl in [
     ('1.2.1. Red por at à mulher na gestação', 'Gestação'),
     ('1.2.2. Red por at à mulher no parto', 'Parto'),
@@ -410,10 +1123,15 @@ for subgrupo_full, subgrupo_lbl in [
     for cap in caps:
         d = sub[sub["cod_ap_sms"] == cap].set_index("ano")["obitos"]
         series.append({'label': f"CAP {cap}", 'values': [d.get(a) for a in anos]})
-    h5(subgrupo_lbl)
-    line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
+    _label = f"{subgrupo_lbl} (menores de 1 ano)"
+    _entries_grupo_cap.append((
+        _label,
+        lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS),
+        _label,
+    ))
+option_card(_entries_grupo_cap, 'grafico')
 
-h4('Panorama municipal (< 5 anos) e taxa')
+h5('Panorama municipal (< 5 anos) e taxa')
 df_menores5_sub = read("obitos_evitaveis_menores_5_subgrupo_municipio_ano.csv")
 sgs = list(dict.fromkeys(df_menores5_sub["subgrupo"]))
 anos_m5 = sorted(df_menores5_sub["ano"].unique().tolist())
@@ -421,125 +1139,206 @@ series_m5 = []
 for sg in sgs:
     d = df_menores5_sub[df_menores5_sub["subgrupo"] == sg].set_index("ano")["obitos"]
     series_m5.append({'label': clean_causa(sg), 'values': [d.get(a) for a in anos_m5]})
-line_chart(anos_m5, series_m5, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS)
 df_taxa_m5 = read("taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv")
-line_chart(df_taxa_m5["ano"], [{'label': 'Taxa por mil NV', 'values': df_taxa_m5['taxa_por_mil'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS)
+option_card([
+    ("Óbitos por subgrupo", lambda: line_chart(anos_m5, series_m5, opts={'height': 260, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS), "obitos_evitaveis_menores_5_subgrupo_ano"),
+    ("Taxa por mil NV", lambda: line_chart(df_taxa_m5["ano"], [{'label': 'Taxa por mil NV', 'values': df_taxa_m5['taxa_por_mil'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_EVITAVEIS), "taxa_mortalidade_evitaveis_menores_5_ano"),
+], 'grafico')
 
-h4('Mapas')
-_cap_grupo_maps = [
-    ("mapa_obitos_evitaveis_menores_1_ano_cap_2025.png", "Óbitos evitáveis, menores de 1 ano, por CAP"),
-    ("mapa_percentual_evitaveis_menores_1_ano_cap_2025.png", "% de óbitos evitáveis, menores de 1 ano, por CAP"),
-    ("mapa_obitos_evitaveis_1_a_4_anos_cap_2025.png", "Óbitos evitáveis, de 1 a 4 anos, por CAP"),
-    ("mapa_percentual_evitaveis_1_a_4_anos_cap_2025.png", "% de óbitos evitáveis, de 1 a 4 anos, por CAP"),
-    ("mapa_obitos_evitaveis_menores_5_anos_cap_2025.png", "Óbitos evitáveis, menores de 5 anos, por CAP"),
-    ("mapa_percentual_evitaveis_menores_5_anos_cap_2025.png", "% de óbitos evitáveis, menores de 5 anos, por CAP"),
-    ("mapa_obitos_evitaveis_gestacao_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Gestação, menores de 1 ano, por CAP"),
-    ("mapa_obitos_evitaveis_parto_menores_1_ano_cap_2025.png", "Óbitos evitáveis - Parto, menores de 1 ano, por CAP"),
-]
-check_maps(_cap_grupo_maps)
-maps_block(_cap_grupo_maps)
+h5('Mapas')
+# specification.md §9: os 8 mapas por CAP viravam uma grade solta (decisao
+# anterior, especifica pra galeria); revertido nesta rodada para pills, como
+# o resto do relatorio -- seções mais curtas pesou mais que comparação
+# lado a lado (registrado como reversão explícita, não descuido).
+FAIXAS_PRIMEIRA_INFANCIA = {
+    'menores_1_ano':  {'rotulo': 'menores de 1 ano',   'bins_absoluto': [20, 40, 60, 80]},
+    '1_a_4_anos':     {'rotulo': 'de 1 a 4 anos',       'bins_absoluto': [2, 4, 7, 10]},
+    'menores_5_anos': {'rotulo': 'menores de 5 anos',   'bins_absoluto': [20, 45, 70, 95]},
+}
+df_evitaveis_cap_2025 = read("mortalidade_evitaveis_cap_2025.csv")
+_entries_mapas_cap_faixa = []
+for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
+    df_faixa_2025 = df_evitaveis_cap_2025[df_evitaveis_cap_2025["faixa_etaria"] == info['rotulo']]
+    _l1 = f"{info['rotulo']} · Óbitos"
+    _entries_mapas_cap_faixa.append((_l1, lambda df=df_faixa_2025, info=info: mapa_svg(
+        df, "cod_ap_sms", "evitaveis", "mortalidade",
+        f"Óbitos por causas evitáveis, {info['rotulo']}, por CAP (2025)", "Óbitos",
+        FONTE_EVITAVEIS, bins=info['bins_absoluto'], nivel="cap"), f"mapa_obitos_evitaveis_{sufixo}_cap_2025"))
+    _l2 = f"{info['rotulo']} · %"
+    _entries_mapas_cap_faixa.append((_l2, lambda df=df_faixa_2025, info=info: mapa_svg(
+        df, "cod_ap_sms", "percentual_evitaveis", "mortalidade",
+        f"Percentual de óbitos evitáveis, {info['rotulo']}, por CAP (2025)", "% evitáveis",
+        FONTE_EVITAVEIS, fmt="pct1", nivel="cap"), f"mapa_percentual_evitaveis_{sufixo}_cap_2025"))
+# mapas de gestação/parto por CAP removidos: merge-waleska-changes descontinuou a
+# curadoria desses subgrupos em analise.py (tabela_mapa_obitos_evitaveis_*_menores_1_ano_cap_2025.csv
+# não é mais gerada) -- ver specs/merge-waleska-changes/specs.md
+option_card(_entries_mapas_cap_faixa, 'mapa')
 
-# ==================================================== GRAVIDEZ/PUERPERIO ==
+# ================================================================ INCLUSAO ==
 
-h2('\U0001F930 Gravidez e puerpério')
-df_grav = read("obitos_gravidez_por_ano.csv")
-line_chart(df_grav["ano"], [{'label': 'Óbitos', 'values': df_grav['óbitos-gravidez']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([("mapa_obitos_gravidez_bairro_2025.png", "Óbitos durante a gravidez por bairro (2025)")])
-df_puerp = read("obitos_puerperio_por_ano.csv")
-line_chart(df_puerp["ano"], [{'label': 'Óbitos', 'values': df_puerp['óbitos-puerpério']}], opts={'height': 200, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([("mapa_obitos_puerperio_bairro_2025.png", "Óbitos durante o puerpério por bairro (2025)")])
+h2('🤝 Inclusão')
 
-# ======================================================== NEONATAL ========
+h3('População 0-6 por idade/raça/sexo (IBGE SIDRA, 2022)')
+FONTE_SIDRA_CENSO = "Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)"
+_ORDEM_IDADE_SIDRA_0_6 = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
 
-h2('\U0001FA7A Mortalidade neonatal')
-h3('Precoce (0-6 dias)')
-df_prec = read("mortalidade_neonatal_precoce_por_ano.csv")
-line_chart(df_prec["ano"], [{'label': 'Taxa (‰)', 'values': df_prec['taxa_mortalidade_precoce'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([
-    ("mapa_obitos_neonatal_precoce_bairro_2025.png", "Óbitos precoces (0-6 dias) por bairro (2025)"),
-    ("mapa_taxa_mortalidade_precoce_bairro_2025.png", "Taxa de óbitos precoces por bairro (2025)"),
-])
+def _ordenar_idade(df, ordem):
+    return df[df["idade"].isin(ordem)].set_index("idade").reindex(ordem).reset_index()
 
-h3('Tardia (7-27 dias)')
-df_tard = read("mortalidade_neonatal_tardia_por_ano.csv")
-line_chart(df_tard["ano"], [{'label': 'Taxa (‰)', 'values': df_tard['taxa_obitos_tardios'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([
-    ("mapa_obitos_neonatal_tardia_bairro_2025.png", "Óbitos tardios (7-27 dias) por bairro (2025)"),
-    ("mapa_taxa_obitos_tardios_bairro_2025.png", "Taxa de óbitos tardios por bairro (2025)"),
-])
+df_censo_raca = _ordenar_idade(read("censo_sidra_populacao_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
+raca_cols = [c for c in df_censo_raca.columns if c not in ("idade", "Total")]
+df_censo_sexo = _ordenar_idade(read("censo_sidra_populacao_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
+sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
+option_card([
+    ("Por raça", lambda: grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO), "censo_sidra_populacao_0_6_raca_2022"),
+    ("Por sexo", lambda: grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO), "censo_sidra_populacao_0_6_sexo_2022"),
+], 'grafico')
 
-h3('Pós-neonatal (28-364 dias)')
-df_inf = read("mortalidade_infantil_pos_neonatal_total_por_ano.csv")
-line_chart(df_inf["ano"], [{'label': 'Taxa pós-neonatal (‰)', 'values': df_inf['taxa_mortalidade_pos_neonatal'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([
-    ("mapa_obitos_pos_neonatal_bairro_2025.png", "Óbitos pós-neonatais (28-364 dias) por bairro (2025)"),
-    ("mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png", "Taxa de mortalidade pós-neonatal por bairro (2025)"),
-])
-
-h3('Total (0-364 dias)')
-line_chart(df_inf["ano"], [{'label': 'Taxa infantil total (‰)', 'values': df_inf['taxa_mortalidade_infantil'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS)
-maps_block([
-    ("mapa_mortalidade_infantil_bairro_2025.png", "Óbitos infantis (0-364 dias) por bairro (2025)"),
-    ("mapa_taxa_mortalidade_infantil_bairro_2025.png", "Taxa de mortalidade infantil por bairro (2025)"),
-])
-
-# ============================================================== SISVAN ====
-
-h2('\U0001F957 SISVAN')
-FONTE_SISVAN = "SISVAN/DATASUS"
-df_desn = read("sisvan_desnutricao_por_ano.csv")
-line_chart(df_desn["ano"], [{'label': '% baixo peso', 'values': df_desn['Percent. baixo peso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)
-df_sobre = read("sisvan_sobrepeso_por_ano.csv")
-line_chart(df_sobre["ano"], [{'label': '% sobrepeso', 'values': df_sobre['Percent. sobrepeso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)
-line_chart(df_sobre["ano"], [{'label': '% obesidade', 'values': df_sobre['obesidade_percentual'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN)
-
-# ======================================================== VACINACAO =======
-
-h2('\U0001F489 Cobertura vacinal (EPI)')
-FONTE_EPI = "EPI/SVS-Rio, cobertura vacinal por imunobiológico"
-df_vac = read("cobertura_vacinal_epi_por_ano.csv")
-vac_cols = [c for c in df_vac.columns if c != "ano"]
-line_chart(df_vac["ano"], series_from_cols(df_vac, vac_cols, fmt='pct1'), opts={'height': 280, 'maxXLabels': 8, 'table': True}, fonte=FONTE_EPI)
-
-df_vac_comp = read("cobertura_vacinal_epi_comparativo_anos.csv")
-df_vac_comp_wide = df_vac_comp.pivot(index="ano", columns="imunobiologico", values="cobertura").reset_index()
-comp_cols = [c for c in df_vac_comp_wide.columns if c != "ano"]
-grouped_bar_chart(df_vac_comp_wide["ano"], series_from_cols(df_vac_comp_wide, comp_cols, fmt='pct1'), opts={'height': 320}, fonte=FONTE_EPI)
-
-# ========================================================= EDUCACAO =======
-
-h2('\U0001F393 Educação')
+h3('Frequência e taxa de frequência escolar, por raça/sexo')
 FONTE_SIDRA_EDU = "Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)"
-
-h3('Frequência escolar 0-5 anos (IBGE SIDRA)')
 _ORDEM_IDADE_SIDRA_0_5 = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
 _ORDEM_IDADE_SIDRA_0_6_EDU = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
 
 df_freq_raca = _ordenar_idade(read("sidra_frequencia_escola_0_5_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
 fr_cols = [c for c in df_freq_raca.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_freq_raca["idade"], series_from_cols(df_freq_raca, fr_cols), fonte=FONTE_SIDRA_EDU)
 df_freq_sexo = _ordenar_idade(read("sidra_frequencia_escola_0_5_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
 fs_cols = [c for c in df_freq_sexo.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_freq_sexo["idade"], series_from_cols(df_freq_sexo, fs_cols), fonte=FONTE_SIDRA_EDU)
-
-h3('Taxa de frequência escolar 0-6 anos (IBGE SIDRA)')
 df_taxa_raca = _ordenar_idade(read("sidra_taxa_frequencia_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
 tr_cols = [c for c in df_taxa_raca.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_taxa_raca["idade"], series_from_cols(df_taxa_raca, tr_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU)
 df_taxa_sexo = _ordenar_idade(read("sidra_taxa_frequencia_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
 ts_cols = [c for c in df_taxa_sexo.columns if c not in ("idade", "Total")]
-grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU)
+option_card([
+    ("Frequência 0-5, por raça", lambda: grouped_bar_chart(df_freq_raca["idade"], series_from_cols(df_freq_raca, fr_cols), fonte=FONTE_SIDRA_EDU), "sidra_frequencia_escola_0_5_raca_2022"),
+    ("Frequência 0-5, por sexo", lambda: grouped_bar_chart(df_freq_sexo["idade"], series_from_cols(df_freq_sexo, fs_cols), fonte=FONTE_SIDRA_EDU), "sidra_frequencia_escola_0_5_sexo_2022"),
+    ("Taxa 0-6, por raça", lambda: grouped_bar_chart(df_taxa_raca["idade"], series_from_cols(df_taxa_raca, tr_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU), "sidra_taxa_frequencia_0_6_raca_2022"),
+    ("Taxa 0-6, por sexo", lambda: grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU), "sidra_taxa_frequencia_0_6_sexo_2022"),
+], 'grafico')
+
+emite_bloco_pendente("Famílias no CadÚnico com crianças até 6 anos, por sexo", "Fazer recorte — Léo")
+emite_bloco_pendente("Famílias no CadÚnico com crianças até 6 anos, por raça/cor", "Fazer recorte — Léo")
+emite_bloco_pendente("Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar", "Fazer recorte — Léo")
+emite_bloco_pendente("Crianças no CadÚnico com alguma deficiência", "baixar dados — Léo")
+emite_bloco_pendente("Famílias no CadÚnico com criança com deficiência", "baixar dados — Léo")
+emite_bloco_pendente("Crianças no CadÚnico por tipo de deficiência", "baixar dados — Léo")
+
+# ===================================================== FAMILIA E CUIDADOS ==
+
+h2('👨‍👩‍👧 Família e Cuidados')
+FONTE_CADUNICO = "CadÚnico (extração CTPE)"
+
+h3('CadÚnico')
+
+h4('Por faixa de renda e idade')
+df_renda = read("cadunico_por_faixa_etaria_2026.csv")
+df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"]
+df_idade = read("cadunico_por_idade_2026.csv")
+df_idade["idade_lbl"] = df_idade["idade"].astype(int).map(lambda i: f"{i} ano" if i == 1 else f"{i} anos")
+# seed: cada opcao mostra um out_pair (Criancas + Familias lado a lado) sob
+# 1 unico bloco de texto/pill -- so ha 1 seed por opcao, entao aponta para o
+# arquivo do lado "Criancas" (primeiro do par, aproximacao documentada); o
+# lado "Familias" (cadunico_familias_por_faixa_renda.png / _por_idade.png)
+# fica sem seed proprio nesta rodada.
+option_card([
+    ("Por faixa de renda", lambda: out_pair(
+        lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Crianças"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
+        lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Famílias"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
+    ), "cadunico_criancas_por_faixa_renda"),
+    ("Por idade", lambda: out_pair(
+        lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Crianças"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
+        lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Famílias"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
+    ), "cadunico_criancas_por_idade"),
+], 'grafico')
+
+h4('Mapas')
+df_map_cadunico_criancas = read("tabela_mapa_cadunico_criancas_2026.csv")
+df_map_cadunico_0_4 = read("tabela_mapa_cadunico_primeira_infancia_2026.csv")
+option_card([
+    ("Crianças 0-6", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
+        "Crianças (0-6 anos) no CadÚnico, por bairro", "Crianças", FONTE_CADUNICO, bins=[250, 750, 1500, 3000]), "mapa_cadunico_criancas_bairro_2026"),
+    ("Crianças 0-4", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
+        "Crianças (0-4 anos) no CadÚnico, por bairro", "Crianças", FONTE_CADUNICO, bins=[200, 500, 1000, 2000]), "mapa_cadunico_primeira_infancia_bairro_2026"),
+    ("% s/ Censo", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Percentual Primeira Inf. Cadúnico", "cadunico",
+        "% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro", "% CadÚnico/Censo", FONTE_CADUNICO, fmt="pct1"), "mapa_percentual_cadunico_primeira_infancia_bairro_2026"),
+], 'mapa')
+
+h3('Cobertura vacinal (EPI)')
+FONTE_EPI = "EPI/SVS-Rio, cobertura vacinal por imunobiológico"
+df_vac = read("cobertura_vacinal_epi_por_ano.csv")
+vac_cols = [c for c in df_vac.columns if c != "ano"]
+df_vac_comp = read("cobertura_vacinal_epi_comparativo_anos.csv")
+df_vac_comp_wide = df_vac_comp.pivot(index="ano", columns="imunobiologico", values="cobertura").reset_index()
+comp_cols = [c for c in df_vac_comp_wide.columns if c != "ano"]
+option_card([
+    ("Série temporal por imunobiológico", lambda: line_chart(df_vac["ano"], series_from_cols(df_vac, vac_cols, fmt='pct1'), opts={'height': 280, 'maxXLabels': 8, 'table': True}, fonte=FONTE_EPI), "cobertura_vacinal_epi_ano"),
+    ("Comparativo por ano", lambda: grouped_bar_chart(df_vac_comp_wide["ano"], series_from_cols(df_vac_comp_wide, comp_cols, fmt='pct1'), opts={'height': 320}, fonte=FONTE_EPI), "cobertura_vacinal_epi_comparativo_anos"),
+], 'grafico')
 
 h3('Frequência escolar por idade (PNAD Contínua)')
 df_pnad = read("frequencia_escolar_pnad_por_idade.csv")
-bar_chart([{'label': r["Idade"], 'value': r["Total"] * 100} for _, r in df_pnad.iterrows()], fonte="PNAD Contínua (IBGE)")
+# PNAD e Matrículas ficam soltos -- indicadores/fontes diferentes entre si,
+# nao um corte do mesmo dado (specification.md §9, mesmo criterio ja usado
+# para nao forcar pills na "Comparação entre faixas etárias" de evitáveis)
+option_card([("Frequência por idade", lambda: bar_chart([{'label': r["Idade"], 'value': r["Total"] * 100} for _, r in df_pnad.iterrows()], fonte="PNAD Contínua (IBGE)", fmt='pct1'), "pnad_frequencia_escolar_por_idade")], 'grafico')
 
 h3('Matrículas 0 a 6 anos')
 df_mat = read("matriculas_0_a_6_por_ano.csv").sort_values("ano")
-line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}], opts={'height': 200, 'table': True}, fonte="Censo Escolar/INEP")
+option_card([("Matrículas 0 a 6 anos", lambda: line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}], opts={'height': 200, 'table': True}, fonte="Censo Escolar/INEP"), "matriculas_0_a_6_por_ano")], 'grafico')
+# specs/estrutura_eixos.md: indicador "status: pendente" (atualizacao de dado,
+# nao falta de recorte -- ate 2020, precisa tratar microdados posteriores) --
+# mantem o grafico real (nao e um emite_bloco_pendente) e so acrescenta o selo.
+parts.append(
+    '<div class="pending-block pending-inline">'
+    '<div class="eyebrow pending-label">🚧 DADO DESATUALIZADO</div>'
+    f'<p>{_esc("até 2020, necessário tratar microdados posteriores")}</p>'
+    '</div>'
+)
 
-footer = '<footer class="doc-foot"><p>Fontes: IBGE (Censo, SIDRA), CTPE/CadÚnico, DATASUS/Tabnet (SINASC, SIM), SISVAN, EPI/SVS-Rio, PNAD Contínua e Censo Escolar/INEP. Elaborado a partir do pipeline documentado em <code>analise.py</code> — Instituto Pereira Passos, Prefeitura da Cidade do Rio de Janeiro.</p></footer>'
-parts.append(footer)
+# ======================================================== PROTECAO ========
+
+h2('🛡️ Proteção')
+
+emite_bloco_pendente("Violência territorial", 'dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório — ver `specs/roadmap.md`, "Educação e Violência")')
+emite_bloco_pendente("Violência familiar (menores de 1 ano, 1 a 5 anos)", "dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)")
+emite_bloco_pendente("Notificações de violência interpessoal/autoprovocada (menores de 1 ano, 1 a 5 anos)", "dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)")
+emite_bloco_pendente("Taxa de notificações de violência (0 a 6 anos)", "dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)")
+emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e idade)", "dado catalogado, ainda não importado para `analise.py` (Incorporar no relatório)")
+
+# ====================================================== ALIMENTACAO =======
+
+h2('🍽️ Alimentação')
+
+h3('Baixo peso ao nascer')
+option_card([
+    ("% abaixo do peso", lambda: line_chart(df_bp["ano"], [{'label': '% abaixo do peso', 'values': df_bp['percentual abaixo do peso'], 'format': 'pct1'}], opts={'height': 220, 'zeroBase': False, 'table': True}, fonte=FONTE_DATASUS), "nascidos_abaixo_peso_percentual_por_ano"),
+], 'grafico')
+
+h3('Mapas')
+df_map_bp_2025 = read("tabela_mapa_nascidos_baixo_peso_2025.csv").pipe(lambda d: d[d["ano"] == 2025])
+option_card([
+    ("Baixo peso · Absoluto", lambda: mapa_svg(df_map_bp_2025, "codigo", "nascidos abaixo peso", "natalidade",
+        "Nascidos com baixo peso por bairro (2025)", "Nascidos abaixo do peso", FONTE_DATASUS, bins=[15, 30, 60, 120]), "mapa_nascidos_baixo_peso_bairro_2025"),
+    ("Baixo peso · %", lambda: mapa_svg(df_map_bp_2025, "codigo", "percentual abaixo do peso", "natalidade",
+        "% de nascidos com baixo peso por bairro (2025)", "% baixo peso", FONTE_DATASUS, fmt="pct1"), "mapa_percentual_baixo_peso_bairro_2025"),
+], 'mapa')
+
+h3('SISVAN')
+FONTE_SISVAN = "SISVAN/DATASUS"
+df_desn = read("sisvan_desnutricao_por_ano.csv")
+df_sobre = read("sisvan_sobrepeso_por_ano.csv")
+option_card([
+    ("Baixo peso", lambda: line_chart(df_desn["ano"], [{'label': '% baixo peso', 'values': df_desn['Percent. baixo peso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN), "sisvan_desnutricao_percentual_por_ano"),
+    ("Sobrepeso", lambda: line_chart(df_sobre["ano"], [{'label': '% sobrepeso', 'values': df_sobre['Percent. sobrepeso total'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN), "sisvan_sobrepeso_percentual_por_ano"),
+    ("Obesidade", lambda: line_chart(df_sobre["ano"], [{'label': '% obesidade', 'values': df_sobre['obesidade_percentual'], 'format': 'pct1'}], opts={'height': 200, 'zeroBase': False, 'table': True}, fonte=FONTE_SISVAN), "sisvan_obesidade_percentual_por_ano"),
+], 'grafico')
+
+# =========================================================== MORADIA ======
+
+h2('🏠 Moradia')
+
+emite_bloco_pendente("Crianças no CadÚnico em domicílios com inadequação habitacional", "Posterior")
+emite_bloco_pendente("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)", "Posterior")
+emite_bloco_pendente("Territórios com risco a inundação e/ou movimento de massa", 'Posterior (Eixo/fonte de dado do catálogo é "Proteção", mas a Política Municipal Prioritária é "Moradia" — entra só aqui, por specs/ajuste_eixos/specs.md §9.2/§4.3)')
+emite_bloco_pendente("Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)", "Posterior (apenas cad)")
 
 # ============================================================== ASSEMBLE ==
 
@@ -549,35 +1348,95 @@ MESES = {"January": "janeiro", "February": "fevereiro", "March": "março", "Apri
 for en, pt in MESES.items():
     gen_date = gen_date.replace(en, pt)
 
-# ---- table of contents (h2 + nested h3), built from the headings collected above ----
-toc_html = ['<nav class="toc"><h6 class="toc-label">Sumário</h6><ul class="toc-list">']
-i = 0
-while i < len(toc):
-    level, title, sid = toc[i]
-    if level == 2:
-        toc_html.append(f'<li><a href="#{sid}">{title}</a>')
-        sub = []
-        j = i + 1
-        while j < len(toc) and toc[j][0] == 3:
-            _, t3, sid3 = toc[j]
-            sub.append(f'<li><a href="#{sid3}">{t3}</a></li>')
-            j += 1
-        if sub:
-            toc_html.append('<ul>' + "".join(sub) + '</ul>')
-        toc_html.append('</li>')
-        i = j
-    else:
-        i += 1
-toc_html.append('</ul></nav>')
+# ---- rodape institucional (specification.md §3.11/§4-M -- escopo enxuto) ----
+# URLs de Transparencia Rio/LGPD e o e-mail de contato sao os do site
+# institucional principal, copiados do mockup -- CONFIRMAR se sao os corretos
+# para este relatorio especificamente antes do deploy (plan.md §6, T6.2).
+FOOTER_FONTES = ["Censo 2022 (IBGE)", "CadÚnico", "DataSUS/Tabnet", "SISVAN · IBGE SIDRA"]
+FOOTER_LINKS = [
+    ("ipp.prefeitura.rio", "https://ipp.prefeitura.rio/"),
+    ("Transparência Rio", "https://transparencia.rio/"),
+    ("LGPD — Proteção de dados", "https://ipp.prefeitura.rio/lgpd/"),
+]
+FOOTER_CONTATO = "ascom.ipp@prefeitura.rio"
+
+_footer_cols = [
+    f'<div class="footer-col footer-col-logo">{LOGO_IMG}<p>Relatório produzido a partir da análise de indicadores de primeira infância do Instituto Municipal de Urbanismo Pereira Passos (IPP).</p></div>',
+    '<div class="footer-col"><div class="eyebrow">FONTES DE DADOS</div>' + "".join(f'<div>{f}</div>' for f in FOOTER_FONTES) + '</div>',
+    '<div class="footer-col"><div class="eyebrow">LINKS</div>' + "".join(f'<div><a href="{url}" target="_blank" rel="noopener">{label} ↗</a></div>' for label, url in FOOTER_LINKS) + '</div>',
+    f'<div class="footer-col"><div class="eyebrow">CONTATO</div><div>{FOOTER_CONTATO}</div><div class="eyebrow" style="margin-top:14px;">ATUALIZADO EM</div><div>{gen_date}</div></div>',
+]
+footer = (
+    '<footer class="doc-foot">'
+    '<div class="footer-cols">' + "".join(_footer_cols) + '</div>'
+    '<div class="footer-rule"></div>'
+    '<div class="footer-credit">Instituto Municipal de Urbanismo Pereira Passos — Prefeitura da Cidade do Rio de Janeiro</div>'
+    '</footer>'
+)
+_pre_footer_len = len(parts)   # boundary: conteudo de secao termina aqui; o rodape (a seguir) fica fora de qualquer .rsec
+parts.append(footer)
+
+# ---- envolve cada secao h2 num container retratil (specification.md §3.1) ----
+if section_starts:
+    n_sections = len(section_starts)
+    _wrapped = list(parts[:section_starts[0][0]])
+    for i, (start, title, sid) in enumerate(section_starts):
+        end = section_starts[i + 1][0] if i + 1 < n_sections else _pre_footer_len
+        heading_html = parts[start]
+        body_html = "".join(parts[start + 1:end])
+        takeaways = "".join(f"<li>{b}</li>" for b in _lorem_bullets(sid))
+        takeaways_html = (
+            '<div class="key-takeaways">'
+            '<div class="eyebrow kt-label">PRINCIPAIS ACHADOS</div>'
+            f'<ul>{takeaways}</ul>'
+            '</div>'
+        )
+        _wrapped.append(
+            f'<section class="rsec" id="wrap-{sid}">'
+            '<div class="rsec-head">'
+            f'<div class="rsec-head-l"><span class="eyebrow rsec-eyebrow">SEÇÃO {i + 1} DE {n_sections}</span><div class="rsec-head-title">{heading_html}</div></div>'
+            '<button type="button" class="rsec-toggle" aria-expanded="true">'
+            '<span class="rsec-toggle-label">RECOLHER</span>'
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><polyline points="6 9 12 15 18 9"></polyline></svg>'
+            '</button>'
+            '</div>'
+            f'<div class="section-body">{takeaways_html}{body_html}</div>'
+            '</section>'
+        )
+    _wrapped.append(parts[_pre_footer_len])  # rodape, fora de qualquer secao
+    parts[:] = _wrapped
+
+# ---- navbar: links para as secoes h2, substitui o antigo Sumario (specification.md §3.6) ----
+navbar_links = "".join(
+    f'<a href="#{sid}" class="navbar-link">{title}</a>' for level, title, sid in toc if level == 2
+)
+
+# ---- sumario: mesma fonte (toc) da navbar, mas aninhado h2 > h3 (formato
+# do Sumario antigo, relatorio/specs.md) -- agrupa cada h3 sob o h2 mais
+# recente que o precede em `toc`.
+_sumario_grupos = []
+for _level, _title, _sid in toc:
+    if _level == 2:
+        _sumario_grupos.append([(_title, _sid), []])
+    elif _level == 3 and _sumario_grupos:
+        _sumario_grupos[-1][1].append((_title, _sid))
+sumario_html = "".join(
+    f'<li><a href="#{sid}">{_esc(title)}</a>'
+    + ("<ul>" + "".join(f'<li><a href="#{csid}">{_esc(ctitle)}</a></li>' for ctitle, csid in filhos) + "</ul>" if filhos else "")
+    + '</li>'
+    for (title, sid), filhos in _sumario_grupos
+)
 
 body = "\n".join(parts).replace('<span id="gen-date">—</span>', f'<span id="gen-date">Atualizado {gen_date}</span>')
-body = body.replace('<!--TOC-->', "\n".join(toc_html))
+body = body.replace('<!--NAVBAR-->', navbar_links)
+body = body.replace('<!--SUMARIO-->', sumario_html)
 
 CSS = r"""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
   :root{
+    color-scheme: light;
     --page:        #FFFFFF;
     --surface:     #FFFFFF;
     --surface-2:   #F7F8F8;
@@ -609,53 +1468,23 @@ CSS = r"""
     --font-body: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --page:        #14201C;
-      --surface:     #1B2925;
-      --surface-2:   #21302B;
-      --ink:         #EDEEE9;
-      --ink-2:       #B7C0BB;
-      --ink-3:       #7C8985;
-      --hairline:    rgba(255,255,255,0.13);
-      --hairline-2:  rgba(255,255,255,0.07);
-      --accent:      #88b4aa;
-      --accent-ink:  #10201b;
-      --accent-soft: #1D302B;
-      --shadow:      0 1px 2px rgba(0,0,0,.4), 0 8px 26px -12px rgba(0,0,0,.6);
-      --shadow-hover:0 4px 12px rgba(0,0,0,.5), 0 20px 44px -16px rgba(0,0,0,.7);
-      --c1:var(--c1d);--c2:var(--c2d);--c3:var(--c3d);--c4:var(--c4d);--c5:var(--c5d);--c6:var(--c6d);--c7:var(--c7d);--c8:var(--c8d);--c9:var(--c9d);--c10:var(--c10d);--c11:var(--c11d);--c-muted:var(--c-muted-d);
-    }
-  }
-  :root[data-theme="dark"]{
-    --page:        #14201C;
-    --surface:     #1B2925;
-    --surface-2:   #21302B;
-    --ink:         #EDEEE9;
-    --ink-2:       #B7C0BB;
-    --ink-3:       #7C8985;
-    --hairline:    rgba(255,255,255,0.13);
-    --hairline-2:  rgba(255,255,255,0.07);
-    --accent:      #88b4aa;
-    --accent-ink:  #10201b;
-    --accent-soft: #1D302B;
-    --shadow:      0 1px 2px rgba(0,0,0,.4), 0 8px 26px -12px rgba(0,0,0,.6);
-    --shadow-hover:0 4px 12px rgba(0,0,0,.5), 0 20px 44px -16px rgba(0,0,0,.7);
-    --c1:var(--c1d);--c2:var(--c2d);--c3:var(--c3d);--c4:var(--c4d);--c5:var(--c5d);--c6:var(--c6d);--c7:var(--c7d);--c8:var(--c8d);--c9:var(--c9d);--c10:var(--c10d);--c11:var(--c11d);--c-muted:var(--c-muted-d);
-  }
-
   *{box-sizing:border-box;}
+  /* +20% em toda fonte baseada em rem (praticamente tudo no relatorio) --
+     pedido explicito do usuario; os poucos rotulos SVG em px fixo (eixos/
+     rotulos de grafico, escala/rosa dos ventos do mapa) sao escalados a
+     mao logo abaixo, ja que nao herdam de font-size do root */
+  html{font-size:19.2px;}
   body{
     margin:0; background:var(--page); color:var(--ink);
-    font-family:var(--font-body); line-height:1.6; font-size:16px;
+    font-family:var(--font-body); line-height:1.6; font-size:19.2px;
     -webkit-font-smoothing:antialiased;
   }
   a{color:var(--accent);}
   code{font-family:var(--font-mono); font-size:.92em; background:var(--hairline-2); padding:.1em .35em; border-radius:3px;}
 
-  .doc{max-width:880px; margin:0 auto; padding:64px 24px 110px;}
+  .doc{max-width:1200px; margin:0 auto; padding:0 24px 110px;}
 
-  header.doc-head{margin-bottom:8px;}
+  header.doc-head{margin-bottom:8px; padding-top:56px;}
   header.doc-head h1{
     font-family:var(--font-display); font-weight:600; font-size:clamp(1.9rem,4.4vw,2.7rem);
     margin:0 0 8px; line-height:1.12; text-wrap:balance; letter-spacing:-.01em;
@@ -689,11 +1518,14 @@ CSS = r"""
   ul.toc-list ul li{margin:4px 0;}
   ul.toc-list ul a{color:var(--ink-2); text-decoration:none; font-size:.82rem;}
   ul.toc-list ul a:hover{color:var(--accent); text-decoration:underline;}
+  .doc-toc{margin:32px 0 0;}
+  .doc-intro{margin:0 0 8px;}
+  .doc-intro .lede{color:var(--ink-2); font-size:1.02rem; max-width:70ch; margin:8px 0 0;}
 
   h2{
     font-family:var(--font-display); font-weight:600; font-size:clamp(1.5rem,3vw,1.85rem);
     margin:68px 0 4px; padding-top:32px; border-top:1px solid var(--hairline); line-height:1.2;
-    text-wrap:balance; scroll-margin-top:24px;
+    text-wrap:balance; scroll-margin-top:24px; color:var(--ink);
   }
   h2:first-of-type{margin-top:0; padding-top:0; border-top:none;}
   h3{
@@ -713,9 +1545,12 @@ CSS = r"""
     margin:22px 0 8px; color:var(--ink-2); text-transform:uppercase; letter-spacing:.03em;
   }
 
+  /* sem contorno em graficos/tabelas -- o contorno agora e exclusivo do mapa
+     (.map-svg-card abaixo) e do texto que acompanha o mapa (specification.md
+     §7, pedido explicito do usuario) */
   .out{
-    margin:14px 0 8px; background:var(--surface); border:1px solid var(--hairline); border-radius:10px;
-    box-shadow:var(--shadow); padding:22px 24px 16px;
+    margin:14px 0 8px; background:var(--surface); border:none; border-radius:0;
+    box-shadow:none; padding:22px 24px 16px;
   }
   .out-pair{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; margin:14px 0 8px;}
   .chart-subtitle{
@@ -741,8 +1576,9 @@ CSS = r"""
   .legend-item i{width:9px; height:9px; border-radius:50%; display:inline-block; flex:none;}
   .chart-svg{width:100%; height:auto; display:block; overflow:visible;}
   .grid-line{stroke:var(--hairline); stroke-width:1;}
-  .axis-label{font-family:var(--font-mono); font-size:9px; fill:var(--ink-3);}
-  .end-label{font-family:var(--font-mono); font-size:10.5px; font-weight:600; dominant-baseline:middle;}
+  .axis-label{font-family:var(--font-mono); font-size:10.8px; fill:var(--ink-3);}
+  .end-label{font-family:var(--font-mono); font-size:12.6px; font-weight:600; dominant-baseline:middle;}
+  .extreme-label{font-family:var(--font-mono); font-size:10.2px; font-weight:600;}
   .hover-line{stroke:var(--ink-3); stroke-width:1; stroke-dasharray:2 3;}
   .hover-dot{stroke:var(--surface); stroke-width:2;}
   .chart-tooltip{
@@ -785,17 +1621,241 @@ CSS = r"""
   table.plain th:first-child, table.plain td:first-child{text-align:left; font-variant-numeric:normal;}
   table.plain th{color:var(--ink-3); font-weight:500; font-size:.78rem;}
 
-  footer.doc-foot{
-    max-width:880px; margin:80px auto 0; padding:24px 24px 60px; border-top:1px solid var(--hairline);
-    font-size:.82rem; color:var(--ink-3);
-  }
-  footer.doc-foot p{max-width:74ch;}
-
   ::selection{background:var(--accent); color:#fff;}
 
+  /* ============ specs/relatorio-interativo: identidade institucional ============ */
+  :root{ --ipp-navy:#004a80; --ipp-cyan:#00aeef; }
+
+  /* Faixa "em desenvolvimento" -- cor de alerta fixa, igual em tema claro/escuro
+     (não usa as variáveis de tema de propósito: precisa continuar chamativa nos dois,
+     e alto contraste de texto é mais importante aqui do que combinar com o resto). */
+  .dev-banner{
+    background:#ffb300; color:#1a1a1a; font-weight:800; text-align:center;
+    padding:12px 16px; font-size:.95rem; line-height:1.4;
+    border-bottom:3px solid #1a1a1a;
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  }
+
+  .topbar-accent{
+    height:4px; background:var(--ipp-navy);
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  }
+  .navbar{
+    height:56px; background:var(--page); border-bottom:2px solid var(--ink);
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+    position:sticky; top:0; z-index:20;
+  }
+  /* max-width+margin:auto (nao so padding) pra alinhar com `.doc`/footer-cols em
+     telas largas -- o full-bleed do navbar media a partir da viewport, nao do
+     centro do body, entao so padding fixo desalinhava em telas >1248px */
+  .navbar-inner{
+    max-width:1200px; margin:0 auto; height:100%; padding:0 24px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .navbar-burger{display:flex; align-items:center; gap:10px; background:none; border:none; cursor:pointer; color:var(--ink); padding:6px 0;}
+  .navbar-label{color:var(--ink); font-weight:600;}
+  .navbar-logo{background:var(--ipp-navy); padding:6px 12px; display:flex; align-items:center; flex:none;}
+  .navbar-logo .ipp-logo{height:20px; width:auto; display:block;}
+  .navbar-menu{
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+    background:var(--surface); border-bottom:2px solid var(--ink); box-shadow:var(--shadow-hover);
+    position:sticky; top:56px; z-index:19; max-height:70vh; overflow-y:auto;
+  }
+  .navbar-menu[hidden]{display:none;}
+  .navbar-link{
+    display:block; max-width:1200px; margin:0 auto; padding:10px 24px;
+    font-family:var(--font-mono); font-size:.85rem; color:var(--ink); text-decoration:none;
+    border-bottom:1px solid var(--hairline);
+  }
+  .navbar-link:hover{color:var(--accent);}
+
+  /* topo alinhado: eyebrow+titulo (esquerda) comecam na mesma linha que o
+     texto de descricao (direita) -- pedido explicito do usuario */
+  .doc-head-row{display:grid; grid-template-columns:1fr 420px; align-items:start; gap:40px;}
+  @media (max-width:760px){ .doc-head-row{grid-template-columns:1fr;} }
+  .doc-eyebrow{color:var(--accent); font-weight:700; margin-bottom:10px;}
+  .doc-head-desc{max-width:420px;}
+  header.doc-head .doc-head-desc .meta{display:block; font-family:var(--font-mono); font-size:.72rem; color:var(--ink-3); padding-bottom:0; margin:8px 0 0;}
+  .spectrum-bar{display:flex; height:6px; margin-top:24px;}
+  .spectrum-bar span{flex:1;}
+
+  /* ---- secoes retrateis, cartao brutalista ---- */
+  .rsec{border:2px solid var(--ink); border-radius:0; margin:40px 0; background:var(--surface);}
+  .eyebrow{font-family:var(--font-mono); font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;}
+  .rsec-head{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 22px; border-bottom:2px solid var(--ink);}
+  .rsec-head-l{display:flex; flex-direction:column; gap:4px; min-width:0;}
+  .rsec-head-title{color:var(--ink);}
+  .rsec-head-title h2{margin:0; padding:0; border:none; color:inherit;}
+  .rsec-eyebrow{color:var(--accent);}
+  .rsec[data-collapsed="true"] .rsec-eyebrow{color:var(--ink-3); font-weight:400;}
+  .rsec-toggle{
+    display:flex; align-items:center; gap:8px; background:var(--ink); color:var(--page); border:none; border-radius:0;
+    font-family:var(--font-mono); font-size:.72rem; font-weight:600; padding:8px 14px; cursor:pointer; flex:none;
+  }
+  .rsec[data-collapsed="true"] .rsec-toggle{background:var(--page); color:var(--ink); border:2px solid var(--ink); padding:6px 12px;}
+  .section-body{padding:24px 22px 30px;}
+  .rsec[data-collapsed="true"] .section-body{display:none;}
+
+  .key-takeaways{background:var(--surface-2); border:2px solid var(--ink); box-shadow:var(--shadow); padding:18px 22px; margin-bottom:28px;}
+  .kt-label{color:var(--ink-2); margin-bottom:10px;}
+  .key-takeaways ul{margin:0; padding:0 0 0 18px; display:grid; gap:8px;}
+  .key-takeaways li{font-family:var(--font-body); font-size:.92rem; color:var(--ink); line-height:1.5;}
+
+  /* ---- indicador catalogado mas ainda sem dado real (specs/ajuste_eixos)
+     -- mesma familia visual do key-takeaways (--surface-2/--shadow), mas com
+     borda lateral (nao contorno completo) e rotulo proprio pra nunca ser
+     confundido com "Principais achados" ---- */
+  .pending-block{
+    background:var(--surface-2); border-left:4px solid var(--accent); box-shadow:var(--shadow);
+    padding:14px 20px; margin:14px 0 28px;
+  }
+  .pending-label{color:var(--ink-2); margin-bottom:6px;}
+  .pending-block p{margin:0; font-family:var(--font-body); font-size:.92rem; color:var(--ink); line-height:1.5;}
+  .pending-block.pending-inline{margin:10px 0 8px;}
+
+  /* ---- 3 padroes de layout: grafico (texto abaixo), mapa (texto na 3a
+     coluna), tabela (texto a esquerda) -- specification.md §3.13 ---- */
+  .option-card{
+    display:grid; gap:16px 20px; margin:14px 0 8px; align-items:start;
+  }
+  .option-card-grafico{grid-template-columns:200px 1fr; grid-template-areas:"pills chart" "text text";}
+  .option-card-grafico.option-card-single{grid-template-columns:1fr; grid-template-areas:"chart" "text";}
+  /* mapa: pills numa fileira acima, mapa maior + texto ao lado (nao mais coluna de pills lateral) */
+  /* mapa+texto: sem gap na coluna (encostados, so o padding interno de cada
+     um separa visualmente) e align-items:stretch pra igualar a altura do
+     texto a do mapa (specification.md §7, pedido explicito do usuario) */
+  .option-card-mapa{grid-template-columns:1fr 280px; grid-template-areas:"pills pills" "map text"; gap:16px 0; align-items:stretch;}
+  .option-card-mapa.option-card-single{grid-template-columns:1fr 280px; grid-template-areas:"map text"; gap:16px 0; align-items:stretch;}
+  .option-card .pill-col{grid-area:pills;}
+  .option-card-grafico .opt-panes{grid-area:chart;}
+  .option-card-mapa .opt-panes{grid-area:map;}
+  .option-card .opt-texts{grid-area:text;}
+  .option-card-mapa .pill-col{
+    flex-direction:row; flex-wrap:wrap; max-height:none; overflow-y:visible; padding-right:0;
+  }
+  /* min-height:0 e essencial aqui -- sem isso, o tamanho minimo automatico
+     de um item de grid (baseado no seu conteudo) vence o height:100%/stretch
+     e o texto acaba maior que o mapa em vez de limitado a ele */
+  .option-card-mapa .opt-panes, .option-card-mapa .opt-texts, .option-card-mapa .opt-pane{height:100%; min-height:0;}
+
+  .table-with-text{display:grid; grid-template-columns:260px 1fr; gap:20px; margin:14px 0 8px; align-items:start;}
+
+  .pill-col{display:flex; flex-direction:column; gap:8px; max-height:460px; overflow-y:auto; padding-right:2px;}
+  .pill{
+    text-align:left; padding:9px 12px; border:2px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
+    font-family:var(--font-mono); font-size:.72rem; font-weight:600; cursor:pointer;
+  }
+  .pill[data-active="true"]{background:var(--ink); color:var(--page);}
+  .opt-panes{min-width:0;}
+  .opt-panes .out{margin-top:0;}
+  .opt-text{
+    font-family:var(--font-body); font-size:.86rem; color:var(--ink-2); line-height:1.7;
+    padding:16px 18px; border:none; min-width:0;
+    max-height:240px; overflow-y:auto;
+  }
+  /* texto do mapa: sem contorno (so sombra), igual largura/altura do mapa
+     ao lado -- specification.md §7. min-height:0 por si so NAO limita a
+     altura aqui: uma linha "auto" de grid/flex sem altura de container
+     definida cresce pro maior max-content dos 2 lados (testado isoladamente
+     -- nem grid nem flexbox escapam disso so com min-height:0). Fix real: o
+     conteudo de texto vai pra um filho `position:absolute` (`.opt-text-
+     inner`), que sai do calculo de altura intrinseca do pai -- a linha do
+     grid passa a ser guiada só pela altura real do mapa. */
+  .option-card-mapa .opt-text{
+    border:none; box-shadow:var(--shadow); box-sizing:border-box;
+    height:100%; min-height:0; max-height:none; padding:0;
+    position:relative; overflow:hidden;
+  }
+  .option-card-mapa .opt-text .opt-text-inner{
+    position:absolute; inset:0; overflow-y:auto;
+    padding:16px 18px; box-sizing:border-box;
+  }
+
+  /* ---- outliers ---- */
+  /* botao de outlier fica sempre no mesmo nivel/lado do download CSV (pedido
+     explicito do usuario) -- posicionado absoluto sobre o card, a esquerda
+     do .dl-btn (que fica DENTRO do .out, top:14px;right:14px) */
+  .outlier-card{position:relative;}
+  .outlier-toolbar{position:absolute; top:14px; right:100px; z-index:3; margin:0;}
+  .outlier-btn{
+    display:flex; align-items:center; gap:6px; border:1.5px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
+    font-family:var(--font-mono); font-size:.68rem; font-weight:600; padding:5px 10px; cursor:pointer;
+  }
+  .outlier-btn[data-active="true"]{background:var(--ink); color:var(--page);}
+  .outlier-x{font-weight:700;}
+
+  /* ---- download CSV ---- */
+  .out{position:relative;}
+  .dl-btn{
+    position:absolute; top:14px; right:14px; z-index:2;
+    display:flex; align-items:center; gap:5px; border:1.5px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
+    font-family:var(--font-mono); font-size:.66rem; font-weight:600; padding:5px 9px; cursor:pointer;
+  }
+  .dl-btn:hover{background:var(--accent-soft);}
+
+  /* ---- mapas SVG interativos: estilo cartografico igual aos PNG de mapas/,
+     so com interatividade a mais (specification.md §7) ---- */
+  .map-title{
+    font-family:var(--font-display); font-weight:700; font-size:1.05rem; color:var(--ink);
+    margin:0 0 14px; text-wrap:balance;
+  }
+  /* mapa e o unico card com contorno + sombra (specification.md §7) -- mapa
+     ocupa a largura toda (legenda virou overlay, nao mais coluna lateral) */
+  .out.map-svg-card{border:2px solid var(--ink); box-shadow:var(--shadow);}
+  /* sem max-width -- e SVG vetorial (sem imagem raster), preenche a coluna
+     "map" toda ate encostar no texto do lado, sem vao entre os dois */
+  .map-svg-frame{
+    position:relative; background:var(--surface-2);
+  }
+  .map-svg{display:block; width:100%; height:auto; background-size:100% 100%; background-repeat:no-repeat;}
+  .map-region{transition:filter .15s ease; cursor:pointer; fill-opacity:.88;}
+  .map-region:hover{filter:brightness(1.08); stroke-width:1.6;}
+  .map-scalebar-label{font-family:var(--font-mono); font-size:9.6px; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
+  .map-compass-label{font-family:var(--font-mono); font-size:13.2px; font-weight:700; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
+  /* legenda como overlay dentro do proprio mapa (specification.md §7) --
+     mesma convencao do matplotlib legend_kwds (canto sup. esquerdo,
+     framealpha .92, fundo branco) -- libera a largura toda do card pro mapa */
+  .map-legend-overlay{
+    position:absolute; top:14px; left:14px; max-width:180px;
+    background:rgba(255,255,255,.92); border:1px solid var(--hairline-2);
+    padding:10px 12px; box-shadow:var(--shadow);
+  }
+  .map-legend-title{color:var(--ink); margin-bottom:8px;}
+  .map-legend-row{display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:.68rem; font-weight:600; color:var(--ink-2); margin:5px 0;}
+  .map-legend-sw{width:12px; height:12px; border:1px solid var(--ink); flex:none; display:inline-block;}
+  .map-ref{
+    font-family:var(--font-mono); font-size:.68rem; font-style:italic; color:var(--ink-3);
+    line-height:1.6; margin-top:12px; padding-top:8px; border-top:1px solid var(--hairline-2);
+  }
+
+  /* ---- rodape institucional ---- */
+  footer.doc-foot{
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+    background:var(--ipp-navy); color:#EAF2F8; padding:36px 24px 24px; margin-top:60px;
+  }
+  .footer-cols{max-width:1200px; margin:0 auto; display:flex; gap:40px; flex-wrap:wrap; padding-bottom:20px;}
+  .footer-col{min-width:180px; flex:1;}
+  .footer-col-logo{min-width:220px; flex:1.4;}
+  .footer-col-logo .ipp-logo{height:24px; width:auto; display:block; margin-bottom:12px;}
+  .footer-col-logo p{font-size:.76rem; color:#B9D2E4; max-width:260px; line-height:1.6; margin:0;}
+  .footer-col .eyebrow{color:#7FA9C6; margin-bottom:8px;}
+  .footer-col > div{font-size:.76rem; color:#DCE9F2; line-height:1.9;}
+  .footer-col a{color:#DCE9F2;}
+  .footer-col a:hover{color:#fff;}
+  .footer-rule{max-width:1200px; margin:0 auto; height:1px; background:var(--ipp-cyan); opacity:.4;}
+  .footer-credit{max-width:1200px; margin:0 auto; padding-top:14px; font-family:var(--font-mono); font-size:.66rem; color:#7FA9C6;}
+
+  @media (max-width:720px){
+    .option-card-grafico{grid-template-columns:1fr; grid-template-areas:"pills" "chart" "text";}
+    .option-card-grafico.option-card-single{grid-template-columns:1fr; grid-template-areas:"chart" "text";}
+    .option-card-mapa{grid-template-columns:1fr; grid-template-areas:"pills" "map" "text";}
+    .option-card-mapa.option-card-single{grid-template-columns:1fr; grid-template-areas:"map" "text";}
+    .table-with-text{grid-template-columns:1fr;}
+    .pill-col{flex-direction:row; flex-wrap:wrap; max-height:none;}
+    .map-legend-overlay{max-width:60%; padding:8px 10px;}
+  }
   @media (max-width:520px){
     .bar-row{grid-template-columns:70px 1fr auto;}
-    ul.toc-list{columns:1;}
   }
 </style>
 """
@@ -820,7 +1880,7 @@ ENGINE = r"""
   // limiar acima do qual so as series mais relevantes (top N pelo ultimo valor
   // nao-nulo) ficam coloridas/na legenda; o resto vira uma linha cinza fina,
   // agrupada numa unica entrada "Outras (N)" -- mesma regra de
-  // serie_temporal_multipla em analise.py (ver SPEC-visual-identity).
+  // serie_temporal_multipla em analise.py (ver specs/visual-identity).
   const LIMIAR_DESTAQUE = 6, N_DESTACADAS = 4;
 
   function prepararSeries(series){
@@ -907,12 +1967,32 @@ ENGINE = r"""
       }
       svgEl('path', {d:d, fill:'none', stroke:cor, 'stroke-width':apagada?1.1:2, 'stroke-opacity':apagada?.55:1, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, svg);
       const last = validPts[validPts.length-1];
+      let lastValidIdx = -1;
+      for (let i=s.values.length-1;i>=0;i--){ if (s.values[i]!=null){ lastValidIdx=i; break; } }
       if (last && !apagada && opts.endLabels !== false){
         svgEl('circle', {cx:last[0], cy:last[1], r:3.2, fill:cor}, svg);
         if (destacadas.length <= (opts.maxDirectLabels || 8)){
           const t = svgEl('text', {x:last[0]+7, y:last[1], class:'end-label', fill:cor}, svg);
           t.textContent = s.format ? s.format(s.values[s.values.length-1]) : fmtY(s.values[s.values.length-1]);
         }
+      }
+      // maximo/minimo fixos, sempre visiveis sem hover (specification.md §3.9) --
+      // pula o ponto ja coberto pelo end-label "mais recente" (idx===lastValidIdx) e o
+      // primeiro ponto (idx===0, ja visivel por ser onde a linha comeca) -- em series
+      // com poucos pontos isso evita rotulo redundante colado no eixo Y. Limiar mais
+      // baixo que o end-label (maxExtremeSeries, nao maxDirectLabels): com muitas series
+      // no mesmo grafico, maximos/minimos caem em posicoes X arbitrarias e colidem com
+      // mais facilidade do que o end-label (que fica sempre no mesmo X, a ultima coluna).
+      if (!apagada && opts.extremeLabels !== false && destacadas.length <= (opts.maxExtremeSeries || 4)){
+        let iMax=-1, iMin=-1, vMax=-Infinity, vMin=Infinity;
+        s.values.forEach((v,i)=>{ if (v!=null){ if (v>vMax){vMax=v;iMax=i;} if (v<vMin){vMin=v;iMin=i;} } });
+        [[iMax,-8],[iMin,13]].forEach(([idx,dy])=>{
+          if (idx<0 || idx===lastValidIdx || idx===0) return;
+          const p = pts[idx]; if (!p) return;
+          svgEl('circle', {cx:p[0], cy:p[1], r:2.6, fill:cor}, svg);
+          const t = svgEl('text', {x:p[0], y:p[1]+dy, class:'extreme-label', fill:cor, 'text-anchor':'middle'}, svg);
+          t.textContent = s.format ? s.format(s.values[idx]) : fmtY(s.values[idx]);
+        });
       }
     }
     apagadas.forEach(s=>desenhaSerie(s, true));
@@ -1030,7 +2110,7 @@ ENGINE = r"""
 
     groups.forEach((g,gi)=>{
       const gx0 = padL + gi*groupW + groupW*barPad;
-      svgEl('text', {x: gx0 + innerW/2, y: H-38, class:'axis-label', 'text-anchor':'middle', 'font-size':10.5}, svg).textContent = g;
+      svgEl('text', {x: gx0 + innerW/2, y: H-38, class:'axis-label', 'text-anchor':'middle', 'font-size':12.6}, svg).textContent = g;
       series.forEach((s,si)=>{
         const v = s.values[gi];
         if (v == null) return;
@@ -1071,6 +2151,108 @@ ENGINE = r"""
     }
   }
 
+  // ================= specs/relatorio-interativo: controladores estaticos =================
+  // (navbar, secoes retrateis, seletor de opcoes, toggle de outliers, download CSV,
+  // tooltip de mapa -- tudo delegado/inicializado uma vez no DOMContentLoaded, ja que
+  // esses elementos sao HTML estatico gerado em Python, nao criados por lineChart/etc.)
+
+  function initNavbar(){
+    const burger = document.getElementById('navbar-burger');
+    const menu = document.getElementById('navbar-menu');
+    if (!burger || !menu) return;
+    burger.addEventListener('click', ()=>{
+      const abrindo = menu.hasAttribute('hidden');
+      if (abrindo) menu.removeAttribute('hidden'); else menu.setAttribute('hidden','');
+      burger.setAttribute('aria-expanded', abrindo ? 'true' : 'false');
+    });
+    menu.querySelectorAll('a.navbar-link').forEach(a=>{
+      a.addEventListener('click', ()=>{ menu.setAttribute('hidden',''); burger.setAttribute('aria-expanded','false'); });
+    });
+  }
+
+  function initSections(){
+    document.querySelectorAll('.rsec').forEach(sec=>{
+      const btn = sec.querySelector(':scope > .rsec-head > .rsec-toggle');
+      const label = btn && btn.querySelector('.rsec-toggle-label');
+      if (!btn) return;
+      btn.addEventListener('click', ()=>{
+        const colapsando = sec.getAttribute('data-collapsed') !== 'true';
+        sec.setAttribute('data-collapsed', colapsando ? 'true' : 'false');
+        btn.setAttribute('aria-expanded', colapsando ? 'false' : 'true');
+        if (label) label.textContent = colapsando ? 'EXPANDIR' : 'RECOLHER';
+      });
+    });
+  }
+
+  function initPills(){
+    document.querySelectorAll('.option-card').forEach(card=>{
+      const pills = Array.from(card.querySelectorAll(':scope > .pill-col > .pill'));
+      const panes = Array.from(card.querySelectorAll(':scope > .opt-panes > .opt-pane'));
+      pills.forEach((pill,i)=>{
+        pill.addEventListener('click', ()=>{
+          pills.forEach((p,j)=>{ if (j!==i) p.removeAttribute('data-active'); });
+          pill.setAttribute('data-active','true');
+          panes.forEach((pane,j)=>{ pane.hidden = (j!==i); });
+        });
+      });
+    });
+  }
+
+  function initOutliers(){
+    document.querySelectorAll('.outlier-card').forEach(card=>{
+      const btn = card.querySelector('.outlier-btn');
+      const full = card.querySelector(':scope > .outlier-pane[data-variant="full"]');
+      const clean = card.querySelector(':scope > .outlier-pane[data-variant="clean"]');
+      if (!btn || !full || !clean) return;
+      btn.addEventListener('click', ()=>{
+        const semOutliers = btn.getAttribute('data-active') !== 'true';
+        btn.setAttribute('data-active', semOutliers ? 'true' : 'false');
+        full.hidden = semOutliers;
+        clean.hidden = !semOutliers;
+      });
+    });
+  }
+
+  function initDownloads(){
+    document.addEventListener('click', e=>{
+      const btn = e.target.closest('.dl-btn');
+      if (!btn) return;
+      const card = btn.closest('.out');
+      if (!card || !card.dataset.csv) return;
+      const blob = new Blob(['﻿' + card.dataset.csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = card.dataset.filename || 'dados.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(a.href);
+    });
+  }
+
+  function initMapTooltips(){
+    document.querySelectorAll('.map-svg-card').forEach(card=>{
+      const svg = card.querySelector('.map-svg');
+      if (!svg) return;
+      const tooltip = document.createElement('div'); tooltip.className = 'chart-tooltip';
+      tooltip.style.position = 'absolute';
+      card.appendChild(tooltip);
+      svg.querySelectorAll('.map-region').forEach(path=>{
+        path.addEventListener('mousemove', e=>{
+          const r = card.getBoundingClientRect();
+          tooltip.innerHTML = '<div class="tt-row"><b>'+path.dataset.label+'</b></div><div class="tt-row">'+path.dataset.valor+'</div>';
+          tooltip.style.display = 'block';
+          tooltip.style.left = (e.clientX - r.left + 12) + 'px';
+          tooltip.style.top = (e.clientY - r.top - 34) + 'px';
+          tooltip.style.transform = 'none';
+        });
+        path.addEventListener('mouseleave', ()=>{ tooltip.style.display = 'none'; });
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    initNavbar(); initSections(); initPills(); initOutliers(); initDownloads(); initMapTooltips();
+  });
+
   window.byId = byId; window.lineChart = lineChart; window.barChart = barChart; window.groupedBarChart = groupedBarChart;
   window.fmt = fmt; window.pct = pct;
 })();
@@ -1079,8 +2261,14 @@ ENGINE = r"""
 
 RENDER_CALLS = "<script>\n(function(){\n\"use strict\";\n" + "\n".join(scripts) + "\n})();\n</script>"
 
+# regras de fundo cartografico dos mapas, coletadas durante a geracao (1 por
+# bbox unico -- bairro/AP/RP compartilham a mesma classe, ja que dissolvem da
+# mesma geometria base e tem bounds identicos; CAP tem a sua propria)
+BASEMAP_CSS = "<style>" + "".join(_BASEMAP_CSS_RULES) + "</style>" if _BASEMAP_CSS_RULES else ""
+
 doc = f"""<title>Primeira Infância Carioca</title>
 {CSS}
+{BASEMAP_CSS}
 <div class="doc">
 {body}
 </div>
