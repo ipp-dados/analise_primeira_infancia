@@ -77,5 +77,21 @@ Pré-requisitos: V0-V8 marcados **e "ok" explícito do usuário**.
 - [ ] Página pública: Proteção completo, demais eixos idênticos, mapas SVG carregam, tema claro/escuro.
 - [ ] Commit anterior anotado para reversão.
 
-## Resultado final
-_(a preencher ao fechar a rodada: data, commit, o que passou, desvios aceitos, itens levados para a próxima spec.)_
+## Resultado final (2026-09-23, branch `inclusao_dados_protecao`)
+
+**Passou (verificado por script/inspeção visual):** V0 (baseline SHA-256 de 151 saídas, HTML 15,70 MB); V1 (33 RAs, 32 casadas, ausente = 21; município 16,663/5,780/3,526);
+V2 (mãe 15.066 e 2025 = 1.756/pai 1.404/padrasto 73/irmão 26/cônjuge 5/ex 3/filho 3, `outros` 2025 = 110 e igual à soma dos componentes,
+mãe 131 e pai 129 bairros com caso em 2025, autoprovocada 40/33/7 e 24 bairros, 166 bairros na grade, pop 0-4 = 310.157);
+V3 (36 arquivos novos, **nenhuma saída antiga alterada**, `analise.py` só com adições + 1 linha de docstring, compila e converte no jupytext);
+V4 parcial (HTML renderizado em Chrome headless, tema claro: Proteção completo, SGB ausente, notas visíveis; peso 18,25 MB = +2,43 MiB, dentro de D7);
+V5 (PDF 104 → 123 páginas, sem gráfico/mapa cortado); V6 (DOCX regenerado, ida-e-volta sem edições espúrias).
+
+**Não verificado / pendente com o usuário:** tema escuro e largura de celular do HTML; console do navegador; taxa conferida à mão em 3 bairros/1 RA/1 CAP
+(só as asserções de soma); textos: o corpo de análise segue lorem ipsum (padrão do projeto até a curadoria via DOCX) — só as notas metodológicas são texto real;
+**V9 / Bloco 12 (publicação no Pages) NÃO executado** — depende do "ok" explícito.
+
+**Desvios/decisões:** (1) provedor de fundo `Ocean_Basemap` fora do ar (HTTP 500) → `mapa_oceano_base` (World_Ocean_Base), em `analise.py` (chave nova) e em `build_html_report.py`;
+(2) taxas de bairro: escala de cor limitada ao percentil 95 (tabela e tooltip mantêm o valor real), bairros com pop 0-4 < 100 listados no print (D10);
+(3) G8 usa só bairros com ≥100 crianças; (4) unidade dos homicídios do IPS não declarada no xlsx — rotulada "taxa, conforme IPS" (a confirmar: por 100 mil hab.);
+(5) D2/D5/D6/D7/D8/D9/D10 seguiram os padrões propostos, sem objeção; D8 (corte de G3/G8/M8-M10) não aplicado — gerar tudo, decidir na revisão visual;
+(6) `specs/roadmap.md` tem edição do usuário não commitada e não foi tocado.

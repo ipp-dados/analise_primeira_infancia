@@ -469,3 +469,8 @@ pra roxo
   placeholders, não confirmados para este relatório especificamente.
 - (v6) Autorização de uso do logo oficial da Prefeitura do Rio/IPP ainda não
   confirmada — bloqueia o deploy público, não o desenvolvimento local.
+
+- (inclusao_dados_protecao) Eixo Proteção deixou de ser 100% pendente: violência territorial (RA, IPS 2024), violência familiar por vínculo
+  (Sinan, 2011-2025), lesão autoprovocada (2018-2026), taxa por 1.000 crianças. Notas metodológicas visíveis (`nota_metodologica`);
+  SGB/inundação removido de Moradia (fora da V1). Mapas de taxa usam `teto` (percentil 95) só na cor; o tooltip mostra o valor real.
+  Fundo cartográfico migrado para `World_Ocean_Base` (o serviço antigo retorna HTTP 500).

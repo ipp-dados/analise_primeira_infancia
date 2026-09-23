@@ -287,3 +287,17 @@ processo um `NameError` real (célula ativa sobrevivente da curadoria). Detalhes
 | 0.18.0  | 2026-09-22 | Reorganização de `dados_locais/` por tema (dedup de nascidos_vivos, sisvan/ consolidado, `ibge_sidra/` sem espaço/maiúsculas), rename de `relatorio/Page 1.pdf`, faixa "em desenvolvimento" no `relatorio/index.html` (deploy de teste no GitHub Pages). Convenção de nomes para `tabelas_finais/`/`visualizacoes/`/`mapas/` proposta em `specs/reorganize-naming/` (não executada). |
 | 0.19.0  | 2026-09-22 | `relatorio/`, `mapas/`, `tabelas_finais/`, `visualizacoes/` regenerados de verdade a partir do `analise.py` já corrigido (CadÚnico mantido no último estado salvo). 39 arquivos órfãos removidos, `.gitignore` corrigido (`mapas/`/`tabelas_finais/`/`visualizacoes/` estavam sendo versionados por engano). `relatorio/index.html` renomeado para `relatorio/relatorio.html` (deploy continua publicando como `index.html`, único nome que o GitHub Pages aceita na raiz do site). Primeiro deploy de teste no GitHub Pages. README reestruturado: histórico completo movido para este arquivo (`CHANGELOG.md`). |
 | 0.19.1  | 2026-09-22 | Revertido o rename da 0.19.0: `relatorio/relatorio.html` volta a se chamar `relatorio/index.html`. Todos os arquivos atualizados na 0.19.0 (CLAUDE.md, specs/constitution.md, specs/tech-stack.md, specs/roadmap.md, as 2 SKILL.md, os 2 scripts do export_pdf_report, .gitignore, analise.py, README.md) revertidos junto. |
+
+---
+
+## 2026-09-23 — `specs/inclusao_dados_protecao` (eixo Proteção)
+
+- `analise.py`: novo nível geográfico `'ra'` (Região Administrativa, chave `codra`) em `_NIVEIS_AGREGACAO`; tema de cor
+  `protecao` (`OrRd`); provedor de fundo `'mapa_oceano_base'` (o serviço `Ocean_Basemap` da Esri passou a responder HTTP 500;
+  `'mapa'` segue como estava); carregadores `carrega_sinan_bairro`, `carrega_violencia_familiar`,
+  `carrega_violencia_territorial_ra`, `carrega_pop_0_4_bairro`, `taxa_por_mil`, `bairro_para_nivel`,
+  `agrega_violencia_familiar_nivel`; gráficos `serie_temporal_multipla_marcos` e `grafico_barra_ranking`; nova seção "🛡️ Proteção".
+- Saídas novas: 10 CSVs de tabela + 8 de `tabela_mapa_*`, 8 gráficos, 10 mapas (`violencia_familiar_*`, `violencia_territorial_*`, `notif_autoprovocada_*`).
+- `specs/estrutura_eixos.md`: Proteção com arquivos reais; SGB/inundação removido da V1 (Moradia).
+- `build_html_report.py`: níveis `ra`, formato `dec1`, parâmetro `teto` em `mapa_svg`, `nota_metodologica`, fundo cartográfico via `World_Ocean_Base`.
+- `build_notebook_report.py`, DOCX de curadoria e `relatorio/index.html` regenerados.

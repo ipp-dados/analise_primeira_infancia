@@ -147,3 +147,10 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   risco/custo do que o ganho, decisão do usuário registrada em
   `specs/ajuste_eixos/specs.md` §9.3; os dois continuam Python hardcoded,
   reorganizados fisicamente à mão quando o `.md` muda de agrupamento.
+
+## Inclusão dos dados de Proteção (`specs/inclusao_dados_protecao`)
+
+- Nível geográfico **RA** (`codra`) por `dissolve` do geojson de bairros (sem arquivo novo). Tema de cor `protecao` = `OrRd`
+  (`Purples` descartado: já é `censo` no HTML).
+- Fonte Sinan NET/Tabnet (CSV latin-1 com 6 linhas de metadados, formato largo) lida por `carrega_sinan_bairro`; IPS/Data.Rio por RA (xlsx).
+- Fundo cartográfico: `Esri.OceanBasemap` (serviço `Ocean_Basemap`) fora do ar em 2026-09; usar `World_Ocean_Base` (`fundo='mapa_oceano_base'`).
