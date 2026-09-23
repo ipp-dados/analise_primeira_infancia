@@ -1213,6 +1213,10 @@ mapa_coropletico_bairros(
     fonte_dados=fonte_censo,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:mapa_censo_0_4_absoluto -->
+# **Nota de curadoria:** O mapa apresenta a distribuição da população de 0 a 4 anos por bairro no município do Rio de Janeiro, segundo o Censo Demográfico 2022. Por apresentar números absolutos, o mapa pode ser utilizado para comparar a quantidade de crianças entre os diferentes territórios e dimensionar o tamanho desse grupo em cada bairro. A informação também serve como referência para análises que envolvam outros indicadores da primeira infância, permitindo relacionar a quantidade de crianças de cada território a diferentes características demográficas e sociais.
+
 # %%
 mapa_coropletico_bairros(
     df_mapa_censo, coluna_valor='Percentual 0 a 4',
@@ -1222,6 +1226,10 @@ mapa_coropletico_bairros(
     legenda_titulo='% da população do bairro',
     fonte_dados=fonte_censo,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_censo_0_4_percentual -->
+# **Nota de curadoria:** A participação das crianças de 0 a 4 anos na população total do município diminuiu entre os Censos de 2000, 2010 e 2022. A proporção passou de aproximadamente 7,1% em 2000 para 5,4% em 2010 e 4,7% em 2022. O mapa complementa essa tendência ao mostrar diferenças na participação dessa faixa etária entre os bairros. A análise percentual permite comparar territórios de diferentes tamanhos populacionais, evidenciando o peso relativo das crianças de 0 a 4 anos em cada localidade. Esse indicador contribui para caracterizar a estrutura etária do município e contextualizar as demandas relacionadas à primeira infância.
 
 # %% [markdown]
 # #### 🗺️ Versões alternativas: por Área e por Região de Planejamento
@@ -1413,6 +1421,10 @@ grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Famílias',
               titulo='CADÚNICO: Famílias c/crianças 0-6 por faixa de renda per capita',
               nome_arquivo='cadunico_familias_por_faixa_renda', fonte_dados=fonte_cadunico_particao)
 
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_familias_por_faixa_renda -->
+# **Nota de curadoria:** É possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R$218, um dos critérios de extrema pobreza, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade.
+
 # %%
 grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Crianças',
               titulo='CADÚNICO: Crianças 0-6 por faixa de renda per capita',
@@ -1439,9 +1451,17 @@ df_idade.head(10)
 grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: Famílias c/ crianças 0-6 por idade',
               nome_arquivo='cadunico_familias_por_idade', fonte_dados=fonte_cadunico_particao)
 
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_familias_por_idade -->
+# **Nota de curadoria:** No recorte por família com crianças até 6 anos no CadÚnico, à medida que se avança a idade, aumenta-se a quantidade de família com criança naquela idade que está cadastrada no CadÚnico. Seguindo, notoriamente, o mesmo padrão do gráfico das crianças cadastradas no CadÚnico.
+
 # %%
 grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças 0-6 por idade',
               nome_arquivo='cadunico_criancas_por_idade', fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_criancas_por_idade -->
+# **Nota de curadoria:** A quantidade de crianças no Cadúnico vai crescendo à medida que a idade vai aumentando, Um total de 11.328 crianças de 0 anos estão no CadÚnico, ao passo que quando se trata de crianças de 5 anos o número salta para 43.187 crianças. É importante frisar que esse dado não pode afirmar que os nascimentos estão diminuindo ou aumentando, haja vista o universo utilizado aqui diz respeito apenas às crianças que estão cadastradas no CadÚnico. Diversos podem ser os motivos para esse movimento: momento de inclusão da família no CadÚnico, atualização cadastral, dentre outros.
 
 # %% [markdown]
 # #### Análise por bairros
@@ -1566,6 +1586,10 @@ mapa_coropletico_bairros(
     cmap=_CORES_TEMA_MAPA['cadunico'],
     legenda_titulo='% CadÚnico/Censo', fonte_dados=fonte_mapa_cadunico,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_cadunico_primeira_infancia_bairro_2026 -->
+# **Nota de curadoria:** Olhando para a distribuição espacial, pode-se observar que a maior concentração tanto de crianças de 0 a 6 quanto de 0 a 4 no CadÚnico está presente nas Zonas Oeste e Norte da cidade, há uma alteração absolutas nos intervalos de distribuição quando se olha para os dois mapas, mas o padrão de distribuição geográfica segue praticamente o mesmo. Nos dois mapa a Zona Oeste apresenta a maior concentração de crianças cadastradas. Já a Zona Sul e parte da extensão litorânea da Barra da Tijuca/Recreio apresentam menores quantitativos. Na Zona Norte e no Centro apresentam-se uma maior fragmentação por terem muitos bairros, favelas e comunidades.
 
 # %% [markdown]
 # #### 👨‍👩‍👧 Recortes por família: sexo, raça/cor, arranjo familiar e renda
@@ -1789,6 +1813,10 @@ mapa_coropletico_bairros(
     bins=[200, 400, 800, 1500], legenda_titulo='Nascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:mapa_nascidos_vivos_bairro_2025 -->
+# **Nota de curadoria:** Quando se olha para a distribuição espacial desses nascidos vivos pelo território carioca, há uma maior concentração deles na AP5 (Santa Cruz, Campo Grande e Bangu, por exemplo) e AP4 (Jacarepaguá, Barra da Tijuca, Recreio e Taquara, por exemplo). Ao passo que na AP 2, principalmente na Zona Sul há uma quantidade menor. Ficando a AP3 com uma quantidade intermediária.
+
 # %%
 #agrupamento por ano
 df_vivos_por_ano = df_vivos.loc[:,['ano','nascidos vivos']].groupby(by='ano').sum()
@@ -1800,6 +1828,10 @@ df_vivos_por_ano.to_csv('tabelas_finais/nascidos_vivos_por_ano.csv')
 # %%
 serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nascidos vivos por ano',
                nome_arquivo='nascidos_vivos_por_ano', fonte_dados=fonte_datasus_bairro)
+
+# %% [markdown]
+# <!-- nota-curadoria:nascidos_vivos_por_ano -->
+# **Nota de curadoria:** A partir do gráfico de nascidos vivos é possível observar que há uma tendência de queda no número de nascidos vivos na cidade do Rio de Janeiro. Entre os anos de 2020 e 2021 é registrada uma queda muito acentuada, período que coincide com o pico da pandemia da COVID-19, apontando que em 2022 a recuperação aparece como um ajuste estatístico da série. Logo, a queda, ainda que não linear, é consistente e aponta para uma redução de cerca de 30% ao longo da série histórica.
 
 # %% [markdown]
 # #### Nascidos abaixo peso
@@ -2666,6 +2698,10 @@ serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durant
                nome_arquivo='obitos_gravidez_por_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
+# <!-- nota-curadoria:obitos_gravidez_por_ano -->
+# **Nota de curadoria:** A série histórica permite acompanhar a variação dos óbitos ocorridos durante a gravidez no município entre 2006 e 2025. O número de registros passou de 78 em 2006 para 15 em 2025, uma redução de aproximadamente 81%, embora a trajetória apresente oscilações ao longo do período. Em 2024 foram registrados 4 óbitos, seguido de aumento para 15 em 2025. Por se tratar de número absoluto de óbitos, o indicador permite acompanhar a evolução temporal do evento, mas não representa, isoladamente, uma medida de risco. A série pode servir de base para comparações com outros indicadores de mortalidade materna.
+
+# %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025)
 #
 # **Nota:** contagens muito pequenas por bairro (a maioria com 0 óbitos em 2025) -- leia como
@@ -2682,6 +2718,10 @@ df_obitos_gravidez_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_gravidez_2025
 #     cmap=_CORES_TEMA_MAPA['mortalidade'],
 #     bins=[0, 1], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 # )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_obitos_gravidez_bairro_2025 -->
+# **Nota de curadoria:** A distribuição territorial dos óbitos durante a gravidez permite identificar os bairros com registros do evento em 2025. Foram registrados 14 óbitos em 12 bairros, com dois registros em Vigário Geral e Rocinha. Como são números absolutos e contagens pequenas, o mapa pode ser utilizado como referência territorial e relacionado a outros indicadores, como nascidos vivos, população e características demográficas, para ampliar a análise da mortalidade materna.
 
 # %%
 df_obitos_puerperio = pd.read_csv('dados_locais/mortalidade/obitos_puerperio_bairro_2006_2025.csv')
@@ -2701,6 +2741,10 @@ serie_temporal(df_obitos_puerperio_anual,'ano','óbitos-puerpério','Óbitos dur
                nome_arquivo='obitos_puerperio_por_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
+# <!-- nota-curadoria:obitos_puerperio_por_ano -->
+# **Nota de curadoria:** A série histórica permite acompanhar a variação dos óbitos ocorridos durante o puerpério entre 2006 e 2025. Os registros passaram de 67 em 2006 para 35 em 2025, com oscilações ao longo do período. Destaca-se o aumento observado em 2020 e 2021, quando foram registrados 74 e 109 óbitos, respectivamente, seguido de redução nos anos posteriores. Em 2024 ocorreu o menor número da série, com 33 óbitos, seguido de 35 em 2025. A série pode ser utilizada para comparações temporais com outros indicadores de mortalidade materna.
+
+# %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025)
 #
 # **Nota:** mesma ressalva do mapa de óbitos na gravidez acima -- contagens muito pequenas
@@ -2716,6 +2760,10 @@ df_obitos_puerperio_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_puerperio_20
 #     cmap=_CORES_TEMA_MAPA['mortalidade'],
 #     bins=[0, 1, 2], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 # )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_obitos_puerperio_bairro_2025 -->
+# **Nota de curadoria:** A distribuição territorial dos óbitos durante o puerpério permite identificar os bairros com registros do evento em 2025. Foram registrados 31 óbitos distribuídos em 24 bairros, com maior número em Senador Camará, que apresentou 3 registros. Jacarepaguá, Bangu, Pavuna, Guaratiba e Complexo do Alemão registraram 2 óbitos cada, enquanto os demais bairros com ocorrência apresentaram 1 registro. Como são números absolutos, o mapa pode ser relacionado a outros indicadores, como nascidos vivos e características demográficas, para ampliar a análise territorial da mortalidade materna.
 
 # %% [markdown]
 # #### 🩺 Mortalidade Neonatal
@@ -2749,6 +2797,10 @@ serie_temporal(df_neonatal_precoce_anual,'ano','taxa_mortalidade_precoce','Taxa 
                nome_arquivo='taxa_mortalidade_precoce_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
+# <!-- nota-curadoria:taxa_mortalidade_precoce_ano -->
+# **Nota de curadoria:** A série histórica permite analisar a evolução da mortalidade neonatal precoce em relação ao número de nascidos vivos no município. Entre 2006 e 2025, a taxa passou de 7,86 para 6,42 óbitos por mil nascidos vivos, embora tenha apresentado oscilações ao longo do período. Em 2024, foram registrados 389 óbitos, o menor número da série, seguido de aumento para 420 em 2025. A leitura conjunta da taxa e dos números absolutos permite distinguir mudanças na ocorrência dos óbitos de variações relacionadas ao número de nascidos vivos, servindo como base para comparações temporais e para o cruzamento com outros indicadores de mortalidade infantil.
+
+# %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
 
 # %%
@@ -2767,6 +2819,14 @@ mapa_coropletico_bairros(
     cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_taxa_mortalidade_precoce_bairro_2025 -->
+# **Nota de curadoria:** A taxa de mortalidade neonatal precoce permite comparar os bairros considerando o número de nascidos vivos de cada território, evitando a interpretação baseada apenas na quantidade de óbitos. Em 2025, alguns bairros apresentam taxas elevadas associadas a poucos registros de óbitos e a um número reduzido de nascidos vivos, como Gericinó, com 1 óbito entre 14 nascidos vivos, e Cidade Universitária, com 1 entre 17. Por isso, a leitura territorial da taxa deve considerar também o número absoluto de óbitos e o tamanho do denominador. Esses dados podem servir de base para comparar os territórios e aprofundar a análise em conjunto com outros indicadores.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_obitos_neonatal_precoce_bairro_2025 -->
+# **Nota de curadoria:** A distribuição dos óbitos neonatais precoces por bairro permite identificar como os 420 óbitos registrados em 2025 estão distribuídos territorialmente. Por apresentar números absolutos, o mapa possibilita comparar a quantidade de óbitos entre os bairros e reconhecer onde esses registros estão mais concentrados. A informação pode ser utilizada como base para cruzamentos com o número de nascidos vivos, relacionando a ocorrência dos óbitos ao tamanho da população exposta. O recorte territorial também pode ser relacionado a outros indicadores de mortalidade infantil e características demográficas dos bairros, ampliando a análise do fenômeno.
 
 # %% [markdown]
 # ##### Tardia (7 a 27 dias)
@@ -2791,6 +2851,10 @@ serie_temporal(df_neonatal_tardia_anual,'ano','taxa_obitos_tardios','Taxa de ób
                nome_arquivo='taxa_obitos_tardios_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
+# <!-- nota-curadoria:taxa_obitos_tardios_ano -->
+# **Nota de curadoria:** A série histórica permite acompanhar a evolução da mortalidade neonatal tardia em relação ao número de nascidos vivos. Entre 2006 e 2025, a taxa passou de 2,70 para 2,60 óbitos por mil nascidos vivos, com oscilações ao longo do período. O maior valor ocorreu em 2020 (3,46), enquanto o menor foi registrado em 2022 (2,29). No mesmo período, os óbitos tardios passaram de 250 para 170. A leitura conjunta desses indicadores permite diferenciar a variação no número de óbitos da variação proporcional em relação aos nascidos vivos e serve de base para comparações temporais com outros indicadores de mortalidade infantil.
+
+# %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
 
 # %%
@@ -2809,6 +2873,14 @@ mapa_coropletico_bairros(
     cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_taxa_obitos_tardios_bairro_2025 -->
+# **Nota de curadoria:** A taxa de mortalidade neonatal tardia permite comparar os bairros considerando o número de nascidos vivos de cada território. Em 2025, alguns bairros apresentam taxas elevadas mesmo com apenas um óbito, como Cidade Nova, com 1 óbito entre 42 nascidos vivos, e Riachuelo, com 1 entre 66. Dos 161 bairros da tabela, 86 não registraram óbitos tardios. Por isso, a leitura da taxa deve considerar conjuntamente o número de óbitos e o número de nascidos vivos, especialmente nos territórios com menor número de nascimentos. O indicador pode servir de base para comparações territoriais e cruzamentos com outros dados de mortalidade infantil.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_obitos_neonatal_tardia_bairro_2025 -->
+# **Nota de curadoria:** A distribuição territorial dos óbitos neonatais tardios permite identificar como os registros de 2025 se concentram entre os bairros. Na base utilizada para o mapa, 86 bairros não apresentaram registros, enquanto os maiores números ocorreram em Santa Cruz e Campo Grande, com 12 óbitos cada, e Jacarepaguá, com 8. Como se trata de números absolutos, a quantidade de óbitos deve ser interpretada em conjunto com o número de nascidos vivos de cada território. Essa informação pode servir de base para comparar a distribuição dos registros com as respectivas taxas e com outros indicadores de mortalidade neonatal.
 
 # %% [markdown]
 # ##### Pós-neonatal (28 a 364 dias)
@@ -3085,6 +3157,10 @@ df_freq_escolar
 # %%
 grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequencia escolar por idade",
               nome_arquivo='pnad_frequencia_escolar_por_idade', fonte_dados=fonte_pnad)
+
+# %% [markdown]
+# <!-- nota-curadoria:pnad_frequencia_escolar_por_idade -->
+# **Nota de curadoria:** A frequência escolar na primeira infância apresenta uma trajetória de crescimento acelerado à medida que a idade da criança vai aumentando. Esse movimento pode ser explicado pela necessidade de retorno dos pais, em especial das mães, ao mercado de trabalho e garantia do direito constitucional ao desenvolvimento para as crianças. A partir dos 4 anos, quando há a obrigatoriedade legal da pré-escola a taxa sobe para cerca de 83%, atingindo 90% aos 5 anos. A despeito do alto percentual, é um ponto de atenção ter uma déficit de 17% e 10% de crianças em idade escolar obrigatória que não a estejam frequentando.
 
 # %% [markdown]
 # #### Número de matrículas 0 a 6 anos (complementar 2021-2025)

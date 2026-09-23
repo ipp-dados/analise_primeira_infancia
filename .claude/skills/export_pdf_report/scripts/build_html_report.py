@@ -334,7 +334,15 @@ def _carrega_textos_curados():
 _TEXTOS_CURADOS = _carrega_textos_curados()
 
 def _texto_analise(seed, palavras=None):
-    return _TEXTOS_CURADOS.get(seed) or _lorem(seed, palavras)
+    """Texto curado (relatorio/textos_curados.json) se houver, senão lorem.
+    Texto curado é escapado e cada quebra de linha do DOCX (1 bookmark = 1
+    parágrafo do Word, parágrafos extras viram <w:br/>) vira separação
+    visual de parágrafo."""
+    curado = _TEXTOS_CURADOS.get(seed)
+    if not curado:
+        return _lorem(seed, palavras)
+    import html as _html
+    return "<br><br>".join(_html.escape(t.strip()) for t in curado.split("\n") if t.strip())
 
 def _lorem_bullets(seed, n=5, palavras=8):
     """n frases curtas (placeholder) para o bloco 'principais achados' --
@@ -877,7 +885,8 @@ parts.append(
 parts.append(
     '<section class="doc-intro" id="introducao">'
     '<h2>Introdução</h2>'
-    f'<p class="lede">{_lorem("introducao-relatorio", 250)}</p>'
+    # texto curado sob o bookmark "introducao" do DOCX, se já sincronizado
+    f'<p class="lede">{_TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 250)}</p>'
     '</section>'
 )
 
