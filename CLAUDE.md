@@ -22,6 +22,12 @@ jupytext --to notebook analise.py        # (re)generate analise.ipynb from the .
 jupytext --sync analise.py               # sync analise.ipynb <-> analise.py after editing the notebook
 ```
 
+The CadÚnico section needs the `.env` DB credentials **and** a kernel with
+`psycopg` 3 (dev machine: conda env `analises_env`; base Anaconda only has
+`psycopg2`). Every sub-municipal CadÚnico output goes through
+`suprime_celulas_pequenas` (< 20 families blanked) before it is written —
+see `specs/recortes_cadunico/specification.md` §5.
+
 There is no test suite, linter, or build step — `analise.py` is the
 deliverable, run cell-by-cell in Jupyter (via Jupytext) or top-to-bottom as a
 script. **`analise.py` (the `.py:percent` file) is the source of truth that

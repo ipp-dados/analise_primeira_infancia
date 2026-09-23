@@ -30,11 +30,11 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
    disparado; `relatorio/index.html` no ar com a faixa "EM DESENVOLVIMENTO /
    TEMPORÁRIO"). Novas publicações seguem manuais e só após validação
    (ver `specs/inclusao_dados_protecao` §8).
-5. **Importar dados de violência** — em planejamento:
+5. **Importar dados de violência** — ✅ concluído:
    `specs/inclusao_dados_protecao` (branch `inclusao_dados_protecao`;
-   `dados_locais/protecao/`). Catálogo de indicadores em
-   `dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx` (eixo
-   "Proteção"). Deploy no GitHub Pages só após validação.
+   `dados_locais/protecao/`). Eixo "Proteção" implementado em `analise.py`,
+   HTML, PDF e DOCX; nível geográfico `ra` incorporado. Deploy no GitHub
+   Pages segue manual, só após validação.
 6. **População por bairro, ano a ano (referência fixa)** — spec **seguinte**
    a `inclusao_dados_protecao`. Extrair a população por bairro (idealmente por
    idade simples, 0 a 6 anos) para cada ano, em vez do único ponto do Censo
@@ -45,15 +45,43 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
    **corrigir os demais problemas** de denominador/cobertura que aparecerem
    (a levantar ao abrir a spec, começando pela lista de ressalvas D9 e pelas
    taxas por bairro que hoje usam o Censo 2022 como referência).
+   **Inclui (vindo de `specs/recortes_cadunico`, D7 e D8):**
+   - **Auditoria de faixas etárias entre fontes**, junto com o item 7: o que
+     cada dado representa de fato. O CadÚnico `'0-6'` são nascidos a partir de
+     2020-08-12 (0 a 5 anos completos, idade em ~2026-08-12), e as crianças de
+     6 anos caem no grupo `'7-14'`. O Censo usa 0-4, o Sinan 0-5, e assim por
+     diante. Só depois padronizar os rótulos "0-6"/"0 a 5"/"até 6 anos" em
+     títulos, legendas e textos, e decidir numeradores e denominadores
+     compatíveis.
+   - **Revisão de nomes** de tabelas (`tabelas_finais/`), visualizações
+     (`visualizacoes/`) e mapas (`mapas/`): nome ≠ conteúdo (caso real:
+     `cadunico_por_faixa_etaria_2026.csv` continha o recorte por renda,
+     renomeado em `recortes_cadunico`), faixa etária no nome ≠ faixa do dado,
+     órfãos e leitores nos scripts de relatório.
 7. (FIX). **Corrigir `nascidos_vivos_bairro_mae`: faltam mapas e visualizações de percentual.**
   A série por bairro/mãe não gera mapas coropléticos nem gráficos em % (só contagens, se tanto).
   Diagnosticar primeiro (não sei a causa: não abri esse trecho de `analise.py`). Depois seguir
-8. **Extrair novos recortes do CadÚnico** — levantar e extrair recortes
+8. **Extrair novos recortes do CadÚnico** — ✅ 1ª leva concluída:
+   `specs/recortes_cadunico` (branch `spec/recortes_cadunico`): sexo, raça/cor,
+   renda × arranjo familiar (eixo Inclusão), supressão < 20 e correções nas
+   saídas CadÚnico existentes. Pendências dessa rodada viraram os itens 8a-8c
+   abaixo. Texto original do item: levantar e extrair recortes
    adicionais além dos já usados em `analise.py` (`tabelas_finais/cadunico_*`:
    por bairro, faixa etária, idade, faixa de renda), a definir ao abrir a
    spec (candidatos: indicadores do catálogo com fonte CadÚnico ainda
    pendentes em `specs/estrutura_eixos.md`, ex. Moradia). Requer `.env`
    com acesso ao banco (`connect_db_ctpe`).
+   - **8a. Geocodificação CadÚnico por bairro oficial** (F1 de `recortes_cadunico`):
+     o bairro vem do CEP dos Correios (`lista_bairros.csv`), que deixa 8,1% das
+     crianças sem bairro e desloca bairros-favela para os vizinhos (Maré →
+     Bonsucesso, Rocinha → Gávea; Vila Kennedy/Jabour/Gericinó/Ilha de Guaratiba/
+     Lapa ausentes). Refazer por join espacial ou código de bairro do CTPE; só
+     então o mapa "% CadÚnico/Censo" pode voltar ao relatório.
+   - **8b. Pedido ao CTPE** (F2): extração com parentesco/responsável familiar
+     (arranjo real), deficiência (3 itens de Inclusão) e características do
+     domicílio (2 itens de Moradia).
+   - **8c. Filtro de cadastro da silver** (F3): confirmar com o CTPE se
+     `silver_cadunico_geral` já exclui cadastros inativos/desatualizados.
 9. **Outros dados faltantes** — levantar e importar bases pendentes além de
    violência (a detalhar; nenhuma listada formalmente ainda além dos itens
    de Matrículas/Mortalidade abaixo).

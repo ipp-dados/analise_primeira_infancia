@@ -22,6 +22,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+from pathlib import Path
 
 OUT = "visualizacoes"
 
@@ -78,23 +79,34 @@ plt.savefig(f"{OUT}/censo_0_a_4_serie_percentual_ano.png")
 plt.close()
 
 # ---- CadÚnico (from already-exported tabelas_finais CSVs, no DB needed) ----
-df_renda = pd.read_csv("tabelas_finais/cadunico_por_faixa_etaria_2026.csv")
-df_renda = df_renda[df_renda['faixa de renda'] != 'Total']
-grafico_barra(df_renda, categoria='faixa de renda', valor='Famílias',
-              titulo='CADÚNICO: Famílias c/crianças 0-6 por faixa de renda per capita',
-              nome_arquivo='cadunico_familias_por_faixa_renda')
-grafico_barra(df_renda, categoria='faixa de renda', valor='Crianças',
-              titulo='CADÚNICO: Crianças 0-6 por faixa de renda per capita',
-              nome_arquivo='cadunico_criancas_por_faixa_renda')
+# specs/recortes_cadunico: estes 4 PNG saem de analise.py com rótulos de renda descritivos e rodapé de
+# fonte (data da extração), que esta cópia de grafico_barra não tem -- só regenera se estiverem FALTANDO,
+# para não sobrescrever a versão do notebook com uma pior.
+def _falta(nome):
+    return not Path(f"{OUT}/{nome}.png").exists()
+
+df_renda = pd.read_csv("tabelas_finais/cadunico_por_faixa_renda_2026.csv")
+df_renda = df_renda[df_renda['faixa de renda'] != 'Total'].copy()
+df_renda['faixa de renda'] = df_renda['faixa de renda (descrição)']
+if _falta('cadunico_familias_por_faixa_renda'):
+    grafico_barra(df_renda, categoria='faixa de renda', valor='Famílias',
+                  titulo='CADÚNICO: Famílias c/crianças 0-6 por faixa de renda per capita',
+                  nome_arquivo='cadunico_familias_por_faixa_renda')
+if _falta('cadunico_criancas_por_faixa_renda'):
+    grafico_barra(df_renda, categoria='faixa de renda', valor='Crianças',
+                  titulo='CADÚNICO: Crianças 0-6 por faixa de renda per capita',
+                  nome_arquivo='cadunico_criancas_por_faixa_renda')
 
 df_idade = pd.read_csv("tabelas_finais/cadunico_por_idade_2026.csv")
 df_idade['idade'] = df_idade['idade'].astype(int)
-grafico_barra(df_idade, categoria='idade', valor='Famílias',
-              titulo='CADÚNICO: Famílias c/ crianças 0-6 por idade',
-              nome_arquivo='cadunico_familias_por_idade')
-grafico_barra(df_idade, categoria='idade', valor='Crianças',
-              titulo='CADÚNICO: Crianças 0-6 por idade',
-              nome_arquivo='cadunico_criancas_por_idade')
+if _falta('cadunico_familias_por_idade'):
+    grafico_barra(df_idade, categoria='idade', valor='Famílias',
+                  titulo='CADÚNICO: Famílias c/ crianças 0-6 por idade',
+                  nome_arquivo='cadunico_familias_por_idade')
+if _falta('cadunico_criancas_por_idade'):
+    grafico_barra(df_idade, categoria='idade', valor='Crianças',
+                  titulo='CADÚNICO: Crianças 0-6 por idade',
+                  nome_arquivo='cadunico_criancas_por_idade')
 
 # ---- Nascidos vivos / abaixo peso ----
 # NB: 'ano' is cast to str before plotting everywhere below, matching the dtype
