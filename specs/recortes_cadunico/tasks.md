@@ -16,11 +16,11 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 - [x] **T1.4** — Seção CadÚnico rodada sem alteração. As 6 tabelas `cadunico_*` saem idênticas às versionadas (mesma partição). Se não saírem: parar e reportar.
 
 ## Bloco 2 — Funções (topo de `analise.py`)
-- [ ] **T2.1** — `_ROTULOS_RENDA_CADUNICO`, `_ORDEM_RENDA_CADUNICO` e o agrupamento de 3 faixas.
-- [ ] **T2.2** — `carrega_cadunico_familias_0_6(engine)`: filtro no SQL, só as colunas necessárias.
-- [ ] **T2.3** — `classifica_arranjo_familiar(df_membros, idade_adulto=18)` com asserções (renda única por família; linhas = `n_pessoas_familia`).
-- [ ] **T2.4** — `agrega_cadunico_por_categoria(df, coluna, exclusivas)`.
-- [ ] **T2.5** — `suprime_celulas_pequenas(df, coluna_denominador, colunas, limiar=20)`, testada à mão num df de 3 linhas.
+- [x] **T2.1** — `_ROTULOS_RENDA_CADUNICO`, `_ORDEM_RENDA_CADUNICO` e o agrupamento de 3 faixas.
+- [x] **T2.2** — `carrega_cadunico_familias_0_6(engine)`: filtro no SQL, só as colunas necessárias.
+- [x] **T2.3** — `classifica_arranjo_familiar(df_membros, idade_adulto=18)` com asserções (renda única por família; linhas = `n_pessoas_familia`).
+- [x] **T2.4** — `agrega_cadunico_por_categoria(df, coluna, exclusivas)`.
+- [x] **T2.5** — `suprime_celulas_pequenas(df, coluna_denominador, colunas, limiar=20)`, testada à mão num df de 3 linhas.
 
 ## Bloco 3 — Correções nas saídas existentes
 - [ ] **T3.1** — A1: linha "Sem bairro identificado" + nota reescrita com os números reais.
