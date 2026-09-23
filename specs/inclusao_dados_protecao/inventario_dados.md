@@ -3,7 +3,7 @@
 Levantamento feito na abertura da rodada (nenhum código escrito). Base para `specification.md`.
 Pasta ainda **não commitada** (`git status`: untracked) — lembrar que `dados_locais/` não é gitignored.
 
-## 1. `Violência Familiar.zip` (7 CSVs, Sinan NET / Tabnet municipal)
+## 1. `violencia_familiar/` (extraído de `Violência Familiar.zip`; 7 CSVs, Sinan NET / Tabnet municipal)
 
 - Arquivos: `violencia_familiar_{mae,pai,padrasto,irmao(a),conjuge,exconjuge,filho(a)}.csv`
 - Cabeçalho de 6 linhas de metadados antes da tabela (filtros: Rio de Janeiro 330455, idade
