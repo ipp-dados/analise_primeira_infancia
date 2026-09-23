@@ -19,8 +19,10 @@ conjuntos de dados de `dados_locais/protecao/`, e levar o resultado a `analise.p
 `relatorio/index.html`, ao PDF e ao DOCX de curadoria — **sem quebrar o que já funciona** — e
 publicar no GitHub Pages **somente após validação** (§8).
 
-Fora de escopo: itens do catálogo sem dado fornecido (tipificação, recortes <1 ano vs 1-5) e
-"Territórios com risco a inundação" (eixo Moradia, `Posterior`). Ficam `pendente` (§6). A **taxa de notificações** passa a ser derivada (D1, §5.1 T7).
+Fora de escopo: itens do catálogo sem dado fornecido (tipificação, recortes <1 ano vs 1-5) —
+ficam `pendente` (§6), pois **o usuário tentará extrair os dados faltantes do Tabnet** (ver
+abaixo). O item "Territórios com risco a inundação/movimento de massa (SGB)" está
+**removido da V1** do relatório (§6, §10). A **taxa de notificações** passa a ser derivada (D1, §5.1 T7).
 
 ---
 
@@ -178,12 +180,19 @@ Total proposto: **7 tabelas (T3 = 2 arquivos → 8 CSVs) + 8 gráficos + 10 mapa
 | Violência familiar (<1, 1-5) | pendente | T1-T4, T7, G1-G3, G8, M1-M3 | **implementado parcial** (0-5 agregado; recorte <1/1-5 pendente) |
 | Notificações interpessoal/autoprovocada (<1, 1-5) | pendente | T5, G7, M7 | **parcial** (só autoprovocada; interpessoal total e recorte <1/1-5 pendentes) |
 | Taxa de notificações de violência (0-6) | pendente | T7, M8-M10 | **implementado com ressalva** (numerador 0-5 ÷ denominador 0-4, Censo 2022 — D9) |
-| Crianças que sofrem violência, por tipificação (sexo e idade) | pendente | — | **pendente** (extração Tabnet necessária) |
-| Territórios com risco a inundação/movimento de massa (SGB) | Posterior (Moradia) | — | **inalterado** |
+| Crianças que sofrem violência, por tipificação (sexo e idade) | pendente | — | **pendente** (extração Tabnet pelo usuário em andamento; ver nota abaixo) |
+| Territórios com risco a inundação/movimento de massa (SGB) | Posterior (Moradia) | — | **REMOVIDO DA V1** — não aparece em HTML/PDF/DOCX nem como cartão `pendente`; pode ser **alterado futuramente** (fonte/escopo/eixo a redefinir). Em `estrutura_eixos.md` a subseção sai da estrutura publicada (ou fica marcada como fora da V1) na implementação, sem apagar a linha do catálogo |
 
 Itens 🅱 (T3, T4, G2, G3, G7) são adicionais e entram em `estrutura_eixos.md` como `### ` extras do
 eixo Proteção (ex.: "Violência familiar — composição de 'outros'"), para o parser
 (`parse_estrutura_eixos()`) tratar como qualquer subseção.
+
+**Extração Tabnet pelo usuário (dados faltantes):** tipificação por sexo/idade, recorte <1 ano vs 1-5
+e, se disponível, o total de notificações de violência interpessoal (hoje só há autoprovocada).
+Se chegarem **antes** do início da implementação, o plano os incorpora (novos T/G/M usando os mesmos
+carregadores `carrega_sinan_bairro`, que já são genéricos); se chegarem depois, viram rodada
+seguinte sem retrabalho. Recomendo pedir exports no **mesmo formato** dos atuais (Sinan NET, bairro
+de residência × ano, latin-1) para reaproveitar o carregador.
 
 ---
 
@@ -248,5 +257,5 @@ diferente é regressão (exceto metadados/timestamps, tratados caso a caso).
 ---
 
 ## 10. Fora de escopo
-Novas extrações Tabnet/ISP; tipificação; **população por bairro ano a ano** (spec seguinte, `specs/roadmap.md` item 6 — esta rodada usa o denominador 0-4 do Censo 2022 com a ressalva D9 e não o corrige); mapas por CAP; SGB/inundação;
+Novas extrações Tabnet/ISP (a cargo do usuário); tipificação; **SGB/inundação (removido da V1)**; **população por bairro ano a ano** (spec seguinte, `specs/roadmap.md` item 6 — esta rodada usa o denominador 0-4 do Censo 2022 com a ressalva D9 e não o corrige); mapas por CAP; SGB/inundação;
 qualquer reorganização física de células de `analise.py`; mudança no workflow de deploy.
