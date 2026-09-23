@@ -24,9 +24,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 import contextily as ctx
+import xyzservices
 import geopandas as gpd
 import pandas as pd
 import math
+import numpy as np
 import os
 
 # %% [markdown]
@@ -425,6 +427,16 @@ _PROVEDORES_FUNDO = {
     'mapa': ctx.providers.Esri.OceanBasemap,
 }
 
+# o serviço 'Ocean_Basemap' da Esri (provedor de 'mapa') passou a responder HTTP 500 em 2026-09; o sucessor
+# 'Ocean/World_Ocean_Base' tem o mesmo estilo (relevo suave, mar azul, sem rótulos) e serve os tiles.
+# Chave nova (não altera 'mapa'): use fundo='mapa_oceano_base' enquanto o serviço antigo estiver fora do ar.
+_PROVEDORES_FUNDO['mapa_oceano_base'] = xyzservices.TileProvider(
+    name='Esri.WorldOceanBase',
+    url='https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution='Tiles © Esri — Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri',
+    max_zoom=13,
+)
+
 # nível de agregação geográfica: coluna do geojson de bairros usada no dissolve/join, e o tipo para
 # comparação (Área de Planejamento e codbairro são numéricos; Região de Planejamento é 'AP.subregião',
 # ex. '4.2', e não pode virar número sem perder precisão)
@@ -821,6 +833,64 @@ def bairro_para_nivel(df, nivel, chave='codbairro'):
     if coluna not in ref.columns:
         raise ValueError(f'nível {nivel!r} não suportado por bairro_para_nivel')
     return df.merge(ref[['codbairro', coluna]].rename(columns={'codbairro': chave}), on=chave, how='left')
+
+def serie_temporal_multipla_marcos(df,tempo,colunas,titulo,nome_arquivo,marcos=None,ylabel='Valor',legend_title='Vínculo',figsize=(12,6),formato='png', fonte_dados=None):
+    """Como `serie_temporal_multipla` (mesmo estilo/paleta), com linhas verticais tracejadas anotadas
+    em `marcos` ({ano: 'texto'}) -- ex.: possível quebra de série. Função à parte para não alterar a
+    assinatura da original."""
+    plt.figure(figsize=figsize)
+    for i,(rotulo,coluna) in enumerate(colunas.items()):
+        sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None,
+                     color=_PALETA_CATEGORICA[i % len(_PALETA_CATEGORICA)])
+    topo = plt.gca().get_ylim()[1]
+    for ano,texto in (marcos or {}).items():
+        plt.axvline(ano, color='#6b6b6b', linestyle='--', linewidth=1.1, zorder=0)
+        plt.annotate(texto, xy=(ano, topo), xytext=(4, -6), textcoords='offset points', ha='left', va='top',
+                     fontsize=9, color='#3a3a3a', style='italic')
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    plt.xlabel(tempo,fontsize=12)
+    plt.ylabel(ylabel,fontsize=12)
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
+    plt.legend(title=legend_title,fontsize=9,loc='upper left')
+    plt.grid(True,alpha=0.3)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout()
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    plt.show()
+
+def grafico_barra_ranking(df,categoria,valor,titulo,nome_arquivo,xlabel=None,linha_referencia=None,rotulo_referencia=None,cmap='OrRd',figsize=(10,9),formato='png', fonte_dados=None):
+    """Barras horizontais ordenadas (maior no topo), com linha vertical opcional de referência (ex.: valor
+    do município). Uma cor sequencial só (magnitude), do tema `cmap`."""
+    d = df.sort_values(valor, ascending=True)
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.barh(d[categoria].astype(str), d[valor], color=plt.get_cmap(cmap)(0.62))
+    if linha_referencia is not None:
+        ax.axvline(linha_referencia, color='#262626', linestyle='--', linewidth=1.2)
+        ax.annotate(rotulo_referencia or f'{linha_referencia:.1f}', xy=(linha_referencia, 0.02), xycoords=('data','axes fraction'),
+                    xytext=(4, 0), textcoords='offset points', ha='left', va='bottom', fontsize=9, color='#262626')
+    ax.set_xlabel(xlabel or valor, fontsize=12)
+    ax.set_title(titulo, fontsize=15, fontfamily=_FONTE_TITULO, fontweight='bold', pad=12)
+    ax.grid(True, axis='x', alpha=0.3)
+    ax.set_axisbelow(True)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout(rect=(0, 0.03, 1, 1))  # reserva a base para o rodapé de fonte
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    plt.show()
+
+def agrega_violencia_familiar_nivel(df_bairro, df_pop, nivel, vinculos=('mae', 'pai', 'outros')):
+    """Agrega a tabela por bairro x ano de violência familiar (colunas `vinculos`) e a população 0-4
+    para 'ra' ou 'cap': soma casos e população por ano e SÓ ENTÃO recalcula a taxa por 1.000 de cada
+    vínculo (`taxa_por_mil_<vinculo>`), nunca média de taxas de bairro. Não soma vínculos entre si."""
+    base = bairro_para_nivel(df_bairro.merge(df_pop, on='codbairro'), nivel)
+    partes = []
+    for ano, d in base.groupby('ano'):
+        a = agrega_bairros_por_nivel(d, nivel, list(vinculos) + ['pop_0_4'])
+        a.insert(1, 'ano', ano)
+        partes.append(a)
+    out = pd.concat(partes, ignore_index=True)
+    for v in vinculos:
+        out = taxa_por_mil(out, v, 'pop_0_4', f'taxa_por_mil_{v}')
+    return out
 
 # %% [markdown]
 # ### ⚙️ Setup
@@ -2654,6 +2724,305 @@ df_final.head()
 
 # %% [markdown]
 # *(Pendente)* Agregação das tabelas acima ao nível município-ano.
+
+# %% [markdown]
+# ---
+# ## 🛡️ Proteção
+#
+# Violência contra crianças de 0 a 5 anos (Sinan NET/Tabnet, por bairro de residência) e violência
+# territorial (Data.Rio/IPS, por Região Administrativa). Especificação: `specs/inclusao_dados_protecao/`.
+#
+# > **Leitura dos dados — avisos que valem para toda a seção**
+# > - Os **vínculos** (mãe, pai, padrasto...) **não são excludentes** e não existe "total de violência
+# >   familiar": a mesma notificação pode citar mais de um provável autor. **Nunca somar mãe + pai.**
+# >   `outros` = padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a) e pode contar uma notificação mais de uma vez.
+# > - **2026 é ano parcial** e fica fora das séries de violência familiar (2011-2025). Na lesão autoprovocada,
+# >   2026 é o ano de referência (33 dos 40 casos da série).
+# > - Possível **quebra de série em 2017** (salto de mães 600 → 1.514 e pais 371 → 1.261): *hipótese* de mudança
+# >   de ficha/notificação, **a confirmar com a fonte**.
+# > - Contagem absoluta **não é risco**: bairros populosos concentram mais casos. A taxa por 1.000 crianças usa
+# >   numerador 0-5 anos e denominador 0-4 anos (Censo 2022) — superestima ~20%, de modo uniforme.
+# > - Violência territorial (IPS): só 2024, **todas as idades** (não é específico de 0-6 anos).
+
+# %% [markdown]
+# ### Violência familiar por vínculo do provável autor
+
+# %%
+fonte_sinan = 'Sinan NET/Tabnet (SMS-Rio), notificações de residentes no município do Rio de Janeiro, 0 a 5 anos'
+fonte_sinan_censo = 'Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 4 anos: Censo Demográfico 2022 (IBGE/Data.Rio)'
+fonte_ips = 'Data.Rio / Índice de Progresso Social (IPS), 2024, por Região Administrativa (todas as idades)'
+
+ANOS_VF = list(range(2011, 2026))  # 2026 é ano parcial: fora das séries de violência familiar
+df_vf = carrega_violencia_familiar('dados_locais/protecao/violencia_familiar', range(2011, 2027))
+df_vf_fechado = df_vf[df_vf['ano'].isin(ANOS_VF)]
+
+_tot = df_vf.groupby(['vinculo', 'ano'])['casos'].sum()
+assert _tot['mae'].loc[2011:2025].sum() + _tot['mae'][2026] == 15066          # total do bruto (mãe)
+assert (_tot['mae'][2017], _tot['mae'][2025], _tot['pai'][2025]) == (1514, 1756, 1404)
+assert (_tot['outros'] == df_vf[df_vf['vinculo'].isin(_VINCULOS_OUTROS)].groupby('ano')['casos'].sum()).all()
+assert df_vf.groupby('vinculo')['codbairro'].nunique().eq(166).all()          # grade completa, com zeros
+
+# %% [markdown]
+# ##### T1 · Município x vínculo x ano
+
+# %%
+ordem_vinculos = ['mae', 'pai', 'padrasto', 'irmao', 'conjuge', 'exconjuge', 'filho', 'outros']
+df_vf_vinculo_ano = (df_vf_fechado.pivot_table(index='ano', columns='vinculo', values='casos', aggfunc='sum')
+                     [ordem_vinculos].reset_index())
+df_vf_vinculo_ano.columns.name = None
+df_vf_vinculo_ano.to_csv('tabelas_finais/violencia_familiar_por_vinculo_ano.csv', index=False)
+df_vf_vinculo_ano
+
+# %% [markdown]
+# ##### G1 · Série temporal por vínculo (mãe, pai e outros)
+#
+# > Os vínculos não se somam. A linha tracejada em 2017 marca a **possível** quebra de série (hipótese, a confirmar).
+
+# %%
+serie_temporal_multipla_marcos(
+    df_vf_vinculo_ano, tempo='ano', colunas={'Mãe': 'mae', 'Pai': 'pai', 'Outros vínculos': 'outros'},
+    titulo='Notificações de violência familiar contra crianças de 0 a 5 anos, por vínculo (2011-2025)',
+    nome_arquivo='violencia_familiar_serie_vinculos', marcos={2017: 'possível quebra de série (2017)'},
+    ylabel='Notificações', legend_title='Vínculo do provável autor', fonte_dados=fonte_sinan,
+)
+
+# %% [markdown]
+# ##### T4 e G2 · Composição de "outros"
+
+# %%
+componentes_outros = ['padrasto', 'irmao', 'conjuge', 'exconjuge', 'filho']
+df_vf_outros_detalhe = df_vf_vinculo_ano[['ano'] + componentes_outros + ['outros']].copy()
+assert (df_vf_outros_detalhe[componentes_outros].sum(axis=1) == df_vf_outros_detalhe['outros']).all()
+assert df_vf_outros_detalhe.loc[df_vf_outros_detalhe['ano'] == 2025, 'outros'].item() == 110
+df_vf_outros_detalhe.to_csv('tabelas_finais/violencia_familiar_outros_detalhe.csv', index=False)
+
+serie_temporal_multipla(
+    df_vf_outros_detalhe, tempo='ano',
+    colunas={'Padrasto': 'padrasto', 'Irmão(ã)': 'irmao', 'Cônjuge': 'conjuge', 'Ex-cônjuge': 'exconjuge', 'Filho(a)': 'filho'},
+    titulo='Vínculos agrupados em "outros" (2011-2025)', nome_arquivo='violencia_familiar_outros_serie',
+    ylabel='Notificações', legend_title='Vínculo', fonte_dados=fonte_sinan,
+)
+
+# %% [markdown]
+# ##### T2 · Por bairro (mãe, pai, outros) x ano
+
+# %%
+df_vf_bairro = (df_vf_fechado[df_vf_fechado['vinculo'].isin(['mae', 'pai', 'outros'])]
+                .pivot_table(index=['codbairro', 'bairro', 'ano'], columns='vinculo', values='casos').reset_index())
+df_vf_bairro.columns.name = None
+df_vf_bairro.to_csv('tabelas_finais/violencia_familiar_por_bairro.csv', index=False)
+assert df_vf_bairro.groupby('ano')['mae'].sum().loc[2025] == 1756
+df_vf_bairro.head()
+
+# %% [markdown]
+# ##### 🗺️ Mapas por bairro (M1 mãe 2025, M2 pai 2025, M3 "outros" acumulado 2021-2025)
+#
+# Contagens absolutas → classes discretas. Mãe e pai em 2025; "outros" tem só ~110 casos em 2025, então usa o
+# acumulado 2021-2025.
+
+# %%
+df_vf_2025 = df_vf_bairro[df_vf_bairro['ano'] == 2025]
+df_vf_outros_acum = (df_vf_bairro[df_vf_bairro['ano'].between(2021, 2025)]
+                     .groupby(['codbairro', 'bairro'], as_index=False)['outros'].sum()
+                     .rename(columns={'outros': 'outros_2021_2025'}))
+assert df_vf_outros_acum['outros_2021_2025'].sum() == df_vf_outros_detalhe[df_vf_outros_detalhe['ano'].between(2021, 2025)]['outros'].sum()
+
+df_vf_2025[['codbairro', 'bairro', 'mae']].to_csv('tabelas_finais/tabela_mapa_violencia_familiar_mae_2025.csv', index=False)
+df_vf_2025[['codbairro', 'bairro', 'pai']].to_csv('tabelas_finais/tabela_mapa_violencia_familiar_pai_2025.csv', index=False)
+df_vf_outros_acum.to_csv('tabelas_finais/tabela_mapa_violencia_familiar_outros_2021_2025.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_vf_2025, coluna_valor='mae', chave='codbairro', bins=[5, 15, 30, 60],
+    titulo='Notificações de violência familiar por bairro — mãe (2025)',
+    nome_arquivo='mapa_violencia_familiar_mae_bairro_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+    legenda_titulo='Notificações (mãe)', fonte_dados=fonte_sinan,
+)
+mapa_coropletico_bairros(
+    df_vf_2025, coluna_valor='pai', chave='codbairro', bins=[5, 15, 30, 60],
+    titulo='Notificações de violência familiar por bairro — pai (2025)',
+    nome_arquivo='mapa_violencia_familiar_pai_bairro_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+    legenda_titulo='Notificações (pai)', fonte_dados=fonte_sinan,
+)
+mapa_coropletico_bairros(
+    df_vf_outros_acum, coluna_valor='outros_2021_2025', chave='codbairro', bins=[1, 3, 6, 12],
+    titulo='Notificações de violência familiar por bairro — outros vínculos (2021-2025)',
+    nome_arquivo='mapa_violencia_familiar_outros_bairro_2021_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+    legenda_titulo='Notificações (outros,\nacumulado 5 anos)', fonte_dados=fonte_sinan,
+)
+
+# %% [markdown]
+# ##### G3 · Dez bairros com mais notificações (mãe e pai, 2025)
+#
+# > Ordenado pelo vínculo mãe; mãe e pai aparecem lado a lado, **sem soma**. Contagem absoluta — bairros populosos lideram.
+
+# %%
+top10_mae = df_vf_2025.nlargest(10, 'mae')['codbairro']
+df_top_bairros = (df_vf_2025[df_vf_2025['codbairro'].isin(top10_mae)]
+                  .sort_values('mae', ascending=False)
+                  .melt(id_vars=['codbairro', 'bairro'], value_vars=['mae', 'pai'], var_name='vinculo', value_name='notificações'))
+df_top_bairros['vinculo'] = df_top_bairros['vinculo'].map({'mae': 'Mãe', 'pai': 'Pai'})
+df_top_bairros.to_csv('tabelas_finais/violencia_familiar_top_bairros_2025.csv', index=False)
+grafico_barra_agrupado(
+    df_top_bairros, categoria='bairro', valor='notificações', agrupador='vinculo',
+    titulo='Dez bairros com mais notificações de violência familiar (2025)',
+    nome_arquivo='violencia_familiar_top_bairros_2025', ylabel='Notificações', legend_title='Vínculo',
+    ordem_categoria=list(df_top_bairros['bairro'].drop_duplicates()), ordem_agrupador=['Mãe', 'Pai'],
+    fonte_dados=fonte_sinan,
+)
+
+# %% [markdown]
+# ##### T3 · Por Região Administrativa e por CAP (casos somados; taxa recalculada depois de somar)
+
+# %%
+df_pop_04 = carrega_pop_0_4_bairro()
+if 'df_censo' in globals():  # denominador confere com o Censo já carregado na seção Censo 2022
+    assert (df_pop_04.set_index('codbairro')['pop_0_4']
+            == df_censo.set_index('codbairro')['0 a 4 anos'].reindex(df_pop_04['codbairro'])).all()
+
+df_vf_ra = agrega_violencia_familiar_nivel(df_vf_bairro, df_pop_04, 'ra')
+df_vf_ra = df_vf_ra.merge(_bairros_referencia()[['codra', 'regiao_adm']].drop_duplicates('codra'), on='codra', how='left')
+df_vf_cap = agrega_violencia_familiar_nivel(df_vf_bairro, df_pop_04, 'cap')
+for _df in (df_vf_ra, df_vf_cap):
+    assert _df[_df['ano'] == 2025]['mae'].sum() == 1756 and _df[_df['ano'] == 2025]['pop_0_4'].sum() == df_pop_04['pop_0_4'].sum()
+df_vf_ra.to_csv('tabelas_finais/violencia_familiar_por_ra.csv', index=False)
+df_vf_cap.to_csv('tabelas_finais/violencia_familiar_por_cap.csv', index=False)
+df_vf_cap[df_vf_cap['ano'] == 2025]
+
+# %% [markdown]
+# ### Notificações de lesão autoprovocada (0 a 5 anos)
+#
+# > O arquivo cobre **apenas lesão autoprovocada** (não a violência interpessoal total) e não separa menores de 1 ano
+# > de 1 a 5 anos. Série muito esparsa: 40 casos em 2018-2026, 33 deles em 2026 (ano parcial). O salto em 2026 pode
+# > refletir mudança de registro administrativo — **hipótese, a confirmar com a fonte (SMS/Sinan)**.
+
+# %%
+df_autoprov = carrega_sinan_bairro('dados_locais/protecao/notif_viol_ interpes_ autoprovocada_menor_1, 1-5.csv',
+                                   'casos', range(2018, 2027))
+assert 'Autoprov' in df_autoprov.attrs['filtro']
+assert df_autoprov['casos'].sum() == 40 and df_autoprov.loc[df_autoprov['ano'] == 2026, 'casos'].sum() == 33
+df_autoprov['ano_parcial'] = df_autoprov['ano'] == 2026
+df_autoprov.to_csv('tabelas_finais/notif_autoprovocada_por_bairro_ano.csv', index=False)
+
+df_autoprov_periodos = pd.DataFrame({
+    'período': ['2018-2025 (8 anos)', '2026 (ano parcial)'],
+    'notificações': [df_autoprov.loc[~df_autoprov['ano_parcial'], 'casos'].sum(), df_autoprov.loc[df_autoprov['ano_parcial'], 'casos'].sum()],
+})
+assert df_autoprov_periodos['notificações'].tolist() == [7, 33]
+grafico_barra(df_autoprov_periodos, 'período', 'notificações',
+              'Lesão autoprovocada notificada, 0 a 5 anos: 2018-2025 x 2026',
+              nome_arquivo='notif_autoprovocada_antes_2026_vs_2026',
+              fonte_dados='Sinan NET/Tabnet (SMS-Rio). 2026 parcial; possível mudança de registro (hipótese)')
+
+# %% [markdown]
+# ##### 🗺️ Mapa por bairro (M7 · 2026, ano de referência desta série)
+
+# %%
+df_autoprov_2026 = df_autoprov[df_autoprov['ano'] == 2026][['codbairro', 'bairro', 'casos']]
+df_autoprov_2026.to_csv('tabelas_finais/tabela_mapa_notif_autoprovocada_2026.csv', index=False)
+mapa_coropletico_bairros(
+    df_autoprov_2026, coluna_valor='casos', chave='codbairro', bins=[1, 3],
+    titulo='Lesão autoprovocada notificada por bairro (2026, ano parcial)',
+    nome_arquivo='mapa_notif_autoprovocada_bairro_2026', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+    legenda_titulo='Notificações\n(2026, parcial)', fonte_dados='Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos',
+)
+
+# %% [markdown]
+# ### Violência territorial por Região Administrativa (Data.Rio/IPS, 2024)
+#
+# > Um único ano e todas as idades: **não é específico de 0-6 anos** e não forma série (por isso barras, não linha).
+# > A RA XXI Paquetá não tem dado no IPS ("Sem dado" nos mapas).
+
+# %%
+df_terr = carrega_violencia_territorial_ra('dados_locais/protecao/violencia_territorial.xlsx')
+terr_municipio = df_terr.attrs['municipio']
+assert len(df_terr) == 32 and set(_bairros_referencia()['codra']) - set(df_terr['codra']) == {21}
+assert round(terr_municipio['taxa_homicidios'], 3) == 16.663
+df_terr_saida = pd.concat([df_terr, pd.DataFrame([{'codra': None, 'regiao_adm': 'MUNICÍPIO DO RIO DE JANEIRO', **terr_municipio}])],
+                          ignore_index=True)
+df_terr_saida.to_csv('tabelas_finais/violencia_territorial_por_ra_2024.csv', index=False)
+df_terr.to_csv('tabelas_finais/tabela_mapa_violencia_territorial_ra_2024.csv', index=False)
+
+indicadores_territoriais = {
+    'taxa_homicidios': ('Taxa de homicídios', 'homicidios'),
+    'homicidios_acao_policial': ('Homicídios por ação policial', 'homicidios_acao_policial'),
+    'homicidios_jovens_negros': ('Homicídios de jovens negros', 'homicidios_jovens_negros'),
+}
+for coluna, (rotulo, sufixo) in indicadores_territoriais.items():
+    grafico_barra_ranking(
+        df_terr, categoria='regiao_adm', valor=coluna, titulo=f'{rotulo} por Região Administrativa (2024)',
+        nome_arquivo=f'violencia_territorial_{sufixo}_ra_2024', xlabel=f'{rotulo} (taxa, conforme IPS)',
+        linha_referencia=terr_municipio[coluna], rotulo_referencia=f'Município: {terr_municipio[coluna]:.1f}'.replace('.', ','),
+        cmap=_CORES_TEMA_MAPA['protecao'], fonte_dados=fonte_ips,
+    )
+    mapa_coropletico_bairros(
+        df_terr, coluna_valor=coluna, chave='codra', nivel='ra',
+        titulo=f'{rotulo} por Região Administrativa (2024)', nome_arquivo=f'mapa_violencia_territorial_{sufixo}_ra_2024',
+        cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', legenda_titulo=f'{rotulo}\n(taxa)', fonte_dados=fonte_ips,
+    )
+
+# %% [markdown]
+# ### Taxa de notificações de violência familiar por 1.000 crianças
+#
+# > **Ressalva D9:** numerador com crianças de 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022) — a taxa
+# > superestima ~20%, de forma uniforme, então o *ranking* entre bairros se preserva. "Outros" usa o acumulado
+# > 2021-2025 (numerador) sobre a mesma população. Bairros com poucas crianças geram taxas instáveis (D10): a escala
+# > de cor é limitada ao percentil 95 (valores maiores aparecem com a cor máxima); a tabela guarda o valor real.
+
+# %%
+df_vf_taxa_bairro = (df_vf_2025[['codbairro', 'bairro', 'mae', 'pai']]
+                     .rename(columns={'mae': 'casos_mae_2025', 'pai': 'casos_pai_2025'})
+                     .merge(df_vf_outros_acum.rename(columns={'outros_2021_2025': 'casos_outros_2021_2025'}), on=['codbairro', 'bairro'])
+                     .merge(df_pop_04, on='codbairro'))
+for _nome, _casos in [('mae_2025', 'casos_mae_2025'), ('pai_2025', 'casos_pai_2025'), ('outros_2021_2025', 'casos_outros_2021_2025')]:
+    df_vf_taxa_bairro = taxa_por_mil(df_vf_taxa_bairro, _casos, 'pop_0_4', f'taxa_por_mil_{_nome}')
+assert not np.isinf(df_vf_taxa_bairro.select_dtypes('number')).any().any()
+df_vf_taxa_bairro.to_csv('tabelas_finais/violencia_familiar_taxa_por_bairro.csv', index=False)
+
+# D10: bairros com poucas crianças de 0 a 4 anos, sinalizados (não suprimidos)
+bairros_pop_pequena = df_vf_taxa_bairro[df_vf_taxa_bairro['pop_0_4'] < 100][['bairro', 'pop_0_4']]
+print('Bairros com menos de 100 crianças de 0 a 4 anos (taxa instável):', bairros_pop_pequena.values.tolist())
+
+# %% [markdown]
+# ##### 🗺️ Mapas de taxa por bairro (M8-M10) — colorbar contínua (taxa)
+
+# %%
+def _limite_escala_p95(serie):
+    """Limite superior da escala de cor: percentil 95 arredondado para cima (múltiplo de 5)."""
+    return int(math.ceil(serie.quantile(0.95) / 5) * 5)
+
+for _nome, _rotulo, _periodo in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
+    _col = f'taxa_por_mil_{_nome}'
+    _lim = _limite_escala_p95(df_vf_taxa_bairro[_col])
+    _mapa = df_vf_taxa_bairro[['codbairro', 'bairro', 'pop_0_4', _col]].copy()
+    _mapa['taxa_escala_mapa'] = _mapa[_col].clip(upper=_lim)
+    _mapa.to_csv(f'tabelas_finais/tabela_mapa_violencia_familiar_taxa_{_nome}.csv', index=False)
+    mapa_coropletico_bairros(
+        _mapa, coluna_valor='taxa_escala_mapa', chave='codbairro',
+        titulo=f'Notificações de violência ({_rotulo}) por 1.000 crianças de 0 a 4 anos ({_periodo})',
+        nome_arquivo=f'mapa_violencia_familiar_{_nome.split("_")[0]}_taxa_bairro_{_nome.split("_", 1)[1]}',
+        cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', legenda_titulo=f'Notificações por\n1.000 crianças 0-4\n(escala até {_lim})',
+        fonte_dados=fonte_sinan_censo,
+    )
+
+# %% [markdown]
+# ##### G8 · Dez maiores taxas (mãe e pai, 2025)
+#
+# > Só bairros com 100 ou mais crianças de 0 a 4 anos (taxa estável); mãe e pai lado a lado, sem soma.
+
+# %%
+_est = df_vf_taxa_bairro[df_vf_taxa_bairro['pop_0_4'] >= 100]
+top10_taxa = _est.nlargest(10, 'taxa_por_mil_mae_2025')
+df_top_taxa = (top10_taxa[['bairro', 'taxa_por_mil_mae_2025', 'taxa_por_mil_pai_2025']]
+               .rename(columns={'taxa_por_mil_mae_2025': 'Mãe', 'taxa_por_mil_pai_2025': 'Pai'})
+               .melt(id_vars='bairro', var_name='vinculo', value_name='taxa por 1.000'))
+df_top_taxa.to_csv('tabelas_finais/violencia_familiar_taxa_top_bairros_2025.csv', index=False)
+grafico_barra_agrupado(
+    df_top_taxa, categoria='bairro', valor='taxa por 1.000', agrupador='vinculo',
+    titulo='Dez maiores taxas de notificação por 1.000 crianças de 0 a 4 anos (2025)',
+    nome_arquivo='violencia_familiar_taxa_top_bairros_2025', ylabel='Notificações por 1.000 crianças',
+    legend_title='Vínculo', ordem_categoria=list(top10_taxa['bairro']), ordem_agrupador=['Mãe', 'Pai'],
+    fonte_dados=fonte_sinan_censo + '; bairros com 100+ crianças',
+)
 
 # %% [markdown]
 # ---
