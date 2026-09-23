@@ -289,7 +289,12 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None):
     add_toc_field(doc.add_paragraph())
 
     doc.add_heading("Introdução", level=1)
-    doc.add_paragraph(_lorem("introducao-relatorio-docx", 250))
+    # Bookmark fixo "introducao": texto curado sobrevive à regeneração e
+    # sincroniza_docx.py o leva para HTML/PDF (textos_curados.json).
+    p_intro = doc.add_paragraph(textos_curados.get("introducao") or _lorem("introducao-relatorio-docx", 250))
+    add_bookmark(p_intro, "introducao", next_id())
+    registro_bookmarks["introducao"] = "introducao"
+    ids_gerados.add("introducao")
 
     def bloco_texto(id_):
         """Escreve 1 parágrafo de texto (curado, se já existir, senão lorem

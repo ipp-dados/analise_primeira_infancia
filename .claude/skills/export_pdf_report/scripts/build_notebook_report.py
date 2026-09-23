@@ -200,7 +200,15 @@ def _carrega_textos_curados():
 _TEXTOS_CURADOS = _carrega_textos_curados()
 
 def _texto_analise(seed, palavras=None):
-    return _TEXTOS_CURADOS.get(seed) or _lorem(seed, palavras)
+    """Texto curado (relatorio/textos_curados.json) se houver, senão lorem.
+    Texto curado é escapado e cada quebra de linha do DOCX (1 bookmark = 1
+    parágrafo do Word, parágrafos extras viram <w:br/>) vira separação
+    visual de parágrafo."""
+    curado = _TEXTOS_CURADOS.get(seed)
+    if not curado:
+        return _lorem(seed, palavras)
+    import html as _html
+    return "<br><br>".join(_html.escape(t.strip()) for t in curado.split("\n") if t.strip())
 
 def pending(titulo, nota):
     """Placeholder for a catalog indicator not yet implemented in analise.py
@@ -253,7 +261,8 @@ add('<div class="toc"><div class="toc-label">SUMÁRIO</div><ul class="toc-list">
 # (specs.md §7, nao existem la) -- pedido do usuario foi especificamente
 # "250 words" fixas para a introducao do relatorio como um todo.
 add(h2('Introdução'))
-add(p(_lorem("introducao-relatorio-pdf", 250)))
+# texto curado sob o bookmark "introducao" do DOCX, se já sincronizado
+add(p(_TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio-pdf", 250)))
 
 add(p('Para acesso aos dados brutos via Drive: <a href="https://drive.google.com/drive/folders/1xOwf72QfaDuJAHuA-Vngl6t5_kzSfGYX?usp=sharing">pasta compartilhada</a>.<br>OBS: acesso restrito, solicitar a leonardo.aucar@prefeitura.rio'))
 

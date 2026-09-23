@@ -85,6 +85,8 @@ def eh_lorem_ipsum(seed, texto):
     `_lorem(seed)` geraria hoje -- comparação exata (não heurística), já que
     `_lorem` é 100% determinístico por seed. `seed` aqui é sempre o `id_`
     ORIGINAL (não o nome sanitizado do bookmark) -- ver `_mapa_bookmark_para_id`."""
+    if seed == "introducao":  # bookmark fixo, lorem de 250 palavras (gera_docx_curadoria.py)
+        return texto == _lorem("introducao-relatorio-docx", 250)
     return texto == _lorem(seed)
 
 
@@ -95,7 +97,7 @@ def _ids_originais_conhecidos():
     Blocos `status: pendente` não entram (não geram bookmark no gerador:
     viram só um parágrafo `[PENDENTE]` sem `bloco_texto()`)."""
     estrutura = parse_estrutura_eixos()
-    ids = set()
+    ids = {"introducao"}  # bookmark fixo da Introdução (fora da estrutura)
     for eixo in estrutura:
         for sub in eixo["subsecoes"]:
             campos = sub["campos"]
