@@ -588,19 +588,14 @@ add(h2('\U0001F6E1️ Proteção'))
 
 # ---- Violência territorial (Data.Rio/IPS) ---------------------------------
 add(h3('Violência territorial (Data.Rio/IPS, 2024)'))
-add(note('<b>Nota metodológica.</b> Um único ano (2024) e todas as idades — não é específico de 0 a 6 anos e não forma série (por isso barras, não linha). '
-         'Nível Região Administrativa; a RA XXI Paquetá não tem dado no IPS. A linha tracejada é a referência do município.'))
-for _png, _stem in [("violencia_territorial_homicidios_ra_2024.png", "Taxa de homicídios"),
-                    ("violencia_territorial_homicidios_acao_policial_ra_2024.png", "Homicídios por ação policial"),
-                    ("violencia_territorial_homicidios_jovens_negros_ra_2024.png", "Homicídios de jovens negros")]:
-    add(h4(_stem))
-    add(chart_block(_png, "violencia_territorial_por_ra_2024.csv"))
-    add(p(_texto_analise(Path(_png).stem)))
-_terr = read("violencia_territorial_por_ra_2024.csv")
-add(registra_tabela("Violência territorial por Região Administrativa (IPS, 2024)", table_html(
-    _terr[["regiao_adm", "taxa_homicidios", "homicidios_acao_policial", "homicidios_jovens_negros"]],
-    dec=1, rename={"regiao_adm": "Região Administrativa", "taxa_homicidios": "Taxa de homicídios",
-                   "homicidios_acao_policial": "Homicídios por ação policial", "homicidios_jovens_negros": "Homicídios de jovens negros"})))
+add(note('<b>Atenção:</b> são dados gerais da população, de todas as idades — <b>não são específicos de crianças (0 a 6 anos) nem de jovens</b>; '
+         'o indicador "homicídios de jovens negros" também se refere à população geral. Um único ano (2024), sem série. '
+         'Nível Região Administrativa; a RA XXI Paquetá não tem dado no IPS.'))
+emit_map_gallery([("Por Região Administrativa (população geral, todas as idades)", [
+    ("mapa_violencia_territorial_homicidios_ra_2024.png", "Taxa de homicídios por RA (2024) — população geral"),
+    ("mapa_violencia_territorial_homicidios_acao_policial_ra_2024.png", "Homicídios por ação policial por RA (2024) — população geral"),
+    ("mapa_violencia_territorial_homicidios_jovens_negros_ra_2024.png", "Homicídios de jovens negros por RA (2024) — população geral"),
+])])
 
 # ---- Violência familiar (Sinan) --------------------------------------------
 add(h3('Violência familiar (0 a 5 anos, Sinan)'))
@@ -629,11 +624,9 @@ emit_map_gallery([
 _cols_ra = {"mae": "Mãe", "pai": "Pai", "outros": "Outros", "pop_0_4": "Crianças 0-4", "taxa_por_mil_mae": "Taxa mãe /1.000",
             "taxa_por_mil_pai": "Taxa pai /1.000", "taxa_por_mil_outros": "Taxa outros /1.000"}
 _vf_cap = read("violencia_familiar_por_cap.csv"); _vf_cap = _vf_cap[_vf_cap["ano"] == 2025]
-_vf_ra = read("violencia_familiar_por_ra.csv"); _vf_ra = _vf_ra[_vf_ra["ano"] == 2025]
 add(registra_tabela("Violência familiar por CAP (2025), com taxa por 1.000 crianças de 0 a 4 anos",
                     table_html(_vf_cap[["cod_ap_sms"] + list(_cols_ra)], dec=1, rename={"cod_ap_sms": "CAP", **_cols_ra})))
-add(registra_tabela("Violência familiar por Região Administrativa (2025), com taxa por 1.000 crianças de 0 a 4 anos",
-                    table_html(_vf_ra[["regiao_adm"] + list(_cols_ra)], dec=1, rename={"regiao_adm": "Região Administrativa", **_cols_ra})))
+
 
 # ---- Notificações de lesão autoprovocada -----------------------------------
 add(h3('Notificações de violência interpessoal/autoprovocada (0 a 5 anos, Sinan)'))
@@ -654,6 +647,11 @@ emit_map_gallery([("Taxa por 1.000 crianças de 0 a 4 anos", [
     ("mapa_violencia_familiar_mae_taxa_bairro_2025.png", "Notificações de violência (mãe) por 1.000 crianças de 0 a 4 anos (2025)"),
     ("mapa_violencia_familiar_pai_taxa_bairro_2025.png", "Notificações de violência (pai) por 1.000 crianças de 0 a 4 anos (2025)"),
     ("mapa_violencia_familiar_outros_taxa_bairro_2021_2025.png", "Notificações de violência (outros vínculos) por 1.000 crianças de 0 a 4 anos (2021-2025)"),
+])])
+emit_map_gallery([("Taxa por 1.000 crianças de 0 a 4 anos, por Região Administrativa", [
+    ("mapa_violencia_familiar_mae_taxa_ra_2025.png", "Notificações de violência (mãe) por 1.000 crianças de 0 a 4 anos, por RA (2025)"),
+    ("mapa_violencia_familiar_pai_taxa_ra_2025.png", "Notificações de violência (pai) por 1.000 crianças de 0 a 4 anos, por RA (2025)"),
+    ("mapa_violencia_familiar_outros_taxa_ra_2021_2025.png", "Notificações de violência (outros vínculos) por 1.000 crianças de 0 a 4 anos, por RA (2021-2025)"),
 ])])
 add(h4('Dez maiores taxas (2025, bairros com 100 ou mais crianças de 0 a 4 anos)'))
 add(chart_block("violencia_familiar_taxa_top_bairros_2025.png", "violencia_familiar_taxa_top_bairros_2025.csv"))
