@@ -25,17 +25,41 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
    `analise.py` foi deliberadamente descartada (§9.1); HTML/PDF não leem o
    `.md` em tempo de execução, só o DOCX (`specs.md` §9.3) — mudança de
    agrupamento que afete HTML/PDF exige ajuste manual de código.
-4. **`publicar_teste_pages`** — em andamento: repositório está indo a
-   público e `relatorio/index.html` ganhou uma faixa fixa "EM
-   DESENVOLVIMENTO / TEMPORÁRIO" para permitir publicar antes do item 3
-   estar pronto. Falta disparar o `workflow_dispatch` de
-   `.github/workflows/deploy-relatorio.yml`.
-5. **Importar dados de violência** — ver "Educação e Violência" abaixo;
+4. **`publicar_teste_pages`** — ✅ concluído: GitHub Pages publicado
+   (`workflow_dispatch` de `.github/workflows/deploy-relatorio.yml` já
+   disparado; `relatorio/index.html` no ar com a faixa "EM DESENVOLVIMENTO /
+   TEMPORÁRIO"). Novas publicações seguem manuais e só após validação
+   (ver `specs/inclusao_dados_protecao` §8).
+5. **Importar dados de violência** — em planejamento:
+   `specs/inclusao_dados_protecao` (branch `inclusao_dados_protecao`;
+   `dados_locais/protecao/`). Catálogo de indicadores em
    `dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx` (eixo
-   "Proteção") tem o catálogo de indicadores/fontes a importar.
-6. **Outros dados faltantes** — levantar e importar bases pendentes além de
+   "Proteção"). Deploy no GitHub Pages só após validação.
+6. **População por bairro, ano a ano (referência fixa)** — spec **seguinte**
+   a `inclusao_dados_protecao`. Extrair a população por bairro (idealmente por
+   idade simples, 0 a 6 anos) para cada ano, em vez do único ponto do Censo
+   2022 (faixa 0-4) usado hoje como denominador. Motivo: as taxas de
+   `inclusao_dados_protecao` (D9) misturam numerador 0-5 anos de 2025 com
+   denominador 0-4 anos de 2022; uma série anual fixa permite taxas
+   consistentes em qualquer ano e recalcular as já existentes. Inclui
+   **corrigir os demais problemas** de denominador/cobertura que aparecerem
+   (a levantar ao abrir a spec, começando pela lista de ressalvas D9 e pelas
+   taxas por bairro que hoje usam o Censo 2022 como referência).
+7. **Extrair novos recortes do CadÚnico** — levantar e extrair recortes
+   adicionais além dos já usados em `analise.py` (`tabelas_finais/cadunico_*`:
+   por bairro, faixa etária, idade, faixa de renda), a definir ao abrir a
+   spec (candidatos: indicadores do catálogo com fonte CadÚnico ainda
+   pendentes em `specs/estrutura_eixos.md`, ex. Moradia). Requer `.env`
+   com acesso ao banco (`connect_db_ctpe`).
+8. **Outros dados faltantes** — levantar e importar bases pendentes além de
    violência (a detalhar; nenhuma listada formalmente ainda além dos itens
    de Matrículas/Mortalidade abaixo).
+9. **Atualizar a documentação do projeto** — revisar e alinhar `CLAUDE.md`,
+   `README.md`, `CHANGELOG.md`, `specs/tech-stack.md`, `specs/constitution.md`,
+   `relatorio/specs.md` e os `SKILL.md` (`generate_map`, `export_pdf_report`)
+   ao estado real após `inclusao_dados_protecao` (nível geográfico `ra`,
+   `dados_locais/protecao/`, novas funções `carrega_sinan_*`, eixo Proteção
+   implementado) e às specs seguintes.
 
 ## Mortalidade
 - Create time series comparing particular subgroups among regions over time
