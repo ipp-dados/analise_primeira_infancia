@@ -57,10 +57,10 @@ IDs R/S/A/D/F são os de `specification.md`, e os blocos são os de `plan.md`.
 - [x] **T8.2** — Família e Cuidados: CSV renomeado (D8) e mapa % retirado (D6), se aprovados.
 
 ## Bloco 9 — HTML
-- [ ] **T9.1** — 3 `emite_bloco_pendente` → `option_card`s reais no eixo Inclusão.
-- [ ] **T9.2** — `mapa_svg(rotulo_nan=…)` com default inalterado; tooltip "suprimido (< 20)".
-- [ ] **T9.3** — Bloco CadÚnico existente: A5, A7, D6, fonte com partição (títulos de idade intocados, D7).
-- [ ] **T9.4** — HTML regenerado; o diff estrutural contra o baseline mostra só as mudanças esperadas.
+- [x] **T9.1** — 3 `emite_bloco_pendente` → `option_card`s reais no eixo Inclusão.
+- [x] **T9.2** — `mapa_svg(rotulo_nan=…)` com default inalterado; tooltip "suprimido (< 20)".
+- [x] **T9.3** — Bloco CadÚnico existente: A5, A7, D6, fonte com partição (títulos de idade intocados, D7).
+- [x] **T9.4** — HTML regenerado; o diff estrutural contra o baseline mostra só as mudanças esperadas.
 
 ## Bloco 10 — PDF e DOCX
 - [ ] **T10.1** — PDF: 3 `pending` → blocos reais; A5, D6 e notas no trecho existente.
