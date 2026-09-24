@@ -10,7 +10,7 @@ estão em `matriculas/tasks.md`.
 - [x] **T0.2**: Escopo ampliado, branch e pasta renomeadas para `populacao-referencia`, `matriculas/` como subpasta (usuário, 2026-09-24).
 - [x] **T0.3**: Levantamento: a Ripsa não tem bairro; inventário de denominadores; diagnóstico do item 7; itens do crosswalk sem arquivo.
 - [x] **T0.4**: B1 = opção (a), ordem = população primeiro (usuário, 2026-09-24).
-- [ ] **T0.5**: Usuário revisa as specs e decide A-D1, A-D2, C-D1, D-D1, D-D2.
+- [x] **T0.5**: A-D1 ✅, A-D2 ✅ (A3, A4), C-D1 ✅, D-D1 ✅ (item 7 reinterpretado: coluna % na gêmea de contagem, sem mapa novo), D-D2 ✅ (usuário, 2026-09-24). A4 viável com o `.env` atual.
 - [ ] **T0.6**: Ok do usuário para implementar.
 
 ## Bloco 1: Parte A, base
@@ -23,7 +23,7 @@ estão em `matriculas/tasks.md`.
 
 - [ ] **T2.1**: A2: tabela e gráfico de população de 0-6 por ano (faixa conforme A-D1).
 - [ ] **T2.2**: A3: taxa municipal de violência familiar por 1.000 (2011-2025), tabela e gráfico.
-- [ ] **T2.3**: A4: razão CadÚnico/população municipal (precisa de `.env`; se faltar, adiar sem bloquear).
+- [ ] **T2.3**: A4: razão CadÚnico/população municipal (`.env` confirmado; registrar a partição usada).
 
 ## Bloco 3: Parte B
 
@@ -37,8 +37,8 @@ estão em `matriculas/tasks.md`.
 
 ## Bloco 5: Parte D
 
-- [ ] **T5.1**: P-D1: contagem de nascidos vivos "EM BRANCO" por ano; regra do denominador fixada.
-- [ ] **T5.2**: D1: mapa e tabela gêmea do percentual de nascidos vivos por bairro (2025).
+- [ ] **T5.1**: P-D1: nascidos vivos "EM BRANCO" em 2025 registrados.
+- [ ] **T5.2**: D1: coluna `percentual_do_municipio` na gêmea de nascidos vivos 2025; item "(percentual)" do crosswalk ligado ao mapa e à tabela de contagem.
 - [ ] **T5.3**: D2 e D3 ligados; mortalidade evitável por sexo marcada `pendente`.
 - [ ] **T5.4**: D4: aviso no console dos geradores para itens sem arquivo.
 

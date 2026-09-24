@@ -1,6 +1,6 @@
 # Plano técnico: População de referência
 
-Baseado em `specification.md` (rascunho 1). As partes A-E e as decisões são as da spec. A Parte E tem plano
+Baseado em `specification.md` (rascunho 2; todas as decisões aprovadas). As partes A-E e as decisões são as da spec. A Parte E tem plano
 próprio em `matriculas/plan.md`, e aqui só entra a posição dela na sequência. **Nada é executado antes da
 revisão e do ok do usuário.**
 
@@ -65,7 +65,7 @@ duas vezes.
 - **A4**, na seção CadÚnico: uma célula que calcula a razão municipal e grava
   `tabelas_finais/cadunico_razao_populacao_0_a_5_2026.csv` (uma linha: crianças, população Ripsa 2025,
   razão), com a nota das ressalvas. Sem gráfico, porque é um número só; no HTML vira um KPI se o card
-  existir, senão uma linha de tabela. Só roda com `.env` (P-A2).
+  existir, senão uma linha de tabela. Só roda com `.env` (P-A2, acesso confirmado em 2026-09-24).
 
 ### Bloco 3: Parte B
 
@@ -82,12 +82,11 @@ daqui), e não de uma função própria; e a nota D7 aponta para A5.
 
 ### Bloco 5: Parte D
 
-- **D1 (item 7)**, na seção Nascidos vivos, depois do mapa de contagem: calcular por bairro de 2025
-  `percentual_nascidos_vivos_municipio = nascidos vivos do bairro ÷ total do município × 100`. O
-  denominador inclui "EM BRANCO", depois de conferir P-D1. Tabela gêmea
-  `tabelas_finais/tabela_mapa_nascidos_vivos_percentual_2025.csv` e mapa
-  `mapas/mapa_percentual_nascidos_vivos_bairro_2025.png` (contínuo, `_CORES_TEMA_MAPA['natalidade']`,
-  `fonte_datasus_bairro`).
+- **D1 (item 7, revisado no rascunho 2)**: sem mapa novo. Na célula do mapa de nascidos vivos de 2025,
+  acrescentar `percentual_do_municipio` (nascidos vivos do bairro ÷ total do município com "EM BRANCO" ×
+  100) à gêmea `tabela_mapa_nascidos_vivos_2025.csv`. O mapa de contagem não muda. No crosswalk, o item
+  "(percentual)" aponta para o mesmo mapa e a mesma tabela, com uma nota. No HTML, o tooltip do mapa
+  mostra também o %.
 - **D2**: crosswalk "Crianças até 6 anos (número)" aponta para as saídas de A2.
 - **D3**: gráfico do Total por idade da SIDRA 10057 (`grafico_barra`) e tabela, ligados ao item.
 - Mortalidade evitável por sexo: `status: pendente` no crosswalk.
