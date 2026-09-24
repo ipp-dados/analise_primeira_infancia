@@ -61,6 +61,27 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 7. (FIX). **Corrigir `nascidos_vivos_bairro_mae`: faltam mapas e visualizações de percentual.**
   A série por bairro/mãe não gera mapas coropléticos nem gráficos em % (só contagens, se tanto).
   Diagnosticar primeiro (não sei a causa: não abri esse trecho de `analise.py`). Depois seguir
+   **Em andamento (2026-09-24):** os itens 6 e 7 foram absorvidos por `specs/populacao-referencia`
+   (branch `spec/populacao-referencia`). Diagnóstico do 7: o indicador "percentual de nascidos vivos
+   por bairro da mãe" nunca foi implementado e o HTML/PDF pulam itens sem arquivo (spec, Parte D). Nessa
+   rodada, o nível município passa a usar a Ripsa/MS e o sub-municipal fica no Censo 2022 (decisão B1 (a)).
+   **✅ Concluídos (2026-09-24, `specs/populacao-referencia`):** população Ripsa 2000-2025 como referência
+   municipal; rótulos "Censo 2022" explícitos no sub-municipal; auditoria de faixas
+   (`specs/populacao-referencia/auditoria_faixas.md`), rótulos com a faixa real e 21 renomeações; item 7
+   resolvido como coluna `percentual_do_municipio` na gêmea de contagem; achado e corrigido o total dobrado
+   da série dos Censos 2000/2010/2022 (participação de 0-4 anos: 7,6% / 5,8% / 5,0%).
+7a. **Ajustar a estimativa de crianças pequenas por bairro com a Ripsa** (pedido do usuário, 2026-09-24;
+   é a continuação da decisão B1 de `specs/populacao-referencia`). A Ripsa não tem bairro, então o nível
+   sub-municipal ficou no Censo 2022 fixo, que subconta crianças pequenas (0-4: 310.648 no Censo contra
+   361.163 na Ripsa em 2022, +16%) e não varia por ano. Construir uma estimativa derivada, rotulada
+   como tal:
+   - **(b)** participação de cada bairro no Censo 2022 × total municipal Ripsa de cada ano, com 0-4
+     estendido para 0-5 pela razão municipal Ripsa; os bairros somam o total Ripsa;
+   - **(c)** como (b), mas com a participação variando no tempo entre os Censos 2010 e 2022 (exige a
+     correspondência 160 → 166 bairros).
+   Depois recalcular as taxas sub-municipais (violência por bairro/RA/CAP e o % CadÚnico, que depende
+   também do item 8a) e documentar a mudança de denominador. Pré-requisito: a Parte A de
+   `specs/populacao-referencia` concluída.
 8. **Extrair novos recortes do CadÚnico** — ✅ 1ª leva concluída:
    `specs/recortes_cadunico` (branch `spec/recortes_cadunico`): sexo, raça/cor,
    renda × arranjo familiar (eixo Inclusão), supressão < 20 e correções nas
@@ -105,7 +126,12 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 - Create tables and visualizations
 
 ## Matrículas
-- Update dados de matrículas escolares for years 2021-2025
+- ✅ Update dados de matrículas escolares for years 2021-2025 — feito em `specs/populacao-referencia/matriculas`
+  (2026-09-24): série 2007-2025 refeita dos microdados do INEP, 0 a 5 anos, com taxa bruta de atendimento
+  (população Ripsa) e metas do PNE.
+- Backlog: mapa de matrículas por bairro, com as escolas geocodificadas (o arquivo do INEP não traz
+  `codbairro`; ver `specs/populacao-referencia/matriculas/specification.md` §4.4).
+- Backlog: validar 1 ou 2 anos contra a Sinopse Estatística do INEP (pendência P5 da mesma spec).
 
 ## Relatório interativo (`specs/relatorio-interativo`)
 - **Reduzir o peso de `relatorio/index.html` (~17MB)** — todos os ~32 mapas

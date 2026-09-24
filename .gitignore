@@ -13,3 +13,4 @@
 /visualizacoes/*
 !/visualizacoes/.gitkeep
 *env
+/dados_locais/educacao/inep_microdados/

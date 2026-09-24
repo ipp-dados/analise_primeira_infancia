@@ -153,9 +153,13 @@ df_freq_escolar = pd.read_csv("tabelas_finais/frequencia_escolar_pnad_por_idade.
 grafico_barra(df=df_freq_escolar, categoria='Idade', valor='Total', titulo="Frequencia escolar por idade",
               nome_arquivo='pnad_frequencia_escolar_por_idade')
 
-df_matriculas = pd.read_csv("tabelas_finais/matriculas_0_a_6_por_ano.csv")
-df_matriculas['ano'] = df_matriculas['ano'].astype(str)
-serie_temporal(df_matriculas, 'ano', 'matriculas', 'Matrículas de 0 a 6 anos por ano',
-               nome_arquivo='matriculas_0_a_6_por_ano')
+# populacao-referencia Parte E: 0 a 5 anos (o INEP não separa 6 anos). Só regenera se o PNG faltar -- a versão do
+# notebook (com rodapé de fonte e as 3 séries irmãs creche/pré, rede e taxa) é a de referência, e este snapshot
+# não tem o rodapé de fonte
+if not Path(f"{OUT}/matriculas_0_a_5_por_ano.png").exists():
+    df_matriculas = pd.read_csv("tabelas_finais/matriculas_0_a_5_por_ano.csv")
+    df_matriculas['ano'] = df_matriculas['ano'].astype(str)
+    serie_temporal(df_matriculas, 'ano', 'matriculas', 'Matrículas de crianças de 0 a 5 anos por ano',
+                   nome_arquivo='matriculas_0_a_5_por_ano')
 
 print("done")
