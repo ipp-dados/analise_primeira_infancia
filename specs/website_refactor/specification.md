@@ -76,6 +76,13 @@ progresso) e visual mais suave. O PDF não muda nesta rodada.
     descartado (publicaria uma marca oficial alterada); se a Ascom do IPP fornecer o SVG, ele substitui.
   - **Página "Fale Conosco"** na barra de navegação: registrada em `website/ROADMAP.md` e
     `specs/roadmap.md` (fora desta rodada).
+  - **Ajustes finais (2026-09-24, depois do Bloco 8)**: eixo "Prioridade" sem o "(sem secundário)" em
+    todo o site (h2, cartão da Visão geral, sumário); id do painel passa a `prioridade`, com o antigo
+    `prioridade-sem-secundário` aceito como alias (`data-alias`, links já compartilhados continuam
+    abrindo a aba). Logo um pouco menor (34 px banner / 28 px rodapé). Link do PDF agora baixa direto
+    (`raw.githubusercontent.com`, `application/octet-stream`). Rodapé cita **Base dos Dados** como
+    fonte (link para basedosdados.org). *O PDF, o DOCX e `specs/estrutura_eixos.md` continuam com o
+    nome antigo — fora do escopo desta rodada.*
   - **Logo como link** (pedido no Bloco 8): o logo do IPP, no banner e no rodapé, abre
     `https://ipp.prefeitura.rio/` em nova aba.
   - **Título**: "Diagnóstico da Primeira Infância Carioca", sempre em 2 linhas
