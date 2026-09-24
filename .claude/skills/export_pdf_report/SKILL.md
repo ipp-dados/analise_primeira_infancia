@@ -148,8 +148,8 @@ text in the DOCX — most regeneration requests never need it.
       (Single positional arg. Older docs/comments in this codebase may
       reference a 2-arg `extract_maps.py`-based invocation — that pipeline
       was removed when maps moved to plain `<img>`/PNG embedding; ignore
-      any mention of `extract_maps.py` for this step, it's dead for this
-      script.)
+      any mention of `extract_maps.py` for this step — the file itself was
+      deleted in the 2026-09-24 cleanup.)
    2. **Render to PDF with an isolated headless browser.** Use whichever
       Chromium-based browser is actually installed on this machine — check
       both, in order:

@@ -81,3 +81,8 @@ Um commit por bloco. Marcar `[x]` só depois da verificação correspondente em 
 - [x] **T8.7** *(pedido no Bloco 8)*: logo do IPP (banner e rodapé) vira link para `ipp.prefeitura.rio`.
 - [x] **T8.8** *(ajustes finais)*: "(sem secundário)" removido do site (id `prioridade` + alias do antigo); logo 34/28 px; PDF com download direto; Base dos Dados no rodapé. Conferido no navegador (texto, rotas nova e antiga, alturas, links), 0 erros.
 - [ ] **T8.6**: Merge em `planning`/`staging_main` (com ok do usuário).
+
+## Limpeza (2026-09-24, pedido do usuário)
+
+- [x] **T9.1**: Removidos do git: `website/build/prototype/` (protótipo do Bloco 4, superado pelo site), `relatorio/wireframe_relatorio_interativo.pdf` (mockup da v6) e `.claude/skills/export_pdf_report/scripts/extract_maps.py` (sem uso). O histórico continua no git e nas specs. (`curadoria_textos_update_1.docx` chegou a ser marcado e foi mantido: o usuário pediu em seguida a incorporação completa dos arquivos de update.)
+- [x] **T9.2**: Apagados localmente (não versionados): `analise.ipynb` (regerável com `jupytext --to notebook analise.py`), `__pycache__/`, cache `dados_locais/educacao/inep_microdados/` (963 MB; `analise.py` lê o extrato `inep_matriculas_rio.csv` e só baixa ano faltante) e `dados_locais/protecao/Violência Familiar.zip` (conteúdo idêntico ao de `violencia_familiar/`, conferido arquivo a arquivo).
