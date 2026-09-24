@@ -96,3 +96,22 @@ renomeação ampla sem ganho de clareza, por isso fica fora.
 | **C-D2** | Os subtítulos do crosswalk que vêm do catálogo ("Famílias no CadÚnico com crianças até 6 anos…", "Crianças até 6 anos frequentando escola/creche") mudam para a faixa real, ou ficam com o nome do catálogo e a faixa real vai na nota? | Mudar os títulos de gráfico/mapa (lista A) e **manter o nome do catálogo nos subtítulos do crosswalk**, com a faixa real na `nota` — o catálogo é o vocabulário da política |
 | **C-D3** | Corrigir o bug do total da série dos Censos (§2) nesta rodada | Sim; muda o percentual publicado (não as contagens) |
 | **C-D4** | Renomeações B1-B5 | B1-B3 sim (nome diz "primeira infância", conteúdo é 0-4); B4-B5 sim (ambiguidade dias × anos) |
+
+## 7. Execução (C2/C3, 2026-09-24)
+
+Decisões do usuário (2026-09-24): **C-D2 ✅** (subtítulos do crosswalk com o nome do catálogo, faixa real na
+`nota`; títulos de gráfico e mapa com a faixa real), **C-D3 ✅** (corrigir o total da série dos Censos),
+**C-D4 ✅** (renomeações B1-B5).
+
+- **§2:** `total_e_percentual_ano` soma o `Total` antes de criar `'0 a 4 anos'`. `censo_0_a_4_anos_por_ano.csv`
+  muda só em `Total` e `Percentual 0 a 4 anos` (7,64% / 5,76% / 4,99%); contagens iguais. Nota A5 corrigida. O
+  PNG `censo_0_a_4_serie_percentual_ano.png` (gerado só por `regen_missing_pngs.py`) foi regenerado isolado.
+- **Lista A:** A1-A4, A6, A7 e A9 aplicadas em `analise.py` e nos dois geradores; A5 e A8 ficam com o nome do
+  catálogo (C-D2), com a faixa real na `nota` do crosswalk (CadÚnico, SIDRA 10056/10057, SISVAN). PNG
+  regenerados: 10 gráficos e 5 mapas do CadÚnico, 3 do SISVAN, 1 da PNAD. Todas as CSV regravadas são
+  iguais às anteriores, exceto a da série dos Censos.
+- **Lista B:** 21 arquivos rastreados com `git mv` (3 do CadÚnico, 18 de mortalidade), leitores em
+  `analise.py`, crosswalk e geradores (inclusive os sufixos montados em f-string nos dois geradores), e a
+  chave de `relatorio/textos_curados.json`. No DOCX, os 8 bookmarks das imagens renomeadas foram migrados
+  para os nomes novos (texto preservado; "Textos órfãos" continua com 6 itens).
+- **Lista C:** notas de curadoria não editadas; ficam com o usuário.

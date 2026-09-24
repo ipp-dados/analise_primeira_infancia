@@ -1081,7 +1081,7 @@ FONTE_EVITAVEIS = "SIM/SVS-Rio (TabWin), óbitos de residentes no município do 
 
 h4('Por grupo/subgrupo de causa (CID-10)')
 _entries_cid10 = []
-for faixa_id, faixa_titulo in [("", "0-364 dias"), ("_0_6", "0-6 dias"), ("_7_27", "7-27 dias"), ("_28_364", "28-364 dias")]:
+for faixa_id, faixa_titulo in [("", "0-364 dias"), ("_0_a_6_dias", "0-6 dias"), ("_7_a_27_dias", "7-27 dias"), ("_28_a_364_dias", "28-364 dias")]:
     df_g = read(f"mortalidade_causas_evitaveis_grupo{faixa_id}_ano.csv")
     gcols = [c for c in df_g.columns if c != "ano"]
     _lg = f"{faixa_titulo} · Grupo"
@@ -1362,7 +1362,7 @@ option_card([
     ), "cadunico_criancas_por_raca_cor"),
 ], 'grafico')
 option_card([
-    ("% negras", lambda: _mapa_cadunico_pct("% crianças negras", "% de crianças negras (pretas e pardas) até 6 anos no CadÚnico, por bairro", "% negras"),
+    ("% negras", lambda: _mapa_cadunico_pct("% crianças negras", "% de crianças negras (pretas e pardas) de 0 a 5 anos no CadÚnico, por bairro", "% negras"),
      "mapa_percentual_cadunico_criancas_negras_bairro_2026"),
 ], 'mapa')
 
@@ -1387,7 +1387,7 @@ option_card([
                                                   titulo="% das famílias de cada arranjo, por renda per capita"), "cadunico_familias_arranjo_renda"),
 ], 'grafico')
 option_card([
-    ("% uma adulta", lambda: _mapa_cadunico_pct("% famílias com uma adulta", "Famílias com crianças até 6 anos no CadÚnico: % com uma só adulta, por bairro", "% uma adulta"),
+    ("% uma adulta", lambda: _mapa_cadunico_pct("% famílias com uma adulta", "Famílias com crianças de 0 a 5 anos no CadÚnico: % com uma só adulta, por bairro", "% uma adulta"),
      "mapa_percentual_cadunico_familias_uma_adulta_bairro_2026"),
 ], 'mapa')
 
@@ -1426,14 +1426,14 @@ option_card([
 
 h4('Mapas')
 df_map_cadunico_criancas = read("tabela_mapa_cadunico_criancas_2026.csv")
-df_map_cadunico_0_4 = read("tabela_mapa_cadunico_primeira_infancia_2026.csv")
+df_map_cadunico_0_4 = read("tabela_mapa_cadunico_criancas_0_a_4_2026.csv")
 option_card([
-    ("Crianças 0-6", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
-        "Crianças (0-6 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[250, 750, 1500, 3000],
+    ("Crianças 0-5", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
+        "Crianças (0 a 5 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[250, 750, 1500, 3000],
         col_suprimido="suprimido"), "mapa_cadunico_criancas_bairro_2026"),
     ("Crianças 0-4", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
-        "Crianças (0-4 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[200, 500, 1000, 2000],
-        col_suprimido="suprimido"), "mapa_cadunico_primeira_infancia_bairro_2026"),
+        "Crianças (0 a 4 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[200, 500, 1000, 2000],
+        col_suprimido="suprimido"), "mapa_cadunico_criancas_0_a_4_bairro_2026"),
     # recortes_cadunico D6: mapa "% s/ Censo" retirado do relatório (até 510% por viés CEP -> bairro; fica só no notebook)
 ], 'mapa')
 

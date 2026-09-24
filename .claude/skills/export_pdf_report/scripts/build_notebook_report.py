@@ -359,7 +359,7 @@ add(registra_tabela("Óbitos por causas evitáveis, por subgrupo de causa e ano"
 add(h4('Óbitos por causas evitáveis, por grupo de causa e faixa etária'))
 add(p('Mesma classificação de grupo/subgrupo da seção anterior, mas sem somar as três faixas etárias: cada uma (0-6, 7-27 e 28-364 dias) é analisada separadamente.'))
 
-for faixa_id, faixa_titulo in [("0_6", "Precoce (0 a 6 dias)"), ("7_27", "Tardia (7 a 27 dias)"), ("28_364", "Pós-neonatal (28 a 364 dias)")]:
+for faixa_id, faixa_titulo in [("0_a_6_dias", "Precoce (0 a 6 dias)"), ("7_a_27_dias", "Tardia (7 a 27 dias)"), ("28_a_364_dias", "Pós-neonatal (28 a 364 dias)")]:
     add(h5(faixa_titulo))
     add(chart_block(f"obitos_causas_evitaveis_grupo_{faixa_id}_ano.png", f"mortalidade_causas_evitaveis_grupo_{faixa_id}_ano.csv"))
     add(p(_texto_analise(f"obitos_causas_evitaveis_grupo_{faixa_id}_ano")))
@@ -521,7 +521,7 @@ add(p(_texto_analise("censo_sidra_populacao_0_6_raca_2022")))
 add(chart_block("censo_sidra_populacao_0_6_sexo_2022.png", "censo_sidra_populacao_0_6_sexo_2022.csv"))
 add(p(_texto_analise("censo_sidra_populacao_0_6_sexo_2022")))
 
-add(h3('Frequência escolar 0-6 anos (IBGE SIDRA, Censo 2022)'))
+add(h3('Frequência escolar de 0 a 5 anos e taxa de frequência de 0 a 6 anos (IBGE SIDRA, Censo 2022)'))
 add(p('Comparativo mais recente e granular (idade simples, por raça/sexo) que a série PNAD do eixo Família e Cuidados — o Censo é enumeração completa de um único ano (2022), a PNAD Contínua é amostral com série histórica. Não são diretamente comparáveis ano a ano.'))
 add(chart_block("sidra_frequencia_escola_0_5_raca_2022.png", "sidra_frequencia_escola_0_5_raca_2022.csv"))
 add(p(_texto_analise("sidra_frequencia_escola_0_5_raca_2022")))
@@ -569,7 +569,7 @@ add('</div>')
 add(p(_texto_analise("cadunico_criancas_por_raca_cor")))
 add(registra_tabela("CadÚnico: crianças e famílias por raça/cor", table_html(read("cadunico_por_raca_cor_2026.csv").drop(columns="nota"), pct_cols=["% das crianças"], dec_cols={"% das crianças": 1})))
 emit_map_gallery([("Por bairro", [
-    ("mapa_percentual_cadunico_criancas_negras_bairro_2026.png", "% de crianças negras (pretas e pardas) até 6 anos no CadÚnico, por bairro"),
+    ("mapa_percentual_cadunico_criancas_negras_bairro_2026.png", "% de crianças negras (pretas e pardas) de 0 a 5 anos no CadÚnico, por bairro"),
 ])])
 
 add(h4('Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar'))
@@ -585,7 +585,7 @@ add(p(_texto_analise("cadunico_familias_arranjo_renda")))
 add(registra_tabela("CadÚnico: famílias por arranjo familiar e renda per capita",
                     table_html(read("cadunico_familias_arranjo_renda_2026.csv").drop(columns="suprimido"), pct_cols=["% no arranjo"], dec_cols={"% no arranjo": 1}, na="suprimido (< 20)", rename={"arranjo": "Arranjo familiar"})))
 emit_map_gallery([("Por bairro", [
-    ("mapa_percentual_cadunico_familias_uma_adulta_bairro_2026.png", "Famílias com crianças até 6 anos no CadÚnico: % com uma só adulta, por bairro"),
+    ("mapa_percentual_cadunico_familias_uma_adulta_bairro_2026.png", "Famílias com crianças de 0 a 5 anos no CadÚnico: % com uma só adulta, por bairro"),
 ])])
 
 add(pending("Crianças no CadÚnico com alguma deficiência", "baixar dados — Léo"))
@@ -598,7 +598,7 @@ add(pending("Crianças no CadÚnico por tipo de deficiência", "baixar dados —
 add(h2('\U0001F468‍\U0001F469‍\U0001F467 Família e Cuidados'))
 
 add(h3('\U0001F5C2️ Cadúnico'))
-add(p('Fonte: CadÚnico via banco CTPE (<code>silver_cadunico_geral</code>, extração jun/2026), recorte de crianças 0-6 anos (0 a 5 anos completos).'))
+add(p('Fonte: CadÚnico via banco CTPE (<code>silver_cadunico_geral</code>, extração jun/2026), recorte de crianças de 0 a 5 anos completos (grupo "0-6" do CTPE).'))
 add(note('<b>Nota:</b> requer conexão ativa com o banco CTPE (credenciais em <code>.env</code>) para reproduzir; não roda apenas com os arquivos em <code>dados_locais/</code>. Os gráficos abaixo refletem o último export salvo em <code>tabelas_finais/</code>.'))
 
 add(h4('Análise por renda'))
@@ -686,8 +686,8 @@ add(registra_tabela("Matrículas e taxa bruta de atendimento de 0 a 5 anos, por 
 add(h3('\U0001F5FA️ Mapas'))
 MAP_GROUPS_FAMILIA = [
     ("CadÚnico", [
-        ("mapa_cadunico_criancas_bairro_2026.png", "Crianças (0-6 anos) no CadÚnico, por bairro"),
-        ("mapa_cadunico_primeira_infancia_bairro_2026.png", "Crianças (0-4 anos) no CadÚnico, por bairro"),
+        ("mapa_cadunico_criancas_bairro_2026.png", "Crianças (0 a 5 anos) no CadÚnico, por bairro"),
+        ("mapa_cadunico_criancas_0_a_4_bairro_2026.png", "Crianças (0 a 4 anos) no CadÚnico, por bairro"),
         # recortes_cadunico D6: mapa % CadÚnico/Censo retirado (até 510% por viés CEP -> bairro; fica só no notebook)
     ]),
 ]
@@ -793,7 +793,7 @@ df_bp = read("nascidos_abaixo_peso_por_ano.csv")[["ano", "nascidos abaixo peso",
 add(registra_tabela("Nascidos abaixo do peso, por ano", table_html(df_bp, pct_cols=["percentual abaixo do peso"], rename={"ano": "Ano", "percentual abaixo do peso": "% abaixo do peso"})))
 
 add(h3('\U0001F957 DataSus - SISVAN'))
-add(p('Percentual de crianças 0-6 anos com sobrepeso/obesidade e desnutrição, agregado por ano (fonte: SISVAN).'))
+add(p('Percentual de crianças de 0 a 5 anos com sobrepeso/obesidade e desnutrição, agregado por ano (fonte: SISVAN).'))
 add(chart_block("sisvan_desnutricao_percentual_por_ano.png", "sisvan_desnutricao_por_ano.csv"))
 add(p(_texto_analise("sisvan_desnutricao_percentual_por_ano")))
 add(registra_tabela("Desnutrição SISVAN, por ano", table_html(read("sisvan_desnutricao_por_ano.csv")[["ano", "Percent. baixo peso total"]], pct_cols=["Percent. baixo peso total"], rename={"ano": "Ano"})))

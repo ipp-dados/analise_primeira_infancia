@@ -52,9 +52,9 @@ estão em `matriculas/tasks.md`.
 ## Bloco 7: Parte C
 
 - [x] **T7.1**: `auditoria_faixas.md` gerado (15 fontes; listas A, B e C; achado do total dobrado na série dos Censos, §2).
-- [ ] **T7.2**: Lista de rótulos, renomeações e notas de curadoria afetadas mostrada ao usuário (2026-09-24). **Parado aqui**, aguardando C-D2, C-D3, C-D4.
-- [ ] **T7.3**: Rótulos corrigidos e renomeações aprovadas executadas (leitores incluídos).
-- [ ] **T7.4**: Relatórios regenerados de novo.
+- [x] **T7.2**: Lista mostrada ao usuário (2026-09-24); decisões C-D2 ✅, C-D3 ✅, C-D4 ✅ (usuário: "1-ok 2-yes 3-ok").
+- [x] **T7.3**: Bug do total dos Censos corrigido; rótulos (lista A) e 21 renomeações (lista B) executados, leitores incluídos (`auditoria_faixas.md` §7).
+- [x] **T7.4**: HTML, PDF (140 p.) e DOCX regenerados; DOCX com migração dos bookmarks renomeados.
 
 ## Bloco 8: Validação e fechamento
 
