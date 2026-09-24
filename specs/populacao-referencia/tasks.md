@@ -38,10 +38,10 @@ estão em `matriculas/tasks.md`.
 
 ## Bloco 5: Parte D
 
-- [ ] **T5.1**: P-D1: nascidos vivos "EM BRANCO" em 2025 registrados.
-- [ ] **T5.2**: D1: coluna `percentual_do_municipio` na gêmea de nascidos vivos 2025; item "(percentual)" do crosswalk ligado ao mapa e à tabela de contagem.
-- [ ] **T5.3**: D2 e D3 ligados; mortalidade evitável por sexo marcada `pendente`.
-- [ ] **T5.4**: D4: aviso no console dos geradores para itens sem arquivo.
+- [x] **T5.1**: P-D1: 6.336 de 65.507 nascidos vivos de 2025 (9,7%) sem bairro ("EM BRANCO"); impresso pela célula do mapa.
+- [x] **T5.2**: D1: coluna `percentual_do_municipio` na gêmea de nascidos vivos 2025 (bairros somam 90,3%). Ligação no crosswalk: Bloco 6.
+- [x] **T5.3**: D3: `sidra_frequencia_escola_0_5_total_2022.csv/.png` (total por idade, 233.509). Ligações de D2/D3 e o `pendente` de mortalidade por sexo: Bloco 6.
+- [x] **T5.4**: D4: `itens_sem_arquivo`/`avisa_itens_sem_arquivo` em `gera_estrutura_eixos.py`, chamado pelo validador e pelos dois geradores (HTML e PDF). Antes do Bloco 6 lista exatamente os 4 itens do diagnóstico.
 
 ## Bloco 6: Crosswalk e relatórios
 
