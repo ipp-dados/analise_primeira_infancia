@@ -91,6 +91,11 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 - Choropleth convention (`mapa_coropletico_bairros`): **absolute counts always
   use discrete `bins`, percentages/rates always use a continuous colorbar**
   (`bins=None`) — this is fixed project-wide, not a per-map choice.
+- **Population denominators by level** (`specs/populacao-referencia`): municipal rates divide by the
+  Ripsa/MS estimate of the same year (`carrega_populacao_ripsa`/`populacao_ripsa`, versioned extract in
+  `dados_locais/populacao/`, network only if a year is missing); sub-municipal rates keep the fixed
+  Censo 2022 (0-4) and must say so in the source/legend. Labels use the data's real age range (CadÚnico
+  `'0-6'` and SISVAN are 0-5; see `auditoria_faixas.md`), not the catalog's "até 6 anos".
 - Never aggregate a percentage column by averaging/summing it across bairros
   — sum the absolute numerator/denominator first (`agrega_bairros_por_nivel`),
   then recompute the rate.
