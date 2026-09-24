@@ -131,24 +131,24 @@
 - fonte: DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis)
 - visualização: `obitos_causas_evitaveis_grupo_ano.png`
 - visualização: `obitos_causas_evitaveis_subgrupo_ano.png`
-- visualização: `obitos_causas_evitaveis_grupo_0_6_ano.png`
-- visualização: `obitos_causas_evitaveis_subgrupo_0_6_ano.png`
-- visualização: `obitos_causas_evitaveis_grupo_7_27_ano.png`
-- visualização: `obitos_causas_evitaveis_subgrupo_7_27_ano.png`
-- visualização: `obitos_causas_evitaveis_grupo_28_364_ano.png`
-- visualização: `obitos_causas_evitaveis_subgrupo_28_364_ano.png`
+- visualização: `obitos_causas_evitaveis_grupo_0_a_6_dias_ano.png`
+- visualização: `obitos_causas_evitaveis_subgrupo_0_a_6_dias_ano.png`
+- visualização: `obitos_causas_evitaveis_grupo_7_a_27_dias_ano.png`
+- visualização: `obitos_causas_evitaveis_subgrupo_7_a_27_dias_ano.png`
+- visualização: `obitos_causas_evitaveis_grupo_28_a_364_dias_ano.png`
+- visualização: `obitos_causas_evitaveis_subgrupo_28_a_364_dias_ano.png`
 - visualização: `obitos_causas_evitaveis_subgrupo_faixa_2025.png`
 - visualização: `obitos_evitaveis_menores_1_ano_subgrupo_ano.png`
 - visualização: `obitos_evitaveis_1_a_4_anos_subgrupo_ano.png`
 - visualização: `obitos_evitaveis_menores_5_subgrupo_ano.png`
 - tabela: `mortalidade_causas_evitaveis_grupo_ano.csv`
 - tabela: `mortalidade_causas_evitaveis_subgrupo_ano.csv`
-- tabela: `mortalidade_causas_evitaveis_grupo_0_6_ano.csv`
-- tabela: `mortalidade_causas_evitaveis_subgrupo_0_6_ano.csv`
-- tabela: `mortalidade_causas_evitaveis_grupo_7_27_ano.csv`
-- tabela: `mortalidade_causas_evitaveis_subgrupo_7_27_ano.csv`
-- tabela: `mortalidade_causas_evitaveis_grupo_28_364_ano.csv`
-- tabela: `mortalidade_causas_evitaveis_subgrupo_28_364_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_grupo_0_a_6_dias_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_subgrupo_0_a_6_dias_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_grupo_7_a_27_dias_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_subgrupo_7_a_27_dias_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_grupo_28_a_364_dias_ano.csv`
+- tabela: `mortalidade_causas_evitaveis_subgrupo_28_a_364_dias_ano.csv`
 - tabela: `mortalidade_causas_evitaveis_subgrupo_faixa_2025.csv`
 - tabela: `obitos_evitaveis_menores_5_subgrupo_municipio_ano.csv`
 - tabela: `mortalidade_evitaveis_grupo_cap_faixa_ano.csv`
@@ -185,6 +185,7 @@
 - visualização: `sidra_taxa_frequencia_0_6_raca_2022.png`
 - tabela: `sidra_frequencia_escola_0_5_raca_2022.csv`
 - tabela: `sidra_taxa_frequencia_0_6_raca_2022.csv`
+- nota: faixa real: frequência de 0 a 5 anos (tabela 10057) e taxa de frequência de 0 a 6 anos (tabela 10056)
 
 ### Crianças até 6 anos frequentando escola/creche, por sexo
 - fonte: Censo Demográfico 2022 (IBGE SIDRA)
@@ -192,6 +193,7 @@
 - visualização: `sidra_taxa_frequencia_0_6_sexo_2022.png`
 - tabela: `sidra_frequencia_escola_0_5_sexo_2022.csv`
 - tabela: `sidra_taxa_frequencia_0_6_sexo_2022.csv`
+- nota: faixa real: frequência de 0 a 5 anos (tabela 10057) e taxa de frequência de 0 a 6 anos (tabela 10056)
 
 ### Crianças de 0 a 5 anos no CadÚnico em relação à população do município
 - fonte: Cadastro Único (extração CTPE, jun/2026); população: estimativas Ripsa/Ministério da Saúde (2025)
@@ -213,7 +215,7 @@
 - mapa: `mapa_percentual_cadunico_criancas_negras_bairro_2026.png`
 - tabela: `cadunico_por_raca_cor_2026.csv`
 - tabela: `tabela_mapa_cadunico_recortes_bairro_2026.csv`
-- nota: raça/cor da criança; famílias com ao menos uma criança da categoria (não somam); por bairro só o % de crianças negras (privacidade)
+- nota: raça/cor da criança; famílias com ao menos uma criança da categoria (não somam); por bairro só o % de crianças negras (privacidade); 0 a 5 anos completos
 
 ### Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar
 - fonte: Cadastro Único (extração CTPE)
@@ -223,7 +225,7 @@
 - tabela: `cadunico_familias_por_arranjo_2026.csv`
 - tabela: `cadunico_familias_arranjo_renda_2026.csv`
 - tabela: `tabela_mapa_cadunico_recortes_bairro_2026.csv`
-- nota: arranjo aproximado pela composição do cadastro (adultos de 18+ por sexo), não é o conceito de monoparental do MDS; renda per capita
+- nota: arranjo aproximado pela composição do cadastro (adultos de 18+ por sexo), não é o conceito de monoparental do MDS; renda per capita; 0 a 5 anos completos
 
 ### Crianças no CadÚnico com alguma deficiência
 - fonte: Cadastro Único
@@ -246,18 +248,20 @@
 - fonte: Cadastro Único (extração CTPE)
 - visualização: `cadunico_criancas_por_idade.png`
 - mapa: `mapa_cadunico_criancas_bairro_2026.png`
-- mapa: `mapa_cadunico_primeira_infancia_bairro_2026.png`
+- mapa: `mapa_cadunico_criancas_0_a_4_bairro_2026.png`
 - tabela: `cadunico_por_idade_2026.csv`
 - tabela: `cadunico_por_bairro_2026.csv`
 - tabela: `cadunico_por_bairro_ate_4_2026.csv`
 - tabela: `tabela_mapa_cadunico_criancas_2026.csv`
-- tabela: `tabela_mapa_cadunico_primeira_infancia_2026.csv`
+- tabela: `tabela_mapa_cadunico_criancas_0_a_4_2026.csv`
+- nota: faixa real 0 a 5 anos completos (grupo "0-6" do CTPE); os arquivos `_0_a_4`/`ate_4` são o recorte de 0 a 4 anos
 
 ### Famílias com crianças até 6 anos no Cadastro Único (número)
 - fonte: Cadastro Único (extração CTPE)
 - visualização: `cadunico_familias_por_idade.png`
 - tabela: `cadunico_por_idade_2026.csv`
 - tabela: `cadunico_por_bairro_2026.csv`
+- nota: faixa real 0 a 5 anos completos (grupo "0-6" do CTPE)
 
 ### Famílias com crianças até 6 anos no Cadastro Único, por renda
 - fonte: Cadastro Único (extração CTPE)
@@ -380,19 +384,23 @@
 
 ### Desnutrição SISVAN (número)
 - fonte: SISVAN
+- nota: faixa real 0 a 5 anos (fase da vida "Criança (de 0 a 5 anos)" do SISVAN)
 - tabela: `sisvan_desnutricao_por_ano.csv`
 
 ### Desnutrição SISVAN (percentual)
 - fonte: SISVAN
+- nota: faixa real 0 a 5 anos (fase da vida "Criança (de 0 a 5 anos)" do SISVAN)
 - visualização: `sisvan_desnutricao_percentual_por_ano.png`
 - tabela: `sisvan_desnutricao_por_ano.csv`
 
 ### Sobrepeso SISVAN (número)
 - fonte: SISVAN
+- nota: faixa real 0 a 5 anos (fase da vida "Criança (de 0 a 5 anos)" do SISVAN)
 - tabela: `sisvan_sobrepeso_por_ano.csv`
 
 ### Sobrepeso SISVAN (percentual)
 - fonte: SISVAN
+- nota: faixa real 0 a 5 anos (fase da vida "Criança (de 0 a 5 anos)" do SISVAN)
 - visualização: `sisvan_sobrepeso_percentual_por_ano.png`
 - visualização: `sisvan_obesidade_percentual_por_ano.png`
 - tabela: `sisvan_sobrepeso_por_ano.csv`

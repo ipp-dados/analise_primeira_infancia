@@ -59,7 +59,7 @@ As células foram rodadas numa cópia de rascunho do projeto (só topo + célula
 ## V5: Parte C
 
 - [x] `auditoria_faixas.md` cobre todas as fontes (CadÚnico, Censo por bairro e série, SIDRA 9606/10056/10057, Sinan, Ripsa, Censo Escolar, SISVAN, vacinação, PNAD, SIM/SINASC). *(2026-09-24)*
-- [ ] Renomeações executadas = lista aprovada; `grep` sem referência a nomes antigos fora de `specs/`.
+- [x] Renomeações executadas = lista aprovada (21 `git mv`); `grep` sem referência a nomes antigos em `*.py`, `*.json` e `estrutura_eixos.md`. *(2026-09-24)*
 
 ## V6: Fechamento
 
