@@ -308,7 +308,6 @@ tem que cumprir tudo abaixo:
 
 ## 7. Pendências
 
-- **P1**: Criar uma skill própria (`.claude/skills/build_website/`) com o passo a passo de geração, ou
-  deixar só em `website/README.md`? Proposta: skill fina que aponta para o README. A confirmar no Bloco 7.
+- **P1** ✅ (2026-09-24): skill própria `.claude/skills/build_website/`, fina, apontando para `website/README.md`.
 - **P2**: Autorização do logo IPP e placeholders do rodapé continuam pendentes (`specs/relatorio-interativo`
   T0.4/T6.2) — não bloqueiam esta rodada.

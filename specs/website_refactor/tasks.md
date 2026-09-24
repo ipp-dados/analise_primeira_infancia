@@ -69,7 +69,7 @@ Um commit por bloco. Marcar `[x]` só depois da verificação correspondente em 
 - [x] **T7.3**: `git rm relatorio/index.html`; `.gitignore` ajustado para `website/`.
 - [x] **T7.4**: `website/README.md` e `website/ROADMAP.md` (mobile).
 - [x] **T7.5**: `relatorio/specs.md` v8, SKILL.md (descrição + passo 3), CLAUDE.md, constitution §4/§6, tech-stack, roadmap (peso ✅, Fale Conosco, logo SVG, mobile → `website/ROADMAP.md`), README (0.22.0) e CHANGELOG. Comentários dos scripts do PDF que citam `build_html_report.py` ficam como estão (fora do escopo, registro histórico).
-- [ ] **T7.6**: P1 — skill `build_website` (decisão do usuário).
+- [x] **T7.6**: P1 — skill `build_website` criada ("yes" do usuário, 2026-09-24): `.claude/skills/build_website/SKILL.md`, fina, aponta para `website/README.md`; CLAUDE.md lista as 3 skills.
 
 ## Bloco 8: Validação
 

@@ -35,9 +35,10 @@ gets committed; `analise.ipynb` is a generated artifact** — never hand-edit
 the notebook's outputs and expect them to matter, and `*.ipynb` is
 gitignored.
 
-Two project skills wrap multi-step regeneration pipelines — prefer them over
+Three project skills wrap multi-step regeneration pipelines — prefer them over
 reimplementing this logic:
 - `generate_map` — produces a choropleth PNG via `mapa_coropletico_bairros` (defined in `analise.py`).
+- `build_website` — regenerates/checks the static site in `website/` (`website/build/build_site.py`) and describes its manual GitHub Pages deploy.
 - `export_pdf_report` — regenerates `relatorio/analise_primeira_infancia.pdf` from `analise.py`'s own matplotlib PNGs (`visualizacoes/`) and `tabelas_finais/` tables. Distinct from and NOT related to the `website/` static site's SVG charts — see below.
 
 ## Architecture
