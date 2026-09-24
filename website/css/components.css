@@ -1,0 +1,229 @@
+/* components.css -- cartoes, graficos, pills, outliers, CSV, mapas, callouts.
+   specs/website_refactor Bloco 2: extraido da string CSS de build_site.py (ex-build_html_report.py),
+   mesma ordem relativa das regras. Editado a mao a partir daqui -- o gerador nao escreve este arquivo. */
+
+.eyebrow{font-family:var(--font-mono); font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;}
+
+/* sem contorno em graficos/tabelas -- o contorno agora e exclusivo do mapa
+   (.map-svg-card abaixo) e do texto que acompanha o mapa (specification.md
+   §7, pedido explicito do usuario) */
+.out{
+  margin:14px 0 8px; background:var(--surface); border:none; border-radius:0;
+  box-shadow:none; padding:22px 24px 16px;
+}
+.out-pair{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; margin:14px 0 8px;}
+.chart-subtitle{
+  font-family:var(--font-body); font-weight:600; font-size:.8rem; color:var(--ink-2);
+  text-transform:uppercase; letter-spacing:.05em; margin:0 0 12px;
+}
+
+/* ---------- maps: floating, no card chrome ---------- */
+.map-gallery{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:30px; margin:16px 0 36px;}
+.map-card{margin:0; background:transparent; border:none; box-shadow:none;}
+.map-card img{
+  display:block; width:100%; height:auto; border-radius:10px;
+  box-shadow:var(--shadow); transition:box-shadow .2s ease, transform .2s ease;
+}
+.map-card img:hover{box-shadow:var(--shadow-hover); transform:translateY(-3px);}
+.map-cap{padding:12px 4px 0; font-size:.82rem; color:var(--ink-2); text-align:center;}
+
+.out-src{font-family:var(--font-mono); font-size:.7rem; color:var(--ink-3); margin-top:10px; padding-top:8px; border-top:1px solid var(--hairline-2);}
+
+.chart-wrap{position:relative;}
+.chart-legend{display:flex; flex-wrap:wrap; gap:5px 14px; margin-bottom:10px;}
+.legend-item{display:flex; align-items:center; gap:6px; font-size:.79rem; color:var(--ink-2); white-space:nowrap;}
+.legend-item i{width:9px; height:9px; border-radius:50%; display:inline-block; flex:none;}
+.chart-svg{width:100%; height:auto; display:block; overflow:visible;}
+.grid-line{stroke:var(--hairline); stroke-width:1;}
+.axis-label{font-family:var(--font-mono); font-size:10.8px; fill:var(--ink-3);}
+.end-label{font-family:var(--font-mono); font-size:12.6px; font-weight:600; dominant-baseline:middle;}
+.extreme-label{font-family:var(--font-mono); font-size:10.2px; font-weight:600;}
+.hover-line{stroke:var(--ink-3); stroke-width:1; stroke-dasharray:2 3;}
+.hover-dot{stroke:var(--surface); stroke-width:2;}
+.chart-tooltip{
+  position:absolute; top:4px; display:none; pointer-events:none; z-index:5;
+  background:var(--surface); border:1px solid var(--hairline); border-radius:6px; box-shadow:var(--shadow-hover);
+  padding:8px 11px; font-size:.76rem; min-width:104px; max-width:240px;
+}
+.tt-year{font-family:var(--font-mono); color:var(--ink-3); margin-bottom:3px; font-size:.68rem; letter-spacing:.03em;}
+.tt-row{display:flex; align-items:center; gap:6px; color:var(--ink-2); white-space:nowrap; padding:1px 0;}
+.tt-row i{width:7px; height:7px; border-radius:50%; flex:none;}
+.tt-row b{color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+
+.bar-chart{display:flex; flex-direction:column; gap:8px; min-width:0;}
+.bar-row{display:grid; grid-template-columns:minmax(78px,180px) 1fr auto; gap:10px; align-items:center; min-width:0;}
+.bar-label{font-size:.8rem; color:var(--ink-2); line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.bar-track{height:20px; background:var(--hairline-2); border-radius:4px; overflow:hidden; position:relative; min-width:0;}
+.bar-fill{
+  height:100%; border-radius:4px; width:0%; transition:width .9s cubic-bezier(.16,.9,.25,1); min-width:2px;
+}
+@media (prefers-reduced-motion:reduce){ .bar-fill{transition:none;} }
+.bar-value{
+  font-family:var(--font-mono); font-size:.74rem; font-weight:600; color:var(--ink);
+  white-space:nowrap; text-align:right; font-variant-numeric:tabular-nums;
+}
+
+details.data-table{margin-top:12px; font-size:.82rem;}
+details.data-table summary{
+  cursor:pointer; color:var(--ink-3); font-family:var(--font-mono); font-size:.72rem; padding:3px 0;
+}
+details.data-table table{width:100%; border-collapse:collapse; margin-top:8px; font-variant-numeric:tabular-nums;}
+details.data-table th, details.data-table td{
+  text-align:right; padding:4px 7px; border-bottom:1px solid var(--hairline-2); font-size:.76rem; white-space:nowrap;
+}
+details.data-table th:first-child, details.data-table td:first-child{text-align:left;}
+details.data-table th{color:var(--ink-3); font-weight:500;}
+.table-scroll{overflow-x:auto;}
+
+table.plain{width:100%; border-collapse:collapse; font-size:.86rem; margin:14px 0;}
+table.plain th, table.plain td{text-align:right; padding:6px 10px; border-bottom:1px solid var(--hairline-2); font-variant-numeric:tabular-nums;}
+table.plain th:first-child, table.plain td:first-child{text-align:left; font-variant-numeric:normal;}
+table.plain th{color:var(--ink-3); font-weight:500; font-size:.78rem;}
+
+::selection{background:var(--accent); color:#fff;}
+
+.key-takeaways{background:var(--surface-2); border:2px solid var(--ink); box-shadow:var(--shadow); padding:18px 22px; margin-bottom:28px;}
+.kt-label{color:var(--ink-2); margin-bottom:10px;}
+.key-takeaways ul{margin:0; padding:0 0 0 18px; display:grid; gap:8px;}
+.key-takeaways li{font-family:var(--font-body); font-size:.92rem; color:var(--ink); line-height:1.5;}
+
+/* ---- indicador catalogado mas ainda sem dado real (specs/ajuste_eixos)
+   -- mesma familia visual do key-takeaways (--surface-2/--shadow), mas com
+   borda lateral (nao contorno completo) e rotulo proprio pra nunca ser
+   confundido com "Principais achados" ---- */
+.pending-block{
+  background:var(--surface-2); border-left:4px solid var(--accent); box-shadow:var(--shadow);
+  padding:14px 20px; margin:14px 0 28px;
+}
+.pending-label{color:var(--ink-2); margin-bottom:6px;}
+.pending-block p{margin:0; font-family:var(--font-body); font-size:.92rem; color:var(--ink); line-height:1.5;}
+.pending-block.pending-inline{margin:10px 0 8px;}
+
+/* ---- 3 padroes de layout: grafico (texto abaixo), mapa (texto na 3a
+   coluna), tabela (texto a esquerda) -- specification.md §3.13 ---- */
+.option-card{
+  display:grid; gap:16px 20px; margin:14px 0 8px; align-items:start;
+}
+.option-card-grafico{grid-template-columns:200px 1fr; grid-template-areas:"pills chart" "text text";}
+.option-card-grafico.option-card-single{grid-template-columns:1fr; grid-template-areas:"chart" "text";}
+/* mapa: pills numa fileira acima, mapa maior + texto ao lado (nao mais coluna de pills lateral) */
+/* mapa+texto: sem gap na coluna (encostados, so o padding interno de cada
+   um separa visualmente) e align-items:stretch pra igualar a altura do
+   texto a do mapa (specification.md §7, pedido explicito do usuario) */
+.option-card-mapa{grid-template-columns:1fr 280px; grid-template-areas:"pills pills" "map text"; gap:16px 0; align-items:stretch;}
+.option-card-mapa.option-card-single{grid-template-columns:1fr 280px; grid-template-areas:"map text"; gap:16px 0; align-items:stretch;}
+.option-card .pill-col{grid-area:pills;}
+.option-card-grafico .opt-panes{grid-area:chart;}
+.option-card-mapa .opt-panes{grid-area:map;}
+.option-card .opt-texts{grid-area:text;}
+.option-card-mapa .pill-col{
+  flex-direction:row; flex-wrap:wrap; max-height:none; overflow-y:visible; padding-right:0;
+}
+/* min-height:0 e essencial aqui -- sem isso, o tamanho minimo automatico
+   de um item de grid (baseado no seu conteudo) vence o height:100%/stretch
+   e o texto acaba maior que o mapa em vez de limitado a ele */
+.option-card-mapa .opt-panes, .option-card-mapa .opt-texts, .option-card-mapa .opt-pane{height:100%; min-height:0;}
+
+.table-with-text{display:grid; grid-template-columns:260px 1fr; gap:20px; margin:14px 0 8px; align-items:start;}
+
+.pill-col{display:flex; flex-direction:column; gap:8px; max-height:460px; overflow-y:auto; padding-right:2px;}
+.pill{
+  text-align:left; padding:9px 12px; border:2px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
+  font-family:var(--font-mono); font-size:.72rem; font-weight:600; cursor:pointer;
+}
+.pill[data-active="true"]{background:var(--ink); color:var(--page);}
+.opt-panes{min-width:0;}
+.opt-panes .out{margin-top:0;}
+.opt-text{
+  font-family:var(--font-body); font-size:.86rem; color:var(--ink-2); line-height:1.7;
+  padding:16px 18px; border:none; min-width:0;
+  max-height:240px; overflow-y:auto;
+}
+/* texto do mapa: sem contorno (so sombra), igual largura/altura do mapa
+   ao lado -- specification.md §7. min-height:0 por si so NAO limita a
+   altura aqui: uma linha "auto" de grid/flex sem altura de container
+   definida cresce pro maior max-content dos 2 lados (testado isoladamente
+   -- nem grid nem flexbox escapam disso so com min-height:0). Fix real: o
+   conteudo de texto vai pra um filho `position:absolute` (`.opt-text-
+   inner`), que sai do calculo de altura intrinseca do pai -- a linha do
+   grid passa a ser guiada só pela altura real do mapa. */
+.option-card-mapa .opt-text{
+  border:none; box-shadow:var(--shadow); box-sizing:border-box;
+  height:100%; min-height:0; max-height:none; padding:0;
+  position:relative; overflow:hidden;
+}
+.option-card-mapa .opt-text .opt-text-inner{
+  position:absolute; inset:0; overflow-y:auto;
+  padding:16px 18px; box-sizing:border-box;
+}
+
+/* ---- outliers ---- */
+/* botao de outlier fica sempre no mesmo nivel/lado do download CSV (pedido
+   explicito do usuario) -- posicionado absoluto sobre o card, a esquerda
+   do .dl-btn (que fica DENTRO do .out, top:14px;right:14px) */
+.outlier-card{position:relative;}
+.outlier-toolbar{position:absolute; top:14px; right:100px; z-index:3; margin:0;}
+.outlier-btn{
+  display:flex; align-items:center; gap:6px; border:1.5px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
+  font-family:var(--font-mono); font-size:.68rem; font-weight:600; padding:5px 10px; cursor:pointer;
+}
+.outlier-btn[data-active="true"]{background:var(--ink); color:var(--page);}
+.outlier-x{font-weight:700;}
+
+/* ---- download CSV ---- */
+.out{position:relative;}
+.dl-btn{
+  position:absolute; top:14px; right:14px; z-index:2;
+  display:flex; align-items:center; gap:5px; border:1.5px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
+  font-family:var(--font-mono); font-size:.66rem; font-weight:600; padding:5px 9px; cursor:pointer;
+}
+.dl-btn:hover{background:var(--accent-soft);}
+
+/* ---- mapas SVG interativos: estilo cartografico igual aos PNG de mapas/,
+   so com interatividade a mais (specification.md §7) ---- */
+.map-title{
+  font-family:var(--font-display); font-weight:700; font-size:1.05rem; color:var(--ink);
+  margin:0 0 14px; text-wrap:balance;
+}
+/* mapa e o unico card com contorno + sombra (specification.md §7) -- mapa
+   ocupa a largura toda (legenda virou overlay, nao mais coluna lateral) */
+.out.map-svg-card{border:2px solid var(--ink); box-shadow:var(--shadow);}
+/* sem max-width -- e SVG vetorial (sem imagem raster), preenche a coluna
+   "map" toda ate encostar no texto do lado, sem vao entre os dois */
+.map-svg-frame{
+  position:relative; background:var(--surface-2);
+}
+.map-svg{display:block; width:100%; height:auto; background-size:100% 100%; background-repeat:no-repeat;}
+.map-region{transition:filter .15s ease; cursor:pointer; fill-opacity:.88;}
+.map-region:hover{filter:brightness(1.08); stroke-width:1.6;}
+.map-scalebar-label{font-family:var(--font-mono); font-size:9.6px; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
+.map-compass-label{font-family:var(--font-mono); font-size:13.2px; font-weight:700; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
+/* legenda como overlay dentro do proprio mapa (specification.md §7) --
+   mesma convencao do matplotlib legend_kwds (canto sup. esquerdo,
+   framealpha .92, fundo branco) -- libera a largura toda do card pro mapa */
+.map-legend-overlay{
+  position:absolute; top:14px; left:14px; max-width:180px;
+  background:rgba(255,255,255,.92); border:1px solid var(--hairline-2);
+  padding:10px 12px; box-shadow:var(--shadow);
+}
+.map-legend-title{color:var(--ink); margin-bottom:8px;}
+.map-legend-row{display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:.68rem; font-weight:600; color:var(--ink-2); margin:5px 0;}
+.map-legend-sw{width:12px; height:12px; border:1px solid var(--ink); flex:none; display:inline-block;}
+.map-ref{
+  font-family:var(--font-mono); font-size:.68rem; font-style:italic; color:var(--ink-3);
+  line-height:1.6; margin-top:12px; padding-top:8px; border-top:1px solid var(--hairline-2);
+}
+
+
+@media (max-width:720px){
+  .option-card-grafico{grid-template-columns:1fr; grid-template-areas:"pills" "chart" "text";}
+  .option-card-grafico.option-card-single{grid-template-columns:1fr; grid-template-areas:"chart" "text";}
+  .option-card-mapa{grid-template-columns:1fr; grid-template-areas:"pills" "map" "text";}
+  .option-card-mapa.option-card-single{grid-template-columns:1fr; grid-template-areas:"map" "text";}
+  .table-with-text{grid-template-columns:1fr;}
+  .pill-col{flex-direction:row; flex-wrap:wrap; max-height:none;}
+  .map-legend-overlay{max-width:60%; padding:8px 10px;}
+}
+@media (max-width:520px){
+  .bar-row{grid-template-columns:70px 1fr auto;}
+}

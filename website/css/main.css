@@ -1,0 +1,78 @@
+/* main.css -- fontes, tokens (:root), reset, tipografia base e titulos.
+   specs/website_refactor Bloco 2: extraido da string CSS de build_site.py (ex-build_html_report.py),
+   mesma ordem relativa das regras. Editado a mao a partir daqui -- o gerador nao escreve este arquivo. */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  color-scheme: light;
+  --page:        #FFFFFF;
+  --surface:     #FFFFFF;
+  --surface-2:   #F7F8F8;
+  --ink:         #1C1E1D;
+  --ink-2:       #5B615F;
+  --ink-3:       #949B99;
+  --hairline:    rgba(20,30,27,0.08);
+  --hairline-2:  rgba(20,30,27,0.045);
+  --accent:      #2E9678;
+  --accent-ink:  #123128;
+  --accent-soft: #E9F6F1;
+  --shadow:      0 1px 2px rgba(20,30,27,.03), 0 12px 28px -16px rgba(20,30,27,.12);
+  --shadow-hover:0 4px 10px rgba(20,30,27,.05), 0 20px 40px -18px rgba(20,30,27,.18);
+
+  --c1: #6a95c8; --c1d:#87aad4;
+  --c2: #d28060; --c2d:#d19e8a;
+  --c3: #359c78; --c3d:#89d2b9;
+  --c4: #deb254; --c4d:#e0be7b;
+  --c5: #ca688d; --c5d:#cc8ea5;
+  --c6: #4aa64a; --c6d:#7be07b;
+  --c7: #8177bb; --c7d:#928ad1;
+  --c8: #cc6766; --c8d:#d28989;
+  --c9: #bc9776; --c9d:#bfad9c;
+  --c10:#b67c99; --c10d:#c398b3;
+  --c11:#8e9ea4; --c11d:#a5b2b6;
+  --c-muted: #d4d4d4; --c-muted-d:#5a6663;
+
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+*{box-sizing:border-box;}
+/* +20% em toda fonte baseada em rem (praticamente tudo no relatorio) --
+   pedido explicito do usuario; os poucos rotulos SVG em px fixo (eixos/
+   rotulos de grafico, escala/rosa dos ventos do mapa) sao escalados a
+   mao logo abaixo, ja que nao herdam de font-size do root */
+html{font-size:19.2px;}
+body{
+  margin:0; background:var(--page); color:var(--ink);
+  font-family:var(--font-body); line-height:1.6; font-size:19.2px;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent);}
+code{font-family:var(--font-mono); font-size:.92em; background:var(--hairline-2); padding:.1em .35em; border-radius:3px;}
+
+h2{
+  font-family:var(--font-display); font-weight:600; font-size:clamp(1.5rem,3vw,1.85rem);
+  margin:68px 0 4px; padding-top:32px; border-top:1px solid var(--hairline); line-height:1.2;
+  text-wrap:balance; scroll-margin-top:24px; color:var(--ink);
+}
+h2:first-of-type{margin-top:0; padding-top:0; border-top:none;}
+h3{
+  font-family:var(--font-display); font-weight:600; font-size:1.4rem;
+  margin:44px 0 14px; line-height:1.2; scroll-margin-top:24px;
+}
+h4{
+  font-family:var(--font-display); font-weight:600; font-size:1.16rem;
+  margin:34px 0 12px;
+}
+h5{
+  font-family:var(--font-body); font-weight:600; font-size:1rem;
+  margin:28px 0 10px; color:var(--ink);
+}
+h6{
+  font-family:var(--font-body); font-weight:600; font-size:.88rem;
+  margin:22px 0 8px; color:var(--ink-2); text-transform:uppercase; letter-spacing:.03em;
+}
+
+/* ============ specs/relatorio-interativo: identidade institucional ============ */
+:root{ --ipp-navy:#004a80; --ipp-cyan:#00aeef; }

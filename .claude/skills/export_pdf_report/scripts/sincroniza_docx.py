@@ -9,7 +9,7 @@ hoje para aquele bloco) e propaga o texto editado para:
 
   (a) `relatorio/textos_curados.json` -- merge, nunca substitui o arquivo
       inteiro (`atualiza_textos_curados`);
-  (b) `relatorio/index.html`, regenerado via subprocess
+  (b) `website/index.html` (site, specs/website_refactor), regenerado via subprocess
       (`build_html_report.py` lê o JSON no import, por isso subprocess, não
       import direto -- ver nota em `regenera_html`);
   (c) a HTML-fonte do PDF, regenerada via subprocess (`build_notebook_report.py`,
@@ -177,9 +177,9 @@ def regenera_html(raiz=_RAIZ):
     dentro do mesmo processo Python não veria o JSON recém-escrito).
     Invocação e cwd espelham exatamente `SKILL.md` ("rode a partir da raiz
     do projeto")."""
-    destino = "relatorio/index.html"
+    destino = "website/index.html"   # o gerador escreve na pasta website/ (padrão, sem argumento)
     subprocess.run(
-        [sys.executable, "website/build/build_site.py", destino],
+        [sys.executable, "website/build/build_site.py"],
         cwd=str(raiz), check=True, capture_output=True, text=True,
     )
     return raiz / destino
@@ -426,7 +426,7 @@ if __name__ == "__main__":
         raise SystemExit(0)
 
     print(f"JSON atualizado: {res['json_atualizado']} ({_CAMINHO_JSON_RELATIVO})")
-    print(f"HTML regenerado: {res['html_ok']} (relatorio/index.html)")
+    print(f"HTML regenerado: {res['html_ok']} (website/index.html)")
     print(f"HTML-fonte do PDF regenerada: {res['pdf_source_ok']} -> {res['pdf_source_path']}")
 
     if res["analise"]:

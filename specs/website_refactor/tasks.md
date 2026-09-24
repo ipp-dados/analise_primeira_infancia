@@ -20,10 +20,10 @@ Um commit por bloco. Marcar `[x]` só depois da verificação correspondente em 
 
 ## Bloco 2: Extrair CSS/JS/dados
 
-- [ ] **T2.1**: `css/main.css`, `css/layout.css`, `css/components.css` a partir da string `CSS`.
-- [ ] **T2.2**: `js/charts.js` a partir de `ENGINE`; `data/charts.js` a partir de `RENDER_CALLS`.
-- [ ] **T2.3**: Logo para `assets/images/` por `<img src>`; `<!doctype>`, `lang`, `charset`, `viewport`.
-- [ ] **T2.4**: DOM e capturas iguais à baseline (V2).
+- [x] **T2.1**: `css/main.css`, `css/layout.css`, `css/components.css` a partir da string `CSS`.
+- [x] **T2.2**: `js/charts.js` a partir de `ENGINE`; `data/charts.js` a partir de `RENDER_CALLS`.
+- [x] **T2.3**: Logo para `assets/images/` por `<img src>`; `<!doctype>`, `lang`, `charset`, `viewport`.
+- [x] **T2.4**: DOM e estilos iguais à baseline (V2). Argumento do gerador passou a ser a *pasta* de saída (copia `css/js/assets` quando não é `website/`); `sincroniza_docx.py` já chama sem argumento. `index.html`/`data/` gerados só entram no git no Bloco 3b (evita mais uma cópia de 20 MB no histórico).
 
 ## Bloco 3: Geometria compartilhada
 
