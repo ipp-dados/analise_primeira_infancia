@@ -32,7 +32,11 @@
 - tabela: `censo_0_a_4_anos_por_ano.csv`
 
 ### Crianças até 6 anos (número)
-- fonte: Censo Demográfico 2022 (IBGE SIDRA)
+- fonte: Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025)
+- visualização: `populacao_ripsa_0_a_6_por_ano.png`
+- visualização: `populacao_ripsa_0_a_6_percentual_por_ano.png`
+- tabela: `populacao_ripsa_0_a_6_por_ano.csv`
+- nota: série anual 2000-2025, nível município, idade simples 0 a 6 (a tabela traz também o total 0 a 5). Estimativa corrigida da subcontagem do Censo 2022: não se compara diretamente com os números do Censo. Ligado em `specs/populacao-referencia` (A2/D2)
 
 ### Nascidos vivos por bairro de residência da mãe (número)
 - fonte: DataSUS/Tabnet (nascidos vivos)
@@ -43,6 +47,9 @@
 
 ### Nascidos vivos por bairro de residência da mãe (percentual)
 - fonte: DataSUS/Tabnet (nascidos vivos)
+- mapa: `mapa_nascidos_vivos_bairro_2025.png`
+- tabela: `tabela_mapa_nascidos_vivos_2025.csv`
+- nota: mesma informação do mapa de contagem, dividida pelo total do município (coluna `percentual_do_municipio` da tabela; no HTML, no tooltip do mapa). O total inclui os nascidos sem bairro informado (6.336 de 65.507 em 2025), por isso os bairros somam ~90%. Sem mapa próprio (`specs/populacao-referencia`, D1 revisada)
 
 ### Taxa de mortalidade neonatal precoce (0 a 6 dias)
 - fonte: DataSUS/Tabnet (SIM/SINASC)
@@ -157,6 +164,8 @@
 
 ### Mortalidade infantil por causas evitáveis, por sexo
 - fonte: DataSUS (SIM)
+- status: pendente
+- nota: recorte por sexo ainda não extraído do SIM (antes o item sumia do relatório em silêncio, sem arquivo e sem status)
 
 ## 🤝 Inclusão
 
@@ -183,6 +192,11 @@
 - visualização: `sidra_taxa_frequencia_0_6_sexo_2022.png`
 - tabela: `sidra_frequencia_escola_0_5_sexo_2022.csv`
 - tabela: `sidra_taxa_frequencia_0_6_sexo_2022.csv`
+
+### Crianças de 0 a 5 anos no CadÚnico em relação à população do município
+- fonte: Cadastro Único (extração CTPE, jun/2026); população: estimativas Ripsa/Ministério da Saúde (2025)
+- tabela: `cadunico_razao_populacao_0_a_5_2026.csv`
+- nota: razão municipal (194.138 ÷ 393.073 ≈ 49,4% na partição 2026-06-12). Cadastro de 2026 sobre estimativa de 2025; não é a cobertura exata do cadastro. Item novo da rodada `populacao-referencia` (A4), fora do catálogo original
 
 ### Famílias no CadÚnico com crianças até 6 anos, por sexo
 - fonte: Cadastro Único (extração CTPE)
@@ -264,14 +278,24 @@
 - tabela: `cobertura_vacinal_epi_comparativo_anos.csv`
 
 ### Crianças até 6 anos frequentando escola/creche (geral)
-- fonte: Censo Demográfico 2022 (IBGE SIDRA)
+- fonte: Censo Demográfico 2022 (IBGE SIDRA, tabela 10057)
+- visualização: `sidra_frequencia_escola_0_5_total_2022.png`
+- tabela: `sidra_frequencia_escola_0_5_total_2022.csv`
+- nota: faixa real 0 a 5 anos (a tabela 10057 vai só até 5 anos); total de todas as raças e sexos, por idade (`specs/populacao-referencia`, D3)
 
-### Matrículas na educação básica de crianças até 6 anos
-- fonte: INEP
-- visualização: `matriculas_0_a_6_por_ano.png`
-- tabela: `matriculas_0_a_6_por_ano.csv`
-- status: pendente
-- nota: até 2020, necessário tratar microdados posteriores
+### Matrículas na educação básica de crianças de 0 a 5 anos
+- fonte: Censo Escolar da Educação Básica (INEP), microdados
+- visualização: `matriculas_0_a_5_por_ano.png`
+- visualização: `matriculas_0_a_5_creche_pre_por_ano.png`
+- visualização: `matriculas_0_a_5_rede_por_ano.png`
+- tabela: `matriculas_0_a_5_por_ano.csv`
+- nota: 0 a 5 anos (`QT_MAT_BAS_0_3` + `QT_MAT_BAS_4_5`), idade na data de referência do Censo Escolar (última quarta-feira de maio); os dados abertos não separam 6 anos de 7-10. Série 2007-2025 refeita dos microdados (a série antiga, "até 6 anos", não batia com a fonte). Catálogo: "crianças até 6 anos" (`specs/populacao-referencia/matriculas`)
+
+### Taxa bruta de atendimento escolar de 0 a 5 anos
+- fonte: Censo Escolar (INEP), microdados; população: estimativas Ripsa/Ministério da Saúde
+- visualização: `taxa_atendimento_0_a_5_por_ano.png`
+- tabela: `matriculas_0_a_5_por_ano.csv`
+- nota: matrículas ÷ população residente da mesma faixa (0-3, 4-5, 0-5), 2007-2025; taxa bruta (inclui não residentes matriculados no Rio). Linhas de referência do PNE (50% creche, 100% pré-escola). Item novo da rodada `matriculas-censo-escolar`, fora do catálogo original (o mais próximo, "taxa bruta de frequência escolar", é da PNAD e continua acima)
 
 ## 🛡️ Proteção
 
@@ -322,7 +346,8 @@
 - nota: parcial — só lesão autoprovocada (a violência interpessoal total e o recorte menor de 1 ano x 1 a 5 anos estão pendentes). 40 casos em 2018-2026, 33 deles em 2026 (ano parcial, usado como referência desta série); o salto pode refletir mudança de registro administrativo (hipótese, a confirmar com a fonte)
 
 ### Taxa de notificações de violência (0 a 6 anos)
-- fonte: Sinan NET/Tabnet (SMS-Rio); população 0 a 4 anos do Censo Demográfico 2022
+- fonte: Sinan NET/Tabnet (SMS-Rio); município: população 0 a 5 anos das estimativas Ripsa/Ministério da Saúde; bairro/RA/CAP: população 0 a 4 anos do Censo Demográfico 2022
+- visualização: `violencia_familiar_taxa_municipio_ano.png`
 - visualização: `violencia_familiar_taxa_top_bairros_2025.png`
 - mapa: `mapa_violencia_familiar_mae_taxa_bairro_2025.png`
 - mapa: `mapa_violencia_familiar_pai_taxa_bairro_2025.png`
@@ -330,9 +355,10 @@
 - mapa: `mapa_violencia_familiar_mae_taxa_ra_2025.png`
 - mapa: `mapa_violencia_familiar_pai_taxa_ra_2025.png`
 - mapa: `mapa_violencia_familiar_outros_taxa_ra_2021_2025.png`
+- tabela: `violencia_familiar_taxa_municipio_ano.csv`
 - tabela: `violencia_familiar_taxa_por_bairro.csv`
 - tabela: `violencia_familiar_taxa_top_bairros_2025.csv`
-- nota: ressalva de denominador — numerador com 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022), o que superestima a taxa em ~20% de forma uniforme; "outros" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: escala de cor limitada ao percentil 95
+- nota: município (2011-2025): numerador e denominador com 0 a 5 anos e o mesmo ano (Ripsa), sem ressalva de faixa (`specs/populacao-referencia`, A3). Bairro/RA/CAP: ressalva de denominador — numerador com 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022), o que superestima a taxa em ~20% de forma uniforme; o Censo 2022 é fixo (subconta crianças pequenas e é de outro ano), então as taxas por território comparam territórios entre si, não com a do município; "outros" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: escala de cor limitada ao percentil 95
 
 ### Crianças que sofrem violência, por tipificação (sexo e idade)
 - fonte: Tabnet municipal

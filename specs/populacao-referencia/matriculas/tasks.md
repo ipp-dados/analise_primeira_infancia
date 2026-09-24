@@ -35,10 +35,10 @@ IDs D/P são os de `specification.md`, e os blocos são os de `plan.md`.
 
 ## Bloco 4: Crosswalk e relatórios
 
-- [ ] **T4.1**: `estrutura_eixos.md` atualizado, sem `pendente`; taxa encaixada no catálogo ou como item novo.
-- [ ] **T4.2**: `line_chart` do HTML com parâmetro opcional de linhas de referência (D8); `build_html_report.py`, `build_notebook_report.py` e `regen_missing_pngs.py` ajustados (cards e blocos novos).
-- [ ] **T4.3**: Chave de curadoria `matriculas_0_a_6_por_ano` migrada, se existir.
-- [ ] **T4.4**: HTML, PDF e DOCX regenerados pela skill `export_pdf_report`.
+- [x] **T4.1**: `estrutura_eixos.md` atualizado, sem `pendente`; taxa encaixada no catálogo ou como item novo.
+- [x] **T4.2**: `line_chart` do HTML com parâmetro opcional de linhas de referência (D8); `build_html_report.py`, `build_notebook_report.py` e `regen_missing_pngs.py` ajustados (cards e blocos novos).
+- [x] **T4.3**: Chave de curadoria `matriculas_0_a_6_por_ano`: não existe em `textos_curados.json` nem em nota de `analise.py`; nada a migrar.
+- [x] **T4.4**: HTML, PDF e DOCX regenerados pela skill `export_pdf_report`.
 
 ## Bloco 5: Validação e fechamento
 

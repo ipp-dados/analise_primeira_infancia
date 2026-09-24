@@ -294,11 +294,31 @@ add(chart_block("censo_0_a_4_serie_percentual_ano.png", "censo_0_a_4_anos_por_an
 add(p(_texto_analise("censo_0_a_4_serie_percentual_ano")))
 add(registra_tabela("Percentual da população de 0 a 4 anos, por ano (Censo)", table_html(df_censo_serie[["ano", "Percentual 0 a 4 anos"]], pct_cols=["Percentual 0 a 4 anos"], rename={"ano": "Ano"})))
 
+# populacao-referencia A2/D2: série anual Ripsa (item "Crianças até 6 anos (número)")
+add(h4('População de 0 a 6 anos por ano (estimativas Ripsa/MS)'))
+add(note('<b>Nota metodológica.</b> Estimativas populacionais da Ripsa/Ministério da Saúde, que corrigem a subcontagem de crianças pequenas do Censo 2022 — '
+         'por isso os valores ficam acima dos do Censo e não se comparam diretamente com eles. Só existem para o município como um todo.'))
+add(chart_block("populacao_ripsa_0_a_6_por_ano.png", "populacao_ripsa_0_a_6_por_ano.csv"))
+add(p(_texto_analise("populacao_ripsa_0_a_6_por_ano")))
+add(chart_block("populacao_ripsa_0_a_6_percentual_por_ano.png", "populacao_ripsa_0_a_6_por_ano.csv"))
+add(p(_texto_analise("populacao_ripsa_0_a_6_percentual_por_ano")))
+add(registra_tabela("População de 0 a 6 anos, por ano (estimativas Ripsa/MS)", table_html(
+    read("populacao_ripsa_0_a_6_por_ano.csv")[["ano", "populacao_0_a_5", "populacao_0_a_6", "populacao_total", "percentual_0_a_6"]],
+    pct_cols=["percentual_0_a_6"], dec_cols={"percentual_0_a_6": 1},
+    rename={"ano": "Ano", "populacao_0_a_5": "0 a 5 anos", "populacao_0_a_6": "0 a 6 anos", "populacao_total": "Todas as idades", "percentual_0_a_6": "% 0 a 6 anos"})))
+
 add(h3('\U0001F3E5 Nascidos Vivos'))
 add(p('Nascidos vivos totais por bairro (2006-2025).'))
 add(chart_block("nascidos_vivos_por_ano.png", "nascidos_vivos_por_ano.csv"))
 add(p(_texto_analise("nascidos_vivos_por_ano")))
 add(registra_tabela("Nascidos vivos por ano", table_html(read("nascidos_vivos_por_ano.csv")[["ano", "nascidos vivos"]], rename={"ano": "Ano"})))
+# populacao-referencia D1: item "percentual de nascidos vivos por bairro de residência da mãe" -- mesma informação do mapa de
+# contagem, dividida pelo total do município (que inclui os nascidos sem bairro informado, por isso os bairros somam ~90%)
+add(p('O percentual de nascidos vivos de cada bairro sobre o total do município está na tabela abaixo; o total inclui os nascidos sem bairro informado, por isso os bairros somam cerca de 90%.'))
+add(registra_tabela("Nascidos vivos por bairro de residência da mãe (2025): número e % do município", table_html(
+    read("tabela_mapa_nascidos_vivos_2025.csv").sort_values("nascidos vivos", ascending=False)[["bairro", "nascidos vivos", "percentual_do_municipio"]],
+    pct_cols=["percentual_do_municipio"], dec_cols={"percentual_do_municipio": 1},
+    rename={"bairro": "Bairro", "nascidos vivos": "Nascidos vivos", "percentual_do_municipio": "% do município"})))
 
 add(h3('\U0001F4C9 Mortalidade'))
 add(p('Óbitos até 1 ano de idade: por raça/cor, causas evitáveis, gravidez/puerpério e mortalidade neonatal (precoce, tardia, pós-neonatal e total).'))
@@ -487,6 +507,7 @@ def emit_map_gallery(groups):
         add('</div>')
 
 emit_map_gallery(MAP_GROUPS_PRIORIDADE)
+add(pending("Mortalidade infantil por causas evitáveis, por sexo", "recorte por sexo ainda não extraído do SIM"))
 
 # =====================================================================
 # 2. Inclusão
@@ -515,6 +536,15 @@ add(h3('\U0001F5C2️ CadÚnico'))
 # ---- recortes por sexo, raça/cor, arranjo familiar e renda (specs/recortes_cadunico) ----
 add(p('Fonte: CadÚnico (extração CTPE, jun/2026). "Até 6 anos" = 0 a 5 anos completos (quem já fez 6 anos não está nesta extração). '
       'Nos mapas, o bairro é atribuído pelo CEP (Correios) e pode divergir do bairro oficial; bairros com menos de 20 famílias são suprimidos.'))
+
+# populacao-referencia A4: razão municipal CadÚnico / população Ripsa
+add(h4('Crianças de 0 a 5 anos no CadÚnico em relação à população do município'))
+add(note('<b>Nota metodológica.</b> Crianças cadastradas no CadÚnico (jun/2026) divididas pela população estimada de 0 a 5 anos do município em 2025 '
+         '(Ripsa/Ministério da Saúde). É uma razão entre um cadastro e uma estimativa, com um ano de diferença — não é a cobertura exata do cadastro.'))
+add('<div class="out">' + table_html(read("cadunico_razao_populacao_0_a_5_2026.csv")[["criancas_cadunico_0_a_5", "familias_cadunico", "populacao_ripsa_0_a_5", "razao_percentual"]],
+    pct_cols=["razao_percentual"], dec_cols={"razao_percentual": 1},
+    rename={"criancas_cadunico_0_a_5": "Crianças no CadÚnico", "familias_cadunico": "Famílias",
+            "populacao_ripsa_0_a_5": "População 0-5 (2025)", "razao_percentual": "Por 100 crianças"}) + '</div>')
 
 add(h4('Famílias no CadÚnico com crianças até 6 anos, por sexo'))
 add(note('<b>Nota metodológica.</b> Sexo da criança. As famílias estão classificadas pelo sexo das suas crianças '
@@ -623,11 +653,35 @@ add(p(_texto_analise("pnad_frequencia_escolar_por_idade")))
 df_freq["Total"] = df_freq["Total"] * 100  # source column is a 0-1 fraction, not already 0-100
 add(registra_tabela("Taxa de frequência escolar (PNAD Contínua), por idade", table_html(df_freq, pct_cols=["Total"], dec_cols={"Total": 1}, rename={"Total": "% frequência"})))
 
-add(h4('Número de matrículas 0 a 6 anos <span style="opacity:.6">(complementar 2021-2025)</span>'))
-add(chart_block("matriculas_0_a_6_por_ano.png", "matriculas_0_a_6_por_ano.csv"))
-add(p(_texto_analise("matriculas_0_a_6_por_ano")))
-add(registra_tabela("Matrículas na educação básica, 0 a 6 anos, por ano", table_html(read("matriculas_0_a_6_por_ano.csv")[["ano", "matriculas"]], rename={"ano": "Ano", "matriculas": "Matrículas"})))
-add('<div class="pending-block pending-inline"><p><b>\U0001F6A7 Dado desatualizado.</b> até 2020, necessário tratar microdados posteriores.</p></div>')
+# populacao-referencia D3: total por idade da SIDRA 10057 (item "frequentando escola/creche (geral)")
+add(h4('Crianças de 0 a 5 anos que frequentam escola/creche (Censo 2022)'))
+add(chart_block("sidra_frequencia_escola_0_5_total_2022.png", "sidra_frequencia_escola_0_5_total_2022.csv"))
+add(p(_texto_analise("sidra_frequencia_escola_0_5_total_2022")))
+
+# populacao-referencia Parte E (matriculas/): série 2007-2025 refeita dos microdados do INEP
+add(h4('Matrículas de crianças de 0 a 5 anos (Censo Escolar/INEP)'))
+add(note('<b>Nota metodológica.</b> 0 a 5 anos (creche e pré-escola): os dados abertos do INEP não separam as crianças de 6 anos das de 7 a 10. '
+         'A série inteira (2007-2025) foi refeita a partir dos microdados do Censo Escolar, com a mesma definição em todos os anos.'))
+add(chart_block("matriculas_0_a_5_por_ano.png", "matriculas_0_a_5_por_ano.csv"))
+add(p(_texto_analise("matriculas_0_a_5_por_ano")))
+add(chart_block("matriculas_0_a_5_creche_pre_por_ano.png", "matriculas_0_a_5_por_ano.csv"))
+add(p(_texto_analise("matriculas_0_a_5_creche_pre_por_ano")))
+add(chart_block("matriculas_0_a_5_rede_por_ano.png", "matriculas_0_a_5_por_ano.csv"))
+add(p(_texto_analise("matriculas_0_a_5_rede_por_ano")))
+add(h4('Taxa bruta de atendimento escolar de 0 a 5 anos'))
+add(note('<b>Nota metodológica.</b> Matrículas em escolas do Rio divididas pela população estimada de residentes da mesma idade (Ripsa/Ministério da Saúde). '
+         'É uma taxa bruta: inclui crianças de outros municípios que estudam no Rio. As linhas tracejadas são as metas do Plano Nacional de Educação '
+         '(50% em creche e 100% na pré-escola).'))
+add(chart_block("taxa_atendimento_0_a_5_por_ano.png", "matriculas_0_a_5_por_ano.csv"))
+add(p(_texto_analise("taxa_atendimento_0_a_5_por_ano")))
+add(registra_tabela("Matrículas e taxa bruta de atendimento de 0 a 5 anos, por ano", table_html(
+    read("matriculas_0_a_5_por_ano.csv")[["ano", "matriculas", "matriculas_0_a_3", "matriculas_4_a_5", "matriculas_publica", "matriculas_privada",
+                                          "taxa_atendimento_0_a_3", "taxa_atendimento_4_a_5", "taxa_atendimento_0_a_5"]],
+    pct_cols=["taxa_atendimento_0_a_3", "taxa_atendimento_4_a_5", "taxa_atendimento_0_a_5"],
+    dec_cols={"taxa_atendimento_0_a_3": 1, "taxa_atendimento_4_a_5": 1, "taxa_atendimento_0_a_5": 1},
+    rename={"ano": "Ano", "matriculas": "Matrículas 0-5", "matriculas_0_a_3": "0-3", "matriculas_4_a_5": "4-5",
+            "matriculas_publica": "Pública", "matriculas_privada": "Privada", "taxa_atendimento_0_a_3": "Taxa 0-3",
+            "taxa_atendimento_4_a_5": "Taxa 4-5", "taxa_atendimento_0_a_5": "Taxa 0-5"})))
 
 add(h3('\U0001F5FA️ Mapas'))
 MAP_GROUPS_FAMILIA = [
@@ -702,6 +756,14 @@ add(note('<b>Nota metodológica.</b> Ressalva de denominador: numerador com cria
          'de forma uniforme, então o ranking entre bairros se preserva. "Outros" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: '
          'a escala de cor é limitada ao percentil 95 (a tabela guarda o valor real). '
          'O denominador por bairro/RA/CAP é a população do Censo 2022, fixa: o Censo subconta crianças pequenas (o que puxa a taxa para cima) e é de 2022, enquanto as notificações são de 2025 (o que puxa para baixo). Por isso as taxas por território servem para comparar territórios entre si, e não com a taxa do município, que usa a estimativa populacional Ripsa/MS do mesmo ano.'))
+# populacao-referencia A3: taxa municipal com população Ripsa de 0 a 5 anos
+add(h4('Município: notificações por 1.000 crianças de 0 a 5 anos (2011-2025)'))
+add(chart_block("violencia_familiar_taxa_municipio_ano.png", "violencia_familiar_taxa_municipio_ano.csv"))
+add(p(_texto_analise("violencia_familiar_taxa_municipio_ano")))
+add(registra_tabela("Violência familiar: notificações por 1.000 crianças de 0 a 5 anos, município (população Ripsa/MS)", table_html(
+    read("violencia_familiar_taxa_municipio_ano.csv"), dec_cols={"taxa_por_mil_mae": 2, "taxa_por_mil_pai": 2, "taxa_por_mil_outros": 2},
+    rename={"ano": "Ano", "mae": "Mãe", "pai": "Pai", "outros": "Outros", "populacao_0_a_5": "População 0-5",
+            "taxa_por_mil_mae": "Taxa mãe /1.000", "taxa_por_mil_pai": "Taxa pai /1.000", "taxa_por_mil_outros": "Taxa outros /1.000"})))
 emit_map_gallery([("Taxa por 1.000 crianças de 0 a 4 anos (população: Censo 2022)", [
     ("mapa_violencia_familiar_mae_taxa_bairro_2025.png", "Notificações de violência (mãe) por 1.000 crianças de 0 a 4 anos (2025)"),
     ("mapa_violencia_familiar_pai_taxa_bairro_2025.png", "Notificações de violência (pai) por 1.000 crianças de 0 a 4 anos (2025)"),

@@ -715,8 +715,10 @@ def _svg_rosa_dos_ventos(x=None, y=30):
     )
 
 def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro", teto=None, zero_branco=False,
-             col_suprimido=None, rotulo_suprimido="suprimido (< 20)"):
-    """`teto`: limite superior só da escala de cor contínua (valores acima usam a cor máxima; o tooltip mostra o real).
+             col_suprimido=None, rotulo_suprimido="suprimido (< 20)", col_extra=None, rotulo_extra=""):
+    """`col_extra` (populacao-referencia D1): coluna percentual opcional de `df` mostrada no tooltip ao lado do
+    valor, como "1.234 (1,9% do município)" com `rotulo_extra`; None (padrão) não muda nada.
+    `teto`: limite superior só da escala de cor contínua (valores acima usam a cor máxima; o tooltip mostra o real).
     `col_suprimido` (specs/recortes_cadunico §5): coluna booleana de `df` marcando regiões suprimidas por
     privacidade (valor já vazio na tabela) -- o tooltip mostra `rotulo_suprimido` em vez de "—" e a legenda
     ganha uma linha própria. None (padrão) = comportamento anterior, usado pelos demais mapas.
@@ -730,12 +732,15 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
     gdf, project, nomes = _geo_nivel(nivel)
     valores = {}
     suprimidas = set()
+    extras = {}
     for _, r in df.iterrows():
         try:
             chave = _chave_norm(r[chave_col], nivel)
         except (ValueError, TypeError):
             continue  # linhas de agregado tipo "Em branco"/"Ignorado" (nao sao uma unidade geografica real)
         valores[chave] = None if pd.isna(r[valor_col]) else float(r[valor_col])
+        if col_extra is not None and not pd.isna(r[col_extra]):
+            extras[chave] = float(r[col_extra])
         if col_suprimido is not None and bool(r[col_suprimido]):
             suprimidas.add(chave)
     brutos = list(valores.values())
@@ -767,6 +772,8 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 fill = _cor_sequencial(tema, frac)
             label = nomes.get(chave, str(chave))
             val_txt = _fmt_ptbr(v, 1 if fmt in ("pct1", "dec1") else 0) + ("%" if fmt == "pct1" and v is not None else "")
+            if v is not None and chave in extras:
+                val_txt += f" ({_fmt_ptbr(extras[chave], 1)}% {rotulo_extra})".replace(" )", ")")
             if chave in suprimidas:
                 val_txt = rotulo_suprimido
             paths.append(
@@ -969,6 +976,21 @@ option_card([
     ], opts={'height': 200, 'zeroBase': False, 'maxXLabels': 3, 'table': True}, fonte="censo_0_a_4_anos_por_ano.csv (Tabela 2974/IBGE)"), "censo_0_a_4_serie_percentual_ano"),
 ], 'grafico')
 
+# populacao-referencia A2/D2: série anual Ripsa (item "Crianças até 6 anos (número)")
+h3('População de 0 a 6 anos por ano (estimativas Ripsa/MS)')
+nota_metodologica(
+    "Estimativas populacionais da Ripsa/Ministério da Saúde, que corrigem a subcontagem de crianças pequenas do Censo 2022 — "
+    "por isso os valores ficam acima dos do Censo e não se comparam diretamente com eles. Só existem para o município como um todo."
+)
+FONTE_RIPSA = "Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025)"
+df_pop_ripsa = read("populacao_ripsa_0_a_6_por_ano.csv")
+option_card([
+    ("0 a 6 anos", lambda: line_chart(df_pop_ripsa["ano"], [{'label': 'População de 0 a 6 anos', 'values': df_pop_ripsa['populacao_0_a_6']}],
+        opts={'height': 220, 'maxXLabels': 8, 'table': True}, fonte=FONTE_RIPSA), "populacao_ripsa_0_a_6_por_ano"),
+    ("% da população", lambda: line_chart(df_pop_ripsa["ano"], [{'label': '% de 0 a 6 anos na população', 'values': df_pop_ripsa['percentual_0_a_6'], 'format': 'pct1'}],
+        opts={'height': 200, 'zeroBase': False, 'maxXLabels': 8, 'table': True}, fonte=FONTE_RIPSA), "populacao_ripsa_0_a_6_percentual_por_ano"),
+], 'grafico')
+
 FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro"
 
 RACA_LABEL = {"amarela": "Amarela", "branca": "Branca", "indigena": "Indígena", "parda": "Parda", "preta": "Preta", "nao_informado": "Não informado"}
@@ -989,7 +1011,8 @@ df_map_nv = read("tabela_mapa_nascidos_vivos_2025.csv")
 df_map_raca_2025 = read("mortalidade_raca_bairro_ano.csv").pipe(lambda d: d[d["ano"] == 2025])
 option_card([
     ("Nascidos vivos", lambda: mapa_svg(df_map_nv, "codigo", "nascidos vivos", "natalidade",
-        "Nascidos vivos por bairro (2025)", "Nascidos vivos", FONTE_DATASUS, bins=[200, 400, 800, 1500]), "mapa_nascidos_vivos_bairro_2025"),
+        "Nascidos vivos por bairro (2025)", "Nascidos vivos", FONTE_DATASUS, bins=[200, 400, 800, 1500],
+        col_extra="percentual_do_municipio", rotulo_extra="do município"), "mapa_nascidos_vivos_bairro_2025"),
     ("Óbitos 0-364 dias", lambda: mapa_svg(df_map_raca_2025, "codigo", "obitos_total", "mortalidade",
         "Óbitos de 0 a 364 dias por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "mapa_obitos_raca_total_bairro_2025"),
     ("Taxa mortalidade infantil", lambda: mapa_svg(df_map_raca_2025, "codigo", "percentual_total", "mortalidade",
@@ -1234,6 +1257,8 @@ for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
 # não é mais gerada) -- ver specs/merge-waleska-changes/specs.md
 option_card(_entries_mapas_cap_faixa, 'mapa')
 
+emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo", "recorte por sexo ainda não extraído do SIM")
+
 # ================================================================ INCLUSAO ==
 
 h2('🤝 Inclusão')
@@ -1288,6 +1313,22 @@ _ORDEM_RACA_CAD = ["Parda", "Branca", "Preta", "Amarela", "Indígena"]
 def _mapa_cadunico_pct(col, titulo, legenda):
     return mapa_svg(df_cad_recortes_mapa, "codbairro", col, "cadunico", titulo, legenda, FONTE_MAPA_CADUNICO,
                     fmt="pct1", col_suprimido="suprimido")
+
+# populacao-referencia A4: razão municipal CadÚnico / população Ripsa
+h3("Crianças de 0 a 5 anos no CadÚnico em relação à população do município")
+nota_metodologica(
+    "Crianças cadastradas no CadÚnico (jun/2026) divididas pela população estimada de 0 a 5 anos do município em 2025 "
+    "(Ripsa/Ministério da Saúde). É uma razão entre um cadastro e uma estimativa, com um ano de diferença — não é a cobertura exata do cadastro."
+)
+_razao_cad = read("cadunico_razao_populacao_0_a_5_2026.csv")
+_tab_razao_cad = pd.DataFrame({
+    "Crianças de 0 a 5 anos no CadÚnico": _razao_cad["criancas_cadunico_0_a_5"].map(_fmt_ptbr),
+    "Famílias": _razao_cad["familias_cadunico"].map(_fmt_ptbr),
+    "População de 0 a 5 anos (2025)": _razao_cad["populacao_ripsa_0_a_5"].map(_fmt_ptbr),
+    "Crianças no CadÚnico por 100 crianças": _razao_cad["razao_percentual"].map(lambda v: _fmt_ptbr(v, 1) + "%"),
+})
+tabela_com_texto(lambda: plain_table(_tab_razao_cad, fonte=FONTE_CADUNICO + "; população: estimativas Ripsa/Ministério da Saúde (2025)"),
+                 "cadunico_razao_populacao_0_a_5_2026")
 
 h3("Famílias no CadÚnico com crianças até 6 anos, por sexo")
 nota_metodologica(
@@ -1415,18 +1456,44 @@ df_pnad = read("frequencia_escolar_pnad_por_idade.csv")
 # para nao forcar pills na "Comparação entre faixas etárias" de evitáveis)
 option_card([("Frequência por idade", lambda: bar_chart([{'label': r["Idade"], 'value': r["Total"] * 100} for _, r in df_pnad.iterrows()], fonte="PNAD Contínua (IBGE)", fmt='pct1'), "pnad_frequencia_escolar_por_idade")], 'grafico')
 
-h3('Matrículas 0 a 6 anos')
-df_mat = read("matriculas_0_a_6_por_ano.csv").sort_values("ano")
-option_card([("Matrículas 0 a 6 anos", lambda: line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}], opts={'height': 200, 'table': True}, fonte="Censo Escolar/INEP"), "matriculas_0_a_6_por_ano")], 'grafico')
-# specs/estrutura_eixos.md: indicador "status: pendente" (atualizacao de dado,
-# nao falta de recorte -- ate 2020, precisa tratar microdados posteriores) --
-# mantem o grafico real (nao e um emite_bloco_pendente) e so acrescenta o selo.
-parts.append(
-    '<div class="pending-block pending-inline">'
-    '<div class="eyebrow pending-label">🚧 DADO DESATUALIZADO</div>'
-    f'<p>{_esc("até 2020, necessário tratar microdados posteriores")}</p>'
-    '</div>'
+# populacao-referencia D3: total por idade da SIDRA 10057 (item "frequentando escola/creche (geral)")
+h3('Crianças de 0 a 5 anos que frequentam escola/creche (Censo 2022)')
+df_freq_total = _ordenar_idade(read("sidra_frequencia_escola_0_5_total_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
+option_card([("Por idade", lambda: bar_chart([{'label': r["idade"], 'value': r["Crianças"]} for _, r in df_freq_total.iterrows()],
+    fonte=FONTE_SIDRA_EDU), "sidra_frequencia_escola_0_5_total_2022")], 'grafico')
+
+# populacao-referencia Parte E (matriculas/): série 2007-2025 refeita dos microdados do INEP
+h3('Matrículas de crianças de 0 a 5 anos (Censo Escolar/INEP)')
+nota_metodologica(
+    "0 a 5 anos (creche e pré-escola): os dados abertos do INEP não separam as crianças de 6 anos das de 7 a 10. "
+    "A série inteira (2007-2025) foi refeita a partir dos microdados do Censo Escolar, com a mesma definição em todos os anos."
 )
+FONTE_MATRICULAS = "Censo Escolar da Educação Básica (INEP), microdados"
+df_mat = read("matriculas_0_a_5_por_ano.csv").sort_values("ano")
+option_card([
+    ("Total 0 a 5 anos", lambda: line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}],
+        opts={'height': 220, 'maxXLabels': 8, 'table': True}, fonte=FONTE_MATRICULAS), "matriculas_0_a_5_por_ano"),
+    ("Creche e pré-escola", lambda: line_chart(df_mat["ano"], [
+        {'label': '0 a 3 anos (creche)', 'values': df_mat['matriculas_0_a_3']}, {'label': '4 a 5 anos (pré-escola)', 'values': df_mat['matriculas_4_a_5']}],
+        opts={'height': 240, 'maxXLabels': 8, 'table': True}, fonte=FONTE_MATRICULAS), "matriculas_0_a_5_creche_pre_por_ano"),
+    ("Rede pública e privada", lambda: line_chart(df_mat["ano"], [
+        {'label': 'Rede pública', 'values': df_mat['matriculas_publica']}, {'label': 'Rede privada', 'values': df_mat['matriculas_privada']}],
+        opts={'height': 240, 'maxXLabels': 8, 'table': True}, fonte=FONTE_MATRICULAS), "matriculas_0_a_5_rede_por_ano"),
+], 'grafico')
+
+h3('Taxa bruta de atendimento escolar de 0 a 5 anos')
+nota_metodologica(
+    "Matrículas em escolas do Rio divididas pela população estimada de residentes da mesma idade (Ripsa/Ministério da Saúde). "
+    "É uma taxa bruta: inclui crianças de outros municípios que estudam no Rio. As linhas tracejadas são as metas do Plano Nacional de "
+    "Educação (50% em creche e 100% na pré-escola)."
+)
+option_card([("Por faixa de idade", lambda: line_chart(df_mat["ano"], [
+    {'label': '0 a 3 anos (creche)', 'values': df_mat['taxa_atendimento_0_a_3'], 'format': 'pct1'},
+    {'label': '4 a 5 anos (pré-escola)', 'values': df_mat['taxa_atendimento_4_a_5'], 'format': 'pct1'},
+    {'label': '0 a 5 anos', 'values': df_mat['taxa_atendimento_0_a_5'], 'format': 'pct1'}],
+    opts={'height': 280, 'maxXLabels': 8, 'table': True,
+          'refLines': [{'value': 50, 'label': 'Meta PNE creche: 50%'}, {'value': 100, 'label': 'Meta PNE pré-escola: 100%'}]},
+    fonte="Censo Escolar (INEP), microdados; população: estimativas Ripsa/Ministério da Saúde"), "taxa_atendimento_0_a_5_por_ano")], 'grafico')
 
 # ======================================================== PROTECAO ========
 
@@ -1536,6 +1603,17 @@ nota_metodologica(
     "O denominador por bairro/RA/CAP é a população do Censo 2022, fixa: o Censo subconta crianças pequenas (o que puxa a taxa para cima) e é de 2022, enquanto as notificações são de 2025 (o que puxa para baixo). Por isso as taxas por território servem para comparar territórios entre si, e não com a taxa do município, que usa a estimativa populacional Ripsa/MS do mesmo ano. "
     "Nos mapas de taxa há o botão \"Remover outliers\"."
 )
+# populacao-referencia A3: taxa municipal com população Ripsa de 0 a 5 anos (mesma faixa e ano do numerador)
+h5('Município: notificações por 1.000 crianças de 0 a 5 anos (2011-2025)')
+df_vf_taxa_mun = read("violencia_familiar_taxa_municipio_ano.csv")
+option_card([("Mãe, pai e outros", lambda: line_chart(df_vf_taxa_mun["ano"], [
+    {'label': 'Mãe', 'values': df_vf_taxa_mun['taxa_por_mil_mae'], 'format': 'dec1'},
+    {'label': 'Pai', 'values': df_vf_taxa_mun['taxa_por_mil_pai'], 'format': 'dec1'},
+    {'label': 'Outros vínculos', 'values': df_vf_taxa_mun['taxa_por_mil_outros'], 'format': 'dec1'}],
+    opts={'height': 260, 'maxXLabels': 8, 'table': True, 'yDecimals': 1},
+    fonte="Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 5 anos: estimativas Ripsa/Ministério da Saúde"),
+    "violencia_familiar_taxa_municipio_ano")], 'grafico')
+
 _mapas_taxa = []
 for _nome, _rot, _per in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
     _dft = read(f"tabela_mapa_violencia_familiar_taxa_{_nome}.csv")
@@ -2167,6 +2245,9 @@ ENGINE = r"""
     const plotW = W - padL - padR, plotH = H - padT - padB;
     const allVals = [];
     series.forEach(s=>s.values.forEach(v=>{ if (v!=null) allVals.push(v); }));
+    // linhas de referencia opcionais (populacao-referencia D8, metas do PNE): entram na escala
+    const refLines = opts.refLines || [];
+    refLines.forEach(r=>allVals.push(r.value));
     let vMin = Math.min.apply(null, allVals), vMax = Math.max.apply(null, allVals);
     if (opts.zeroBase !== false) vMin = Math.min(0, vMin);
     const span = (vMax - vMin) || 1;
@@ -2205,6 +2286,11 @@ ENGINE = r"""
     x.forEach((lab,i)=>{
       if (i % step !== 0 && i !== n-1) return;
       svgEl('text', {x:xAt(i), y:H-7, class:'axis-label', 'text-anchor': i===0?'start':(i===n-1?'end':'middle')}, svg).textContent = lab;
+    });
+    refLines.forEach(r=>{
+      const y = yAt(r.value);
+      svgEl('line', {x1:padL, x2:W-padR, y1:y, y2:y, stroke:'var(--c-muted)', 'stroke-width':1.1, 'stroke-dasharray':'5 4'}, svg);
+      svgEl('text', {x:W-padR, y:y-4, class:'axis-label', 'text-anchor':'end', 'font-style':'italic'}, svg).textContent = r.label;
     });
 
     function desenhaSerie(s, apagada){
