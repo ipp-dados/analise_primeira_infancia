@@ -42,9 +42,9 @@ Um commit por bloco. Marcar `[x]` só depois da verificação correspondente em 
 
 ## Bloco 4: Protótipo
 
-- [ ] **T4.1**: Tokens (raio, sombra, espaçamento, superfícies) em rascunho, contraste AA medido.
-- [ ] **T4.2**: Página de teste com markup real + capturas 1440/1280px.
-- [ ] **T4.3**: Aprovação do usuário (ou rodada de ajustes registrada aqui).
+- [x] **T4.1**: Tokens em `website/build/prototype/css/` (raios 8/14/20, 2 sombras, espaçamento 4-64, fundo `#F3F5F8` + cartões brancos, acento azul IPP `#0A5A99`); contraste AA medido (V4).
+- [x] **T4.2**: `website/build/prototype/make_prototype.py` → `prototype/index.html` com pedaços reais (9 gráficos, mapa com pills, pendente, nota, fontes). `js/navigation.js` e `js/sidebar.js` já escritos (reais) e usados pelo protótipo; ícones Lucide em `assets/icons/`. Capturas via DevTools Protocol (script no scratchpad; a captura por linha de comando do Chrome não serve para página rolada).
+- [ ] **T4.3**: Aprovação do usuário (ou rodada de ajustes registrada aqui). Rótulo curto na aba ("Prioridade"), título completo no h2.
 
 ## Bloco 5: Abas e conteúdo
 

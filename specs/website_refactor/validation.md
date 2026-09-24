@@ -48,7 +48,19 @@ Referência: 20,9 MB (V0). Medir depois de cada passo do Bloco 3b.
 
 ## V4: Protótipo
 
-- [ ] Contraste AA (≥ 4,5:1) de texto sobre cada superfície nova — tabela com os valores.
+- [x] Contraste AA (≥ 4,5:1), WCAG 2.x:
+
+  | Texto | Fundo | Razão |
+  |---|---|---|
+  | `--ink` #16202A | surface / page | 16,5 / 15,1 |
+  | `--ink-2` #3F4B57 | surface / page / surface-3 | 8,9 / 8,2 / 7,7 |
+  | `--ink-3` #5B6773 | surface / page / surface-2 / surface-3 | 5,8 / 5,3 / 5,4 / 5,0 |
+  | `--accent` #0A5A99 | surface / page / accent-soft | 7,2 / 6,6 / 6,2 |
+  | `--accent-ink` #073F6C | accent-soft | 9,4 |
+  | `--warn` #8A4B06 | warn-soft | 6,2 |
+  | branco | ipp-navy / accent | 9,2 / 7,2 |
+  | *antes:* `--ink-3` #949B99 / acento #2E9678 | branco | *2,8 / 3,7 — falhavam* |
+- [x] Comportamento no protótipo (Chrome via DevTools Protocol, 1440×900, reduced motion): barra de abas em y=0 depois de rolar; `--nav-h` medido (59 px); clique na aba muda o hash; sumário acompanha a rolagem (37% → 100%, subseção certa ativa); clique no sumário leva o h3 a 20 px abaixo da barra e grava `#<painel>/<h3>`; 0 erros no console. Achado e corrigido: na Visão geral o sumário marcava "Moradia" (links para painéis ocultos entravam no scroll-spy); e o salto nativo do navegador para `#<painel>` deixava o topo sob a barra (`scroll-margin-top` no painel).
 - [ ] Aprovação do usuário registrada (data e ajustes pedidos).
 
 ## V5-V6: Abas, sumário, restyle
