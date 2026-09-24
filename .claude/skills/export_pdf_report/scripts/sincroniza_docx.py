@@ -171,14 +171,15 @@ def atualiza_textos_curados(edicoes, raiz=_RAIZ):
 # --------------------------------------------- 3. regeneração HTML / PDF ---
 
 def regenera_html(raiz=_RAIZ):
-    """Roda `build_html_report.py` como subprocess (não import direto -- o
+    """Roda o gerador do site (`website/build/build_site.py`, ex-`build_html_report.py`,
+    specs/website_refactor) como subprocess (não import direto -- o
     módulo carrega `_TEXTOS_CURADOS` uma vez, no import, então um import
     dentro do mesmo processo Python não veria o JSON recém-escrito).
     Invocação e cwd espelham exatamente `SKILL.md` ("rode a partir da raiz
     do projeto")."""
     destino = "relatorio/index.html"
     subprocess.run(
-        [sys.executable, ".claude/skills/export_pdf_report/scripts/build_html_report.py", destino],
+        [sys.executable, "website/build/build_site.py", destino],
         cwd=str(raiz), check=True, capture_output=True, text=True,
     )
     return raiz / destino
