@@ -2154,6 +2154,15 @@ fonte_datasus_bairro = 'DATASUS/Tabnet, óbitos e nascimentos de residentes no m
 # 'EM BRANCO' (bairro não identificado) fica sem 'codigo' em limpeza_tabnet_bairros -- não
 # mapeável, mesmo tratamento de dado incompleto já usado noutras seções ('Ignorado' etc.)
 df_vivos_mapa = df_vivos[df_vivos['ano']=='2025'].dropna(subset=['codigo']).copy()
+# populacao-referencia D1 (item "percentual de nascidos vivos por bairro de residência da mãe" do catálogo):
+# nascidos vivos do bairro ÷ total do município × 100. O total INCLUI 'EM BRANCO' (bairro não informado:
+# 6.336 de 65.507 em 2025), então a soma dos bairros fica abaixo de 100% (~90%) e a lacuna fica visível.
+# O mapa continua sendo o de contagem -- o percentual é a mesma informação dividida por uma constante.
+_total_vivos_2025 = df_vivos.loc[df_vivos['ano']=='2025', 'nascidos vivos'].sum()
+_em_branco_2025 = _total_vivos_2025 - df_vivos_mapa['nascidos vivos'].sum()
+df_vivos_mapa['percentual_do_municipio'] = df_vivos_mapa['nascidos vivos'] / _total_vivos_2025 * 100
+print(f'Nascidos vivos 2025: {_total_vivos_2025} no município, {_em_branco_2025} sem bairro (EM BRANCO); '
+      f'soma dos bairros = {df_vivos_mapa["percentual_do_municipio"].sum():.1f}%')
 df_vivos_mapa.to_csv('tabelas_finais//tabela_mapa_nascidos_vivos_2025.csv', index=False)
 
 mapa_coropletico_bairros(
@@ -3471,6 +3480,18 @@ grafico_barra_agrupado(
     nome_arquivo='sidra_frequencia_escola_0_5_sexo_2022', ylabel='Pessoas', legend_title='Sexo',
     ordem_categoria=_ORDEM_IDADE_SIDRA_0_5, fonte_dados=fonte_sidra_educacao,
 )
+
+# %%
+# populacao-referencia D3: item do catálogo "Crianças até 6 anos frequentando escola/creche (geral)" --
+# o total (todas as raças e sexos) por idade. A tabela 10057 vai só até 5 anos (faixa real 0 a 5).
+df_sidra_freq_total = df_sidra_freq_sexo[df_sidra_freq_sexo['Sexo'] == 'Total'].copy()
+df_sidra_freq_total = (df_sidra_freq_total[df_sidra_freq_total['idade'] != 'Total'][['idade', 'valor']]
+                       .rename(columns={'valor': 'Crianças'}))
+assert df_sidra_freq_total['Crianças'].sum() == 233509
+df_sidra_freq_total.to_csv('tabelas_finais//sidra_frequencia_escola_0_5_total_2022.csv', index=False)
+grafico_barra(df_sidra_freq_total, categoria='idade', valor='Crianças',
+              titulo='Crianças de 0 a 5 anos que frequentam escola/creche, por idade - Rio de Janeiro (Censo 2022)',
+              nome_arquivo='sidra_frequencia_escola_0_5_total_2022', fonte_dados=fonte_sidra_educacao)
 
 # %%
 grafico_barra_agrupado(

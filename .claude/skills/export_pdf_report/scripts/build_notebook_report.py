@@ -37,6 +37,10 @@ import re
 import sys
 from pathlib import Path
 
+from gera_estrutura_eixos import avisa_itens_sem_arquivo
+# populacao-referencia D4: avisa (sem mudar a saída) itens do crosswalk que o relatório pularia em silêncio
+avisa_itens_sem_arquivo()
+
 import pandas as pd
 from PIL import Image
 

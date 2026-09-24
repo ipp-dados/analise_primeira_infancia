@@ -52,7 +52,7 @@ As células foram rodadas numa cópia de rascunho do projeto (só topo + célula
 
 ## V4: Parte D
 
-- [ ] D1: na gêmea de 2025, soma de `percentual_do_municipio` dos bairros + "EM BRANCO" = 100%; o mapa de contagem é idêntico ao baseline.
+- [x] D1: na gêmea de 2025, soma de `percentual_do_municipio` dos bairros (90,33%) + "EM BRANCO" (9,67%) = 100%; as colunas antigas da gêmea são idênticas ao baseline e o mapa de contagem não foi regravado (a entrada não mudou; uma re-renderização só mudaria bytes pelos tiles). *(2026-09-24)*
 - [ ] D2/D3: os itens do crosswalk têm arquivo e aparecem no HTML, PDF e DOCX.
 - [ ] D4: o gerador não lista mais nenhum item sem arquivo e sem status.
 

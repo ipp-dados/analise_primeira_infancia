@@ -138,6 +138,23 @@ def valida_estrutura(estrutura, base_dir="."):
     return True
 
 
+def itens_sem_arquivo(estrutura):
+    """Subseções sem nenhuma `visualização`/`mapa`/`tabela` e sem `status` -- o HTML e o PDF as pulam
+    em silêncio (foi assim que o item "percentual de nascidos vivos por bairro" sumiu do relatório;
+    `specs/populacao-referencia` D4). Devolve `[(eixo, título)]`."""
+    return [(eixo["eixo"], sub["titulo"])
+            for eixo in estrutura for sub in eixo["subsecoes"]
+            if not any(c in sub["campos"] for c in _DIRS_POR_CAMPO) and "status" not in sub["campos"]]
+
+
+def avisa_itens_sem_arquivo(caminho="specs/estrutura_eixos.md"):
+    """Só um aviso no console (não muda nenhuma saída): lista os itens de `itens_sem_arquivo`."""
+    itens = itens_sem_arquivo(parse_estrutura_eixos(caminho))
+    for eixo, titulo in itens:
+        print(f"AVISO: item sem arquivo e sem status (não aparece no relatório): {eixo} > {titulo}")
+    return itens
+
+
 if __name__ == "__main__":
     import sys
 
@@ -165,6 +182,10 @@ if __name__ == "__main__":
         print(f"  - {eixo['eixo']}: {len(eixo['subsecoes'])} subseções")
     print(f"Total de subseções (indicadores ativos): {total_subsecoes}")
     print(f"Pendentes (status: pendente): {total_pendentes}")
+    sem_arquivo = itens_sem_arquivo(estrutura)
+    for eixo_sem, titulo_sem in sem_arquivo:
+        print(f"AVISO: item sem arquivo e sem status (não aparece no relatório): {eixo_sem} > {titulo_sem}")
+    print(f"Itens sem arquivo e sem status: {len(sem_arquivo)}")
 
     try:
         valida_estrutura(estrutura)
