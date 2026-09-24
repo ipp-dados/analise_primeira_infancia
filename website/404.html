@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Página não encontrada · Diagnóstico da Primeira Infância Carioca</title>
+<!-- Página de erro do GitHub Pages (specs/website_refactor §4.10). Editada à mão.
+     Caminhos relativos: o 404 pode ser servido em qualquer profundidade de URL, então
+     o CSS usa o caminho do site (/<repo>/) resolvido por <base> via script, com fallback. -->
+<script>
+  (function(){
+    // /<repo>/qualquer/coisa -> /<repo>/ ; em domínio próprio (sem subcaminho) -> /
+    var partes = location.pathname.split('/').filter(Boolean);
+    var base = (location.hostname.endsWith('github.io') && partes.length) ? '/' + partes[0] + '/' : '/';
+    document.write('<base href="' + base + '">');
+  })();
+</script>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<style>
+  .nf{max-width:640px; margin:12vh auto; padding:0 var(--gutter); text-align:center;}
+  .nf .eyebrow{color:var(--accent); margin-bottom:10px;}
+  .nf h1{font-size:2.2rem; margin:0 0 14px;}
+  .nf p{color:var(--ink-2); margin:0 0 28px;}
+  .nf a{display:inline-block; padding:10px 20px; border-radius:var(--radius-pill); background:var(--ipp-navy); color:#fff; text-decoration:none; font-weight:600; font-size:.84rem;}
+</style>
+</head>
+<body>
+  <main class="nf">
+    <div class="eyebrow">Erro 404</div>
+    <h1>Página não encontrada</h1>
+    <p>O endereço acessado não existe neste site. As seções do relatório ficam todas na página inicial, organizadas em abas.</p>
+    <a href="./">Ir para o Diagnóstico da Primeira Infância Carioca</a>
+  </main>
+</body>
+</html>

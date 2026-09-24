@@ -78,21 +78,26 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 - Export padrão em PNG (`visualizacoes/`, `mapas/`); export SVG existe mas
   fica comentado por padrão em cada função de plot.
 
-## Relatório interativo (`relatorio/index.html`)
+## Site (`website/`) — antes relatório interativo `relatorio/index.html`
 
-- **HTML/CSS/JS vanilla**, um único arquivo autocontido — sem framework, sem
-  passo de build, sem dependência externa além de uma fonte via Google
-  Fonts. Gerado por `.claude/skills/export_pdf_report/scripts/build_html_report.py`
-  (Python puro), que lê `tabelas_finais/*.csv` e os GeoJSON de
-  `dados_locais/geo/` e emite gráficos/mapas como **SVG inline** (motor de
-  chart próprio: `lineChart`/`barChart`/`groupedBarChart`, mapas via
-  `mapa_svg()`), não como imagem raster.
-- Tema claro/escuro automático via `prefers-color-scheme`, sem JS de
-  detecção de tema.
-- Deploy: **GitHub Actions** (`.github/workflows/deploy-relatorio.yml`,
-  disparo manual `workflow_dispatch`) publica `relatorio/index.html` no
-  **GitHub Pages** (copiado para `_site/index.html`, nome exigido na raiz
-  do site pelo Pages).
+- **Site estático, HTML/CSS/JS vanilla** (`specs/website_refactor`, 2026-09-24) — sem framework, sem
+  passo de build no deploy, sem dependência externa além das fontes do Google Fonts. Até essa rodada
+  era um único `relatorio/index.html` autocontido (20,9 MB); agora `website/index.html` + `css/`
+  (3 arquivos, tokens em `main.css`) + `js/` (`charts.js` motor, `navigation.js` abas, `sidebar.js`
+  sumário lateral) + `data/` (gerado: dados dos gráficos e geometria compartilhada dos mapas).
+- Gerado por `website/build/build_site.py` (Python puro, ex-`build_html_report.py` da skill do PDF),
+  que lê `tabelas_finais/*.csv` e os GeoJSON de `dados_locais/geo/` e emite gráficos/mapas como
+  **SVG inline** (motor de chart próprio: `lineChart`/`barChart`/`groupedBarChart`; mapas via
+  `mapa_svg()` com `<use href>` apontando para a geometria única de cada região em `data/geo.js`,
+  simplificada com `shapely.coverage_simplify` — sem fresta entre vizinhos).
+- Navegação por abas (1 por eixo + Visão geral) com rota só por `#hash` (o Pages não reescreve
+  caminhos); sumário lateral com scroll-spy e progresso.
+- Só tema claro (tema escuro removido na v6.2 de `relatorio/specs.md`).
+- Deploy: **GitHub Actions** (`.github/workflows/deploy-relatorio.yml`, disparo manual
+  `workflow_dispatch`) copia uma lista fixa de `website/` para `_site/` e publica no **GitHub Pages**;
+  o CI não gera nada (a saída gerada é versionada).
+- Validação de navegador: Chrome via DevTools Protocol (`websocket-client`, já instalado) e Playwright
+  (Firefox/WebKit) só no ambiente de dev — nenhum dos dois entra no `requirements.txt`.
 
 ## Exportação em PDF/DOCX
 
@@ -123,7 +128,7 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 - **Sincronização de texto curado** (`specs/ajuste_eixos/` Bloco 7,
   `sincroniza_docx.py`): texto editado à mão no DOCX vira a fonte de
   `relatorio/textos_curados.json` (`{seed: texto}`, seed = mesmo nome de
-  arquivo), lido por `build_html_report.py`/`build_notebook_report.py` via
+  arquivo), lido por `website/build/build_site.py` (ex-`build_html_report.py`)/`build_notebook_report.py` via
   um pequeno helper (`_texto_analise(seed)`) antes de cair no lorem ipsum
   determinístico — por isso os seeds de texto do HTML/PDF foram alinhados
   a nomes de arquivo reais (não ao rótulo legível da opção) nessa rodada.
@@ -141,12 +146,16 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 - Reordenar fisicamente as células de `analise.py` por eixo da política
   municipal (`specs/ajuste_eixos/plan.md` §9.1) — mantida a ordem técnica
   de construção do dado; só a apresentação (HTML/PDF/DOCX) é reorganizada.
-- Reescrever `build_html_report.py`/`build_notebook_report.py` como
+- Reescrever `build_html_report.py` (hoje `website/build/build_site.py`)/`build_notebook_report.py` como
   renderizadores genéricos guiados por `specs/estrutura_eixos.md`
   (`parse_estrutura_eixos()` de verdade, não só os seeds de texto) — maior
   risco/custo do que o ganho, decisão do usuário registrada em
   `specs/ajuste_eixos/specs.md` §9.3; os dois continuam Python hardcoded,
   reorganizados fisicamente à mão quando o `.md` muda de agrupamento.
+- (site) Simplificar a geometria dos mapas polígono a polígono (Douglas-Peucker por região) — abriria
+  frestas entre bairros vizinhos; usa-se `coverage_simplify` (`specs/website_refactor` §4.9).
+- (site) Vetorizar o logo do IPP por conta própria — publicaria uma marca oficial alterada; o PNG
+  oficial é servido em `srcset` até a Ascom fornecer o SVG (`specs/website_refactor` D6).
 
 ## Inclusão dos dados de Proteção (`specs/inclusao_dados_protecao`)
 
