@@ -61,7 +61,7 @@ decisões D1-D9 já aprovadas). O check de 2025 (condição de D4) já foi feito
    - grava o extrato com **uma linha por ano × dependência** (19 × 4 = 76 linhas), colunas
      `ano, tp_dependencia, dependencia, mat_0_a_3, mat_4_a_5, mat_inf, mat_inf_creche, mat_inf_pre`.
      `mat_inf*` fica como referência, sem ser publicado.
-2. `carrega_populacao_ripsa(anos, idades=range(0, 7), cod_municipio_tabnet='3262', caminho_extrato='dados_locais//populacao//ripsa_populacao_rio_0_6_idade_simples.csv')`:
+2. *(2026-09-24: substituído pela Parte A de `../plan.md` Bloco 1; a Parte E só chama `populacao_ripsa(...)`, e o extrato passa a ser `dados_locais/populacao/ripsa_populacao_rio.csv`. Texto original mantido como histórico:)* 2. `carrega_populacao_ripsa(anos, idades=range(0, 7), cod_municipio_tabnet='3262', caminho_extrato='dados_locais//populacao//ripsa_populacao_rio_0_6_idade_simples.csv')`:
    - se o extrato cobrir `anos`, lê o extrato;
    - senão, faz o POST no Tabnet `popsvs2024br.def` (spec §3.6): corpo codificado em latin-1, todos os
      filtros `TODAS_AS_CATEGORIAS__` exceto município e idade, `formato=prn`. Lê o bloco `<PRE>` com

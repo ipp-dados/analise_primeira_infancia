@@ -61,6 +61,22 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 7. (FIX). **Corrigir `nascidos_vivos_bairro_mae`: faltam mapas e visualizações de percentual.**
   A série por bairro/mãe não gera mapas coropléticos nem gráficos em % (só contagens, se tanto).
   Diagnosticar primeiro (não sei a causa: não abri esse trecho de `analise.py`). Depois seguir
+   **Em andamento (2026-09-24):** os itens 6 e 7 foram absorvidos por `specs/populacao-referencia`
+   (branch `spec/populacao-referencia`). Diagnóstico do 7: o indicador "percentual de nascidos vivos
+   por bairro da mãe" nunca foi implementado e o HTML/PDF pulam itens sem arquivo (spec, Parte D). Nessa
+   rodada, o nível município passa a usar a Ripsa/MS e o sub-municipal fica no Censo 2022 (decisão B1 (a)).
+7a. **Ajustar a estimativa de crianças pequenas por bairro com a Ripsa** (pedido do usuário, 2026-09-24;
+   é a continuação da decisão B1 de `specs/populacao-referencia`). A Ripsa não tem bairro, então o nível
+   sub-municipal ficou no Censo 2022 fixo, que subconta crianças pequenas (0-4: 310.648 no Censo contra
+   361.163 na Ripsa em 2022, +16%) e não varia por ano. Construir uma estimativa derivada, rotulada
+   como tal:
+   - **(b)** participação de cada bairro no Censo 2022 × total municipal Ripsa de cada ano, com 0-4
+     estendido para 0-5 pela razão municipal Ripsa; os bairros somam o total Ripsa;
+   - **(c)** como (b), mas com a participação variando no tempo entre os Censos 2010 e 2022 (exige a
+     correspondência 160 → 166 bairros).
+   Depois recalcular as taxas sub-municipais (violência por bairro/RA/CAP e o % CadÚnico, que depende
+   também do item 8a) e documentar a mudança de denominador. Pré-requisito: a Parte A de
+   `specs/populacao-referencia` concluída.
 8. **Extrair novos recortes do CadÚnico** — ✅ 1ª leva concluída:
    `specs/recortes_cadunico` (branch `spec/recortes_cadunico`): sexo, raça/cor,
    renda × arranjo familiar (eixo Inclusão), supressão < 20 e correções nas
