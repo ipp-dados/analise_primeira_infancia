@@ -336,3 +336,11 @@ processo um `NameError` real (célula ativa sobrevivente da curadoria). Detalhes
 - Relatórios: cards novos no HTML/PDF/DOCX; % de nascidos vivos por bairro no tooltip do mapa; aviso no console
   para itens do crosswalk sem arquivo e sem status.
 
+
+## 2026-09-24 — `specs/website_refactor` (site estático em `website/`)
+
+- O relatório HTML virou um site estático em `website/` (GitHub Pages): gerador movido para
+  `website/build/build_site.py`; CSS e JS em arquivos próprios; `relatorio/index.html` removido.
+- Abas por eixo (Visão geral + 6), sumário lateral com progresso, novo visual (cartões arredondados,
+  ícones SVG, contraste AA), conclusões e caixa de fontes por eixo; título "Diagnóstico da Primeira
+  Infância Carioca". Peso: 20,9 MB → 1,5 MB (geometria dos mapas compartilhada e simplificada).

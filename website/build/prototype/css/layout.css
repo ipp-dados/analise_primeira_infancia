@@ -1,0 +1,110 @@
+/* layout.css -- container, faixa de aviso, banner, barra de abas, grade conteúdo + sumário
+   lateral, cabeçalho de painel, rodapé. specs/website_refactor Bloco 4 (protótipo).
+   Só desktop nesta rodada (spec §4.8); grid/flex e variáveis para a versão mobile
+   (website/ROADMAP.md) mexer em poucas regras. */
+
+.container{max-width:var(--container); margin:0 auto; padding:0 var(--gutter);}
+
+/* Faixa "em desenvolvimento" -- cor de alerta fixa, de propósito fora dos tokens
+   (specs/roadmap.md publicar_teste_pages). */
+.dev-banner{
+  background:#ffb300; color:#1a1a1a; font-weight:700; text-align:center;
+  padding:10px 16px; font-size:.82rem; line-height:1.4;
+}
+
+/* ---- banner (rola junto com a página; spec §4.2) ---- */
+.site-banner{
+  background:linear-gradient(180deg, #FFFFFF 0%, var(--accent-soft) 100%);
+  border-bottom:1px solid var(--hairline);
+}
+.banner-inner{
+  display:grid; grid-template-columns:minmax(0,1fr) 440px; gap:var(--s7);
+  align-items:end; padding-top:44px; padding-bottom:36px;
+}
+.banner-logo{
+  display:inline-flex; align-items:center; background:var(--ipp-navy);
+  padding:8px 14px; border-radius:var(--radius-sm); margin-bottom:22px;
+}
+.banner-logo .ipp-logo{height:22px; width:auto; display:block;}
+.banner-eyebrow{color:var(--accent); margin-bottom:8px;}
+.site-banner h1{
+  font-size:clamp(2rem,4.4vw,2.8rem); line-height:1.08; letter-spacing:-.015em; margin:0;
+}
+.banner-desc{color:var(--ink-2); font-size:.94rem; line-height:1.6; margin:0 0 10px;}
+.banner-meta{font-family:var(--font-mono); font-size:.68rem; color:var(--ink-3); margin:0;}
+.spectrum-bar{display:flex; height:4px;}
+.spectrum-bar span{flex:1;}
+
+/* ---- barra de abas (fixa no topo; spec §4.3) ---- */
+.tabbar{
+  position:sticky; top:0; z-index:30;
+  background:rgba(255,255,255,.94);
+  -webkit-backdrop-filter:saturate(1.4) blur(10px); backdrop-filter:saturate(1.4) blur(10px);
+  border-bottom:1px solid var(--hairline);
+  transition:box-shadow .2s ease;
+}
+.tabbar.is-stuck{box-shadow:0 6px 18px -12px rgba(16,24,40,.35);}
+.tabbar-inner{display:flex; align-items:center; gap:6px; padding-top:10px; padding-bottom:10px; overflow-x:auto; scrollbar-width:none;}
+.tab{
+  display:inline-flex; align-items:center; gap:8px; flex:none;
+  padding:9px 16px; border:1px solid transparent; border-radius:var(--radius-pill);
+  background:none; color:var(--ink-2); cursor:pointer; white-space:nowrap;
+  font-family:var(--font-body); font-size:.78rem; font-weight:600; line-height:1.2;
+  transition:background .15s ease, color .15s ease;
+}
+.tab .icon{width:18px; height:18px;}
+.tab:hover{background:var(--surface-3); color:var(--ink);}
+.tab[aria-selected="true"]{background:var(--ipp-navy); color:#fff;}
+
+/* ---- grade: painéis + sumário lateral (spec §4.7/§4.8) ---- */
+.page-grid{
+  display:grid; grid-template-columns:minmax(0,1fr) var(--outline-w); gap:var(--s7);
+  align-items:start; padding-top:40px; padding-bottom:96px;
+}
+.panels{min-width:0;}
+.tab-panel[hidden]{display:none;}
+/* o navegador rola sozinho até #<painel> ao abrir um link; sem isso o topo fica sob a barra */
+.tab-panel{scroll-margin-top:calc(var(--nav-h) + 24px);}
+
+.panel-head{display:flex; align-items:center; gap:18px; margin:0 0 28px;}
+.panel-icon{
+  width:56px; height:56px; flex:none; display:grid; place-items:center;
+  border-radius:var(--radius-md); background:var(--accent-soft); color:var(--accent);
+}
+.panel-icon .icon{width:28px; height:28px;}
+.panel-eyebrow{color:var(--accent); margin-bottom:4px;}
+
+/* ---- sumário lateral ---- */
+.outline{
+  position:sticky; top:calc(var(--nav-h) + 24px);
+  max-height:calc(100vh - var(--nav-h) - 48px); overflow-y:auto;
+}
+.outline-card{background:var(--surface); border-radius:var(--radius-md); box-shadow:var(--shadow-1); padding:18px 16px 14px;}
+.outline-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:0 0 10px;}
+.outline-label{color:var(--ink-3);}
+.outline-pct{font-family:var(--font-mono); font-size:.66rem; font-weight:600; color:var(--accent);}
+.outline-progress{height:4px; background:var(--surface-3); border-radius:var(--radius-pill); overflow:hidden; margin:0 0 14px;}
+.outline-progress span{display:block; height:100%; width:0; background:var(--accent); border-radius:inherit; transition:width .12s linear;}
+.outline-nav[hidden]{display:none;}
+.outline-nav a{
+  display:block; padding:7px 10px 7px 12px; margin:1px 0;
+  border-left:2px solid var(--hairline); border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  color:var(--ink-2); font-size:.74rem; line-height:1.35; text-decoration:none;
+}
+.outline-nav a:hover{background:var(--surface-2); color:var(--ink);}
+.outline-nav a.is-past{color:var(--ink-3);}
+.outline-nav a[aria-current="true"]{border-left-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink); font-weight:600;}
+
+/* ---- rodapé institucional ---- */
+footer.doc-foot{background:var(--ipp-navy); color:#EAF2F8; padding:40px 0 26px;}
+.footer-cols{display:flex; gap:40px; flex-wrap:wrap; padding-bottom:22px;}
+.footer-col{min-width:180px; flex:1;}
+.footer-col-logo{min-width:220px; flex:1.4;}
+.footer-col-logo .ipp-logo{height:24px; width:auto; display:block; margin-bottom:12px;}
+.footer-col-logo p{font-size:.76rem; color:#B9D2E4; max-width:260px; line-height:1.6; margin:0;}
+.footer-col .eyebrow{color:#9CC0DA; margin-bottom:8px;}
+.footer-col > div{font-size:.76rem; color:#DCE9F2; line-height:1.9;}
+.footer-col a{color:#DCE9F2;}
+.footer-col a:hover{color:#fff;}
+.footer-rule{height:1px; background:var(--ipp-cyan); opacity:.4;}
+.footer-credit{padding-top:14px; font-family:var(--font-mono); font-size:.66rem; color:#9CC0DA;}

@@ -1,6 +1,6 @@
 ---
 name: export_pdf_report
-description: Export a non-technical PDF of the primeira-infancia analysis, using analise.py's own matplotlib/seaborn chart images (visualizacoes/*.png) and tabelas_finais/ data tables -- NOT the relatorio/*.html custom SVG report. Use when the user asks for a PDF export/version of the analysis, report, or notebook, or to regenerate an existing report PDF after the notebook/data changes. Also covers regenerating relatorio/index.html and the DOCX curation export (relatorio/curadoria_textos.docx) from the same structural source (specs/estrutura_eixos.md) -- use this skill too when the user edits that file and asks to "update the report(s)", or when someone has hand-edited analysis text in the DOCX and asks to sync/propagate it back into the HTML, PDF, or analise.py.
+description: Export a non-technical PDF of the primeira-infancia analysis, using analise.py's own matplotlib/seaborn chart images (visualizacoes/*.png) and tabelas_finais/ data tables -- NOT the website/ static site's custom SVG charts. Use when the user asks for a PDF export/version of the analysis, report, or notebook, or to regenerate an existing report PDF after the notebook/data changes. Also covers regenerating the website (website/build/build_site.py, step 3) and the DOCX curation export (relatorio/curadoria_textos.docx) from the same structural source (specs/estrutura_eixos.md) -- use this skill too when the user edits that file and asks to "update the report(s)", or when someone has hand-edited analysis text in the DOCX and asks to sync/propagate it back into the website, PDF, or analise.py.
 ---
 
 # Export PDF report
@@ -16,13 +16,15 @@ the visual style of the visualizations used in the notebook, not the
 html."** Do not go back to converting `relatorio/*.html` — build the PDF
 from `analise.py`'s own outputs instead, as described below.
 
-**Note:** `scripts/build_html_report.py` also lives in this skill's folder
-but is a separate rendering engine for `relatorio/index.html` (the
-interactive HTML report) — brutalist bordered cards, a pill-selector for
-cortes, inline interactive SVG maps (`mapa_svg()`) — entirely independent
-of this skill's matplotlib/PNG-based PDF pipeline. Don't apply that
-report's styling conventions to the PDF, or vice versa; the rejection noted
-above still stands. **What changed as of `specs/ajuste_eixos`:** both used
+**Note (updated 2026-09-24, `specs/website_refactor`):** the interactive HTML report no longer
+lives in this skill. Its generator (formerly `scripts/build_html_report.py`) moved to
+`website/build/build_site.py` and now produces the static site in `website/` (tabs per eixo, sticky
+outline, SVG charts/maps, hand-edited `css/`/`js/`) — see `website/README.md`. It is still entirely
+independent of this skill's matplotlib/PNG-based PDF pipeline: don't apply the site's styling
+conventions to the PDF, or vice versa; the rejection noted above still stands. It still imports
+`avisa_itens_sem_arquivo` from `scripts/gera_estrutura_eixos.py` and reads
+`relatorio/textos_curados.json`, and `scripts/sincroniza_docx.py` still regenerates it (step 6).
+**What changed as of `specs/ajuste_eixos`:** both used
 to be organized independently (9 sections each, mirroring `analise.py`'s
 data-source order, hardcoded per script) — both were manually regrouped
 into the 6 eixo sections described by `specs/estrutura_eixos.md` (see
@@ -45,20 +47,20 @@ just change the .md file and ask for the update."*
 **Important, discovered while validating this skill (2026-09, Bloco 6):**
 that promise is only fully automatic for `gera_docx_curadoria.py`, which
 genuinely imports and calls `parse_estrutura_eixos()` at generation time —
-edit the `.md`, rerun step 5 below, done. `build_html_report.py` and
+edit the `.md`, rerun step 5 below, done. `website/build/build_site.py` (ex-`build_html_report.py`) and
 `build_notebook_report.py` do **not** import or read the `.md` at all —
 their grouping is hardcoded Python, physically reorganized once (Blocos
 3-4) to match the `.md` as it existed then. Regenerating them after an
 `.md`-only edit reproduces the *old* grouping byte-for-byte (confirmed
 empirically: moving an indicator between eixos and renaming a subsection
 in the `.md`, then rerunning step 3, produced a byte-identical
-`relatorio/index.html`). Decided with the user not to rewrite these two
+site output). Decided with the user not to rewrite these two
 into fully data-driven renderers (a much larger, riskier change touching
 already-verified working code) — so when a user's `.md` edit changes
 HTML/PDF *grouping* (which eixo a chart/map lives under — a rename that
 doesn't move anything, or a `status: pendente` flip, has no HTML/PDF code
 to touch), the fix is a **manual code change**: find the moved
-content's h2/h3/h4 block in `build_html_report.py`
+content's h2/h3/h4 block in `website/build/build_site.py`
 (and the equivalent in `build_notebook_report.py`) and relocate it under
 the new eixo's heading, same method used to build Blocos 3-4 originally —
 then run the pipeline. Tell the user this explicitly rather than silently
@@ -66,7 +68,7 @@ claiming the `.md` edit alone was enough for all three artifacts.
 
 `scripts/gera_estrutura_eixos.py` owns `parse_estrutura_eixos()` (the
 parser — only `gera_docx_curadoria.py` actually imports it, per the caveat
-above; `build_html_report.py`/`build_notebook_report.py` only reference the
+above; `website/build/build_site.py`/`build_notebook_report.py` only reference the
 `.md` in comments) and `valida_estrutura()` (fails loud, naming the missing
 file, if any `visualização`/`mapa`/`tabela` reference doesn't exist on disk
 — never lets a generator run against a broken reference silently, and
@@ -125,16 +127,14 @@ text in the DOCX — most regeneration requests never need it.
    missing file) if this fails** — never proceed to steps 3-5 against a
    broken structure.
 
-3. **Build `relatorio/index.html`.**
+3. **Build the website (`website/`).** Not part of this skill anymore (`specs/website_refactor`):
    ```
-   python .claude/skills/export_pdf_report/scripts/build_html_report.py relatorio/index.html
+   python website/build/build_site.py
    ```
-   Reads `parse_estrutura_eixos()` and groups its ~130 chart/map cards
-   into the 6 eixo `<h2>` sections; catalog indicators marked
-   `status: pendente` render via `emite_bloco_pendente()` (a labeled
-   placeholder, never a silently empty section). `relatorio/index.html` is
-   explicitly un-ignored and committed (unlike other `relatorio/*.html`) —
-   GitHub Pages deploys it as-is.
+   Writes `website/index.html`, `website/data/*` and generated images; prints file sizes and warns
+   above the size budget. Groups ~130 chart/map cards into the 6 eixo tabs; catalog indicators marked
+   `status: pendente` render via `emite_bloco_pendente()`. The generated output is committed and
+   deployed as-is by `.github/workflows/deploy-relatorio.yml` — details in `website/README.md`.
 
 4. **Build the PDF.**
    1. Build the PDF's source HTML (embeds real PNGs from `visualizacoes/`/
@@ -277,11 +277,11 @@ text in the DOCX — most regeneration requests never need it.
    Detects which bookmarks genuinely changed (exact comparison against the
    deterministic lorem ipsum that bookmark's ID would still produce — not
    a heuristic), writes them to `relatorio/textos_curados.json` (which
-   `build_html_report.py`/`build_notebook_report.py` both read via
+   `website/build/build_site.py`/`build_notebook_report.py` both read via
    `_texto_analise(seed)` before falling back to lorem — this is *why*
    Bloco 3/4's seeds were aligned to real filenames instead of pill
    labels, see `specs/ajuste_eixos/specs.md` §9.3), regenerates
-   `relatorio/index.html` and the PDF's source HTML, and inserts/updates a
+   `website/` (the site) and the PDF's source HTML, and inserts/updates a
    markdown note in `analise.py` right after the code cell that produces
    the matching chart/table (idempotent — a marker comment prevents
    duplicate notes on repeat runs; never touches a code cell). This script

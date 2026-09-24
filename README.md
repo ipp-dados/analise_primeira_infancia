@@ -14,14 +14,14 @@ bairro, Área de Planejamento, Região de Planejamento e Área Programática de 
 
 | | |
 |---|---|
-| **Relatório interativo (HTML)** | [ipp-dados.github.io/analise_primeira_infancia](https://ipp-dados.github.io/analise_primeira_infancia/) |
+| **Site (relatório interativo)** | [ipp-dados.github.io/analise_primeira_infancia](https://ipp-dados.github.io/analise_primeira_infancia/) |
 | **Relatório em PDF** | [`relatorio/analise_primeira_infancia.pdf`](relatorio/analise_primeira_infancia.pdf) |
 | **Notebook fonte** | [`analise.py`](analise.py) (Jupytext, abre como notebook) |
 
-O relatório HTML é gerado a partir do notebook por
-`.claude/skills/export_pdf_report/scripts/build_html_report.py` — mesmos dados, gráficos
-interativos (SVG, tooltip, tabela alternativa) em vez de imagens estáticas. O PDF é a
-versão para impressão/download, com os gráficos originais do matplotlib.
+O site é gerado a partir das saídas do notebook por `website/build/build_site.py` (ver
+[`website/README.md`](website/README.md)) — mesmos dados, gráficos interativos (SVG, tooltip,
+tabela alternativa, CSV), organizado em abas por eixo da política municipal. O PDF é a versão
+para impressão/download, com os gráficos originais do matplotlib.
 
 ## Fontes de dados
 
@@ -49,13 +49,14 @@ compartilhado, acesso restrito — solicitar a leonardoaucar@prefeitura.rio.*
 *   `tabelas_finais/`: Pasta de saída padronizada (CSV/Excel) para tabelas e agregados gerados pelo pipeline.
 *   `visualizacoes/`: Diretório para os gráficos exportados pelo notebook (PNG por padrão; exportação adicional em SVG disponível, mas comentada, em cada função de gráfico). Nomes de arquivo refletem a seção/tema da análise (ex.: `cobertura_vacinal_epi_ano.png`, `cadunico_criancas_por_idade.png`).
 *   `mapas/`: Imagens de mapas coropléticos, gerados dentro do próprio `analise.py` com `geopandas`/`contextily` pela função `mapa_coropletico_bairros`: basemap cartográfico (Esri Ocean Basemap), limite estadual sobreposto, municípios vizinhos rotulados, rosa dos ventos, escala gráfica, título em fonte serifada (Palatino Linotype), formato ~1,46:1 (próximo de A4 paisagem) e exportação a 300 DPI. Cobre hoje o Censo (bairro/AP/RP), mortalidade por causas evitáveis por CAP (grupo e subgrupo), e ~20 mapas por bairro no ano mais recente (CadÚnico, nascidos vivos, baixo peso, óbitos por raça, mortalidade neonatal, óbitos gravidez/puerpério) -- cada um com sua tabela-insumo gêmea em `tabelas_finais/tabela_mapa_*.csv`. `mapas/tabelas_bairros/` é o resquício do padrão anterior (Excel), mantido só para `dados_datasus_por_bairro.xlsx` e as tabelas do Censo (`tabela_mapa_0_4_*.xlsx`); nascidos vivos e baixo peso já migraram para o padrão CSV.
-*   `relatorio/`: `index.html` autocontido, gerado por
-    `.claude/skills/export_pdf_report/scripts/build_html_report.py`, com as visualizações do
-    notebook renderizadas de forma interativa (SVG, tooltip, tabela de dados) e todos os mapas
-    de `mapas/` (redimensionados/WebP), para compartilhamento com quem não abre o notebook.
-    Publicado diretamente no GitHub Pages. Tema claro/escuro automático
-    (`prefers-color-scheme`); cada visualização traz só título + fonte + tabela opcional, sem a
-    prosa/notas de método do notebook (essas ficam no notebook e no PDF).
+*   `website/`: o site estático publicado no GitHub Pages (HTML/CSS/JS, sem build no deploy) —
+    abas por eixo, sumário lateral, gráficos e mapas SVG interativos. `website/build/build_site.py`
+    gera `index.html` e `data/`; CSS e JS são editados à mão. Detalhes em
+    [`website/README.md`](website/README.md), pendências (versão mobile) em
+    [`website/ROADMAP.md`](website/ROADMAP.md).
+*   `relatorio/`: relatório em PDF (`analise_primeira_infancia.pdf`), DOCX de curadoria de textos
+    e `textos_curados.json` (texto curado lido pelo site e pelo PDF). O antigo `relatorio/index.html`
+    foi substituído por `website/` (`specs/website_refactor`).
 *   `specs/`: Constituição do projeto (`constitution.md`), stack técnica (`tech-stack.md`),
     roadmap (`roadmap.md`) e uma subpasta por rodada de planejamento (`plan.md`,
     `specification.md`/`specs.md`, `tasks.md`, `validation.md`) -- histórico completo de
@@ -109,6 +110,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.22.0 | 2026-09-24 | Site reestruturado em `website/` (arquivos separados, abas por eixo, sumário lateral, novo visual, título "Diagnóstico da Primeira Infância Carioca") e 20,9 MB → 1,5 MB (`specs/website_refactor`). |
 | 0.21.0 | 2026-09-24 | População de referência: Ripsa/MS no município (taxas municipais novas) e Censo 2022 explícito abaixo dele; matrículas 0-5 refeitas dos microdados do INEP, com taxa de atendimento; auditoria de faixas etárias e correção do total dos Censos (`specs/populacao-referencia`). |
 | 0.20.0 | 2026-09-23 | CadÚnico: recortes por sexo, raça/cor e arranjo familiar × renda (eixo Inclusão), supressão de células < 20 e correções nas saídas existentes (`specs/recortes_cadunico`). |
 | 0.19.1 | 2026-09-22 | Revertido o rename de `relatorio/index.html` para `relatorio/relatorio.html` (0.19.0) — de volta a `index.html`. |

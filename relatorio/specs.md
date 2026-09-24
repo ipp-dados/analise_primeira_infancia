@@ -433,11 +433,47 @@ pra roxo
   editado à mão no Word passa a aparecer aqui automaticamente na próxima
   geração, via `relatorio/textos_curados.json`.
 
+### v8 — site estático em `website/`: abas por eixo, sumário lateral, novo visual (`specs/website_refactor`)
+
+A partir desta versão o relatório interativo **não mora mais em `relatorio/`**: é o site estático
+`website/` (gerador `website/build/build_site.py`, ex-`build_html_report.py`; `relatorio/index.html`
+removido do git). Detalhes, medições e validação em `specs/website_refactor/`; uso em `website/README.md`.
+
+- **Arquivos separados**: CSS (`css/main|layout|components.css`) e JS (`js/charts.js`,
+  `navigation.js`, `sidebar.js`) saíram das strings do gerador e são editados à mão; o gerador escreve
+  só `index.html`, `data/charts.js` e `data/geo.js`. A página ganhou `<!doctype>` (antes rodava em
+  *quirks mode*; só a altura das linhas de tabela mudou).
+- **Peso 20,9 MB → 1,5 MB** — resolve a pendência da v6.1: cada região de cada nível é um único
+  `<path id>` em `data/geo.js`, e os mapas usam `<use href>`; geometria simplificada como cobertura
+  (`shapely.coverage_simplify`, sem fresta entre vizinhos). Furinhos brancos dos mapas AP/RP/RA
+  (frestas do dissolve) corrigidos. Fundo cartográfico em arquivo, reaproveitado (geração determinística,
+  sem rede).
+- **Abas por eixo** (Visão geral + 6) com barra fixa no topo e rota por `#hash`; **sumário lateral**
+  da aba ativa com subseção atual e barra de progresso; Visão geral = Introdução + cartões dos eixos.
+- **Caixa "Fontes desta seção"** no fim de cada eixo (coletada das fontes dos próprios cartões) e
+  **bloco "Conclusões"** (lorem até haver curadoria; seed `conclusao-<sid>`).
+- **Banner**: título passa a ser **"Diagnóstico da Primeira Infância Carioca"**, sempre em 2 linhas;
+  a descrição sai e entram links para o GitHub, o PDF final e a data de atualização; logo maior com
+  `srcset` 1×/2×/3× a partir do PNG oficial.
+- **Revertido nesta versão** (registro, não apagado das versões acima):
+
+  | Antes | Onde | Agora |
+  |---|---|---|
+  | Cartões brutalistas (borda preta 2px, sem raio) | v6/v6.1 | Cartões arredondados com sombra suave |
+  | Navbar hambúrguer com links h2 | v6 | Barra de abas fixa |
+  | Sumário no topo (h2 > h3) | v7 | Sumário lateral da aba ativa |
+  | Seções retráteis | v6 | Abas (uma seção por vez) |
+  | Emojis nos títulos (🎯, 🚧, ℹ️, 🏛️…) | v2 | Ícones SVG (Lucide, ISC) |
+  | Um HTML autocontido | v5 | Site estático com arquivos separados |
+  | `relatorio/index.html` versionado e publicado | v5.1 | `website/` versionado e publicado |
+  | Acento verde `#2E9678`, cinza `#949B99` (contraste 3,7:1 e 2,8:1) | v5.1 | Azul IPP `#0A5A99`, `#5B6773` (AA) |
+  | Título "Análise Primeira Infância Carioca" | v5 | "Diagnóstico da Primeira Infância Carioca" |
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
 | :--- | :--- | :--- | :--- |
-| `index.html` | Claro (único, v6.2) | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), fundo cartográfico real + rosa dos ventos + escala + legenda interna (v6.7), intercalados no fluxo |
+| `index.html` *(até v7; desde v8 o site é `website/`)* | Claro (único, v6.2) | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), fundo cartográfico real + rosa dos ventos + escala + legenda interna (v6.7), intercalados no fluxo |
 
 ## Limitações conhecidas
 
