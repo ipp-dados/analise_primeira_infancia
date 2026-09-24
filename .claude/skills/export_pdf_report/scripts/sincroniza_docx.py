@@ -353,6 +353,9 @@ def aplica_notas_em_analise(edicoes, raiz=_RAIZ):
     jupytext_ok = None
     if mudou:
         caminho_analise.write_text("".join(linhas), encoding="utf-8")
+    # `analise.py` é a fonte; o .ipynb é cópia gerada e gitignorada. Só sincroniza se a pessoa
+    # tiver um .ipynb aberto (senão `jupytext --sync` o recriaria -- pedido do usuário, 2026-09-24).
+    if mudou and caminho_analise.with_suffix(".ipynb").exists():
         r = subprocess.run(
             [sys.executable, "-m", "jupytext", "--sync", str(caminho_analise)],
             cwd=str(raiz), capture_output=True, text=True,

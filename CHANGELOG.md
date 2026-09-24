@@ -344,3 +344,12 @@ processo um `NameError` real (célula ativa sobrevivente da curadoria). Detalhes
 - Abas por eixo (Visão geral + 6), sumário lateral com progresso, novo visual (cartões arredondados,
   ícones SVG, contraste AA), conclusões e caixa de fontes por eixo; título "Diagnóstico da Primeira
   Infância Carioca". Peso: 20,9 MB → 1,5 MB (geometria dos mapas compartilhada e simplificada).
+
+## 2026-09-24 — curadoria: update 2 incorporado, controle de revisão
+
+- Textos de `curadoria_textos_update_1/2.docx` (sem bookmarks, estrutura antiga) casados com a estrutura
+  atual por `incorpora_update_docx.py`: 58 textos curados (antes 23) no DOCX, no site, no PDF e em
+  `analise.py`. Novo `relatorio/controle_revisao.json` marca cada item como revisado/atualizado/a escrever
+  no título (e no Sumário) e numa tabela de controle; alertas de dado/texto a conferir, sem editar o texto.
+- PDF: pares do CadÚnico usam os textos curados de cada gráfico; texto da série de vacinação; mapas de
+  óbitos tardios, na gravidez e no puerpério incluídos.
