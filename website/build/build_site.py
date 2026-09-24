@@ -139,11 +139,36 @@ def slugify(text):
 
 section_starts = []  # (index_in_parts, title, sid) -- 1 per h2, used to wrap sections (retratil)
 
+_FONTES_SECAO = {}   # sid do h2 -> fontes citadas pelos cartões da seção, em ordem, sem repetição
+
 def h2(t):
+    # specs/website_refactor: cada h2 vira um painel de aba (id = sid, igual ao id antigo do h2,
+    # para links já compartilhados continuarem valendo); o emoji do título sai (ícone SVG no lugar).
     sid = slugify(t)
-    toc.append((2, t, sid))
-    section_starts.append((len(parts), t, sid))
-    parts.append(f'<h2 id="{sid}">{t}</h2>')
+    titulo = re.sub(r"^[^\w(]+", "", t).strip()
+    toc.append((2, titulo, sid))
+    section_starts.append((len(parts), titulo, sid))
+    _FONTES_SECAO[sid] = []
+    parts.append(f'<h2>{titulo}</h2>')
+
+def _registra_fonte(fonte):
+    """Caixa "Fontes desta seção" (spec §4.5): coletada dos próprios cartões, não escrita à mão."""
+    if fonte and section_starts:
+        lista = _FONTES_SECAO[section_starts[-1][2]]
+        if fonte not in lista:
+            lista.append(fonte)
+
+def icone(nome, classe="icon"):
+    """SVG de website/assets/icons/ embutido inline (herda currentColor); comentário de licença removido."""
+    svg = Path(f"website/assets/icons/{nome}.svg").read_text(encoding="utf-8")
+    svg = re.sub(r"<!--.*?-->", "", svg, flags=re.S).strip()
+    svg = re.sub(r'\s*class="[^"]*"', "", svg)
+    svg = re.sub(r"\s+", " ", svg).replace("> <", "><")
+    return svg.replace("<svg ", f'<svg class="{classe}" aria-hidden="true" focusable="false" ', 1)
+
+def callout(tipo, icone_nome, rotulo, corpo_html, extra=""):
+    return (f'<div class="callout callout-{tipo}"{extra}><span class="callout-icon">{icone(icone_nome)}</span>'
+            f'<div class="eyebrow callout-label">{rotulo}</div><div class="callout-body">{corpo_html}</div></div>')
 
 def h3(t):
     sid = slugify(t)
@@ -156,6 +181,7 @@ def h6(t): parts.append(f"<h6>{t}</h6>")
 
 def _out_div(elem_id, fonte, titulo=None, csv_attr=None, filename=None):
     tit = f'<div class="chart-subtitle">{titulo}</div>' if titulo else ""
+    _registra_fonte(fonte)
     src = f'<div class="out-src">{fonte}</div>' if fonte else ""
     dl = '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>' if csv_attr else ""
     attrs = f' data-csv="{csv_attr}" data-filename="{_esc(filename or "dados")}.csv"' if csv_attr else ""
@@ -272,6 +298,7 @@ def out_pair(fn1, fn2):
 def plain_table(df, fonte=None):
     html = df.to_html(index=False, classes="plain", border=0, na_rep="—", escape=True)
     html = html.replace(' class="dataframe plain"', ' class="plain"')
+    _registra_fonte(fonte)
     src = f'<div class="out-src">{fonte}</div>' if fonte else ""
     parts.append(f'<div class="out"><div class="table-scroll">{html}</div>{src}</div>')
 
@@ -488,27 +515,53 @@ def emite_bloco_pendente(titulo, nota):
     nao ser confundido com 'Principais achados'. Sem bloco de texto lorem --
     nao ha conteudo real a comentar ainda (specs.md §7)."""
     h3(titulo)
-    parts.append(
-        '<div class="pending-block">'
-        '<div class="eyebrow pending-label">🚧 INDICADOR CATALOGADO, AINDA NÃO DISPONÍVEL</div>'
-        f'<p>{_esc(nota)}</p>'
-        '</div>'
-    )
+    _PENDENTES_SECAO[section_starts[-1][2]] = _PENDENTES_SECAO.get(section_starts[-1][2], 0) + 1
+    # specs/website_refactor: callout com ícone (sai o emoji 🚧)
+    parts.append(callout("pending", "construction", "Indicador catalogado, ainda não disponível", f"<p>{_esc(nota)}</p>"))
+
+_PENDENTES_SECAO = {}   # sid do h2 -> nº de indicadores pendentes (cartões da Visão geral)
 
 def nota_metodologica(texto):
-    """Nota de limitação/qualidade de dado sob o h3 (ex.: quebra de série, denominador). Mesmo visual
-    do pending-block, com selo próprio -- não é indicador pendente, é ressalva sobre um dado real."""
-    parts.append(
-        '<div class="pending-block pending-inline">'
-        '<div class="eyebrow pending-label">ℹ️ NOTA METODOLÓGICA</div>'
-        f'<p>{_esc(texto)}</p>'
-        '</div>'
-    )
+    """Nota de limitação/qualidade de dado sob o h3 (ex.: quebra de série, denominador). Callout
+    próprio (ícone de informação, sai o emoji ℹ️) -- não é indicador pendente, é ressalva sobre um dado real."""
+    parts.append(callout("note", "info", "Nota metodológica", f"<p>{_esc(texto)}</p>"))
 
 # ---- institutional logo (embedded once, reused in navbar + footer) --------
 
 # Bloco 2: arquivo em website/assets/images/, não mais base64 embutido.
-LOGO_IMG = f'<img src="assets/images/ipp-logo.png" alt="Prefeitura do Rio de Janeiro — Instituto Pereira Passos" class="ipp-logo">'
+# Bloco 5 (pedido do usuário: logo "em resolução maior"): o PNG original tem 1723x310 px (o próprio
+# site do IPP usa um de 212x77; não há SVG oficial publicado). O borrado vinha de o navegador
+# reduzir 14x para 22 px de altura. Agora: exibido maior e com cópias reduzidas por Lanczos na
+# altura exata de exibição x1/x2/x3 (srcset), geradas a partir do original (_logo_derivados).
+_LOGO_ALT = "Prefeitura do Rio de Janeiro — Instituto Pereira Passos"
+_LOGO_ALTURAS = {"banner": 40, "rodape": 32}
+
+def _logo_derivados():
+    orig = Path("website/assets/images/ipp-logo.png")
+    im = Image.open(orig).convert("RGBA")
+    feitos = {}
+    for uso, h in _LOGO_ALTURAS.items():
+        for mult in (1, 2, 3):
+            alvo_h = h * mult
+            if alvo_h > im.height:
+                continue
+            nome = f"ipp-logo-{alvo_h}.png"
+            destino = Path("website/assets/images") / nome
+            if not destino.exists():
+                w = round(im.width * alvo_h / im.height)
+                im.resize((w, alvo_h), Image.LANCZOS).save(destino, optimize=True)
+            feitos.setdefault(uso, []).append((nome, mult))
+    return feitos
+
+_LOGO_ARQS = _logo_derivados()
+
+def logo_img(uso):
+    arqs = _LOGO_ARQS[uso]
+    srcset = ", ".join(f"assets/images/{n} {m}x" for n, m in arqs)
+    return (f'<img src="assets/images/{arqs[0][0]}" srcset="{srcset}" height="{_LOGO_ALTURAS[uso]}" '
+            f'alt="{_LOGO_ALT}" class="ipp-logo">')
+
+LOGO_IMG = logo_img("rodape")
 
 # ---- SVG choropleth pipeline (Bloco 3) -------------------------------------
 # Aplicado nesta rodada ao mapa do Censo por bairro (prova de conceito real,
@@ -638,6 +691,29 @@ def _path_d_relativo(geom):
         out.append(f"M{_num_svg(pts[0][0])},{_num_svg(pts[0][1])}" + (f"l{seg}" if seg else "") + "z")
     return "".join(out)
 
+def _fecha_frestas(geoms):
+    """Remove anéis internos que nenhuma outra região cobre (specs/website_refactor T3b.6).
+    O geojson de bairros não fecha perfeitamente (coverage_is_valid = False); o dissolve em
+    AP/RP/RA deixa essas frestas como furinhos brancos dentro da região. Um furo coberto por
+    outra região é um enclave real e fica; um furo que ninguém cobre é fresta e é preenchido."""
+    import shapely
+    from shapely.geometry import Polygon, MultiPolygon
+    geoms = list(geoms)
+    saida = []
+    for i, geom in enumerate(geoms):
+        outras = shapely.union_all([g for j, g in enumerate(geoms) if j != i])
+        polys = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
+        novos = []
+        for poly in polys:
+            manter = []
+            for anel in poly.interiors:
+                furo = Polygon(anel)
+                if furo.area and outras.intersection(furo).area >= 0.5 * furo.area:
+                    manter.append(anel)
+            novos.append(Polygon(poly.exterior, manter))
+        saida.append(MultiPolygon(novos) if len(novos) > 1 else novos[0])
+    return saida
+
 def _geo_defs(nivel):
     if nivel not in _GEO_DEFS:
         import numpy as np
@@ -645,6 +721,7 @@ def _geo_defs(nivel):
         from shapely.ops import transform as _shp_transform
         g, project, nomes = _geo_nivel(nivel)
         px = np.array([_shp_transform(lambda x, y, z=None: project(x, y), geom) for geom in g.geometry.values])
+        px = _fecha_frestas(px)
         simp = shapely.coverage_simplify(px, _GEO_TOL)
         defs = {}
         for chave, geom in zip(g["_chave"], simp):
@@ -803,6 +880,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
     escala continua) -- mesma convencao de mapa_coropletico_bairros em
     analise.py. Emite 1 construto (option_card-compativel) com SVG + legenda +
     tooltip por regiao + toggle de outliers + download CSV."""
+    _registra_fonte(fonte_dados)
     gdf, project, nomes = _geo_nivel(nivel)
     defs = _geo_defs(nivel)
     valores = {}
@@ -905,74 +983,12 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
     else:
         build(valores)
 
-# ============================================================ NAVBAR/HEADER ==
-
-# Faixa de aviso "em desenvolvimento" -- publicação de teste no GitHub Pages
-# (repositório passou a ser público). Remover só quando o relatório for
-# considerado pronto para divulgação oficial -- ver specs/roadmap.md
-# "publicar_teste_pages".
-parts.append(
-    '<div class="dev-banner" role="alert">'
-    '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
-    'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
-    '</div>'
-)
-
-parts.append('<div class="topbar-accent"></div>')
-parts.append('<nav class="navbar"><div class="navbar-inner">')
-parts.append(
-    '<button type="button" class="navbar-burger" id="navbar-burger" aria-expanded="false" aria-controls="navbar-menu">'
-    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">'
-    '<line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line>'
-    '</svg><span class="eyebrow navbar-label">NAVEGAÇÃO</span></button>'
-)
-parts.append(f'<div class="navbar-logo">{LOGO_IMG}</div>')
-parts.append('</div></nav>')
-parts.append('<div class="navbar-menu" id="navbar-menu" hidden><!--NAVBAR--></div>')
-
-parts.append('<header class="doc-head">')
-parts.append('<div class="doc-head-row">')
-parts.append('<div class="doc-head-title">')
-parts.append('<div class="eyebrow doc-eyebrow">PROJETO · RELATÓRIO INTERATIVO</div>')
-parts.append('<h1><span class="glyph">\U0001F3DB️</span>Análise Primeira Infância Carioca</h1>')
-parts.append('</div>')
-parts.append('<div class="doc-head-desc">')
-parts.append('<p class="sub">Visualizações dos indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro. Cada gráfico tem a fonte no rodapé e uma opção de ver os dados em tabela; a descrição metodológica completa fica no notebook (<code>analise.py</code>) e no relatório em PDF.</p>')
-parts.append('<p class="meta"><span id="gen-date">—</span></p>')
-parts.append('</div>')
-parts.append('</div>')
-parts.append('<div class="spectrum-bar">' + "".join(f'<span style="background:var(--c{i})"></span>' for i in range(1, 12)) + '</div>')
-parts.append('</header>')
-
-# ---- sumario + introducao (specs/ajuste_eixos, pedido do usuario) --------
-# O Sumario antigo (com ancoras h2+h3) foi removido em specification.md v6
-# em favor da navbar persistente (relatorio/specs.md linha ~175); a CSS
-# .toc/.toc-list ficou no arquivo sem uso desde entao. Reativada aqui, nao
-# reescrita -- convive com a navbar (motivos diferentes: navbar e navegacao
-# rapida sempre visivel, Sumario e a abertura formal do documento). Preenchido
-# via placeholder (mesmo padrao do <!--NAVBAR-->) porque os ids das secoes so
-# existem depois que h2()/h3() rodam mais abaixo no script.
-parts.append(
-    '<section class="doc-toc" aria-label="Sumário">'
-    '<div class="toc">'
-    '<div class="toc-label">SUMÁRIO</div>'
-    '<ul class="toc-list"><!--SUMARIO--></ul>'
-    '</div>'
-    '</section>'
-)
-# Introducao: bloco placeholder (lorem ipsum, 250 palavras fixas -- nao a
-# faixa 100-200 dos blocos de analise por visualizacao, specs.md §7; texto
-# final e' trabalho de curadoria futura, fora do escopo desta rodada) com
-# <h2> real só para herdar a tipografia/first-of-type do CSS -- não passa
-# por h2() de proposito (não deve virar seção retrátil, nem entrar na
-# navbar/Sumário listando a si mesma).
-parts.append(
-    '<section class="doc-intro" id="introducao">'
-    '<h2>Introdução</h2>'
-    # texto curado sob o bookmark "introducao" do DOCX, se já sincronizado
-    f'<p class="lede">{_TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 250)}</p>'
-    '</section>'
-)
+# ============================================================ BANNER/INTRO ==
+# specs/website_refactor Bloco 5: faixa de aviso, banner, barra de abas, painel Visão geral e
+# sumário lateral são montados no fim (ASSEMBLE), quando todos os h2/h3 já existem. Aqui só o
+# texto da Introdução (curado sob o bookmark "introducao" do DOCX, senão lorem de 250 palavras --
+# specs/ajuste_eixos §7), que vai para o painel Visão geral.
+INTRO_HTML = _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 250)
 
 # ============================================================== PRIORIDADE ==
 
@@ -1776,72 +1792,137 @@ _footer_cols = [
     f'<div class="footer-col"><div class="eyebrow">CONTATO</div><div>{FOOTER_CONTATO}</div><div class="eyebrow" style="margin-top:14px;">ATUALIZADO EM</div><div>{gen_date}</div></div>',
 ]
 footer = (
-    '<footer class="doc-foot">'
+    '<footer class="doc-foot"><div class="container">'
     '<div class="footer-cols">' + "".join(_footer_cols) + '</div>'
     '<div class="footer-rule"></div>'
     '<div class="footer-credit">Instituto Municipal de Urbanismo Pereira Passos — Prefeitura da Cidade do Rio de Janeiro</div>'
-    '</footer>'
-)
-_pre_footer_len = len(parts)   # boundary: conteudo de secao termina aqui; o rodape (a seguir) fica fora de qualquer .rsec
-parts.append(footer)
-
-# ---- envolve cada secao h2 num container retratil (specification.md §3.1) ----
-if section_starts:
-    n_sections = len(section_starts)
-    _wrapped = list(parts[:section_starts[0][0]])
-    for i, (start, title, sid) in enumerate(section_starts):
-        end = section_starts[i + 1][0] if i + 1 < n_sections else _pre_footer_len
-        heading_html = parts[start]
-        body_html = "".join(parts[start + 1:end])
-        takeaways = "".join(f"<li>{b}</li>" for b in _lorem_bullets(sid))
-        takeaways_html = (
-            '<div class="key-takeaways">'
-            '<div class="eyebrow kt-label">PRINCIPAIS ACHADOS</div>'
-            f'<ul>{takeaways}</ul>'
-            '</div>'
-        )
-        _wrapped.append(
-            f'<section class="rsec" id="wrap-{sid}">'
-            '<div class="rsec-head">'
-            f'<div class="rsec-head-l"><span class="eyebrow rsec-eyebrow">SEÇÃO {i + 1} DE {n_sections}</span><div class="rsec-head-title">{heading_html}</div></div>'
-            '<button type="button" class="rsec-toggle" aria-expanded="true">'
-            '<span class="rsec-toggle-label">RECOLHER</span>'
-            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><polyline points="6 9 12 15 18 9"></polyline></svg>'
-            '</button>'
-            '</div>'
-            f'<div class="section-body">{takeaways_html}{body_html}</div>'
-            '</section>'
-        )
-    _wrapped.append(parts[_pre_footer_len])  # rodape, fora de qualquer secao
-    parts[:] = _wrapped
-
-# ---- navbar: links para as secoes h2, substitui o antigo Sumario (specification.md §3.6) ----
-navbar_links = "".join(
-    f'<a href="#{sid}" class="navbar-link">{title}</a>' for level, title, sid in toc if level == 2
+    '</div></footer>'
 )
 
-# ---- sumario: mesma fonte (toc) da navbar, mas aninhado h2 > h3 (formato
-# do Sumario antigo, relatorio/specs.md) -- agrupa cada h3 sob o h2 mais
-# recente que o precede em `toc`.
-_sumario_grupos = []
-for _level, _title, _sid in toc:
-    if _level == 2:
-        _sumario_grupos.append([(_title, _sid), []])
-    elif _level == 3 and _sumario_grupos:
-        _sumario_grupos[-1][1].append((_title, _sid))
-sumario_html = "".join(
-    f'<li><a href="#{sid}">{_esc(title)}</a>'
-    + ("<ul>" + "".join(f'<li><a href="#{csid}">{_esc(ctitle)}</a></li>' for ctitle, csid in filhos) + "</ul>" if filhos else "")
-    + '</li>'
-    for (title, sid), filhos in _sumario_grupos
+# ======================================================= site em abas (Bloco 5) ==
+# specs/website_refactor §4.2-4.7. Substitui navbar hambúrguer + Sumário + seções retráteis
+# (relatorio/specs.md v6/v7 -> v8): cada h2 vira um painel de aba; Visão geral é a 1ª aba.
+
+TITULO_SITE = "Diagnóstico da Primeira Infância Carioca"
+# sempre em 2 linhas (pedido do usuário) -- quebra que mantém o sujeito junto
+TITULO_H1 = '<span class="h1-linha">Diagnóstico da</span><span class="h1-linha">Primeira Infância Carioca</span>'
+URL_GITHUB = "https://github.com/ipp-dados/analise_primeira_infancia"
+# PDF não é publicado no Pages (~48 MB, fora do orçamento §4.9 e da decisão T9.3 de
+# specs/relatorio-interativo) -- link para o arquivo versionado no repositório (branch principal).
+URL_PDF = URL_GITHUB + "/blob/staging_main/relatorio/analise_primeira_infancia.pdf"
+
+# rótulo curto da aba e ícone por eixo (título completo continua no h2 do painel)
+_EIXO_META = [  # (prefixo do sid, rótulo curto, ícone)
+    ("prioridade", "Prioridade", "target"),
+    ("inclus", "Inclusão", "handshake"),
+    ("fam", "Família e Cuidados", "users"),
+    ("prote", "Proteção", "shield-check"),
+    ("aliment", "Alimentação", "apple"),
+    ("moradia", "Moradia", "house"),
+]
+def _meta_eixo(sid, titulo):
+    for prefixo, rotulo, ic in _EIXO_META:
+        if sid.startswith(prefixo):
+            return rotulo, ic
+    return titulo, "layout-dashboard"
+
+# h3 de cada seção, na ordem (sumário lateral e contagem da Visão geral)
+_h3_por_secao, _atual = {}, None
+for _nivel, _titulo, _sid in toc:
+    if _nivel == 2:
+        _atual = _sid
+        _h3_por_secao[_atual] = []
+    elif _nivel == 3 and _atual:
+        _h3_por_secao[_atual].append((_titulo, _sid))
+
+n_secoes = len(section_starts)
+_fim_conteudo = len(parts)
+paineis, navs_outline, abas = [], [], []
+
+abas.append(f'<button type="button" role="tab" class="tab" id="tab-visao-geral" aria-controls="visao-geral" '
+            f'aria-selected="false" tabindex="-1">{icone("layout-dashboard")}<span>Visão geral</span></button>')
+for i, (start, titulo, sid) in enumerate(section_starts):
+    fim = section_starts[i + 1][0] if i + 1 < n_secoes else _fim_conteudo
+    corpo = "".join(parts[start + 1:fim])   # parts[start] é o <h2>, que vai para o cabeçalho do painel
+    rotulo, ic = _meta_eixo(sid, titulo)
+    abas.append(f'<button type="button" role="tab" class="tab" id="tab-{sid}" aria-controls="{sid}" '
+                f'aria-selected="false" tabindex="-1">{icone(ic)}<span>{_esc(rotulo)}</span></button>')
+    achados = callout("findings", "lightbulb", "Principais achados",
+                      "<ul>" + "".join(f"<li>{b}</li>" for b in _lorem_bullets(sid)) + "</ul>")
+    # Conclusões do eixo (pedido do usuário no Bloco 4): 100-200 palavras, lorem até haver texto
+    # curado sob a seed "conclusao-<sid>" em relatorio/textos_curados.json (o DOCX de curadoria
+    # ainda não tem bookmark para isso -- mesma lacuna conhecida das opções sem arquivo, relatorio/specs.md v7)
+    id_conc = slugify(f"conclusoes-{sid}")
+    conclusao = (f'<h3 id="{id_conc}" class="h3-conclusao">Conclusões</h3>'
+                 f'<div class="conclusao"><div class="conclusao-head">{icone("flag")}'
+                 f'<span class="eyebrow">Síntese do eixo · {_esc(rotulo)}</span></div>'
+                 f'<p>{_texto_analise(f"conclusao-{sid}")}</p></div>')
+    fontes = _FONTES_SECAO.get(sid) or []
+    caixa_fontes = callout("sources", "book-open", "Fontes desta seção",
+                           "<ul>" + "".join(f"<li>{f}</li>" for f in fontes) + "</ul>") if fontes else ""
+    paineis.append(
+        f'<section class="tab-panel" id="{sid}" role="tabpanel" aria-labelledby="tab-{sid}" hidden>'
+        f'<header class="panel-head"><span class="panel-icon">{icone(ic)}</span><div>'
+        f'<div class="eyebrow panel-eyebrow">Eixo {i + 1} de {n_secoes}</div><h2>{titulo}</h2></div></header>'
+        f'{achados}{corpo}{conclusao}{caixa_fontes}</section>'
+    )
+    itens = _h3_por_secao.get(sid, []) + [("Conclusões", id_conc)]
+    navs_outline.append(f'<nav class="outline-nav" data-panel="{sid}" aria-label="{_esc(rotulo)}" hidden>' + "".join(
+        f'<a href="#{sid}/{h3id}" data-alvo="{h3id}">{_esc(h3t)}</a>' for h3t, h3id in itens) + '</nav>')
+
+# painel Visão geral: Introdução + cartões dos eixos (contagens do próprio gerador, sem texto novo)
+_cartoes = []
+for i, (start, titulo, sid) in enumerate(section_starts):
+    rotulo, ic = _meta_eixo(sid, titulo)
+    n_h3 = len(_h3_por_secao.get(sid, []))
+    n_pend = _PENDENTES_SECAO.get(sid, 0)
+    meta = f"{n_h3} subseç{'ão' if n_h3 == 1 else 'ões'}" + (f" · {n_pend} pendente{'s' if n_pend > 1 else ''}" if n_pend else "")
+    _cartoes.append(f'<a class="eixo-card" href="#{sid}"><span class="panel-icon">{icone(ic)}</span>'
+                    f'<span class="eyebrow eixo-card-num">Eixo {i + 1}</span><span class="eixo-card-title">{titulo}</span>'
+                    f'<span class="eixo-card-meta">{meta}</span></a>')
+paineis.insert(0,
+    '<section class="tab-panel" id="visao-geral" role="tabpanel" aria-labelledby="tab-visao-geral" hidden>'
+    f'<div class="overview-intro" id="introducao"><div class="eyebrow panel-eyebrow">Apresentação</div><h2>Introdução</h2>'
+    f'<p class="lede">{INTRO_HTML}</p></div>'
+    '<div class="eyebrow eixo-grid-label">Eixos da política municipal de primeira infância</div>'
+    f'<div class="eixo-grid">{"".join(_cartoes)}</div></section>'
 )
+navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-label="Eixos" hidden>'
+                    '<a href="#visao-geral/introducao" data-alvo="introducao">Introdução</a>'
+                    + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in section_starts) + '</nav>')
 
-body = "\n".join(parts).replace('<span id="gen-date">—</span>', f'<span id="gen-date">Atualizado {gen_date}</span>')
-body = body.replace('<!--NAVBAR-->', navbar_links)
-body = body.replace('<!--SUMARIO-->', sumario_html)
+banner = (
+    # faixa de aviso: remover quando publicar_teste_pages for encerrado (specs/roadmap.md)
+    '<div class="dev-banner" role="alert">'
+    '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
+    'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
+    '</div>'
+    '<header class="site-banner"><div class="container banner-inner">'
+    f'<div><span class="banner-logo">{logo_img("banner")}</span>'
+    '<div class="eyebrow banner-eyebrow">Relatório interativo · Instituto Pereira Passos</div>'
+    f'<h1>{TITULO_H1}</h1></div>'
+    '<ul class="banner-links">'
+    f'<li><a href="{URL_GITHUB}" target="_blank" rel="noopener">{icone("github")}<span>Código e dados no GitHub</span></a></li>'
+    f'<li><a href="{URL_PDF}" target="_blank" rel="noopener">{icone("file-text")}<span>Relatório final em PDF</span></a></li>'
+    f'<li class="banner-date">{icone("calendar")}<span>Atualizado em {gen_date}</span></li>'
+    '</ul>'
+    '</div>'
+    '<div class="spectrum-bar" aria-hidden="true">' + "".join(f'<span style="background:var(--c{i})"></span>' for i in range(1, 12)) + '</div>'
+    '</header>'
+)
+tabbar = ('<nav class="tabbar" aria-label="Seções do relatório"><div class="container tabbar-inner" role="tablist">'
+          + "".join(abas) + '</div></nav>')
+outline = ('<aside class="outline" aria-label="Nesta seção"><div class="outline-card">'
+           '<div class="outline-head"><span class="eyebrow outline-label">Nesta seção</span><span class="outline-pct">0%</span></div>'
+           '<div class="outline-progress" aria-hidden="true"><span></span></div>'
+           + "".join(navs_outline) + '</div></aside>')
 
-# CSS e motor JS agora são arquivos estáticos editados à mão (specs/website_refactor Bloco 2):
-# website/css/{main,layout,components}.css e website/js/charts.js. O gerador só os referencia.
+body = (banner + "\n" + tabbar + "\n"
+        '<div class="container page-grid">\n<main class="panels">\n' + "\n".join(paineis) + '\n</main>\n'
+        + outline + '\n</div>\n' + footer)
+
+# CSS e motor JS são arquivos estáticos editados à mão (specs/website_refactor Bloco 2):
+# website/css/{main,layout,components}.css e website/js/{charts,navigation,sidebar}.js.
 
 # Bloco 2: as chamadas de render (dados embutidos) saem do HTML para data/charts.js,
 # carregado depois de js/charts.js (mesma ordem de execução de antes: ENGINE, depois RENDER_CALLS).
@@ -1858,19 +1939,20 @@ doc = f"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Primeira Infância Carioca</title>
+<title>{TITULO_SITE}</title>
+<meta name="description" content="Indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro, por eixo da política municipal.">
 <link rel="stylesheet" href="css/main.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
 {BASEMAP_CSS}
 </head>
 <body>
-<div class="doc">
 {body}
-</div>
 <script src="data/geo.js"></script>
 <script src="js/charts.js"></script>
 <script src="data/charts.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/navigation.js"></script>
 </body>
 </html>
 """

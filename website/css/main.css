@@ -1,25 +1,54 @@
-/* main.css -- fontes, tokens (:root), reset, tipografia base e titulos.
-   specs/website_refactor Bloco 2: extraido da string CSS de build_site.py (ex-build_html_report.py),
-   mesma ordem relativa das regras. Editado a mao a partir daqui -- o gerador nao escreve este arquivo. */
-
+/* main.css -- fontes, tokens (:root), base e tipografia.
+   specs/website_refactor Blocos 4-6 (protótipo aprovado com ajustes): tokens novos. Nomes que o motor de gráficos
+   (js/charts.js) e o gerador usam continuam existindo: --page, --surface, --surface-2,
+   --ink*, --hairline*, --accent*, --shadow, --shadow-hover, --c1..--c11, --c-muted. */
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root{
   color-scheme: light;
-  --page:        #FFFFFF;
-  --surface:     #FFFFFF;
-  --surface-2:   #F7F8F8;
-  --ink:         #1C1E1D;
-  --ink-2:       #5B615F;
-  --ink-3:       #949B99;
-  --hairline:    rgba(20,30,27,0.08);
-  --hairline-2:  rgba(20,30,27,0.045);
-  --accent:      #2E9678;
-  --accent-ink:  #123128;
-  --accent-soft: #E9F6F1;
-  --shadow:      0 1px 2px rgba(20,30,27,.03), 0 12px 28px -16px rgba(20,30,27,.12);
-  --shadow-hover:0 4px 10px rgba(20,30,27,.05), 0 20px 40px -18px rgba(20,30,27,.18);
 
+  /* superfícies: fundo levemente frio, cartões brancos por cima */
+  --page:        #F3F5F8;
+  --surface:     #FFFFFF;
+  --surface-2:   #F6F8FA;
+  --surface-3:   #EBEFF3;
+
+  /* texto -- contraste AA medido (validation.md V4) */
+  --ink:         #16202A;
+  --ink-2:       #3F4B57;
+  --ink-3:       #5B6773;
+  --hairline:    rgba(22,32,42,.11);
+  --hairline-2:  rgba(22,32,42,.06);
+
+  /* acento de interface = azul institucional (IPP). Nunca usado em dado/choropleth. */
+  --accent:      #0A5A99;
+  --accent-ink:  #073F6C;
+  --accent-soft: #E6F0F8;
+  --ipp-navy:    #004a80;
+  --ipp-cyan:    #00aeef;
+  --warn:        #8A4B06;
+  --warn-soft:   #FFF4E0;
+
+  /* forma */
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-pill: 999px;
+  --shadow-1:    0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.07);
+  --shadow-2:    0 2px 4px rgba(16,24,40,.04), 0 14px 28px -10px rgba(16,24,40,.16);
+  --shadow:      var(--shadow-1);   /* aliases usados pelo motor e por regras antigas */
+  --shadow-hover:var(--shadow-2);
+
+  /* espaçamento (4-64px) */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px;
+
+  /* layout */
+  --container:   1440px;
+  --gutter:      32px;
+  --outline-w:   280px;
+  --nav-h:       64px;   /* reescrito por navigation.js com a altura real da barra de abas */
+
+  /* paleta de DADOS -- inalterada (relatorio/specs.md v3/v6.2) */
   --c1: #6a95c8; --c1d:#87aad4;
   --c2: #d28060; --c2d:#d19e8a;
   --c3: #359c78; --c3d:#89d2b9;
@@ -37,11 +66,9 @@
   --font-body: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
+
 *{box-sizing:border-box;}
-/* +20% em toda fonte baseada em rem (praticamente tudo no relatorio) --
-   pedido explicito do usuario; os poucos rotulos SVG em px fixo (eixos/
-   rotulos de grafico, escala/rosa dos ventos do mapa) sao escalados a
-   mao logo abaixo, ja que nao herdam de font-size do root */
+/* +20% em toda fonte baseada em rem -- pedido explícito do usuário (relatorio/specs.md v6.5) */
 html{font-size:19.2px;}
 body{
   margin:0; background:var(--page); color:var(--ink);
@@ -49,30 +76,23 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 a{color:var(--accent);}
-code{font-family:var(--font-mono); font-size:.92em; background:var(--hairline-2); padding:.1em .35em; border-radius:3px;}
+a:hover{color:var(--accent-ink);}
+code{font-family:var(--font-mono); font-size:.92em; background:var(--surface-3); padding:.1em .4em; border-radius:6px;}
+::selection{background:var(--accent); color:#fff;}
+:focus-visible{outline:3px solid var(--ipp-cyan); outline-offset:2px; border-radius:6px;}
 
-h2{
-  font-family:var(--font-display); font-weight:600; font-size:clamp(1.5rem,3vw,1.85rem);
-  margin:68px 0 4px; padding-top:32px; border-top:1px solid var(--hairline); line-height:1.2;
-  text-wrap:balance; scroll-margin-top:24px; color:var(--ink);
-}
-h2:first-of-type{margin-top:0; padding-top:0; border-top:none;}
+h1, h2, h3, h4{font-family:var(--font-display); font-weight:600; color:var(--ink); text-wrap:balance;}
+h2{font-size:clamp(1.5rem,3vw,1.9rem); line-height:1.15; margin:0;}
 h3{
-  font-family:var(--font-display); font-weight:600; font-size:1.4rem;
-  margin:44px 0 14px; line-height:1.2; scroll-margin-top:24px;
+  font-size:1.4rem; line-height:1.2; margin:56px 0 16px;
+  scroll-margin-top:calc(var(--nav-h) + 24px);
 }
-h4{
-  font-family:var(--font-display); font-weight:600; font-size:1.16rem;
-  margin:34px 0 12px;
-}
-h5{
-  font-family:var(--font-body); font-weight:600; font-size:1rem;
-  margin:28px 0 10px; color:var(--ink);
-}
+h4{font-size:1.16rem; margin:34px 0 12px;}
+h5{font-family:var(--font-body); font-weight:600; font-size:1rem; margin:28px 0 10px; color:var(--ink);}
 h6{
   font-family:var(--font-body); font-weight:600; font-size:.88rem;
   margin:22px 0 8px; color:var(--ink-2); text-transform:uppercase; letter-spacing:.03em;
 }
 
-/* ============ specs/relatorio-interativo: identidade institucional ============ */
-:root{ --ipp-navy:#004a80; --ipp-cyan:#00aeef; }
+.eyebrow{font-family:var(--font-mono); font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.09em;}
+.icon{width:1em; height:1em; flex:none; display:inline-block; vertical-align:-.125em;}
