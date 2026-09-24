@@ -9,7 +9,7 @@ estimativas (P-A1). A validação da Parte E está em `matriculas/validation.md`
 - [x] Ripsa sem nível bairro: o menor nível do Tabnet é `Município`. *(2026-09-24)*
 - [x] O POST automatizado responde (com retry: 2 de 5 consultas tiveram `ConnectionResetError` na primeira tentativa).
 - [x] Validação externa: total Ripsa 2024 = 6.729.894 = estimativa municipal IBGE 2024 (Data.Rio).
-- [ ] Baseline antes do Bloco 1: checksums de `tabelas_finais/`, `visualizacoes/`, `mapas/`, `relatorio/*`, e contagens do HTML (cards, mapas SVG, tamanho), páginas do PDF e headings do DOCX.
+- [x] Baseline antes do Bloco 1: checksums (md5) de 205 arquivos em `tabelas_finais/`, `visualizacoes/`, `mapas/`, `relatorio/*`, e cópia de `tabelas_finais/`, guardados no scratchpad da sessão. `index.html` 20.903.787 bytes; PDF 127 páginas, 46.293.238 bytes; DOCX 5.946.288 bytes. *(2026-09-24)*
 
 ## V1: População Ripsa de referência (Parte A)
 
@@ -32,9 +32,9 @@ Crianças de 0 a 5 anos por sexo e total de todas as idades:
 
 A idade simples de 2007-2025 (0-6) está em `matriculas/validation.md` V2.
 
-- [ ] O extrato reproduz a tabela acima (e os 26 anos completos).
-- [ ] Soma dos sexos = total por idade, para todo ano e idade.
-- [ ] Nota A5 traz a comparação de 2022: total 6.211.223 × 6.742.618; 0-4 310.648 × 361.163; 0-5 379.609 × 439.907.
+- [x] O extrato reproduz a tabela acima (e os 26 anos completos). Também reproduz a idade simples de `matriculas/validation.md` V2. *(2026-09-24)*
+- [x] Soma dos sexos = total por idade, para todo ano e idade (assert em `carrega_populacao_ripsa`, contra uma 4ª consulta sem filtro de sexo).
+- [x] Nota A5 traz a comparação de 2022: total 6.211.223 × 6.742.618; 0-4 310.648 × 361.163; 0-5 379.609 × 439.907. Acrescentado: o Censo por bairro do Data.Rio soma 6.183.971 (total) e 310.157 (0-4), um pouco abaixo do SIDRA.
 
 ## V2: Saídas da Parte A
 

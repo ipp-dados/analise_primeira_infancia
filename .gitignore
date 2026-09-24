@@ -12,4 +12,5 @@
 !/mapas/.gitkeep
 /visualizacoes/*
 !/visualizacoes/.gitkeep
-*env/dados_locais/educacao/inep_microdados/
+*env
+/dados_locais/educacao/inep_microdados/
