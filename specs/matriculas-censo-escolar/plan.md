@@ -1,8 +1,8 @@
 # Plano técnico: Matrículas e taxa de atendimento de 0 a 5 anos (Censo Escolar/INEP + Ripsa)
 
-Baseado em `specification.md` (rascunho 3). IDs D1-D9 (decisões) e P1-P7 (pendências) são os da spec.
-**Nada daqui em diante é executado antes de o usuário revisar e aprovar as specs** (pedido de
-2026-09-24). O check de 2025 (condição de D4) já foi feito e está em spec §3.5.
+Baseado em `specification.md` (rascunho 4). IDs D1-D9 (decisões) e P1-P7 (pendências) são os da spec.
+**Nada daqui em diante é executado antes do ok do usuário para implementar** (pedido de 2026-09-24;
+decisões D1-D9 já aprovadas). O check de 2025 (condição de D4) já foi feito e está em spec §3.5.
 
 ## Decisões
 
@@ -20,18 +20,18 @@ Baseado em `specification.md` (rascunho 3). IDs D1-D9 (decisões) e P1-P7 (pend�
 - **D5 ✅**: ZIPs em `dados_locais/educacao/inep_microdados/`, gitignorado (regra já adicionada;
   `*.zip` também já era ignorado).
 - **D6 ✅ no escopo**: taxa bruta de atendimento = matrículas ÷ população residente da faixa.
-- **D7 (aberta, proposta c)**: denominador Ripsa/MS na série; taxa de 2022 com o Censo só na nota.
-- **D8 (aberta, proposta b)**: linhas de referência do PNE (50% creche, 100% pré) via parâmetro opcional.
-- **D9 (aberta, proposta)**: taxa para 0-3, 4-5 e 0-5, num gráfico só.
+- **D7 ✅ Ripsa, com nota metodológica**: denominador Ripsa/MS na série inteira. A nota tem os 6 pontos
+  listados em spec §5 (Ripsa × Censo 2022, taxa bruta, revisões, diferença com a PNAD, PNE).
+- **D8 ✅ (b)**: linhas de referência do PNE (50% creche, 100% pré) via parâmetro opcional.
+- **D9 ✅**: taxa para 0-3, 4-5 e 0-5, num gráfico só.
 
-Os blocos abaixo seguem as propostas de D7-D9. Onde a outra opção muda o plano, isso está indicado.
 
 ## Princípios
 
 - **Só a seção 🎓 de matrículas muda** (`analise.py:3166-3179`), mais as funções novas no topo, as
   referências nos três scripts de relatório e em `estrutura_eixos.md`. A PNAD e o SIDRA logo acima não
   são tocados, exceto para renomear a variável `df_freq_escolar` reaproveitada **na célula de
-  matrículas** (spec §2). Única exceção, se D8 = (b): o parâmetro opcional em `serie_temporal_multipla`
+  matrículas** (spec §2). Única exceção (D8): o parâmetro opcional em `serie_temporal_multipla`
   e no `line_chart` do HTML, com default que não muda nada.
 - **Uma fonte, uma definição**: todos os anos passam pela mesma função, com as mesmas colunas e a mesma
   data de referência. O mesmo vale para a população.
@@ -73,7 +73,7 @@ Os blocos abaixo seguem as propostas de D7-D9. Onde a outra opção muda o plano
    `matriculas_4_a_5`, `matriculas_publica`, `matriculas_privada`, `populacao_0_a_3`,
    `populacao_4_a_5`, `populacao_0_a_5`, `taxa_atendimento_0_a_3`, `taxa_atendimento_4_a_5`,
    `taxa_atendimento_0_a_5` (em %, com 1 casa, calculada depois de somar).
-4. Só se D8 = (b): `linhas_referencia=None` em `serie_temporal_multipla`, uma lista de
+4. D8: `linhas_referencia=None` em `serie_temporal_multipla`, uma lista de
    `(valor, rótulo)` desenhada com `axhline` tracejado e cinza e rótulo à direita. Com `None`, não
    desenha nada.
 
@@ -82,7 +82,8 @@ Os blocos abaixo seguem as propostas de D7-D9. Onde a outra opção muda o plano
 - Markdown: título "Matrículas e taxa de atendimento de 0 a 5 anos (Censo Escolar/INEP, 2007-2025)" e
   nota de método: faixas por escola desde a LGPD; 6 anos misturado com 7-10; data de referência; troca
   da série antiga e o porquê (spec §3.4); vale de 2021; 2025 em tabelas separadas; ressalvas da taxa
-  bruta; comparação Ripsa × Censo 2022 (D7); metas do PNE.
+  bruta; e a **nota metodológica de D7** (spec §5, 6 pontos) numa célula markdown própria, logo acima
+  do gráfico da taxa.
 - Fontes: `fonte_matriculas = 'Censo Escolar da Educação Básica (INEP), microdados'` e
   `fonte_taxa_atendimento = 'Censo Escolar (INEP), microdados; população: estimativas Ripsa/Ministério da Saúde'`.
 - Saídas:
@@ -91,7 +92,7 @@ Os blocos abaixo seguem as propostas de D7-D9. Onde a outra opção muda o plano
   - `visualizacoes/matriculas_0_a_5_creche_pre_por_ano.png`: `serie_temporal_multipla` (0-3, 4-5);
   - `visualizacoes/matriculas_0_a_5_rede_por_ano.png`: `serie_temporal_multipla` (pública, privada);
   - `visualizacoes/taxa_atendimento_0_a_5_por_ano.png`: `serie_temporal_multipla` (0-3, 4-5, 0-5,
-    em %), com as linhas do PNE se D8 = (b).
+    em %), com as linhas do PNE (D8).
 - `git rm` do CSV antigo em `dados_locais/educacao/`; `git add` dos dois extratos novos.
 
 ### Bloco 4: Crosswalk e relatórios
@@ -104,7 +105,7 @@ Os blocos abaixo seguem as propostas de D7-D9. Onde a outra opção muda o plano
   A taxa entra como **item novo** no mesmo eixo, logo abaixo das matrículas, com a nota "incluído na
   rodada `matriculas-censo-escolar`, fora do catálogo original".
 - `build_html_report.py:1415-1416`: arquivo e rótulo, mais os cards novos (creche/pré, rede, taxa) com
-  `option_card` e `line_chart` de várias séries. As linhas do PNE entram no `line_chart` se D8 = (b).
+  `option_card` e `line_chart` de várias séries. As linhas do PNE entram no `line_chart` com um parâmetro opcional equivalente (D8).
 - `build_notebook_report.py:623-625`: arquivo e rótulo, `chart_block` dos PNG novos, tabela com as
   colunas principais (ano, matrículas 0-5, taxas).
 - `regen_missing_pngs.py:156-159`: arquivo, título e `fonte_dados` (hoje ele não passa fonte).

@@ -46,13 +46,13 @@ Taxas de referência 2020-2025: spec §3.6 (ex.: 2025 → 0-3 43,7%, 4-5 85,2%, 
 
 - [ ] Extrato de população reproduz as linhas acima (e as demais da consulta).
 - [ ] `taxa_atendimento_0_a_5 == (matriculas_0_a_3 + matriculas_4_a_5) / (populacao_0_a_3 + populacao_4_a_5)`, e não a média das duas taxas.
-- [ ] Nota do notebook traz a comparação com o Censo 2022 (0-5: 379.609 pessoas, taxa 64,9%).
+- [ ] Nota metodológica de D7 presente, com os 6 pontos da spec §5 (inclui Censo 2022: 379.609 pessoas de 0-5, taxa 64,9%).
 
 ## V3: Saídas
 
 - [ ] `tabelas_finais/matriculas_0_a_5_por_ano.csv`: 19 linhas (2007-2025), `matriculas == matriculas_0_a_3 + matriculas_4_a_5 == matriculas_publica + matriculas_privada`.
 - [ ] Os 4 PNG existem e citam a fonte no rodapé (o da taxa cita INEP e Ripsa).
-- [ ] Se D8 = (b): gráficos existentes que usam `serie_temporal_multipla` saem idênticos visualmente (sem `linhas_referencia`).
+- [ ] D8: gráficos existentes que usam `serie_temporal_multipla` e `line_chart` saem idênticos visualmente (sem `linhas_referencia`); o da taxa mostra 50% e 100% tracejados.
 - [ ] Nenhuma referência restante a `matriculas_0_a_6` (`grep -rn` no repo, fora de `specs/` e do histórico).
 
 ## V4: Reprodutibilidade

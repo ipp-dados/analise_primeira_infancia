@@ -1,13 +1,16 @@
 # Especificação: Matrículas e taxa de atendimento de 0 a 5 anos, Censo Escolar/INEP (`specs/matriculas-censo-escolar`)
 
 Branch: `spec/matriculas-censo-escolar` (a partir de `staging_main`, em 2026-09-24)
-Status: **rascunho 3** (2026-09-24). D1-D5 aprovadas, com o check de 2025 feito (§3.5, compatível).
+Status: **rascunho 4** (2026-09-24). **Todas as decisões D1-D9 aprovadas.** Aguarda o ok do usuário para
+implementar (Bloco 1).
+
+Rascunho 3: D1-D5 aprovadas, com o check de 2025 feito (§3.5, compatível).
 Renomear os arquivos para `0_a_5` aprovado. **D6 entrou no escopo** (usuário: "you can add to this spec
 scope"), o que abriu as decisões D7-D9 sobre o denominador (§3.6, §5). **O usuário revisa as specs antes de
 qualquer implementação.** Desdobramento: `plan.md`, `tasks.md`, `validation.md`.
 
 > Histórico: rascunho 1 (abertura), rascunho 2 (D1-D5 e check de 2025), rascunho 3 (renomear, D6 no escopo,
-> fonte de população).
+> fonte de população), rascunho 4 (D7-D9 aprovadas).
 Roadmap: seção "Matrículas" de `specs/roadmap.md` ("Update dados de matrículas escolares for years
 2021-2025").
 
@@ -259,7 +262,24 @@ Data.Rio/SME ou pelo endereço), o que é uma rodada à parte.
 **Registro (usuário, 2026-09-24):** D1 ✅ 0-5 · D2 ✅ reconstruir · D3 ✅ creche × pré e pública × privada ·
 D4 ✅, com check de 2025 antes do resto (feito, §3.5) · D5 ✅ · D6 sem resposta, segue a proposta (fora).
 **Sub-decisão de D1 (rascunho 3):** renomear para `0_a_5` ✅. **D6 (rascunho 3):** ✅ no escopo.
-**D7-D9 abertas**, logo abaixo da tabela original.
+**D7-D9 (rascunho 4, usuário, 2026-09-24):** D7 ✅ Ripsa, **com nota metodológica** (ver abaixo) ·
+D8 ✅ linhas do PNE (b) · D9 ✅ 0-3, 4-5 e 0-5.
+
+**Conteúdo da nota metodológica de D7** (markdown no notebook, perto da taxa; não vai para o relatório,
+que é para público não técnico, exceto a linha de fonte no rodapé do gráfico):
+1. Denominador: estimativas Ripsa/MS 2000-2025 (Nota Técnica 01/2025), população em 1º de julho, por
+   idade simples, ajustada às Projeções do IBGE (revisão 2024), e a data da consulta ao Tabnet.
+2. Por que não o Censo 2022: ele conta 379.609 crianças de 0-5 no Rio contra 439.907 da Ripsa (+16%),
+   com a maior diferença em menores de 1 ano (sub-registro de crianças pequenas corrigido pelo IBGE).
+   Com o Censo, a taxa de 2022 seria 64,9% (0-3: 47,8%; 4-5: 94,4%) em vez de 56,0%, e números do
+   Censo 2022 no notebook (SIDRA) não são diretamente comparáveis com a taxa.
+3. É uma taxa **bruta**: o numerador inclui não residentes matriculados no Rio, e as datas de
+   referência diferem (fim de maio e 1º de julho).
+4. Revisões: a Ripsa revisa as estimativas todo ano, então uma nova consulta pode mudar anos passados
+   (P7).
+5. Diferença com a "taxa bruta de frequência escolar" da PNAD, que já está no notebook: aquela é
+   declarada no domicílio, esta é registro administrativo ÷ estimativa.
+6. Metas do PNE (Lei 13.005/2014, Meta 1) nas linhas de referência do gráfico.
 
 A tabela abaixo é a proposta original, mantida como histórico.
 
