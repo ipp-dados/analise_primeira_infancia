@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- favicon do site (specs/website_refactor): quadrado azul IPP + alvo do eixo Prioridade (Lucide "target", ISC) -->
+  <rect width="64" height="64" rx="14" fill="#004a80"/>
+  <g fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" transform="translate(8 8)">
+    <circle cx="24" cy="24" r="18"/>
+    <circle cx="24" cy="24" r="10.5"/>
+    <circle cx="24" cy="24" r="3" fill="#00aeef" stroke="#00aeef"/>
+  </g>
+</svg>

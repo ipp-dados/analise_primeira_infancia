@@ -1,5 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Build the single consolidated interactive HTML report (relatorio/index.html).
+"""Build the static website (website/) -- specs/website_refactor.
+
+Moved here from .claude/skills/export_pdf_report/scripts/build_html_report.py
+(specs/website_refactor, Bloco 1); the history below predates the move and
+still says relatorio/index.html, which was the output path until then.
+
+Usage (from anywhere; paths resolve against the project root):
+    python website/build/build_site.py [out_dir]      # default: website/
+
+---- previous docstring ----
+Build the single consolidated interactive HTML report (relatorio/index.html).
 
 Note (specs/ajuste_eixos, Bloco 3): the report's 9 h2 sections used to mirror
 analise.py's section order (one per data source: Censo, CadUnico, DataSUS/
@@ -66,6 +76,15 @@ import sys
 import datetime
 from pathlib import Path
 
+# specs/website_refactor Bloco 1: o gerador saiu de .claude/skills/export_pdf_report/scripts/
+# (era build_html_report.py). Os caminhos abaixo continuam relativos ao root do projeto
+# (tabelas_finais/, dados_locais/geo/, relatorio/textos_curados.json), por isso o chdir;
+# gera_estrutura_eixos continua morando na skill do PDF/DOCX e é só importado daqui.
+ROOT = Path(__file__).resolve().parents[2]
+_OUT_ARG = str(Path(sys.argv[1]).resolve()) if len(sys.argv) > 1 else None   # relativo ao cwd de quem chamou
+os.chdir(ROOT)
+sys.path.insert(0, str(ROOT / ".claude" / "skills" / "export_pdf_report" / "scripts"))
+
 from gera_estrutura_eixos import avisa_itens_sem_arquivo
 # populacao-referencia D4: avisa (sem mudar a saída) itens do crosswalk que o relatório pularia em silêncio
 avisa_itens_sem_arquivo()
@@ -75,7 +94,7 @@ from PIL import Image
 
 TF = "tabelas_finais"
 MAPAS = "mapas"
-OUT_PATH = sys.argv[1] if len(sys.argv) > 1 else "relatorio/index.html"
+OUT_PATH = _OUT_ARG or "website"   # pasta de saída (specs/website_refactor Bloco 2)
 
 # ---------------------------------------------------------------- helpers --
 
@@ -120,11 +139,36 @@ def slugify(text):
 
 section_starts = []  # (index_in_parts, title, sid) -- 1 per h2, used to wrap sections (retratil)
 
+_FONTES_SECAO = {}   # sid do h2 -> fontes citadas pelos cartões da seção, em ordem, sem repetição
+
 def h2(t):
+    # specs/website_refactor: cada h2 vira um painel de aba (id = sid, igual ao id antigo do h2,
+    # para links já compartilhados continuarem valendo); o emoji do título sai (ícone SVG no lugar).
     sid = slugify(t)
-    toc.append((2, t, sid))
-    section_starts.append((len(parts), t, sid))
-    parts.append(f'<h2 id="{sid}">{t}</h2>')
+    titulo = re.sub(r"^[^\w(]+", "", t).strip()
+    toc.append((2, titulo, sid))
+    section_starts.append((len(parts), titulo, sid))
+    _FONTES_SECAO[sid] = []
+    parts.append(f'<h2>{titulo}</h2>')
+
+def _registra_fonte(fonte):
+    """Caixa "Fontes desta seção" (spec §4.5): coletada dos próprios cartões, não escrita à mão."""
+    if fonte and section_starts:
+        lista = _FONTES_SECAO[section_starts[-1][2]]
+        if fonte not in lista:
+            lista.append(fonte)
+
+def icone(nome, classe="icon"):
+    """SVG de website/assets/icons/ embutido inline (herda currentColor); comentário de licença removido."""
+    svg = Path(f"website/assets/icons/{nome}.svg").read_text(encoding="utf-8")
+    svg = re.sub(r"<!--.*?-->", "", svg, flags=re.S).strip()
+    svg = re.sub(r'\s*class="[^"]*"', "", svg)
+    svg = re.sub(r"\s+", " ", svg).replace("> <", "><")
+    return svg.replace("<svg ", f'<svg class="{classe}" aria-hidden="true" focusable="false" ', 1)
+
+def callout(tipo, icone_nome, rotulo, corpo_html, extra=""):
+    return (f'<div class="callout callout-{tipo}"{extra}><span class="callout-icon">{icone(icone_nome)}</span>'
+            f'<div class="eyebrow callout-label">{rotulo}</div><div class="callout-body">{corpo_html}</div></div>')
 
 def h3(t):
     sid = slugify(t)
@@ -137,6 +181,7 @@ def h6(t): parts.append(f"<h6>{t}</h6>")
 
 def _out_div(elem_id, fonte, titulo=None, csv_attr=None, filename=None):
     tit = f'<div class="chart-subtitle">{titulo}</div>' if titulo else ""
+    _registra_fonte(fonte)
     src = f'<div class="out-src">{fonte}</div>' if fonte else ""
     dl = '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>' if csv_attr else ""
     attrs = f' data-csv="{csv_attr}" data-filename="{_esc(filename or "dados")}.csv"' if csv_attr else ""
@@ -253,6 +298,7 @@ def out_pair(fn1, fn2):
 def plain_table(df, fonte=None):
     html = df.to_html(index=False, classes="plain", border=0, na_rep="—", escape=True)
     html = html.replace(' class="dataframe plain"', ' class="plain"')
+    _registra_fonte(fonte)
     src = f'<div class="out-src">{fonte}</div>' if fonte else ""
     parts.append(f'<div class="out"><div class="table-scroll">{html}</div>{src}</div>')
 
@@ -469,31 +515,59 @@ def emite_bloco_pendente(titulo, nota):
     nao ser confundido com 'Principais achados'. Sem bloco de texto lorem --
     nao ha conteudo real a comentar ainda (specs.md §7)."""
     h3(titulo)
-    parts.append(
-        '<div class="pending-block">'
-        '<div class="eyebrow pending-label">🚧 INDICADOR CATALOGADO, AINDA NÃO DISPONÍVEL</div>'
-        f'<p>{_esc(nota)}</p>'
-        '</div>'
-    )
+    _PENDENTES_SECAO[section_starts[-1][2]] = _PENDENTES_SECAO.get(section_starts[-1][2], 0) + 1
+    # specs/website_refactor: callout com ícone (sai o emoji 🚧)
+    parts.append(callout("pending", "construction", "Indicador catalogado, ainda não disponível", f"<p>{_esc(nota)}</p>"))
+
+_PENDENTES_SECAO = {}   # sid do h2 -> nº de indicadores pendentes (cartões da Visão geral)
 
 def nota_metodologica(texto):
-    """Nota de limitação/qualidade de dado sob o h3 (ex.: quebra de série, denominador). Mesmo visual
-    do pending-block, com selo próprio -- não é indicador pendente, é ressalva sobre um dado real."""
-    parts.append(
-        '<div class="pending-block pending-inline">'
-        '<div class="eyebrow pending-label">ℹ️ NOTA METODOLÓGICA</div>'
-        f'<p>{_esc(texto)}</p>'
-        '</div>'
-    )
+    """Nota de limitação/qualidade de dado sob o h3 (ex.: quebra de série, denominador). Callout
+    próprio (ícone de informação, sai o emoji ℹ️) -- não é indicador pendente, é ressalva sobre um dado real."""
+    parts.append(callout("note", "info", "Nota metodológica", f"<p>{_esc(texto)}</p>"))
 
 # ---- institutional logo (embedded once, reused in navbar + footer) --------
 
-def _logo_b64():
-    with open("relatorio/assets/ipp-logo.png", "rb") as f:
-        return base64.b64encode(f.read()).decode("ascii")
+# Bloco 2: arquivo em website/assets/images/, não mais base64 embutido.
+# Bloco 5 (pedido do usuário: logo "em resolução maior"): o PNG original tem 1723x310 px (o próprio
+# site do IPP usa um de 212x77; não há SVG oficial publicado). O borrado vinha de o navegador
+# reduzir 14x para 22 px de altura. Agora: exibido maior e com cópias reduzidas por Lanczos na
+# altura exata de exibição x1/x2/x3 (srcset), geradas a partir do original (_logo_derivados).
+_LOGO_ALT = "Prefeitura do Rio de Janeiro — Instituto Pereira Passos"
+_LOGO_ALTURAS = {"banner": 34, "rodape": 28}   # um pouco menor (pedido do usuário, 2026-09-24; antes 40/32)
 
-LOGO_B64 = _logo_b64()
-LOGO_IMG = f'<img src="data:image/png;base64,{LOGO_B64}" alt="Prefeitura do Rio de Janeiro — Instituto Pereira Passos" class="ipp-logo">'
+def _logo_derivados():
+    orig = Path("website/assets/images/ipp-logo.png")
+    im = Image.open(orig).convert("RGBA")
+    feitos = {}
+    for uso, h in _LOGO_ALTURAS.items():
+        for mult in (1, 2, 3):
+            alvo_h = h * mult
+            if alvo_h > im.height:
+                continue
+            nome = f"ipp-logo-{alvo_h}.png"
+            destino = Path("website/assets/images") / nome
+            if not destino.exists():
+                w = round(im.width * alvo_h / im.height)
+                im.resize((w, alvo_h), Image.LANCZOS).save(destino, optimize=True)
+            feitos.setdefault(uso, []).append((nome, mult))
+    return feitos
+
+_LOGO_ARQS = _logo_derivados()
+
+def logo_img(uso):
+    arqs = _LOGO_ARQS[uso]
+    srcset = ", ".join(f"assets/images/{n} {m}x" for n, m in arqs)
+    return (f'<img src="assets/images/{arqs[0][0]}" srcset="{srcset}" height="{_LOGO_ALTURAS[uso]}" '
+            f'alt="{_LOGO_ALT}" class="ipp-logo">')
+
+# o logo é também link para o site institucional do IPP (pedido do usuário, Bloco 8)
+URL_IPP = "https://ipp.prefeitura.rio/"
+def logo_link(uso, classe):
+    return (f'<a class="{classe}" href="{URL_IPP}" target="_blank" rel="noopener" '
+            f'title="Instituto Pereira Passos — site institucional (abre em nova aba)">{logo_img(uso)}</a>')
+
+LOGO_IMG = logo_link("rodape", "footer-logo")
 
 # ---- SVG choropleth pipeline (Bloco 3) -------------------------------------
 # Aplicado nesta rodada ao mapa do Censo por bairro (prova de conceito real,
@@ -529,19 +603,6 @@ def _bounds_project(gdf, width, height, pad_frac=0.03):
     project.bounds = (minx, miny, maxx, maxy)
     project.scale = scale  # px por grau ajustado por cos(lat) ~= px por grau de latitude real
     return project
-
-def _ring_path(coords, project):
-    pts = [project(x, y) for x, y in coords]
-    return "M" + " L".join(f"{px:.1f},{py:.1f}" for px, py in pts) + " Z"
-
-def _geom_path_d(geom, project):
-    polys = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
-    d = []
-    for poly in polys:
-        d.append(_ring_path(list(poly.exterior.coords), project))
-        for interior in poly.interiors:
-            d.append(_ring_path(list(interior.coords), project))
-    return " ".join(d)
 
 _NIVEL_COL = {"ap": "area_plane", "rp": "cod_rp", "ra": "codra"}
 _NIVEL_LABEL = {"ap": "AP", "rp": "RP", "cap": "CAP", "ra": "RA"}
@@ -593,6 +654,90 @@ def _geo_nivel(nivel):
     _GEO_CACHE[nivel] = result
     return result
 
+# ---- geometria compartilhada (specs/website_refactor Blocos 3/3b) ------------
+# Antes: cada mapa (e cada variante "sem outliers") repetia o `d` de todas as
+# regiões -- 7.107 <path>, 20 MB. Agora cada região de cada nível vira UM
+# <path id="geo-..."> em data/geo.js e o mapa só tem <use href="#geo-..." fill=...>.
+# A geometria é simplificada como cobertura (shapely.coverage_simplify: fronteira
+# compartilhada simplificada uma vez só, sem fresta entre vizinhos) já no espaço
+# de pixels do SVG. Tolerância 0,3 unidade (< meio pixel na largura exibida):
+# 1,44 MB -> 0,24 MB nos 5 níveis, nenhum anel (ilha) perdido, área -0,01%.
+_GEO_TOL = 0.3
+_GEO_DEFS = {}    # nivel -> {chave: (def_id, d)}
+_GEO_USADOS = {}  # nivel -> [(def_id, nome, d)] na ordem do geojson, só níveis usados
+_GEO_PREFIXO = {"bairro": "b", "ap": "a", "rp": "r", "ra": "x", "cap": "c"}
+
+def _num_svg(v):
+    s = f"{v:.1f}".rstrip("0").rstrip(".")
+    if s.startswith("0."):
+        s = s[1:]
+    elif s.startswith("-0."):
+        s = "-" + s[2:]
+    return "0" if s in ("", "-0", "-") else s
+
+def _path_d_relativo(geom):
+    """`d` compacto: M absoluto + l relativo por anel, 1 casa decimal. Deltas
+    calculados sobre as coordenadas já arredondadas (sem acúmulo de erro)."""
+    polys = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
+    aneis = []
+    for poly in polys:
+        aneis.append(poly.exterior.coords)
+        aneis.extend(i.coords for i in poly.interiors)
+    out = []
+    for coords in aneis:
+        pts = [(round(x, 1), round(y, 1)) for x, y in coords][:-1]
+        if not pts:
+            continue
+        pts = [pts[0]] + [p for a, p in zip(pts, pts[1:]) if p != a]
+        seg, prev = "", pts[0]
+        for p in pts[1:]:
+            a, b = _num_svg(round(p[0] - prev[0], 1)), _num_svg(round(p[1] - prev[1], 1))
+            prev = p
+            seg += (a if (not seg or a.startswith("-")) else " " + a) + (b if b.startswith("-") else "," + b)
+        out.append(f"M{_num_svg(pts[0][0])},{_num_svg(pts[0][1])}" + (f"l{seg}" if seg else "") + "z")
+    return "".join(out)
+
+def _fecha_frestas(geoms):
+    """Remove anéis internos que nenhuma outra região cobre (specs/website_refactor T3b.6).
+    O geojson de bairros não fecha perfeitamente (coverage_is_valid = False); o dissolve em
+    AP/RP/RA deixa essas frestas como furinhos brancos dentro da região. Um furo coberto por
+    outra região é um enclave real e fica; um furo que ninguém cobre é fresta e é preenchido."""
+    import shapely
+    from shapely.geometry import Polygon, MultiPolygon
+    geoms = list(geoms)
+    saida = []
+    for i, geom in enumerate(geoms):
+        outras = shapely.union_all([g for j, g in enumerate(geoms) if j != i])
+        polys = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
+        novos = []
+        for poly in polys:
+            manter = []
+            for anel in poly.interiors:
+                furo = Polygon(anel)
+                if furo.area and outras.intersection(furo).area >= 0.5 * furo.area:
+                    manter.append(anel)
+            novos.append(Polygon(poly.exterior, manter))
+        saida.append(MultiPolygon(novos) if len(novos) > 1 else novos[0])
+    return saida
+
+def _geo_defs(nivel):
+    if nivel not in _GEO_DEFS:
+        import numpy as np
+        import shapely
+        from shapely.ops import transform as _shp_transform
+        g, project, nomes = _geo_nivel(nivel)
+        px = np.array([_shp_transform(lambda x, y, z=None: project(x, y), geom) for geom in g.geometry.values])
+        px = _fecha_frestas(px)
+        simp = shapely.coverage_simplify(px, _GEO_TOL)
+        defs = {}
+        for chave, geom in zip(g["_chave"], simp):
+            # id curto (repetido em ~7 mil <use>): g + letra do nível + chave (ex. gb12, gr1_1, gc1_0)
+            def_id = "g" + _GEO_PREFIXO[nivel] + re.sub(r"[^0-9A-Za-z]", "_", str(chave))
+            defs[chave] = (def_id, _path_d_relativo(geom))
+        _GEO_DEFS[nivel] = defs
+        _GEO_USADOS[nivel] = [(defs[c][0], str(nomes.get(c, c)), defs[c][1]) for c in g["_chave"]]
+    return _GEO_DEFS[nivel]
+
 def _cor_sequencial(tema, frac):
     import matplotlib
     r, g, b, _ = matplotlib.colormaps[_CMAP_TEMA[tema]](0.22 + 0.68 * max(0.0, min(1.0, frac)))
@@ -620,6 +765,7 @@ def _chave_norm(v, nivel):
 # colorido por valor) nunca usam azul.
 _BASEMAP_CACHE = {}   # bbox (arredondado) -> (classe css, b64 jpeg)
 _BASEMAP_CSS_RULES = []
+_BASEMAP_FILES = {}   # nome do arquivo -> bytes JPEG (gravados em assets/images/ no fim)
 
 def _merc_para_lonlat(mx, my):
     r = 20037508.342789244
@@ -637,7 +783,18 @@ def _basemap_css_class(project):
     key = (round(minx, 4), round(miny, 4), round(maxx, 4), round(maxy, 4))
     if key in _BASEMAP_CACHE:
         return _BASEMAP_CACHE[key][0]
-    class_name = ""
+    # specs/website_refactor Bloco 3: JPEG em assets/images/ (antes base64 no <style>), nome
+    # derivado da bbox. Se o arquivo já existe em website/, é reaproveitado sem rede -- saída
+    # estável entre execuções (antes o JPEG mudava a cada download) e geração offline.
+    import hashlib
+    arquivo = "basemap-" + hashlib.md5(repr(key).encode()).hexdigest()[:8] + ".jpg"
+    class_name = f"map-bg-{len(_BASEMAP_CACHE) + 1}"
+    existente = Path("website/assets/images") / arquivo
+    if existente.exists():
+        _BASEMAP_FILES[arquivo] = existente.read_bytes()
+        _BASEMAP_CSS_RULES.append(f'.{class_name}{{background-image:url(assets/images/{arquivo});background-size:100% 100%;}}')
+        _BASEMAP_CACHE[key] = (class_name, None)
+        return class_name
     try:
         import contextily as ctx
         import numpy as np
@@ -666,12 +823,12 @@ def _basemap_css_class(project):
         canvas.paste(tile_img, (round(x0), round(y0)))
         buf = io.BytesIO()
         canvas.save(buf, format="JPEG", quality=72)
-        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
-        class_name = f"map-bg-{len(_BASEMAP_CACHE) + 1}"
+        _BASEMAP_FILES[arquivo] = buf.getvalue()
         _BASEMAP_CSS_RULES.append(
-            f'.{class_name}{{background-image:url(data:image/jpeg;base64,{b64});background-size:100% 100%;}}'
+            f'.{class_name}{{background-image:url(assets/images/{arquivo});background-size:100% 100%;}}'
         )
     except Exception as exc:
+        class_name = ""
         # sem internet/timeout etc -- mapa cai de volta pro fundo neutro
         # (--surface-2 em .map-svg-frame), nao trava a geracao do relatorio inteiro
         print(f"[aviso] fundo cartografico indisponivel para bbox {key}: {exc}", file=sys.stderr)
@@ -729,7 +886,9 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
     escala continua) -- mesma convencao de mapa_coropletico_bairros em
     analise.py. Emite 1 construto (option_card-compativel) com SVG + legenda +
     tooltip por regiao + toggle de outliers + download CSV."""
+    _registra_fonte(fonte_dados)
     gdf, project, nomes = _geo_nivel(nivel)
+    defs = _geo_defs(nivel)
     valores = {}
     suprimidas = set()
     extras = {}
@@ -759,7 +918,6 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
         for _, row in gdf.iterrows():
             chave = row["_chave"]
             v = valor_por_regiao.get(chave)
-            d = _geom_path_d(row.geometry, project)
             if v is None:
                 fill = "var(--surface-2)"
             elif bins is not None and zero_branco and v == 0:
@@ -776,10 +934,9 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 val_txt += f" ({_fmt_ptbr(extras[chave], 1)}% {rotulo_extra})".replace(" )", ")")
             if chave in suprimidas:
                 val_txt = rotulo_suprimido
-            paths.append(
-                f'<path d="{d}" class="map-region" fill="{fill}" stroke="var(--page)" stroke-width="0.7" '
-                f'data-label="{_esc(label)}" data-valor="{_esc(val_txt)}"></path>'
-            )
+            # geometria em data/geo.js (<path id>), nome da região em window.GEO_NOMES;
+            # stroke/fill-opacity no CSS (`.map-svg use`) -- aqui só o que muda por mapa
+            paths.append(f'<use href="#{defs[chave][0]}" fill="{fill}" data-v="{_esc(val_txt)}"></use>')
             rows.append((label, v))
         legend_bits = []
         if bins is not None:
@@ -832,78 +989,18 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
     else:
         build(valores)
 
-# ============================================================ NAVBAR/HEADER ==
-
-# Faixa de aviso "em desenvolvimento" -- publicação de teste no GitHub Pages
-# (repositório passou a ser público). Remover só quando o relatório for
-# considerado pronto para divulgação oficial -- ver specs/roadmap.md
-# "publicar_teste_pages".
-parts.append(
-    '<div class="dev-banner" role="alert">'
-    '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
-    'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
-    '</div>'
-)
-
-parts.append('<div class="topbar-accent"></div>')
-parts.append('<nav class="navbar"><div class="navbar-inner">')
-parts.append(
-    '<button type="button" class="navbar-burger" id="navbar-burger" aria-expanded="false" aria-controls="navbar-menu">'
-    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">'
-    '<line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line>'
-    '</svg><span class="eyebrow navbar-label">NAVEGAÇÃO</span></button>'
-)
-parts.append(f'<div class="navbar-logo">{LOGO_IMG}</div>')
-parts.append('</div></nav>')
-parts.append('<div class="navbar-menu" id="navbar-menu" hidden><!--NAVBAR--></div>')
-
-parts.append('<header class="doc-head">')
-parts.append('<div class="doc-head-row">')
-parts.append('<div class="doc-head-title">')
-parts.append('<div class="eyebrow doc-eyebrow">PROJETO · RELATÓRIO INTERATIVO</div>')
-parts.append('<h1><span class="glyph">\U0001F3DB️</span>Análise Primeira Infância Carioca</h1>')
-parts.append('</div>')
-parts.append('<div class="doc-head-desc">')
-parts.append('<p class="sub">Visualizações dos indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro. Cada gráfico tem a fonte no rodapé e uma opção de ver os dados em tabela; a descrição metodológica completa fica no notebook (<code>analise.py</code>) e no relatório em PDF.</p>')
-parts.append('<p class="meta"><span id="gen-date">—</span></p>')
-parts.append('</div>')
-parts.append('</div>')
-parts.append('<div class="spectrum-bar">' + "".join(f'<span style="background:var(--c{i})"></span>' for i in range(1, 12)) + '</div>')
-parts.append('</header>')
-
-# ---- sumario + introducao (specs/ajuste_eixos, pedido do usuario) --------
-# O Sumario antigo (com ancoras h2+h3) foi removido em specification.md v6
-# em favor da navbar persistente (relatorio/specs.md linha ~175); a CSS
-# .toc/.toc-list ficou no arquivo sem uso desde entao. Reativada aqui, nao
-# reescrita -- convive com a navbar (motivos diferentes: navbar e navegacao
-# rapida sempre visivel, Sumario e a abertura formal do documento). Preenchido
-# via placeholder (mesmo padrao do <!--NAVBAR-->) porque os ids das secoes so
-# existem depois que h2()/h3() rodam mais abaixo no script.
-parts.append(
-    '<section class="doc-toc" aria-label="Sumário">'
-    '<div class="toc">'
-    '<div class="toc-label">SUMÁRIO</div>'
-    '<ul class="toc-list"><!--SUMARIO--></ul>'
-    '</div>'
-    '</section>'
-)
-# Introducao: bloco placeholder (lorem ipsum, 250 palavras fixas -- nao a
-# faixa 100-200 dos blocos de analise por visualizacao, specs.md §7; texto
-# final e' trabalho de curadoria futura, fora do escopo desta rodada) com
-# <h2> real só para herdar a tipografia/first-of-type do CSS -- não passa
-# por h2() de proposito (não deve virar seção retrátil, nem entrar na
-# navbar/Sumário listando a si mesma).
-parts.append(
-    '<section class="doc-intro" id="introducao">'
-    '<h2>Introdução</h2>'
-    # texto curado sob o bookmark "introducao" do DOCX, se já sincronizado
-    f'<p class="lede">{_TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 250)}</p>'
-    '</section>'
-)
+# ============================================================ BANNER/INTRO ==
+# specs/website_refactor Bloco 5: faixa de aviso, banner, barra de abas, painel Visão geral e
+# sumário lateral são montados no fim (ASSEMBLE), quando todos os h2/h3 já existem. Aqui só o
+# texto da Introdução (curado sob o bookmark "introducao" do DOCX, senão lorem de 250 palavras --
+# specs/ajuste_eixos §7), que vai para o painel Visão geral.
+INTRO_HTML = _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 250)
 
 # ============================================================== PRIORIDADE ==
 
-h2('🎯 Prioridade (sem secundário)')
+# título sem o "(sem secundário)" (pedido do usuário, 2026-09-24): id do painel vira "prioridade";
+# o id antigo continua abrindo a aba via data-alias (links já compartilhados)
+h2('🎯 Prioridade')
 
 h3('Por bairro')
 df_censo_bairro = read("censo_por_bairro.csv")
@@ -1688,7 +1785,8 @@ for en, pt in MESES.items():
 # URLs de Transparencia Rio/LGPD e o e-mail de contato sao os do site
 # institucional principal, copiados do mockup -- CONFIRMAR se sao os corretos
 # para este relatorio especificamente antes do deploy (plan.md §6, T6.2).
-FOOTER_FONTES = ["Censo 2022 (IBGE)", "CadÚnico", "DataSUS/Tabnet", "SISVAN · IBGE SIDRA"]
+FOOTER_FONTES = ["Censo 2022 (IBGE)", "CadÚnico", "DataSUS/Tabnet", "SISVAN · IBGE SIDRA",
+                 '<a href="https://basedosdados.org/" target="_blank" rel="noopener">Base dos Dados ↗</a>']   # pedido do usuário, 2026-09-24
 FOOTER_LINKS = [
     ("ipp.prefeitura.rio", "https://ipp.prefeitura.rio/"),
     ("Transparência Rio", "https://transparencia.rio/"),
@@ -1703,923 +1801,235 @@ _footer_cols = [
     f'<div class="footer-col"><div class="eyebrow">CONTATO</div><div>{FOOTER_CONTATO}</div><div class="eyebrow" style="margin-top:14px;">ATUALIZADO EM</div><div>{gen_date}</div></div>',
 ]
 footer = (
-    '<footer class="doc-foot">'
+    '<footer class="doc-foot"><div class="container">'
     '<div class="footer-cols">' + "".join(_footer_cols) + '</div>'
     '<div class="footer-rule"></div>'
     '<div class="footer-credit">Instituto Municipal de Urbanismo Pereira Passos — Prefeitura da Cidade do Rio de Janeiro</div>'
-    '</footer>'
-)
-_pre_footer_len = len(parts)   # boundary: conteudo de secao termina aqui; o rodape (a seguir) fica fora de qualquer .rsec
-parts.append(footer)
-
-# ---- envolve cada secao h2 num container retratil (specification.md §3.1) ----
-if section_starts:
-    n_sections = len(section_starts)
-    _wrapped = list(parts[:section_starts[0][0]])
-    for i, (start, title, sid) in enumerate(section_starts):
-        end = section_starts[i + 1][0] if i + 1 < n_sections else _pre_footer_len
-        heading_html = parts[start]
-        body_html = "".join(parts[start + 1:end])
-        takeaways = "".join(f"<li>{b}</li>" for b in _lorem_bullets(sid))
-        takeaways_html = (
-            '<div class="key-takeaways">'
-            '<div class="eyebrow kt-label">PRINCIPAIS ACHADOS</div>'
-            f'<ul>{takeaways}</ul>'
-            '</div>'
-        )
-        _wrapped.append(
-            f'<section class="rsec" id="wrap-{sid}">'
-            '<div class="rsec-head">'
-            f'<div class="rsec-head-l"><span class="eyebrow rsec-eyebrow">SEÇÃO {i + 1} DE {n_sections}</span><div class="rsec-head-title">{heading_html}</div></div>'
-            '<button type="button" class="rsec-toggle" aria-expanded="true">'
-            '<span class="rsec-toggle-label">RECOLHER</span>'
-            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><polyline points="6 9 12 15 18 9"></polyline></svg>'
-            '</button>'
-            '</div>'
-            f'<div class="section-body">{takeaways_html}{body_html}</div>'
-            '</section>'
-        )
-    _wrapped.append(parts[_pre_footer_len])  # rodape, fora de qualquer secao
-    parts[:] = _wrapped
-
-# ---- navbar: links para as secoes h2, substitui o antigo Sumario (specification.md §3.6) ----
-navbar_links = "".join(
-    f'<a href="#{sid}" class="navbar-link">{title}</a>' for level, title, sid in toc if level == 2
+    '</div></footer>'
 )
 
-# ---- sumario: mesma fonte (toc) da navbar, mas aninhado h2 > h3 (formato
-# do Sumario antigo, relatorio/specs.md) -- agrupa cada h3 sob o h2 mais
-# recente que o precede em `toc`.
-_sumario_grupos = []
-for _level, _title, _sid in toc:
-    if _level == 2:
-        _sumario_grupos.append([(_title, _sid), []])
-    elif _level == 3 and _sumario_grupos:
-        _sumario_grupos[-1][1].append((_title, _sid))
-sumario_html = "".join(
-    f'<li><a href="#{sid}">{_esc(title)}</a>'
-    + ("<ul>" + "".join(f'<li><a href="#{csid}">{_esc(ctitle)}</a></li>' for ctitle, csid in filhos) + "</ul>" if filhos else "")
-    + '</li>'
-    for (title, sid), filhos in _sumario_grupos
+# ======================================================= site em abas (Bloco 5) ==
+# specs/website_refactor §4.2-4.7. Substitui navbar hambúrguer + Sumário + seções retráteis
+# (relatorio/specs.md v6/v7 -> v8): cada h2 vira um painel de aba; Visão geral é a 1ª aba.
+
+TITULO_SITE = "Diagnóstico da Primeira Infância Carioca"
+# sempre em 2 linhas (pedido do usuário) -- quebra que mantém o sujeito junto
+TITULO_H1 = '<span class="h1-linha">Diagnóstico da</span><span class="h1-linha">Primeira Infância Carioca</span>'
+URL_GITHUB = "https://github.com/ipp-dados/analise_primeira_infancia"
+# PDF não é publicado no Pages (~48 MB, fora do orçamento §4.9 e da decisão T9.3 de
+# specs/relatorio-interativo) -- link para o arquivo versionado no repositório (branch principal).
+# raw.githubusercontent.com serve o arquivo como application/octet-stream -> o navegador baixa direto
+# (pedido do usuário: link de download, não a página do GitHub)
+URL_PDF = "https://raw.githubusercontent.com/ipp-dados/analise_primeira_infancia/staging_main/relatorio/analise_primeira_infancia.pdf"
+
+# rótulo curto da aba e ícone por eixo (título completo continua no h2 do painel)
+_EIXO_META = [  # (prefixo do sid, rótulo curto, ícone)
+    ("prioridade", "Prioridade", "target"),
+    ("inclus", "Inclusão", "handshake"),
+    ("fam", "Família e Cuidados", "users"),
+    ("prote", "Proteção", "shield-check"),
+    ("aliment", "Alimentação", "apple"),
+    ("moradia", "Moradia", "house"),
+]
+def _meta_eixo(sid, titulo):
+    for prefixo, rotulo, ic in _EIXO_META:
+        if sid.startswith(prefixo):
+            return rotulo, ic
+    return titulo, "layout-dashboard"
+
+# h3 de cada seção, na ordem (sumário lateral e contagem da Visão geral)
+_h3_por_secao, _atual = {}, None
+for _nivel, _titulo, _sid in toc:
+    if _nivel == 2:
+        _atual = _sid
+        _h3_por_secao[_atual] = []
+    elif _nivel == 3 and _atual:
+        _h3_por_secao[_atual].append((_titulo, _sid))
+
+_ALIAS_PAINEL = {"prioridade": ["prioridade-sem-secundário"]}   # id antigo -> continua abrindo a aba
+n_secoes = len(section_starts)
+_fim_conteudo = len(parts)
+paineis, navs_outline, abas = [], [], []
+
+abas.append(f'<button type="button" role="tab" class="tab" id="tab-visao-geral" aria-controls="visao-geral" '
+            f'aria-selected="false" tabindex="-1">{icone("layout-dashboard")}<span>Visão geral</span></button>')
+for i, (start, titulo, sid) in enumerate(section_starts):
+    fim = section_starts[i + 1][0] if i + 1 < n_secoes else _fim_conteudo
+    corpo = "".join(parts[start + 1:fim])   # parts[start] é o <h2>, que vai para o cabeçalho do painel
+    rotulo, ic = _meta_eixo(sid, titulo)
+    abas.append(f'<button type="button" role="tab" class="tab" id="tab-{sid}" aria-controls="{sid}" '
+                f'aria-selected="false" tabindex="-1">{icone(ic)}<span>{_esc(rotulo)}</span></button>')
+    achados = callout("findings", "lightbulb", "Principais achados",
+                      "<ul>" + "".join(f"<li>{b}</li>" for b in _lorem_bullets(sid)) + "</ul>")
+    # Conclusões do eixo (pedido do usuário no Bloco 4): 100-200 palavras, lorem até haver texto
+    # curado sob a seed "conclusao-<sid>" em relatorio/textos_curados.json (o DOCX de curadoria
+    # ainda não tem bookmark para isso -- mesma lacuna conhecida das opções sem arquivo, relatorio/specs.md v7)
+    id_conc = slugify(f"conclusoes-{sid}")
+    conclusao = (f'<h3 id="{id_conc}" class="h3-conclusao">Conclusões</h3>'
+                 f'<div class="conclusao"><div class="conclusao-head">{icone("flag")}'
+                 f'<span class="eyebrow">Síntese do eixo · {_esc(rotulo)}</span></div>'
+                 f'<p>{_texto_analise(f"conclusao-{sid}")}</p></div>')
+    fontes = _FONTES_SECAO.get(sid) or []
+    caixa_fontes = callout("sources", "book-open", "Fontes desta seção",
+                           "<ul>" + "".join(f"<li>{f}</li>" for f in fontes) + "</ul>") if fontes else ""
+    paineis.append(
+        f'<section class="tab-panel" id="{sid}" role="tabpanel" aria-labelledby="tab-{sid}"'
+        + (f' data-alias="{" ".join(_ALIAS_PAINEL[sid])}"' if sid in _ALIAS_PAINEL else "") + ' hidden>'
+        f'<header class="panel-head"><span class="panel-icon">{icone(ic)}</span><div>'
+        f'<div class="eyebrow panel-eyebrow">Eixo {i + 1} de {n_secoes}</div><h2>{titulo}</h2></div></header>'
+        f'{achados}{corpo}{conclusao}{caixa_fontes}</section>'
+    )
+    itens = _h3_por_secao.get(sid, []) + [("Conclusões", id_conc)]
+    navs_outline.append(f'<nav class="outline-nav" data-panel="{sid}" aria-label="{_esc(rotulo)}" hidden>' + "".join(
+        f'<a href="#{sid}/{h3id}" data-alvo="{h3id}">{_esc(h3t)}</a>' for h3t, h3id in itens) + '</nav>')
+
+# painel Visão geral: Introdução + cartões dos eixos (contagens do próprio gerador, sem texto novo)
+_cartoes = []
+for i, (start, titulo, sid) in enumerate(section_starts):
+    rotulo, ic = _meta_eixo(sid, titulo)
+    n_h3 = len(_h3_por_secao.get(sid, []))
+    n_pend = _PENDENTES_SECAO.get(sid, 0)
+    meta = f"{n_h3} subseç{'ão' if n_h3 == 1 else 'ões'}" + (f" · {n_pend} pendente{'s' if n_pend > 1 else ''}" if n_pend else "")
+    _cartoes.append(f'<a class="eixo-card" href="#{sid}"><span class="panel-icon">{icone(ic)}</span>'
+                    f'<span class="eyebrow eixo-card-num">Eixo {i + 1}</span><span class="eixo-card-title">{titulo}</span>'
+                    f'<span class="eixo-card-meta">{meta}</span></a>')
+paineis.insert(0,
+    '<section class="tab-panel" id="visao-geral" role="tabpanel" aria-labelledby="tab-visao-geral" hidden>'
+    f'<div class="overview-intro" id="introducao"><div class="eyebrow panel-eyebrow">Apresentação</div><h2>Introdução</h2>'
+    f'<p class="lede">{INTRO_HTML}</p></div>'
+    '<div class="eyebrow eixo-grid-label">Eixos da política municipal de primeira infância</div>'
+    f'<div class="eixo-grid">{"".join(_cartoes)}</div></section>'
 )
+navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-label="Eixos" hidden>'
+                    '<a href="#visao-geral/introducao" data-alvo="introducao">Introdução</a>'
+                    + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in section_starts) + '</nav>')
 
-body = "\n".join(parts).replace('<span id="gen-date">—</span>', f'<span id="gen-date">Atualizado {gen_date}</span>')
-body = body.replace('<!--NAVBAR-->', navbar_links)
-body = body.replace('<!--SUMARIO-->', sumario_html)
+banner = (
+    # faixa de aviso: remover quando publicar_teste_pages for encerrado (specs/roadmap.md)
+    '<div class="dev-banner" role="alert">'
+    '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
+    'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
+    '</div>'
+    '<header class="site-banner"><div class="container banner-inner">'
+    f'<div>{logo_link("banner", "banner-logo")}'
+    '<div class="eyebrow banner-eyebrow">Relatório interativo · Instituto Pereira Passos</div>'
+    f'<h1>{TITULO_H1}</h1></div>'
+    '<ul class="banner-links">'
+    f'<li><a href="{URL_GITHUB}" target="_blank" rel="noopener">{icone("github")}<span>Código e dados no GitHub</span></a></li>'
+    f'<li><a href="{URL_PDF}" target="_blank" rel="noopener">{icone("file-text")}<span>Relatório final em PDF</span></a></li>'
+    f'<li class="banner-date">{icone("calendar")}<span>Atualizado em {gen_date}</span></li>'
+    '</ul>'
+    '</div>'
+    '<div class="spectrum-bar" aria-hidden="true">' + "".join(f'<span style="background:var(--c{i})"></span>' for i in range(1, 12)) + '</div>'
+    '</header>'
+)
+tabbar = ('<nav class="tabbar" aria-label="Seções do relatório"><div class="container tabbar-inner" role="tablist">'
+          + "".join(abas) + '</div></nav>')
+outline = ('<aside class="outline" aria-label="Nesta seção"><div class="outline-card">'
+           '<div class="outline-head"><span class="eyebrow outline-label">Nesta seção</span><span class="outline-pct">0%</span></div>'
+           '<div class="outline-progress" aria-hidden="true"><span></span></div>'
+           + "".join(navs_outline) + '</div></aside>')
 
-CSS = r"""
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+body = (banner + "\n" + tabbar + "\n"
+        '<div class="container page-grid">\n<main class="panels">\n' + "\n".join(paineis) + '\n</main>\n'
+        + outline + '\n</div>\n' + footer)
 
-  :root{
-    color-scheme: light;
-    --page:        #FFFFFF;
-    --surface:     #FFFFFF;
-    --surface-2:   #F7F8F8;
-    --ink:         #1C1E1D;
-    --ink-2:       #5B615F;
-    --ink-3:       #949B99;
-    --hairline:    rgba(20,30,27,0.08);
-    --hairline-2:  rgba(20,30,27,0.045);
-    --accent:      #2E9678;
-    --accent-ink:  #123128;
-    --accent-soft: #E9F6F1;
-    --shadow:      0 1px 2px rgba(20,30,27,.03), 0 12px 28px -16px rgba(20,30,27,.12);
-    --shadow-hover:0 4px 10px rgba(20,30,27,.05), 0 20px 40px -18px rgba(20,30,27,.18);
+# CSS e motor JS são arquivos estáticos editados à mão (specs/website_refactor Bloco 2):
+# website/css/{main,layout,components}.css e website/js/{charts,navigation,sidebar}.js.
 
-    --c1: #6a95c8; --c1d:#87aad4;
-    --c2: #d28060; --c2d:#d19e8a;
-    --c3: #359c78; --c3d:#89d2b9;
-    --c4: #deb254; --c4d:#e0be7b;
-    --c5: #ca688d; --c5d:#cc8ea5;
-    --c6: #4aa64a; --c6d:#7be07b;
-    --c7: #8177bb; --c7d:#928ad1;
-    --c8: #cc6766; --c8d:#d28989;
-    --c9: #bc9776; --c9d:#bfad9c;
-    --c10:#b67c99; --c10d:#c398b3;
-    --c11:#8e9ea4; --c11d:#a5b2b6;
-    --c-muted: #d4d4d4; --c-muted-d:#5a6663;
-
-    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
-    --font-body: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
-  }
-  *{box-sizing:border-box;}
-  /* +20% em toda fonte baseada em rem (praticamente tudo no relatorio) --
-     pedido explicito do usuario; os poucos rotulos SVG em px fixo (eixos/
-     rotulos de grafico, escala/rosa dos ventos do mapa) sao escalados a
-     mao logo abaixo, ja que nao herdam de font-size do root */
-  html{font-size:19.2px;}
-  body{
-    margin:0; background:var(--page); color:var(--ink);
-    font-family:var(--font-body); line-height:1.6; font-size:19.2px;
-    -webkit-font-smoothing:antialiased;
-  }
-  a{color:var(--accent);}
-  code{font-family:var(--font-mono); font-size:.92em; background:var(--hairline-2); padding:.1em .35em; border-radius:3px;}
-
-  .doc{max-width:1200px; margin:0 auto; padding:0 24px 110px;}
-
-  header.doc-head{margin-bottom:8px; padding-top:56px;}
-  header.doc-head h1{
-    font-family:var(--font-display); font-weight:600; font-size:clamp(1.9rem,4.4vw,2.7rem);
-    margin:0 0 8px; line-height:1.12; text-wrap:balance; letter-spacing:-.01em;
-    display:flex; align-items:center; gap:14px;
-  }
-  header.doc-head h1 .glyph{font-size:.82em; flex:none;}
-  header.doc-head .sub{color:var(--ink-2); font-size:1.02rem; max-width:68ch; margin:0 0 18px;}
-  header.doc-head .meta{
-    display:flex; flex-wrap:wrap; gap:6px 16px; font-family:var(--font-mono); font-size:.76rem;
-    color:var(--ink-3); padding-bottom:28px;
-  }
-
-  /* ---------- table of contents ---------- */
-  .toc{
-    background:var(--surface-2); border:1px solid var(--hairline); border-radius:12px;
-    padding:22px 26px 20px; margin:0 0 48px;
-  }
-  .toc-label{
-    font-family:var(--font-body); font-weight:600; font-size:.76rem; color:var(--ink-3);
-    text-transform:uppercase; letter-spacing:.08em; margin:0 0 12px;
-  }
-  ul.toc-list{
-    list-style:none; margin:0; padding:0; columns:2; column-gap:32px;
-  }
-  ul.toc-list > li{break-inside:avoid; margin:0 0 10px;}
-  ul.toc-list > li > a{
-    font-weight:600; color:var(--ink); text-decoration:none; font-size:.92rem;
-  }
-  ul.toc-list > li > a:hover{color:var(--accent);}
-  ul.toc-list ul{list-style:none; margin:5px 0 0; padding:0 0 0 14px; border-left:1px solid var(--hairline);}
-  ul.toc-list ul li{margin:4px 0;}
-  ul.toc-list ul a{color:var(--ink-2); text-decoration:none; font-size:.82rem;}
-  ul.toc-list ul a:hover{color:var(--accent); text-decoration:underline;}
-  .doc-toc{margin:32px 0 0;}
-  .doc-intro{margin:0 0 8px;}
-  .doc-intro .lede{color:var(--ink-2); font-size:1.02rem; max-width:70ch; margin:8px 0 0;}
-
-  h2{
-    font-family:var(--font-display); font-weight:600; font-size:clamp(1.5rem,3vw,1.85rem);
-    margin:68px 0 4px; padding-top:32px; border-top:1px solid var(--hairline); line-height:1.2;
-    text-wrap:balance; scroll-margin-top:24px; color:var(--ink);
-  }
-  h2:first-of-type{margin-top:0; padding-top:0; border-top:none;}
-  h3{
-    font-family:var(--font-display); font-weight:600; font-size:1.4rem;
-    margin:44px 0 14px; line-height:1.2; scroll-margin-top:24px;
-  }
-  h4{
-    font-family:var(--font-display); font-weight:600; font-size:1.16rem;
-    margin:34px 0 12px;
-  }
-  h5{
-    font-family:var(--font-body); font-weight:600; font-size:1rem;
-    margin:28px 0 10px; color:var(--ink);
-  }
-  h6{
-    font-family:var(--font-body); font-weight:600; font-size:.88rem;
-    margin:22px 0 8px; color:var(--ink-2); text-transform:uppercase; letter-spacing:.03em;
-  }
-
-  /* sem contorno em graficos/tabelas -- o contorno agora e exclusivo do mapa
-     (.map-svg-card abaixo) e do texto que acompanha o mapa (specification.md
-     §7, pedido explicito do usuario) */
-  .out{
-    margin:14px 0 8px; background:var(--surface); border:none; border-radius:0;
-    box-shadow:none; padding:22px 24px 16px;
-  }
-  .out-pair{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; margin:14px 0 8px;}
-  .chart-subtitle{
-    font-family:var(--font-body); font-weight:600; font-size:.8rem; color:var(--ink-2);
-    text-transform:uppercase; letter-spacing:.05em; margin:0 0 12px;
-  }
-
-  /* ---------- maps: floating, no card chrome ---------- */
-  .map-gallery{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:30px; margin:16px 0 36px;}
-  .map-card{margin:0; background:transparent; border:none; box-shadow:none;}
-  .map-card img{
-    display:block; width:100%; height:auto; border-radius:10px;
-    box-shadow:var(--shadow); transition:box-shadow .2s ease, transform .2s ease;
-  }
-  .map-card img:hover{box-shadow:var(--shadow-hover); transform:translateY(-3px);}
-  .map-cap{padding:12px 4px 0; font-size:.82rem; color:var(--ink-2); text-align:center;}
-
-  .out-src{font-family:var(--font-mono); font-size:.7rem; color:var(--ink-3); margin-top:10px; padding-top:8px; border-top:1px solid var(--hairline-2);}
-
-  .chart-wrap{position:relative;}
-  .chart-legend{display:flex; flex-wrap:wrap; gap:5px 14px; margin-bottom:10px;}
-  .legend-item{display:flex; align-items:center; gap:6px; font-size:.79rem; color:var(--ink-2); white-space:nowrap;}
-  .legend-item i{width:9px; height:9px; border-radius:50%; display:inline-block; flex:none;}
-  .chart-svg{width:100%; height:auto; display:block; overflow:visible;}
-  .grid-line{stroke:var(--hairline); stroke-width:1;}
-  .axis-label{font-family:var(--font-mono); font-size:10.8px; fill:var(--ink-3);}
-  .end-label{font-family:var(--font-mono); font-size:12.6px; font-weight:600; dominant-baseline:middle;}
-  .extreme-label{font-family:var(--font-mono); font-size:10.2px; font-weight:600;}
-  .hover-line{stroke:var(--ink-3); stroke-width:1; stroke-dasharray:2 3;}
-  .hover-dot{stroke:var(--surface); stroke-width:2;}
-  .chart-tooltip{
-    position:absolute; top:4px; display:none; pointer-events:none; z-index:5;
-    background:var(--surface); border:1px solid var(--hairline); border-radius:6px; box-shadow:var(--shadow-hover);
-    padding:8px 11px; font-size:.76rem; min-width:104px; max-width:240px;
-  }
-  .tt-year{font-family:var(--font-mono); color:var(--ink-3); margin-bottom:3px; font-size:.68rem; letter-spacing:.03em;}
-  .tt-row{display:flex; align-items:center; gap:6px; color:var(--ink-2); white-space:nowrap; padding:1px 0;}
-  .tt-row i{width:7px; height:7px; border-radius:50%; flex:none;}
-  .tt-row b{color:var(--ink); font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
-
-  .bar-chart{display:flex; flex-direction:column; gap:8px; min-width:0;}
-  .bar-row{display:grid; grid-template-columns:minmax(78px,180px) 1fr auto; gap:10px; align-items:center; min-width:0;}
-  .bar-label{font-size:.8rem; color:var(--ink-2); line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .bar-track{height:20px; background:var(--hairline-2); border-radius:4px; overflow:hidden; position:relative; min-width:0;}
-  .bar-fill{
-    height:100%; border-radius:4px; width:0%; transition:width .9s cubic-bezier(.16,.9,.25,1); min-width:2px;
-  }
-  @media (prefers-reduced-motion:reduce){ .bar-fill{transition:none;} }
-  .bar-value{
-    font-family:var(--font-mono); font-size:.74rem; font-weight:600; color:var(--ink);
-    white-space:nowrap; text-align:right; font-variant-numeric:tabular-nums;
-  }
-
-  details.data-table{margin-top:12px; font-size:.82rem;}
-  details.data-table summary{
-    cursor:pointer; color:var(--ink-3); font-family:var(--font-mono); font-size:.72rem; padding:3px 0;
-  }
-  details.data-table table{width:100%; border-collapse:collapse; margin-top:8px; font-variant-numeric:tabular-nums;}
-  details.data-table th, details.data-table td{
-    text-align:right; padding:4px 7px; border-bottom:1px solid var(--hairline-2); font-size:.76rem; white-space:nowrap;
-  }
-  details.data-table th:first-child, details.data-table td:first-child{text-align:left;}
-  details.data-table th{color:var(--ink-3); font-weight:500;}
-  .table-scroll{overflow-x:auto;}
-
-  table.plain{width:100%; border-collapse:collapse; font-size:.86rem; margin:14px 0;}
-  table.plain th, table.plain td{text-align:right; padding:6px 10px; border-bottom:1px solid var(--hairline-2); font-variant-numeric:tabular-nums;}
-  table.plain th:first-child, table.plain td:first-child{text-align:left; font-variant-numeric:normal;}
-  table.plain th{color:var(--ink-3); font-weight:500; font-size:.78rem;}
-
-  ::selection{background:var(--accent); color:#fff;}
-
-  /* ============ specs/relatorio-interativo: identidade institucional ============ */
-  :root{ --ipp-navy:#004a80; --ipp-cyan:#00aeef; }
-
-  /* Faixa "em desenvolvimento" -- cor de alerta fixa, igual em tema claro/escuro
-     (não usa as variáveis de tema de propósito: precisa continuar chamativa nos dois,
-     e alto contraste de texto é mais importante aqui do que combinar com o resto). */
-  .dev-banner{
-    background:#ffb300; color:#1a1a1a; font-weight:800; text-align:center;
-    padding:12px 16px; font-size:.95rem; line-height:1.4;
-    border-bottom:3px solid #1a1a1a;
-    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-  }
-
-  .topbar-accent{
-    height:4px; background:var(--ipp-navy);
-    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-  }
-  .navbar{
-    height:56px; background:var(--page); border-bottom:2px solid var(--ink);
-    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-    position:sticky; top:0; z-index:20;
-  }
-  /* max-width+margin:auto (nao so padding) pra alinhar com `.doc`/footer-cols em
-     telas largas -- o full-bleed do navbar media a partir da viewport, nao do
-     centro do body, entao so padding fixo desalinhava em telas >1248px */
-  .navbar-inner{
-    max-width:1200px; margin:0 auto; height:100%; padding:0 24px;
-    display:flex; align-items:center; justify-content:space-between; gap:16px;
-  }
-  .navbar-burger{display:flex; align-items:center; gap:10px; background:none; border:none; cursor:pointer; color:var(--ink); padding:6px 0;}
-  .navbar-label{color:var(--ink); font-weight:600;}
-  .navbar-logo{background:var(--ipp-navy); padding:6px 12px; display:flex; align-items:center; flex:none;}
-  .navbar-logo .ipp-logo{height:20px; width:auto; display:block;}
-  .navbar-menu{
-    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-    background:var(--surface); border-bottom:2px solid var(--ink); box-shadow:var(--shadow-hover);
-    position:sticky; top:56px; z-index:19; max-height:70vh; overflow-y:auto;
-  }
-  .navbar-menu[hidden]{display:none;}
-  .navbar-link{
-    display:block; max-width:1200px; margin:0 auto; padding:10px 24px;
-    font-family:var(--font-mono); font-size:.85rem; color:var(--ink); text-decoration:none;
-    border-bottom:1px solid var(--hairline);
-  }
-  .navbar-link:hover{color:var(--accent);}
-
-  /* topo alinhado: eyebrow+titulo (esquerda) comecam na mesma linha que o
-     texto de descricao (direita) -- pedido explicito do usuario */
-  .doc-head-row{display:grid; grid-template-columns:1fr 420px; align-items:start; gap:40px;}
-  @media (max-width:760px){ .doc-head-row{grid-template-columns:1fr;} }
-  .doc-eyebrow{color:var(--accent); font-weight:700; margin-bottom:10px;}
-  .doc-head-desc{max-width:420px;}
-  header.doc-head .doc-head-desc .meta{display:block; font-family:var(--font-mono); font-size:.72rem; color:var(--ink-3); padding-bottom:0; margin:8px 0 0;}
-  .spectrum-bar{display:flex; height:6px; margin-top:24px;}
-  .spectrum-bar span{flex:1;}
-
-  /* ---- secoes retrateis, cartao brutalista ---- */
-  .rsec{border:2px solid var(--ink); border-radius:0; margin:40px 0; background:var(--surface);}
-  .eyebrow{font-family:var(--font-mono); font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;}
-  .rsec-head{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 22px; border-bottom:2px solid var(--ink);}
-  .rsec-head-l{display:flex; flex-direction:column; gap:4px; min-width:0;}
-  .rsec-head-title{color:var(--ink);}
-  .rsec-head-title h2{margin:0; padding:0; border:none; color:inherit;}
-  .rsec-eyebrow{color:var(--accent);}
-  .rsec[data-collapsed="true"] .rsec-eyebrow{color:var(--ink-3); font-weight:400;}
-  .rsec-toggle{
-    display:flex; align-items:center; gap:8px; background:var(--ink); color:var(--page); border:none; border-radius:0;
-    font-family:var(--font-mono); font-size:.72rem; font-weight:600; padding:8px 14px; cursor:pointer; flex:none;
-  }
-  .rsec[data-collapsed="true"] .rsec-toggle{background:var(--page); color:var(--ink); border:2px solid var(--ink); padding:6px 12px;}
-  .section-body{padding:24px 22px 30px;}
-  .rsec[data-collapsed="true"] .section-body{display:none;}
-
-  .key-takeaways{background:var(--surface-2); border:2px solid var(--ink); box-shadow:var(--shadow); padding:18px 22px; margin-bottom:28px;}
-  .kt-label{color:var(--ink-2); margin-bottom:10px;}
-  .key-takeaways ul{margin:0; padding:0 0 0 18px; display:grid; gap:8px;}
-  .key-takeaways li{font-family:var(--font-body); font-size:.92rem; color:var(--ink); line-height:1.5;}
-
-  /* ---- indicador catalogado mas ainda sem dado real (specs/ajuste_eixos)
-     -- mesma familia visual do key-takeaways (--surface-2/--shadow), mas com
-     borda lateral (nao contorno completo) e rotulo proprio pra nunca ser
-     confundido com "Principais achados" ---- */
-  .pending-block{
-    background:var(--surface-2); border-left:4px solid var(--accent); box-shadow:var(--shadow);
-    padding:14px 20px; margin:14px 0 28px;
-  }
-  .pending-label{color:var(--ink-2); margin-bottom:6px;}
-  .pending-block p{margin:0; font-family:var(--font-body); font-size:.92rem; color:var(--ink); line-height:1.5;}
-  .pending-block.pending-inline{margin:10px 0 8px;}
-
-  /* ---- 3 padroes de layout: grafico (texto abaixo), mapa (texto na 3a
-     coluna), tabela (texto a esquerda) -- specification.md §3.13 ---- */
-  .option-card{
-    display:grid; gap:16px 20px; margin:14px 0 8px; align-items:start;
-  }
-  .option-card-grafico{grid-template-columns:200px 1fr; grid-template-areas:"pills chart" "text text";}
-  .option-card-grafico.option-card-single{grid-template-columns:1fr; grid-template-areas:"chart" "text";}
-  /* mapa: pills numa fileira acima, mapa maior + texto ao lado (nao mais coluna de pills lateral) */
-  /* mapa+texto: sem gap na coluna (encostados, so o padding interno de cada
-     um separa visualmente) e align-items:stretch pra igualar a altura do
-     texto a do mapa (specification.md §7, pedido explicito do usuario) */
-  .option-card-mapa{grid-template-columns:1fr 280px; grid-template-areas:"pills pills" "map text"; gap:16px 0; align-items:stretch;}
-  .option-card-mapa.option-card-single{grid-template-columns:1fr 280px; grid-template-areas:"map text"; gap:16px 0; align-items:stretch;}
-  .option-card .pill-col{grid-area:pills;}
-  .option-card-grafico .opt-panes{grid-area:chart;}
-  .option-card-mapa .opt-panes{grid-area:map;}
-  .option-card .opt-texts{grid-area:text;}
-  .option-card-mapa .pill-col{
-    flex-direction:row; flex-wrap:wrap; max-height:none; overflow-y:visible; padding-right:0;
-  }
-  /* min-height:0 e essencial aqui -- sem isso, o tamanho minimo automatico
-     de um item de grid (baseado no seu conteudo) vence o height:100%/stretch
-     e o texto acaba maior que o mapa em vez de limitado a ele */
-  .option-card-mapa .opt-panes, .option-card-mapa .opt-texts, .option-card-mapa .opt-pane{height:100%; min-height:0;}
-
-  .table-with-text{display:grid; grid-template-columns:260px 1fr; gap:20px; margin:14px 0 8px; align-items:start;}
-
-  .pill-col{display:flex; flex-direction:column; gap:8px; max-height:460px; overflow-y:auto; padding-right:2px;}
-  .pill{
-    text-align:left; padding:9px 12px; border:2px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
-    font-family:var(--font-mono); font-size:.72rem; font-weight:600; cursor:pointer;
-  }
-  .pill[data-active="true"]{background:var(--ink); color:var(--page);}
-  .opt-panes{min-width:0;}
-  .opt-panes .out{margin-top:0;}
-  .opt-text{
-    font-family:var(--font-body); font-size:.86rem; color:var(--ink-2); line-height:1.7;
-    padding:16px 18px; border:none; min-width:0;
-    max-height:240px; overflow-y:auto;
-  }
-  /* texto do mapa: sem contorno (so sombra), igual largura/altura do mapa
-     ao lado -- specification.md §7. min-height:0 por si so NAO limita a
-     altura aqui: uma linha "auto" de grid/flex sem altura de container
-     definida cresce pro maior max-content dos 2 lados (testado isoladamente
-     -- nem grid nem flexbox escapam disso so com min-height:0). Fix real: o
-     conteudo de texto vai pra um filho `position:absolute` (`.opt-text-
-     inner`), que sai do calculo de altura intrinseca do pai -- a linha do
-     grid passa a ser guiada só pela altura real do mapa. */
-  .option-card-mapa .opt-text{
-    border:none; box-shadow:var(--shadow); box-sizing:border-box;
-    height:100%; min-height:0; max-height:none; padding:0;
-    position:relative; overflow:hidden;
-  }
-  .option-card-mapa .opt-text .opt-text-inner{
-    position:absolute; inset:0; overflow-y:auto;
-    padding:16px 18px; box-sizing:border-box;
-  }
-
-  /* ---- outliers ---- */
-  /* botao de outlier fica sempre no mesmo nivel/lado do download CSV (pedido
-     explicito do usuario) -- posicionado absoluto sobre o card, a esquerda
-     do .dl-btn (que fica DENTRO do .out, top:14px;right:14px) */
-  .outlier-card{position:relative;}
-  .outlier-toolbar{position:absolute; top:14px; right:100px; z-index:3; margin:0;}
-  .outlier-btn{
-    display:flex; align-items:center; gap:6px; border:1.5px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
-    font-family:var(--font-mono); font-size:.68rem; font-weight:600; padding:5px 10px; cursor:pointer;
-  }
-  .outlier-btn[data-active="true"]{background:var(--ink); color:var(--page);}
-  .outlier-x{font-weight:700;}
-
-  /* ---- download CSV ---- */
-  .out{position:relative;}
-  .dl-btn{
-    position:absolute; top:14px; right:14px; z-index:2;
-    display:flex; align-items:center; gap:5px; border:1.5px solid var(--ink); background:var(--page); color:var(--ink); border-radius:0;
-    font-family:var(--font-mono); font-size:.66rem; font-weight:600; padding:5px 9px; cursor:pointer;
-  }
-  .dl-btn:hover{background:var(--accent-soft);}
-
-  /* ---- mapas SVG interativos: estilo cartografico igual aos PNG de mapas/,
-     so com interatividade a mais (specification.md §7) ---- */
-  .map-title{
-    font-family:var(--font-display); font-weight:700; font-size:1.05rem; color:var(--ink);
-    margin:0 0 14px; text-wrap:balance;
-  }
-  /* mapa e o unico card com contorno + sombra (specification.md §7) -- mapa
-     ocupa a largura toda (legenda virou overlay, nao mais coluna lateral) */
-  .out.map-svg-card{border:2px solid var(--ink); box-shadow:var(--shadow);}
-  /* sem max-width -- e SVG vetorial (sem imagem raster), preenche a coluna
-     "map" toda ate encostar no texto do lado, sem vao entre os dois */
-  .map-svg-frame{
-    position:relative; background:var(--surface-2);
-  }
-  .map-svg{display:block; width:100%; height:auto; background-size:100% 100%; background-repeat:no-repeat;}
-  .map-region{transition:filter .15s ease; cursor:pointer; fill-opacity:.88;}
-  .map-region:hover{filter:brightness(1.08); stroke-width:1.6;}
-  .map-scalebar-label{font-family:var(--font-mono); font-size:9.6px; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
-  .map-compass-label{font-family:var(--font-mono); font-size:13.2px; font-weight:700; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
-  /* legenda como overlay dentro do proprio mapa (specification.md §7) --
-     mesma convencao do matplotlib legend_kwds (canto sup. esquerdo,
-     framealpha .92, fundo branco) -- libera a largura toda do card pro mapa */
-  .map-legend-overlay{
-    position:absolute; top:14px; left:14px; max-width:180px;
-    background:rgba(255,255,255,.92); border:1px solid var(--hairline-2);
-    padding:10px 12px; box-shadow:var(--shadow);
-  }
-  .map-legend-title{color:var(--ink); margin-bottom:8px;}
-  .map-legend-row{display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:.68rem; font-weight:600; color:var(--ink-2); margin:5px 0;}
-  .map-legend-sw{width:12px; height:12px; border:1px solid var(--ink); flex:none; display:inline-block;}
-  .map-ref{
-    font-family:var(--font-mono); font-size:.68rem; font-style:italic; color:var(--ink-3);
-    line-height:1.6; margin-top:12px; padding-top:8px; border-top:1px solid var(--hairline-2);
-  }
-
-  /* ---- rodape institucional ---- */
-  footer.doc-foot{
-    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-    background:var(--ipp-navy); color:#EAF2F8; padding:36px 24px 24px; margin-top:60px;
-  }
-  .footer-cols{max-width:1200px; margin:0 auto; display:flex; gap:40px; flex-wrap:wrap; padding-bottom:20px;}
-  .footer-col{min-width:180px; flex:1;}
-  .footer-col-logo{min-width:220px; flex:1.4;}
-  .footer-col-logo .ipp-logo{height:24px; width:auto; display:block; margin-bottom:12px;}
-  .footer-col-logo p{font-size:.76rem; color:#B9D2E4; max-width:260px; line-height:1.6; margin:0;}
-  .footer-col .eyebrow{color:#7FA9C6; margin-bottom:8px;}
-  .footer-col > div{font-size:.76rem; color:#DCE9F2; line-height:1.9;}
-  .footer-col a{color:#DCE9F2;}
-  .footer-col a:hover{color:#fff;}
-  .footer-rule{max-width:1200px; margin:0 auto; height:1px; background:var(--ipp-cyan); opacity:.4;}
-  .footer-credit{max-width:1200px; margin:0 auto; padding-top:14px; font-family:var(--font-mono); font-size:.66rem; color:#7FA9C6;}
-
-  @media (max-width:720px){
-    .option-card-grafico{grid-template-columns:1fr; grid-template-areas:"pills" "chart" "text";}
-    .option-card-grafico.option-card-single{grid-template-columns:1fr; grid-template-areas:"chart" "text";}
-    .option-card-mapa{grid-template-columns:1fr; grid-template-areas:"pills" "map" "text";}
-    .option-card-mapa.option-card-single{grid-template-columns:1fr; grid-template-areas:"map" "text";}
-    .table-with-text{grid-template-columns:1fr;}
-    .pill-col{flex-direction:row; flex-wrap:wrap; max-height:none;}
-    .map-legend-overlay{max-width:60%; padding:8px 10px;}
-  }
-  @media (max-width:520px){
-    .bar-row{grid-template-columns:70px 1fr auto;}
-  }
-</style>
-"""
-
-ENGINE = r"""
-<script>
-(function(){
-  "use strict";
-  function fmt(n, d){ d = d||0; return Number(n).toLocaleString('pt-BR', {minimumFractionDigits:d, maximumFractionDigits:d}); }
-  function pct(n, d){ return fmt(n, d==null?1:d) + '%'; }
-  const CAT = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c6)','var(--c7)','var(--c8)','var(--c9)','var(--c10)','var(--c11)'];
-  const NS = 'http://www.w3.org/2000/svg';
-  function svgEl(tag, attrs, parent){
-    const e = document.createElementNS(NS, tag);
-    for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
-    if (parent) parent.appendChild(e);
-    return e;
-  }
-  let uid = 0;
-  function byId(id){ return document.getElementById(id); }
-
-  // limiar acima do qual so as series mais relevantes (top N pelo ultimo valor
-  // nao-nulo) ficam coloridas/na legenda; o resto vira uma linha cinza fina,
-  // agrupada numa unica entrada "Outras (N)" -- mesma regra de
-  // serie_temporal_multipla em analise.py (ver specs/visual-identity).
-  const LIMIAR_DESTAQUE = 6, N_DESTACADAS = 4;
-
-  function prepararSeries(series){
-    series.forEach((s,i)=>{ if (!s.color) s.color = series.length===1 ? 'var(--accent)' : CAT[i%CAT.length]; });
-    if (series.length <= LIMIAR_DESTAQUE) return { destacadas: series, apagadas: [] };
-    const comFinal = series.map(s=>{
-      let v = null;
-      for (let i=s.values.length-1; i>=0; i--){ if (s.values[i] != null){ v = s.values[i]; break; } }
-      return { s, v: v==null ? -Infinity : v };
-    });
-    comFinal.sort((a,b)=>b.v-a.v);
-    return {
-      destacadas: comFinal.slice(0, N_DESTACADAS).map(o=>o.s),
-      apagadas: comFinal.slice(N_DESTACADAS).map(o=>o.s),
-    };
-  }
-
-  // ================= line chart =================
-  function lineChart(container, cfg){
-    const x = cfg.x, series = cfg.series, opts = cfg.opts || {};
-    const { destacadas, apagadas } = prepararSeries(series);
-    const W = opts.width || 680, H = opts.height || 250;
-    const padL = opts.padL != null ? opts.padL : 38;
-    const padR = opts.padR != null ? opts.padR : (opts.endLabels === false ? 14 : 66);
-    const padT = 16, padB = 28;
-    const plotW = W - padL - padR, plotH = H - padT - padB;
-    const allVals = [];
-    series.forEach(s=>s.values.forEach(v=>{ if (v!=null) allVals.push(v); }));
-    // linhas de referencia opcionais (populacao-referencia D8, metas do PNE): entram na escala
-    const refLines = opts.refLines || [];
-    refLines.forEach(r=>allVals.push(r.value));
-    let vMin = Math.min.apply(null, allVals), vMax = Math.max.apply(null, allVals);
-    if (opts.zeroBase !== false) vMin = Math.min(0, vMin);
-    const span = (vMax - vMin) || 1;
-    vMax += span * 0.14;
-    if (opts.zeroBase === false) vMin -= span * 0.14;
-    const n = x.length;
-    const xAt = i => padL + (n===1 ? plotW/2 : (plotW * i/(n-1)));
-    const yAt = v => padT + plotH - ((v - vMin)/((vMax-vMin)||1))*plotH;
-    const fmtY = v => cfg.yFormat ? cfg.yFormat(v) : fmt(v, opts.yDecimals||0);
-
-    const wrap = document.createElement('div'); wrap.className = 'chart-wrap';
-    if (series.length > 1){
-      const legend = document.createElement('div'); legend.className = 'chart-legend';
-      destacadas.forEach(s=>{
-        const item = document.createElement('span'); item.className = 'legend-item';
-        item.innerHTML = '<i style="background:'+s.color+'"></i>' + s.label;
-        legend.appendChild(item);
-      });
-      if (apagadas.length){
-        const item = document.createElement('span'); item.className = 'legend-item';
-        item.innerHTML = '<i style="background:var(--c-muted)"></i>Outras ('+apagadas.length+')';
-        legend.appendChild(item);
-      }
-      wrap.appendChild(legend);
-    }
-    const svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, class:'chart-svg', preserveAspectRatio:'xMidYMid meet'});
-    const gridN = 4;
-    for (let i=0;i<=gridN;i++){
-      const v = vMin + (vMax-vMin)*i/gridN;
-      const y = yAt(v);
-      svgEl('line', {x1:padL, x2:W-padR, y1:y, y2:y, class:'grid-line'}, svg);
-      svgEl('text', {x:padL-7, y:y+3.5, class:'axis-label', 'text-anchor':'end'}, svg).textContent = fmtY(v);
-    }
-    const maxLabels = opts.maxXLabels || 7;
-    const step = Math.max(1, Math.ceil(n/maxLabels));
-    x.forEach((lab,i)=>{
-      if (i % step !== 0 && i !== n-1) return;
-      svgEl('text', {x:xAt(i), y:H-7, class:'axis-label', 'text-anchor': i===0?'start':(i===n-1?'end':'middle')}, svg).textContent = lab;
-    });
-    refLines.forEach(r=>{
-      const y = yAt(r.value);
-      svgEl('line', {x1:padL, x2:W-padR, y1:y, y2:y, stroke:'var(--c-muted)', 'stroke-width':1.1, 'stroke-dasharray':'5 4'}, svg);
-      svgEl('text', {x:W-padR, y:y-4, class:'axis-label', 'text-anchor':'end', 'font-style':'italic'}, svg).textContent = r.label;
-    });
-
-    function desenhaSerie(s, apagada){
-      const pts = s.values.map((v,i)=> v==null ? null : [xAt(i), yAt(v)]);
-      let d = '';
-      pts.forEach(p=>{ if (p) d += (d===''?'M':'L') + p[0].toFixed(2) + ',' + p[1].toFixed(2) + ' '; });
-      const validPts = pts.filter(Boolean);
-      const cor = apagada ? 'var(--c-muted)' : s.color;
-      if (!apagada && series.length === 1 && opts.area !== false && validPts.length){
-        uid++;
-        const gid = 'g'+uid;
-        const grad = svgEl('linearGradient', {id:gid, x1:0, y1:0, x2:0, y2:1}, svg);
-        svgEl('stop', {offset:'0%', 'stop-color':cor, 'stop-opacity':.18}, grad);
-        svgEl('stop', {offset:'100%', 'stop-color':cor, 'stop-opacity':0}, grad);
-        const base = yAt(vMin);
-        const area = d + 'L'+validPts[validPts.length-1][0].toFixed(2)+','+base.toFixed(2)+' L'+validPts[0][0].toFixed(2)+','+base.toFixed(2)+' Z';
-        svgEl('path', {d:area, fill:'url(#'+gid+')', stroke:'none'}, svg);
-      }
-      svgEl('path', {d:d, fill:'none', stroke:cor, 'stroke-width':apagada?1.1:2, 'stroke-opacity':apagada?.55:1, 'stroke-linecap':'round', 'stroke-linejoin':'round'}, svg);
-      const last = validPts[validPts.length-1];
-      let lastValidIdx = -1;
-      for (let i=s.values.length-1;i>=0;i--){ if (s.values[i]!=null){ lastValidIdx=i; break; } }
-      if (last && !apagada && opts.endLabels !== false){
-        svgEl('circle', {cx:last[0], cy:last[1], r:3.2, fill:cor}, svg);
-        if (destacadas.length <= (opts.maxDirectLabels || 8)){
-          const t = svgEl('text', {x:last[0]+7, y:last[1], class:'end-label', fill:cor}, svg);
-          t.textContent = s.format ? s.format(s.values[s.values.length-1]) : fmtY(s.values[s.values.length-1]);
-        }
-      }
-      // maximo/minimo fixos, sempre visiveis sem hover (specification.md §3.9) --
-      // pula o ponto ja coberto pelo end-label "mais recente" (idx===lastValidIdx) e o
-      // primeiro ponto (idx===0, ja visivel por ser onde a linha comeca) -- em series
-      // com poucos pontos isso evita rotulo redundante colado no eixo Y. Limiar mais
-      // baixo que o end-label (maxExtremeSeries, nao maxDirectLabels): com muitas series
-      // no mesmo grafico, maximos/minimos caem em posicoes X arbitrarias e colidem com
-      // mais facilidade do que o end-label (que fica sempre no mesmo X, a ultima coluna).
-      if (!apagada && opts.extremeLabels !== false && destacadas.length <= (opts.maxExtremeSeries || 4)){
-        let iMax=-1, iMin=-1, vMax=-Infinity, vMin=Infinity;
-        s.values.forEach((v,i)=>{ if (v!=null){ if (v>vMax){vMax=v;iMax=i;} if (v<vMin){vMin=v;iMin=i;} } });
-        [[iMax,-8],[iMin,13]].forEach(([idx,dy])=>{
-          if (idx<0 || idx===lastValidIdx || idx===0) return;
-          const p = pts[idx]; if (!p) return;
-          svgEl('circle', {cx:p[0], cy:p[1], r:2.6, fill:cor}, svg);
-          const t = svgEl('text', {x:p[0], y:p[1]+dy, class:'extreme-label', fill:cor, 'text-anchor':'middle'}, svg);
-          t.textContent = s.format ? s.format(s.values[idx]) : fmtY(s.values[idx]);
-        });
-      }
-    }
-    apagadas.forEach(s=>desenhaSerie(s, true));
-    destacadas.forEach(s=>desenhaSerie(s, false));
-
-    const hoverG = svgEl('g', {style:'display:none'}, svg);
-    const hoverLine = svgEl('line', {y1:padT, y2:H-padB, class:'hover-line'}, hoverG);
-    const hoverDots = series.map(s=>svgEl('circle', {r:3.6, fill:s.color, class:'hover-dot'}, hoverG));
-    const tooltip = document.createElement('div'); tooltip.className = 'chart-tooltip';
-    const capture = svgEl('rect', {x:padL, y:0, width:Math.max(plotW,1), height:H, fill:'transparent'}, svg);
-    capture.style.cursor = 'crosshair';
-
-    function onMove(clientX){
-      const rect = svg.getBoundingClientRect();
-      const mx = (clientX - rect.left) * (W/rect.width);
-      let idx = Math.round((mx-padL)/plotW*(n-1));
-      idx = Math.max(0, Math.min(n-1, idx));
-      hoverG.style.display = 'block';
-      const xp = xAt(idx);
-      hoverLine.setAttribute('x1', xp); hoverLine.setAttribute('x2', xp);
-      let rows = '';
-      series.forEach((s,si)=>{
-        const v = s.values[idx];
-        hoverDots[si].setAttribute('cx', xp);
-        hoverDots[si].setAttribute('cy', v==null ? -9999 : yAt(v));
-        if (v != null) rows += '<div class="tt-row"><i style="background:'+s.color+'"></i>'+s.label+': <b>'+(s.format?s.format(v):fmtY(v))+'</b></div>';
-      });
-      tooltip.innerHTML = '<div class="tt-year">'+x[idx]+'</div>' + rows;
-      tooltip.style.display = 'block';
-      const leftPct = (xp/W)*100;
-      tooltip.style.left = leftPct + '%';
-      tooltip.style.transform = leftPct > 60 ? 'translate(-104%,-4%)' : 'translate(6%,-4%)';
-    }
-    capture.addEventListener('mousemove', e=>onMove(e.clientX));
-    capture.addEventListener('touchmove', e=>{ if (e.touches[0]) onMove(e.touches[0].clientX); }, {passive:true});
-    capture.addEventListener('mouseleave', ()=>{ hoverG.style.display='none'; tooltip.style.display='none'; });
-
-    wrap.appendChild(svg);
-    wrap.appendChild(tooltip);
-    container.appendChild(wrap);
-
-    if (opts.table){
-      const det = document.createElement('details'); det.className = 'data-table';
-      det.innerHTML = '<summary>Ver dados em tabela</summary>';
-      const scroll = document.createElement('div'); scroll.className = 'table-scroll';
-      const tbl = document.createElement('table');
-      let thead = '<tr><th>Ano</th>' + series.map(s=>'<th>'+s.label+'</th>').join('') + '</tr>';
-      let rowsHtml = '';
-      x.forEach((lab,i)=>{
-        rowsHtml += '<tr><td>'+lab+'</td>' + series.map(s=>'<td>'+(s.values[i]==null?'—':(s.format?s.format(s.values[i]):fmtY(s.values[i])))+'</td>').join('') + '</tr>';
-      });
-      tbl.innerHTML = thead + rowsHtml;
-      scroll.appendChild(tbl); det.appendChild(scroll);
-      container.appendChild(det);
-    }
-  }
-
-  // ================= horizontal bar chart =================
-  function barChart(container, cfg){
-    const items = cfg.items;
-    const wrap = document.createElement('div'); wrap.className = 'bar-chart';
-    const max = Math.max.apply(null, items.map(it=>it.value)) * 1.06 || 1;
-    items.forEach((it,i)=>{
-      const row = document.createElement('div'); row.className = 'bar-row';
-      const label = document.createElement('div'); label.className = 'bar-label'; label.textContent = it.label; label.title = it.label;
-      const track = document.createElement('div'); track.className = 'bar-track';
-      const fillWrap = document.createElement('div');
-      fillWrap.className = 'bar-fill';
-      fillWrap.style.background = it.color || CAT[i%CAT.length];
-      track.appendChild(fillWrap);
-      const val = document.createElement('span'); val.className = 'bar-value';
-      val.textContent = it.format ? it.format(it.value) : fmt(it.value);
-      row.appendChild(label); row.appendChild(track); row.appendChild(val);
-      wrap.appendChild(row);
-      requestAnimationFrame(()=>{ fillWrap.style.width = (it.value/max*100) + '%'; });
-    });
-    container.appendChild(wrap);
-  }
-
-  // ================= grouped vertical bar chart =================
-  function groupedBarChart(container, cfg){
-    const groups = cfg.groups, series = cfg.series, opts = cfg.opts || {};
-    series.forEach((s,i)=>{ if (!s.color) s.color = CAT[i%CAT.length]; });
-    const W = opts.width || 760, H = opts.height || 320;
-    const padL = 40, padR = 12, padT = 14, padB = 56;
-    const plotW = W - padL - padR, plotH = H - padT - padB;
-    const allVals = [];
-    series.forEach(s=>s.values.forEach(v=>{ if (v!=null) allVals.push(v); }));
-    const maxV = Math.max.apply(null, allVals) * 1.12;
-    const yAt = v => padT + plotH - (v/maxV)*plotH;
-    const fmtY = v => cfg.yFormat ? cfg.yFormat(v) : fmt(v, opts.yDecimals||0);
-
-    const wrap = document.createElement('div'); wrap.className = 'chart-wrap';
-    const legend = document.createElement('div'); legend.className = 'chart-legend';
-    series.forEach(s=>{
-      const item = document.createElement('span'); item.className = 'legend-item';
-      item.innerHTML = '<i style="background:'+s.color+'"></i>' + s.label;
-      legend.appendChild(item);
-    });
-    wrap.appendChild(legend);
-
-    const svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, class:'chart-svg'});
-    const gridN = 4;
-    for (let i=0;i<=gridN;i++){
-      const v = maxV*i/gridN;
-      const y = yAt(v);
-      svgEl('line', {x1:padL, x2:W-padR, y1:y, y2:y, class:'grid-line'}, svg);
-      svgEl('text', {x:padL-7, y:y+3.5, class:'axis-label', 'text-anchor':'end'}, svg).textContent = fmtY(v);
-    }
-    const groupW = plotW / groups.length;
-    const barPad = 0.16;
-    const innerW = groupW * (1 - 2*barPad);
-    const barW = innerW / series.length;
-    const tooltip = document.createElement('div'); tooltip.className = 'chart-tooltip';
-
-    groups.forEach((g,gi)=>{
-      const gx0 = padL + gi*groupW + groupW*barPad;
-      svgEl('text', {x: gx0 + innerW/2, y: H-38, class:'axis-label', 'text-anchor':'middle', 'font-size':12.6}, svg).textContent = g;
-      series.forEach((s,si)=>{
-        const v = s.values[gi];
-        if (v == null) return;
-        const bx = gx0 + si*barW;
-        const by = yAt(v);
-        const bh = Math.max(1, padT+plotH - by);
-        const rect = svgEl('rect', {x:bx+0.6, y:by, width:Math.max(1,barW-1.2), height:bh, fill:s.color, rx:1.5}, svg);
-        rect.style.cursor = 'pointer';
-        rect.addEventListener('mousemove', e=>{
-          const r = wrap.getBoundingClientRect();
-          tooltip.innerHTML = '<div class="tt-year">'+g+'</div><div class="tt-row"><i style="background:'+s.color+'"></i>'+s.label+': <b>'+(s.format?s.format(v):fmtY(v))+'</b></div>';
-          tooltip.style.display = 'block';
-          tooltip.style.left = (e.clientX - r.left + 10) + 'px';
-          tooltip.style.top = (e.clientY - r.top - 30) + 'px';
-          tooltip.style.transform = 'none';
-        });
-        rect.addEventListener('mouseleave', ()=>{ tooltip.style.display='none'; });
-      });
-    });
-
-    wrap.appendChild(svg);
-    wrap.appendChild(tooltip);
-    container.appendChild(wrap);
-
-    if (opts.table){
-      const det = document.createElement('details'); det.className = 'data-table';
-      det.innerHTML = '<summary>Ver dados em tabela</summary>';
-      const scroll = document.createElement('div'); scroll.className = 'table-scroll';
-      const tbl = document.createElement('table');
-      let thead = '<tr><th></th>' + groups.map(g=>'<th>'+g+'</th>').join('') + '</tr>';
-      let rowsHtml = '';
-      series.forEach(s=>{
-        rowsHtml += '<tr><td>'+s.label+'</td>' + s.values.map(v=>'<td>'+(v==null?'—':(s.format?s.format(v):fmtY(v)))+'</td>').join('') + '</tr>';
-      });
-      tbl.innerHTML = thead + rowsHtml;
-      scroll.appendChild(tbl); det.appendChild(scroll);
-      container.appendChild(det);
-    }
-  }
-
-  // ================= specs/relatorio-interativo: controladores estaticos =================
-  // (navbar, secoes retrateis, seletor de opcoes, toggle de outliers, download CSV,
-  // tooltip de mapa -- tudo delegado/inicializado uma vez no DOMContentLoaded, ja que
-  // esses elementos sao HTML estatico gerado em Python, nao criados por lineChart/etc.)
-
-  function initNavbar(){
-    const burger = document.getElementById('navbar-burger');
-    const menu = document.getElementById('navbar-menu');
-    if (!burger || !menu) return;
-    burger.addEventListener('click', ()=>{
-      const abrindo = menu.hasAttribute('hidden');
-      if (abrindo) menu.removeAttribute('hidden'); else menu.setAttribute('hidden','');
-      burger.setAttribute('aria-expanded', abrindo ? 'true' : 'false');
-    });
-    menu.querySelectorAll('a.navbar-link').forEach(a=>{
-      a.addEventListener('click', ()=>{ menu.setAttribute('hidden',''); burger.setAttribute('aria-expanded','false'); });
-    });
-  }
-
-  function initSections(){
-    document.querySelectorAll('.rsec').forEach(sec=>{
-      const btn = sec.querySelector(':scope > .rsec-head > .rsec-toggle');
-      const label = btn && btn.querySelector('.rsec-toggle-label');
-      if (!btn) return;
-      btn.addEventListener('click', ()=>{
-        const colapsando = sec.getAttribute('data-collapsed') !== 'true';
-        sec.setAttribute('data-collapsed', colapsando ? 'true' : 'false');
-        btn.setAttribute('aria-expanded', colapsando ? 'false' : 'true');
-        if (label) label.textContent = colapsando ? 'EXPANDIR' : 'RECOLHER';
-      });
-    });
-  }
-
-  function initPills(){
-    document.querySelectorAll('.option-card').forEach(card=>{
-      const pills = Array.from(card.querySelectorAll(':scope > .pill-col > .pill'));
-      const panes = Array.from(card.querySelectorAll(':scope > .opt-panes > .opt-pane'));
-      pills.forEach((pill,i)=>{
-        pill.addEventListener('click', ()=>{
-          pills.forEach((p,j)=>{ if (j!==i) p.removeAttribute('data-active'); });
-          pill.setAttribute('data-active','true');
-          panes.forEach((pane,j)=>{ pane.hidden = (j!==i); });
-        });
-      });
-    });
-  }
-
-  function initOutliers(){
-    document.querySelectorAll('.outlier-card').forEach(card=>{
-      const btn = card.querySelector('.outlier-btn');
-      const full = card.querySelector(':scope > .outlier-pane[data-variant="full"]');
-      const clean = card.querySelector(':scope > .outlier-pane[data-variant="clean"]');
-      if (!btn || !full || !clean) return;
-      btn.addEventListener('click', ()=>{
-        const semOutliers = btn.getAttribute('data-active') !== 'true';
-        btn.setAttribute('data-active', semOutliers ? 'true' : 'false');
-        full.hidden = semOutliers;
-        clean.hidden = !semOutliers;
-      });
-    });
-  }
-
-  function initDownloads(){
-    document.addEventListener('click', e=>{
-      const btn = e.target.closest('.dl-btn');
-      if (!btn) return;
-      const card = btn.closest('.out');
-      if (!card || !card.dataset.csv) return;
-      const blob = new Blob(['﻿' + card.dataset.csv], {type:'text/csv;charset=utf-8;'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = card.dataset.filename || 'dados.csv';
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(a.href);
-    });
-  }
-
-  function initMapTooltips(){
-    document.querySelectorAll('.map-svg-card').forEach(card=>{
-      const svg = card.querySelector('.map-svg');
-      if (!svg) return;
-      const tooltip = document.createElement('div'); tooltip.className = 'chart-tooltip';
-      tooltip.style.position = 'absolute';
-      card.appendChild(tooltip);
-      svg.querySelectorAll('.map-region').forEach(path=>{
-        path.addEventListener('mousemove', e=>{
-          const r = card.getBoundingClientRect();
-          tooltip.innerHTML = '<div class="tt-row"><b>'+path.dataset.label+'</b></div><div class="tt-row">'+path.dataset.valor+'</div>';
-          tooltip.style.display = 'block';
-          tooltip.style.left = (e.clientX - r.left + 12) + 'px';
-          tooltip.style.top = (e.clientY - r.top - 34) + 'px';
-          tooltip.style.transform = 'none';
-        });
-        path.addEventListener('mouseleave', ()=>{ tooltip.style.display = 'none'; });
-      });
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    initNavbar(); initSections(); initPills(); initOutliers(); initDownloads(); initMapTooltips();
-  });
-
-  window.byId = byId; window.lineChart = lineChart; window.barChart = barChart; window.groupedBarChart = groupedBarChart;
-  window.fmt = fmt; window.pct = pct;
-})();
-</script>
-"""
-
-RENDER_CALLS = "<script>\n(function(){\n\"use strict\";\n" + "\n".join(scripts) + "\n})();\n</script>"
+# Bloco 2: as chamadas de render (dados embutidos) saem do HTML para data/charts.js,
+# carregado depois de js/charts.js (mesma ordem de execução de antes: ENGINE, depois RENDER_CALLS).
+RENDER_CALLS_JS = ("// GERADO por website/build/build_site.py -- não editar à mão.\n"
+                   "(function(){\n\"use strict\";\n" + "\n".join(scripts) + "\n})();\n")
 
 # regras de fundo cartografico dos mapas, coletadas durante a geracao (1 por
 # bbox unico -- bairro/AP/RP compartilham a mesma classe, ja que dissolvem da
 # mesma geometria base e tem bounds identicos; CAP tem a sua propria)
 BASEMAP_CSS = "<style>" + "".join(_BASEMAP_CSS_RULES) + "</style>" if _BASEMAP_CSS_RULES else ""
 
-doc = f"""<title>Primeira Infância Carioca</title>
-{CSS}
+doc = f"""<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{TITULO_SITE}</title>
+<meta name="description" content="Indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro, por eixo da política municipal.">
+<link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
 {BASEMAP_CSS}
-<div class="doc">
+</head>
+<body>
 {body}
-</div>
-{ENGINE}
-{RENDER_CALLS}
+<script src="data/geo.js"></script>
+<script src="js/charts.js"></script>
+<script src="data/charts.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/navigation.js"></script>
+</body>
+</html>
 """
 
-with open(OUT_PATH, "w", encoding="utf-8") as f:
-    f.write(doc)
-print(f"wrote {OUT_PATH}: {len(doc)} chars, {len(scripts)} charts, {sum(1 for l,t,s in toc if l==2)} h2 / {sum(1 for l,t,s in toc if l==3)} h3 sections")
+# ---- escrita (specs/website_refactor) ----------------------------------------
+# OUT_DIR = website/ por padrão. Com outro destino (ex. scratchpad para comparar), os
+# arquivos estáticos editados à mão são copiados junto, para a pasta abrir sozinha.
+import shutil
+SITE_DIR = ROOT / "website"
+OUT_DIR = Path(OUT_PATH)
+_ESTATICOS = ["css", "js", "assets"]
+if OUT_DIR.resolve() != SITE_DIR.resolve():
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    for nome in _ESTATICOS:
+        shutil.copytree(SITE_DIR / nome, OUT_DIR / nome, dirs_exist_ok=True)
+(OUT_DIR / "data").mkdir(parents=True, exist_ok=True)
+# geometria compartilhada (Blocos 3/3b): injeta um <svg> oculto com <defs> no início do <body>
+# e expõe window.GEO_NOMES (id -> nome da região, para o tooltip). Só os níveis usados.
+GEO_JS = """// GERADO por website/build/build_site.py -- não editar à mão.
+(function(){
+"use strict";
+var D = __DADOS__;
+var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), defs = document.createElementNS(NS, 'defs'), nomes = {};
+svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true');
+svg.style.position = 'absolute';
+Object.keys(D).forEach(function(n){ D[n].forEach(function(r){
+  var p = document.createElementNS(NS, 'path'); p.setAttribute('id', r[0]); p.setAttribute('d', r[2]);
+  defs.appendChild(p); nomes[r[0]] = r[1];
+}); });
+svg.appendChild(defs); document.body.insertBefore(svg, document.body.firstChild);
+window.GEO_NOMES = nomes;
+})();
+""".replace("__DADOS__", json.dumps(_GEO_USADOS, ensure_ascii=False, separators=(",", ":")))
+
+_gerados = {"index.html": doc, "data/charts.js": RENDER_CALLS_JS, "data/geo.js": GEO_JS}
+for rel, conteudo in _gerados.items():
+    with open(OUT_DIR / rel, "w", encoding="utf-8", newline="\n") as f:
+        f.write(conteudo)
+(OUT_DIR / "assets" / "images").mkdir(parents=True, exist_ok=True)
+for nome, conteudo in _BASEMAP_FILES.items():
+    (OUT_DIR / "assets" / "images" / nome).write_bytes(conteudo)
+print(f"wrote {OUT_DIR}: {len(scripts)} charts, {sum(1 for l,t,s in toc if l==2)} h2 / {sum(1 for l,t,s in toc if l==3)} h3 sections")
+
+# ---- relatório de tamanho + orçamento (specs/website_refactor §4.9) -----------
+# Só avisa, não falha: um estouro é sinal para investigar (ex. geometria voltou a
+# ser repetida por mapa), não motivo para travar a geração.
+import gzip
+ORCAMENTO_INDEX = 1_000_000
+ORCAMENTO_SITE = 2_000_000
+_PUBLICADOS = ["index.html", "404.html", ".nojekyll", "css", "js", "data", "assets"]   # = lista do workflow de deploy
+_tamanhos = []
+for nome in _PUBLICADOS:
+    alvo = OUT_DIR / nome
+    arquivos = [alvo] if alvo.is_file() else (sorted(p for p in alvo.rglob("*") if p.is_file()) if alvo.is_dir() else [])
+    for arq in arquivos:
+        dados = arq.read_bytes()
+        _tamanhos.append((arq.relative_to(OUT_DIR).as_posix(), len(dados), len(gzip.compress(dados))))
+for rel, bruto, gz in _tamanhos:
+    print(f"  {rel:40s} {bruto:>11,} bytes  (gzip {gz:>9,})")
+_total, _total_gz = sum(t[1] for t in _tamanhos), sum(t[2] for t in _tamanhos)
+print(f"  {'TOTAL publicado':40s} {_total:>11,} bytes  (gzip {_total_gz:>9,})")
+_idx = next((t[1] for t in _tamanhos if t[0] == "index.html"), 0)
+if _idx > ORCAMENTO_INDEX:
+    print(f"AVISO: index.html com {_idx:,} bytes passa do orçamento de {ORCAMENTO_INDEX:,} (specs/website_refactor §4.9)", file=sys.stderr)
+if _total > ORCAMENTO_SITE:
+    print(f"AVISO: site publicado com {_total:,} bytes passa do orçamento de {ORCAMENTO_SITE:,} (specs/website_refactor §4.9)", file=sys.stderr)

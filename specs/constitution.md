@@ -87,10 +87,13 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
 
 ## 4. Não editar artefatos gerados à mão
 
-`visualizacoes/*.png`, `mapas/*.png`, `tabelas_finais/*`, `relatorio/index.html`
-e `relatorio/analise_primeira_infancia.pdf` são saídas de pipeline. Uma
+`visualizacoes/*.png`, `mapas/*.png`, `tabelas_finais/*`, `website/index.html` e
+`website/data/*` (antes `relatorio/index.html`, substituído em 2026-09-24 por
+`specs/website_refactor`) e `relatorio/analise_primeira_infancia.pdf` são saídas de
+pipeline. (Em `website/`, `css/` e `js/` são fonte editada à mão, não saída — ver
+`website/README.md`.) Uma
 mudança nesses arquivos que não vier de rodar `analise.py` ou os scripts em
-`.claude/skills/*/scripts/` será sobrescrita na próxima regeneração e não
+`.claude/skills/*/scripts/` (ou `website/build/build_site.py`) será sobrescrita na próxima regeneração e não
 deve ser commitada como se fosse a fonte da mudança — edite o gerador, não o
 gerado.
 
@@ -128,7 +131,7 @@ endereço, faixa etária de 1 em 1 ano em grupos pequenos) sem confirmar
 antes que é apropriado.
 
 **Limiar de supressão (aprovado pelo usuário em 2026-09-23, `specs/recortes_cadunico` §5):**
-nenhuma saída publicada (`tabelas_finais/`, `relatorio/index.html` com os
+nenhuma saída publicada (`tabelas_finais/`, o site `website/` (antes `relatorio/index.html`) com os
 tooltips e CSV de download, PDF, DOCX) mostra uma contagem de crianças ou
 famílias do CadÚnico **menor que 20** abaixo do nível município. O mesmo vale
 para o denominador de uma taxa. A célula vira vazia, com a marcação

@@ -134,7 +134,8 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 - Backlog: validar 1 ou 2 anos contra a Sinopse Estatística do INEP (pendência P5 da mesma spec).
 
 ## Relatório interativo (`specs/relatorio-interativo`)
-- **Reduzir o peso de `relatorio/index.html` (~17MB)** — todos os ~32 mapas
+- ✅ **Concluído em `specs/website_refactor` (2026-09-24)**: geometria compartilhada via `<use>` + simplificação, site todo 1,5 MB. Registro original:
+  **Reduzir o peso de `relatorio/index.html` (~17MB)** — todos os ~32 mapas
   agora são SVG interativo (concluído), mas cada instância embute sua própria
   geometria como texto sem compartilhar paths entre mapas do mesmo nível
   (ex.: os ~20 mapas de bairro repetem os mesmos 166 polígonos). Otimização:
@@ -142,13 +143,16 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
   em vez de inline em cada `<path>` — ver `relatorio/specs.md` v6.1.
 - **Confirmar URLs/e-mail reais do rodapé** (Transparência Rio, LGPD, contato) —
   hoje são placeholders copiados do site institucional principal — ver `specs/relatorio-interativo/tasks.md` T6.2
+- **Página "Fale Conosco" no site** (pedido do usuário, 2026-09-24) — página/aba própria acessível pela
+  barra de navegação; opções (mailto estático × serviço de formulário, LGPD) em `website/ROADMAP.md`.
+- **Logo em SVG oficial** — pedir à Ascom do IPP; hoje o PNG oficial é servido em `srcset` (`specs/website_refactor` D6).
 - **Confirmar autorização de uso do logo oficial** da Prefeitura do Rio/IPP antes do
   deploy público — ver `specs/relatorio-interativo/tasks.md` T0.4 (bloqueia só o deploy, não o código)
 - **Habilitar GitHub Pages** nas configurações do repositório e disparar o primeiro
   deploy — passo manual fora do alcance de uma sessão de código (`specs/relatorio-interativo/tasks.md` T9.4/T9.5)
 - Medir formalmente o contraste do rodapé (WCAG AA) — inspeção visual feita, não
   uma medição real (`specs/relatorio-interativo/tasks.md` T5.6)
-- **`mobile_version`** — versão mobile do relatório ainda não validada de verdade.
+- **`mobile_version`** — *(2026-09-24: o site mudou para `website/` com abas e sumário lateral; a lista atualizada, por componente, está em `website/ROADMAP.md`. O texto abaixo descreve o layout antigo.)* Versão mobile do relatório ainda não validada de verdade.
   O CSS já tem breakpoints (`max-width:720px` e `max-width:520px`) que empilham
   os 3 padrões de layout (gráfico/mapa/tabela) numa coluna só e viram a coluna de
   pills numa fileira horizontal, mas isso nunca foi checado numa viewport estreita
