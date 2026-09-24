@@ -1,6 +1,11 @@
 # Especificação: Matrículas e taxa de atendimento de 0 a 5 anos, Censo Escolar/INEP (`specs/matriculas-censo-escolar`)
 
 Branch: `spec/matriculas-censo-escolar` (a partir de `staging_main`, em 2026-09-24)
+
+> **2026-09-24: esta rodada virou a Parte E de `specs/populacao-referencia`** (branch renomeada para
+> `spec/populacao-referencia`, pasta movida para `specs/populacao-referencia/matriculas/`). A função de
+> população passa a ser a da Parte A (`carrega_populacao_ripsa`/`populacao_ripsa`), a nota D7 aponta para a
+> nota geral A5, e a execução vem depois da Parte A. As decisões D1-D9 abaixo continuam valendo.
 Status: **rascunho 4** (2026-09-24). **Todas as decisões D1-D9 aprovadas.** Aguarda o ok do usuário para
 implementar (Bloco 1).
 
