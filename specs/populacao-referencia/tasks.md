@@ -22,9 +22,9 @@ estão em `matriculas/tasks.md`.
 
 ## Bloco 2: Parte A, saídas
 
-- [ ] **T2.1**: A2: tabela e gráfico de população de 0-6 por ano (faixa conforme A-D1).
-- [ ] **T2.2**: A3: taxa municipal de violência familiar por 1.000 (2011-2025), tabela e gráfico.
-- [ ] **T2.3**: A4: razão CadÚnico/população municipal (`.env` confirmado; registrar a partição usada).
+- [x] **T2.1**: A2: `populacao_ripsa_0_a_6_por_ano.csv` (26 linhas) e dois PNG: contagem 0-6 e participação no total (`populacao_ripsa_0_a_6_percentual_por_ano.png`, A-D1 pede os dois).
+- [x] **T2.2**: A3: `violencia_familiar_taxa_municipio_ano.csv/.png` (com a marca de 2017, via `serie_temporal_multipla_marcos`).
+- [x] **T2.3**: A4: `cadunico_razao_populacao_0_a_5_2026.csv`, partição `2026-06-12` (coluna `data_particao`).
 
 ## Bloco 3: Parte B
 

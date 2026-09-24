@@ -38,10 +38,12 @@ A idade simples de 2007-2025 (0-6) está em `matriculas/validation.md` V2.
 
 ## V2: Saídas da Parte A
 
-- [ ] A2: tabela 2000-2025 (26 linhas); o gráfico cita a Ripsa; o `percentual_0_a_6` é recalculado da soma, e não a média.
-- [ ] A3: `taxa_por_mil_mae` de 2025 = 1.756 ÷ 393.073 × 1.000 ≈ 4,47; 15 anos (2011-2025); vínculos não somados entre si.
+As células foram rodadas numa cópia de rascunho do projeto (só topo + células necessárias); as saídas pré-requisito regravadas lá (`censo_0_a_4_anos_por_ano.csv`, `violencia_familiar_por_vinculo_ano.csv`) saíram idênticas às do repositório, e só as saídas novas foram copiadas.
+
+- [x] A2: tabela 2000-2025 (26 linhas); os gráficos citam a Ripsa; `percentual_0_a_6` = `populacao_0_a_6 / populacao_total` por ano (2025: 469.148 ÷ 6.730.729 = 6,97%). *(2026-09-24)*
+- [x] A3: `taxa_por_mil_mae` de 2025 = 4,467 (assert no notebook); 15 linhas (2011-2025); colunas por vínculo, sem soma. *(2026-09-24)*
 - [x] A4 viável: conexão com o `.env` atual no `analises_env`; partição `2026-06-12`; 194.138 crianças, 173.768 famílias, idade 0-5. *(2026-09-24)*
-- [ ] A4: razão = 194.138 ÷ 393.073 ≈ 49,4% (ou os números da partição vigente, registrada); nenhuma contagem sub-municipal nova gravada.
+- [x] A4: razão = 194.138 ÷ 393.073 = 49,39%, partição `2026-06-12`, 173.768 famílias; uma linha só, nível município. *(2026-09-24)*
 
 ## V3: Parte B
 
