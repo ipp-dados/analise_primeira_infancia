@@ -1,5 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Build the single consolidated interactive HTML report (relatorio/index.html).
+"""Build the static website (website/) -- specs/website_refactor.
+
+Moved here from .claude/skills/export_pdf_report/scripts/build_html_report.py
+(specs/website_refactor, Bloco 1); the history below predates the move and
+still says relatorio/index.html, which was the output path until then.
+
+Usage (from anywhere; paths resolve against the project root):
+    python website/build/build_site.py [out_path]     # default: website/index.html
+
+---- previous docstring ----
+Build the single consolidated interactive HTML report (relatorio/index.html).
 
 Note (specs/ajuste_eixos, Bloco 3): the report's 9 h2 sections used to mirror
 analise.py's section order (one per data source: Censo, CadUnico, DataSUS/
@@ -66,6 +76,15 @@ import sys
 import datetime
 from pathlib import Path
 
+# specs/website_refactor Bloco 1: o gerador saiu de .claude/skills/export_pdf_report/scripts/
+# (era build_html_report.py). Os caminhos abaixo continuam relativos ao root do projeto
+# (tabelas_finais/, dados_locais/geo/, relatorio/textos_curados.json), por isso o chdir;
+# gera_estrutura_eixos continua morando na skill do PDF/DOCX e é só importado daqui.
+ROOT = Path(__file__).resolve().parents[2]
+_OUT_ARG = str(Path(sys.argv[1]).resolve()) if len(sys.argv) > 1 else None   # relativo ao cwd de quem chamou
+os.chdir(ROOT)
+sys.path.insert(0, str(ROOT / ".claude" / "skills" / "export_pdf_report" / "scripts"))
+
 from gera_estrutura_eixos import avisa_itens_sem_arquivo
 # populacao-referencia D4: avisa (sem mudar a saída) itens do crosswalk que o relatório pularia em silêncio
 avisa_itens_sem_arquivo()
@@ -75,7 +94,7 @@ from PIL import Image
 
 TF = "tabelas_finais"
 MAPAS = "mapas"
-OUT_PATH = sys.argv[1] if len(sys.argv) > 1 else "relatorio/index.html"
+OUT_PATH = _OUT_ARG or "website/index.html"
 
 # ---------------------------------------------------------------- helpers --
 
