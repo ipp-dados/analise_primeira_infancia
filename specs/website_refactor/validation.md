@@ -83,22 +83,29 @@ Referência: 20,9 MB (V0). Medir depois de cada passo do Bloco 3b.
 
 ## V8: Navegadores
 
-| Verificação | Chromium | Firefox | WebKit (proxy Safari) | `file://` |
+Playwright, 1440×900, `reduced_motion`; site servido por `python -m http.server` em
+`/analise_primeira_infancia/` (imita o Pages) e também aberto por `file://`. Build final (md5 `5732d55f…`).
+
+| Verificação | Chromium (Chrome 153) | Firefox 155 | WebKit 26.6 (proxy Safari) | `file://` (3 motores) |
 |---|---|---|---|---|
-| Carrega sem erro no console | | | | |
-| Troca de aba + hash | | | | |
-| Barra fixa + sumário lateral | | | | |
-| Pills / outliers / CSV | | | | |
-| Tooltip de mapa (5 níveis) | | | | |
+| Carrega sem erro no console | ✅ 0 erros | ✅ 0 | ✅ 0 | ✅ |
+| Abre na Visão geral; clique na aba muda painel e hash | ✅ | ✅ | ✅ | ✅ |
+| Barra de abas em y=0 depois de rolar; sumário com item ativo e % | ✅ | ✅ | ✅ | — |
+| Rota profunda `#família-e-cuidados/cadúnico` (h3 a 79 px) e âncora antiga | ✅ | ✅ | ✅ | — |
+| Voltar/avançar; seta → na barra de abas | ✅ | ✅ | ✅ | — |
+| Pills / outliers / download CSV (34 linhas, `;`) | ✅ | ✅ | ✅ | — |
+| Tooltip de mapa nos 5 níveis (bairro, AP, RP, RA, CAP) | ✅ | ✅ | ✅ | ✅ mapa resolve `<use>` |
+| 97 gráficos renderizados | ✅ | ✅ | ✅ | ✅ |
+| `404.html` com CSS (base no subcaminho) | ✅ | ✅ | ✅ | — |
 
 Safari real não testado (sem macOS nesta máquina) — registrar aqui se alguém testar depois.
 
 ## V9: Site estático / GitHub Pages (spec §4.10)
 
-- [ ] `_site/` (montado pelo mesmo passo do workflow) só contém `html css js svg png jpg` + `.nojekyll`; nenhum `.py`.
-- [ ] Nenhum `href`/`src` absoluto (`/…`) ou `file:`; nenhum `fetch(`/`XMLHttpRequest` em `js/` e `data/`.
-- [ ] Todo caminho relativo resolve para um arquivo existente com a mesma caixa (checagem exata).
-- [ ] Roteiro Playwright passa com `_site/` servido num subcaminho (`/<repo>/`).
-- [ ] Rotas só por hash: nenhum `history.pushState` com caminho, só com `#`.
-- [ ] `404.html` existe e abre.
-- [ ] Deploy real (`workflow_dispatch`, com ok do usuário): URL publicada abre, abas, mapas e CSV funcionam.
+- [x] Cópia montada com os mesmos comandos do workflow: 35 arquivos, só `html css js svg png jpg` + `.nojekyll`; nenhum `.py`/`.md`.
+- [x] Nenhum `href`/`src`/`url()` absoluto ou `file:`; nenhum `fetch(`/`XMLHttpRequest`; domínios externos só os esperados (Google Fonts, GitHub, IPP, Transparência Rio).
+- [x] 23 referências locais resolvem com a **mesma caixa** (checagem por `os.listdir`, não pelo sistema de arquivos do Windows).
+- [x] Roteiro Playwright passa com o site num subcaminho (V8).
+- [x] Rotas só por hash (`pushState` só com `#`).
+- [x] `404.html` existe, abre e carrega o CSS a partir da raiz do site.
+- [ ] Deploy real (`workflow_dispatch`) — **aguarda ok do usuário** (publicação externa).

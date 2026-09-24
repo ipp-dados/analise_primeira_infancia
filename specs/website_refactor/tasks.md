@@ -73,9 +73,10 @@ Um commit por bloco. Marcar `[x]` só depois da verificação correspondente em 
 
 ## Bloco 8: Validação
 
-- [ ] **T8.1**: Playwright instalado no ambiente de dev (com ok do usuário).
-- [ ] **T8.2**: Roteiro de verificação nos 3 motores, `http://` e `file://` (V8).
-- [ ] **T8.3**: Checagem de site estático sobre `_site/` servido em subcaminho (V9).
+- [x] **T8.1**: Playwright 1.x + Firefox 155 + WebKit 26.6 no Python base (ok do usuário, 2026-09-24); Chromium = Chrome instalado (`channel="chrome"`). Fora do `requirements.txt`.
+- [x] **T8.2**: Roteiro nos 3 motores, `http://` em subcaminho e `file://` (V8). Achados e corrigidos: fundo translúcido da barra de abas deixava o texto de baixo aparecer (Firefox) → opaco; `favicon.ico` inexistente gerava 404 no console → `assets/images/favicon.svg`; `404.html` só acertava a base em `*.github.io` → usa o 1º segmento do caminho.
+- [x] **T8.3**: Checagem de site estático sobre a cópia publicada (V9): 35 arquivos, 23 referências locais, sem problemas.
 - [ ] **T8.4**: Deploy real no Pages e roteiro Chromium na URL publicada (com ok do usuário).
-- [ ] **T8.5**: Capturas finais por aba para revisão do usuário.
+- [x] **T8.5**: Capturas por motor no scratchpad; revisão final do usuário abrindo `website/index.html`.
+- [x] **T8.7** *(pedido no Bloco 8)*: logo do IPP (banner e rodapé) vira link para `ipp.prefeitura.rio`.
 - [ ] **T8.6**: Merge em `planning`/`staging_main` (com ok do usuário).

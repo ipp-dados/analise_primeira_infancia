@@ -561,7 +561,13 @@ def logo_img(uso):
     return (f'<img src="assets/images/{arqs[0][0]}" srcset="{srcset}" height="{_LOGO_ALTURAS[uso]}" '
             f'alt="{_LOGO_ALT}" class="ipp-logo">')
 
-LOGO_IMG = logo_img("rodape")
+# o logo é também link para o site institucional do IPP (pedido do usuário, Bloco 8)
+URL_IPP = "https://ipp.prefeitura.rio/"
+def logo_link(uso, classe):
+    return (f'<a class="{classe}" href="{URL_IPP}" target="_blank" rel="noopener" '
+            f'title="Instituto Pereira Passos — site institucional (abre em nova aba)">{logo_img(uso)}</a>')
+
+LOGO_IMG = logo_link("rodape", "footer-logo")
 
 # ---- SVG choropleth pipeline (Bloco 3) -------------------------------------
 # Aplicado nesta rodada ao mapa do Censo por bairro (prova de conceito real,
@@ -1898,7 +1904,7 @@ banner = (
     'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
     '</div>'
     '<header class="site-banner"><div class="container banner-inner">'
-    f'<div><span class="banner-logo">{logo_img("banner")}</span>'
+    f'<div>{logo_link("banner", "banner-logo")}'
     '<div class="eyebrow banner-eyebrow">Relatório interativo · Instituto Pereira Passos</div>'
     f'<h1>{TITULO_H1}</h1></div>'
     '<ul class="banner-links">'
@@ -1941,6 +1947,7 @@ doc = f"""<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{TITULO_SITE}</title>
 <meta name="description" content="Indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro, por eixo da política municipal.">
+<link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/main.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
