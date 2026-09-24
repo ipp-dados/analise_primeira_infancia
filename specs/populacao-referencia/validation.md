@@ -47,8 +47,8 @@ As células foram rodadas numa cópia de rascunho do projeto (só topo + célula
 
 ## V3: Parte B
 
-- [ ] Nenhum valor sub-municipal muda: tabelas `violencia_familiar_taxa_*`, `violencia_familiar_por_ra/cap` e gêmeas de mapa idênticas ao baseline, exceto por mudança de rótulo ou coluna de texto.
-- [ ] Toda saída sub-municipal com população no denominador cita "0 a 4 anos, Censo 2022" (PNG, gêmea, card do HTML).
+- [x] Nenhum valor sub-municipal muda: as 19 CSV regravadas no Bloco 3 (violência por bairro/RA/CAP, taxas, gêmeas de mapa, CadÚnico por bairro) são **byte a byte iguais** ao baseline. *(2026-09-24)*
+- [x] Toda saída sub-municipal com população no denominador cita "0 a 4 anos, Censo 2022": PNG (legenda + rodapé), card do HTML (legenda + fonte). Gêmeas CSV: a coluna `pop_0_4` já diz a faixa; a fonte não vai no CSV (schema mantido).
 
 ## V4: Parte D
 

@@ -28,9 +28,9 @@ estão em `matriculas/tasks.md`.
 
 ## Bloco 3: Parte B
 
-- [ ] **T3.1**: Fontes e títulos sub-municipais explícitos ("população de 0 a 4 anos, Censo 2022").
-- [ ] **T3.2**: Nota D9 acrescida dos pontos B3.
-- [ ] **T3.3**: Rótulos de fonte nos cards de violência do HTML.
+- [x] **T3.1**: Fontes e títulos sub-municipais explícitos: legendas de M8-M13 ("Censo 2022"), eixo de G8, título/legenda/fonte do mapa % CadÚnico/Censo (só notebook). Os schemas CSV não mudam (sem coluna nova, para não mexer nos leitores). `fonte_sinan_censo` já citava o Censo.
+- [x] **T3.2**: Nota D9 acrescida dos pontos B3 (anos diferentes puxam a taxa para baixo; subcontagem puxa para cima; comparar territórios entre si, não com A3). Nota do topo da seção Proteção aponta A3.
+- [x] **T3.3**: HTML: legendas dos mapas de taxa, título do top 10 e nota metodológica. PDF (`build_notebook_report.py`): coluna da tabela CAP, títulos das galerias e nota.
 
 ## Bloco 4: Parte E
 

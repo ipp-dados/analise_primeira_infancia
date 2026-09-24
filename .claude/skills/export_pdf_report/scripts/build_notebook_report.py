@@ -675,10 +675,10 @@ emit_map_gallery([
         ("mapa_violencia_familiar_outros_bairro_2021_2025.png", "Notificações de violência familiar por bairro — outros vínculos (2021-2025, acumulado)"),
     ]),
 ])
-_cols_ra = {"mae": "Mãe", "pai": "Pai", "outros": "Outros", "pop_0_4": "Crianças 0-4", "taxa_por_mil_mae": "Taxa mãe /1.000",
+_cols_ra = {"mae": "Mãe", "pai": "Pai", "outros": "Outros", "pop_0_4": "Crianças 0-4 (Censo 2022)", "taxa_por_mil_mae": "Taxa mãe /1.000",
             "taxa_por_mil_pai": "Taxa pai /1.000", "taxa_por_mil_outros": "Taxa outros /1.000"}
 _vf_cap = read("violencia_familiar_por_cap.csv"); _vf_cap = _vf_cap[_vf_cap["ano"] == 2025]
-add(registra_tabela("Violência familiar por CAP (2025), com taxa por 1.000 crianças de 0 a 4 anos",
+add(registra_tabela("Violência familiar por CAP (2025), com taxa por 1.000 crianças de 0 a 4 anos (Censo 2022)",
                     table_html(_vf_cap[["cod_ap_sms"] + list(_cols_ra)], dec=1, rename={"cod_ap_sms": "CAP", **_cols_ra})))
 
 
@@ -696,13 +696,14 @@ emit_map_gallery([("Lesão autoprovocada, por bairro", [
 add(h3('Taxa de notificações de violência (por 1.000 crianças)'))
 add(note('<b>Nota metodológica.</b> Ressalva de denominador: numerador com crianças de 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022) — a taxa superestima ~20%, '
          'de forma uniforme, então o ranking entre bairros se preserva. "Outros" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: '
-         'a escala de cor é limitada ao percentil 95 (a tabela guarda o valor real).'))
-emit_map_gallery([("Taxa por 1.000 crianças de 0 a 4 anos", [
+         'a escala de cor é limitada ao percentil 95 (a tabela guarda o valor real). '
+         'O denominador por bairro/RA/CAP é a população do Censo 2022, fixa: o Censo subconta crianças pequenas (o que puxa a taxa para cima) e é de 2022, enquanto as notificações são de 2025 (o que puxa para baixo). Por isso as taxas por território servem para comparar territórios entre si, e não com a taxa do município, que usa a estimativa populacional Ripsa/MS do mesmo ano.'))
+emit_map_gallery([("Taxa por 1.000 crianças de 0 a 4 anos (população: Censo 2022)", [
     ("mapa_violencia_familiar_mae_taxa_bairro_2025.png", "Notificações de violência (mãe) por 1.000 crianças de 0 a 4 anos (2025)"),
     ("mapa_violencia_familiar_pai_taxa_bairro_2025.png", "Notificações de violência (pai) por 1.000 crianças de 0 a 4 anos (2025)"),
     ("mapa_violencia_familiar_outros_taxa_bairro_2021_2025.png", "Notificações de violência (outros vínculos) por 1.000 crianças de 0 a 4 anos (2021-2025)"),
 ])])
-emit_map_gallery([("Taxa por 1.000 crianças de 0 a 4 anos, por Região Administrativa", [
+emit_map_gallery([("Taxa por 1.000 crianças de 0 a 4 anos, por Região Administrativa (população: Censo 2022)", [
     ("mapa_violencia_familiar_mae_taxa_ra_2025.png", "Notificações de violência (mãe) por 1.000 crianças de 0 a 4 anos, por RA (2025)"),
     ("mapa_violencia_familiar_pai_taxa_ra_2025.png", "Notificações de violência (pai) por 1.000 crianças de 0 a 4 anos, por RA (2025)"),
     ("mapa_violencia_familiar_outros_taxa_ra_2021_2025.png", "Notificações de violência (outros vínculos) por 1.000 crianças de 0 a 4 anos, por RA (2021-2025)"),
