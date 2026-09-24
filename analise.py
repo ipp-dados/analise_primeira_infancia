@@ -381,7 +381,9 @@ def grafico_barra_agrupado(df,categoria,valor,agrupador,titulo,nome_arquivo,ylab
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
-def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',legend_title='Cor/Raça',figsize=(12,6),formato='png', fonte_dados=None, destaques=None):
+def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',legend_title='Cor/Raça',figsize=(12,6),formato='png', fonte_dados=None, destaques=None, linhas_referencia=None):
+    """`linhas_referencia`: lista opcional de `(valor, rótulo)` desenhada como linha horizontal tracejada
+    cinza, com o rótulo à direita (ex.: metas do PNE). `None` (padrão) não desenha nada."""
     plt.figure(figsize=figsize)
     itens = list(colunas.items())
     if len(itens) > _LIMIAR_DESTAQUE_SERIES:
@@ -406,6 +408,10 @@ def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',
         for i,(rotulo,coluna) in enumerate(itens):
             sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None,
                          color=_PALETA_CATEGORICA[i % len(_PALETA_CATEGORICA)])
+    for valor, rotulo_ref in (linhas_referencia or []):
+        plt.axhline(valor, color='#6b6b6b', linestyle='--', linewidth=1.1, zorder=0)
+        plt.annotate(rotulo_ref, xy=(1, valor), xycoords=('axes fraction', 'data'), xytext=(-4, 3),
+                     textcoords='offset points', ha='right', va='bottom', fontsize=9, color='#3a3a3a', style='italic')
     plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
     plt.xlabel(tempo,fontsize=12)
     plt.ylabel(ylabel,fontsize=12)
@@ -1197,6 +1203,109 @@ def populacao_ripsa(df_ripsa, idade_min=0, idade_max=5, sexo='total', anos=None)
     if anos is not None:
         d = d[d['ano'].isin(list(anos))]
     return d.groupby('ano', as_index=False)['populacao'].sum()
+
+# %% [markdown]
+# ### 🎓 Censo Escolar (INEP) — carregadores
+#
+# Matrículas de 0 a 5 anos no município, direto dos microdados do Censo Escolar da Educação Básica/INEP
+# (uma linha por escola, com matrículas agregadas em faixas de idade desde a adequação à LGPD). Ver
+# `specs/populacao-referencia/matriculas/`.
+
+# %%
+import zipfile
+
+_URL_INEP_MICRODADOS = 'https://download.inep.gov.br/dados_abertos/'
+_ZIP_INEP_EXCECOES = {2025: 'microdados_censo_escolar_2025_.zip'}  # 2025 saiu com '_' no fim do nome
+_CAMINHO_EXTRATO_INEP = 'dados_locais//educacao//inep_matriculas_rio.csv'
+_DEPENDENCIAS_INEP = {1: 'federal', 2: 'estadual', 3: 'municipal', 4: 'privada'}
+# contagens por escola: faixas de idade (data padrão do Censo, última quarta-feira de maio) e etapas.
+# As colunas '_REF_31_03' de 2025 (idade em 31/03) não são usadas: não existem nos outros anos.
+_COLUNAS_MATRICULA_INEP = {'QT_MAT_BAS_0_3': 'mat_0_a_3', 'QT_MAT_BAS_4_5': 'mat_4_a_5', 'QT_MAT_INF': 'mat_inf',
+                           'QT_MAT_INF_CRE': 'mat_inf_creche', 'QT_MAT_INF_PRE': 'mat_inf_pre'}
+
+def _baixa_zip_inep(ano, pasta_cache, tentativas=5, espera=10):
+    """Baixa o ZIP de microdados do ano para o cache (gitignorado), se ainda não estiver lá."""
+    destino = Path(pasta_cache) / f'microdados_censo_escolar_{ano}.zip'
+    if destino.exists():
+        return destino
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    url = _URL_INEP_MICRODADOS + _ZIP_INEP_EXCECOES.get(ano, f'microdados_censo_escolar_{ano}.zip')
+    for tentativa in range(1, tentativas + 1):
+        try:
+            with requests.get(url, stream=True, timeout=300) as r:
+                r.raise_for_status()
+                parcial = destino.with_suffix('.zip.part')
+                with open(parcial, 'wb') as f:
+                    for bloco in r.iter_content(chunk_size=1 << 20):
+                        f.write(bloco)
+            parcial.rename(destino)
+            return destino
+        except (requests.ConnectionError, requests.Timeout, requests.HTTPError):
+            if tentativa == tentativas:
+                raise
+            time.sleep(espera * tentativa)
+
+def _le_matriculas_zip_inep(caminho_zip, ano, cod_municipio):
+    """Lê, de dentro do ZIP (sem extrair), o CSV com as contagens de matrícula por escola e devolve as
+    somas do município por dependência administrativa. Até 2024 as contagens estão em
+    `microdados_ed_basica_<ano>.csv` (.CSV em alguns anos); em 2025, na `Tabela_Matricula_<ano>*.csv`."""
+    padrao = re.compile(rf'(microdados_ed_basica_{ano}|tabela_matricula_{ano}[^/]*)\.csv$', re.I)
+    with zipfile.ZipFile(caminho_zip) as zf:
+        nomes = [n for n in zf.namelist() if padrao.search(n)]
+        if len(nomes) != 1:
+            raise ValueError(f'{ano}: esperado 1 CSV de matrículas no ZIP, achados {nomes}')
+        colunas = ['CO_MUNICIPIO', 'TP_DEPENDENCIA'] + list(_COLUNAS_MATRICULA_INEP)
+        with zf.open(nomes[0]) as f:
+            df = pd.read_csv(f, sep=';', encoding='latin-1', usecols=lambda c: c in colunas, low_memory=False)
+    faltando = set(colunas) - set(df.columns)
+    if {'QT_MAT_BAS_0_3', 'QT_MAT_BAS_4_5'} & faltando:
+        raise ValueError(f'{ano}: sem as colunas de faixa etária {sorted(faltando)} (P6)')
+    df = df[df['CO_MUNICIPIO'] == cod_municipio]
+    agregado = (df.groupby('TP_DEPENDENCIA')[[c for c in _COLUNAS_MATRICULA_INEP if c in df.columns]].sum()
+                .reindex(list(_DEPENDENCIAS_INEP), fill_value=0).astype(int).rename(columns=_COLUNAS_MATRICULA_INEP))
+    agregado = agregado.rename_axis('tp_dependencia').reset_index()
+    agregado.insert(0, 'ano', ano)
+    agregado.insert(2, 'dependencia', agregado['tp_dependencia'].map(_DEPENDENCIAS_INEP))
+    return agregado
+
+def carrega_censo_escolar_matriculas(anos, cod_municipio=3304557, pasta_cache='dados_locais//educacao//inep_microdados',
+                                     caminho_extrato=_CAMINHO_EXTRATO_INEP):
+    """Matrículas da educação básica no município por ano x dependência administrativa (federal,
+    estadual, municipal, privada): `ano, tp_dependencia, dependencia, mat_0_a_3, mat_4_a_5, mat_inf,
+    mat_inf_creche, mat_inf_pre` (as colunas `mat_inf*`, por etapa, ficam só como referência).
+
+    Lê o extrato versionado `caminho_extrato` quando ele cobre `anos` (o notebook roda sem rede e sem os
+    ZIPs). Senão, baixa os ZIPs faltantes para o cache gitignorado, lê cada ano de dentro do ZIP e
+    regrava o extrato. Só contagens agregadas por escola: não há dado pessoal."""
+    anos = list(anos)
+    extrato = pd.read_csv(caminho_extrato) if os.path.exists(caminho_extrato) else None
+    if extrato is not None and set(anos) <= set(extrato['ano']):
+        return extrato[extrato['ano'].isin(anos)].reset_index(drop=True)
+    ja_lidos = set(extrato['ano']) if extrato is not None else set()
+    partes = [extrato] if extrato is not None else []
+    for ano in sorted(set(anos) - ja_lidos):
+        partes.append(_le_matriculas_zip_inep(_baixa_zip_inep(ano, pasta_cache), ano, cod_municipio))
+    out = pd.concat(partes, ignore_index=True).sort_values(['ano', 'tp_dependencia']).reset_index(drop=True)
+    assert out.groupby('ano').size().eq(len(_DEPENDENCIAS_INEP)).all(), 'extrato INEP: ano sem as 4 dependências'
+    out.to_csv(caminho_extrato, index=False)
+    return out[out['ano'].isin(anos)].reset_index(drop=True)
+
+def resume_matriculas_0_a_5(df_matriculas, df_ripsa):
+    """Tabela final por ano: matrículas de 0 a 5 anos (total, 0-3, 4-5, pública, privada), população
+    Ripsa das mesmas faixas e a taxa bruta de atendimento (%) de cada faixa. A taxa de 0-5 é
+    (mat 0-3 + mat 4-5) ÷ (pop 0-3 + pop 4-5), nunca a média das taxas de 0-3 e 4-5."""
+    m = df_matriculas.assign(mat_0_a_5=df_matriculas['mat_0_a_3'] + df_matriculas['mat_4_a_5'])
+    publica = m['tp_dependencia'].isin([1, 2, 3])
+    out = m.groupby('ano').agg(matriculas=('mat_0_a_5', 'sum'), matriculas_0_a_3=('mat_0_a_3', 'sum'),
+                               matriculas_4_a_5=('mat_4_a_5', 'sum'))
+    out['matriculas_publica'] = m[publica].groupby('ano')['mat_0_a_5'].sum()
+    out['matriculas_privada'] = m[~publica].groupby('ano')['mat_0_a_5'].sum()
+    for faixa, (ini, fim) in {'0_a_3': (0, 3), '4_a_5': (4, 5), '0_a_5': (0, 5)}.items():
+        out[f'populacao_{faixa}'] = populacao_ripsa(df_ripsa, ini, fim).set_index('ano')['populacao']
+    for faixa in ['0_a_3', '4_a_5', '0_a_5']:
+        numerador = out['matriculas'] if faixa == '0_a_5' else out[f'matriculas_{faixa}']
+        out[f'taxa_atendimento_{faixa}'] = (numerador / out[f'populacao_{faixa}'] * 100).round(1)
+    return out.reset_index()
 
 # %% [markdown]
 # ### ⚙️ Setup
@@ -3317,7 +3426,7 @@ grafico_barra_agrupado(
 # ### 🎓 PNAD Contínua, Censo Escolar e INEP
 
 # %% [markdown]
-# Frequência escolar (PNAD Contínua) e matrículas (Censo Escolar/INEP) de crianças de 0 a 6 anos.
+# Frequência escolar (PNAD Contínua, até 6 anos) e matrículas (Censo Escolar/INEP, 0 a 5 anos) de crianças pequenas.
 
 # %% [markdown]
 # #### Frequência escolar 0-6 anos (IBGE SIDRA, Censo 2022)
@@ -3404,20 +3513,87 @@ grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequen
 # **Nota de curadoria:** A frequência escolar na primeira infância apresenta uma trajetória de crescimento acelerado à medida que a idade da criança vai aumentando. Esse movimento pode ser explicado pela necessidade de retorno dos pais, em especial das mães, ao mercado de trabalho e garantia do direito constitucional ao desenvolvimento para as crianças. A partir dos 4 anos, quando há a obrigatoriedade legal da pré-escola a taxa sobe para cerca de 83%, atingindo 90% aos 5 anos. A despeito do alto percentual, é um ponto de atenção ter uma déficit de 17% e 10% de crianças em idade escolar obrigatória que não a estejam frequentando.
 
 # %% [markdown]
-# #### Número de matrículas 0 a 6 anos (complementar 2021-2025)
+# #### Matrículas e taxa de atendimento de 0 a 5 anos (Censo Escolar/INEP, 2007-2025)
+#
+# **Nota de método** (`specs/populacao-referencia/matriculas/`):
+# - **Fonte:** microdados do Censo Escolar da Educação Básica (INEP), município do Rio de Janeiro
+#   (`CO_MUNICIPIO` 3304557), lidos dos ZIPs originais por `carrega_censo_escolar_matriculas`. O extrato
+#   `dados_locais/educacao/inep_matriculas_rio.csv` (ano × dependência) deixa o notebook rodar sem os ZIPs.
+# - **Só contagens por escola:** desde a adequação à LGPD o INEP publica uma linha por escola, com as
+#   matrículas já agregadas em faixas de idade (e republicou os anos anteriores nesse formato). Não há dado
+#   por aluno.
+# - **0 a 5 anos, não 0 a 6:** a faixa de 6 anos vem misturada com 7-10 (`QT_MAT_BAS_6_10`), então "até 6
+#   anos" exato não é calculável com os dados abertos. Usa-se 0-3 + 4-5 (`QT_MAT_BAS_0_3` + `QT_MAT_BAS_4_5`),
+#   a faixa da educação infantil (creche e pré-escola) por idade, não por etapa.
+# - **Idade na data de referência do Censo Escolar** (última quarta-feira de maio). As colunas de 2025 com
+#   idade em 31/03 (`_REF_31_03`) não entram, porque não existem nos outros anos.
+# - **Troca da série antiga:** o CSV anterior (`censo_escolar_matriculas_ate_6anos.csv`, 2007-2020, sem
+#   registro de como foi gerado) tinha 205.371 em 2020, contra 247.133 de 0-5 nos microdados. Nenhuma
+#   combinação óbvia reproduz o número antigo, e juntar as duas séries criaria um degrau artificial; por
+#   isso a série inteira foi reconstruída da mesma fonte.
+# - **2021 é um vale** (pandemia), e **2025 vem em tabelas separadas** no ZIP (`Tabela_Matricula`), com as
+#   mesmas colunas. Escolas paralisadas/extintas não têm matrícula de 0-5 (conferido em 2020).
+# - Pública = federal + estadual + municipal (`TP_DEPENDENCIA` 1-3); privada = 4.
 
 # %%
-fonte_matriculas = 'Censo Escolar/INEP'
+fonte_matriculas = 'Censo Escolar da Educação Básica (INEP), microdados'
+fonte_taxa_atendimento = 'Censo Escolar (INEP), microdados; população: estimativas Ripsa/Ministério da Saúde'
 
-df_freq_escolar = pd.read_csv('dados_locais//educacao//censo_escolar_matriculas_ate_6anos.csv')
-df_freq_escolar.sort_values('ano', inplace=True)
-df_freq_escolar.rename(columns={'f0_': 'matriculas'}, inplace=True)
-df_freq_escolar.to_csv('tabelas_finais//matriculas_0_a_6_por_ano.csv', index=False)
-df_freq_escolar
+df_matriculas_rede = carrega_censo_escolar_matriculas(range(2007, 2026))
+df_matriculas = resume_matriculas_0_a_5(df_matriculas_rede, carrega_populacao_ripsa())
+assert len(df_matriculas) == 19
+assert (df_matriculas['matriculas'] == df_matriculas['matriculas_0_a_3'] + df_matriculas['matriculas_4_a_5']).all()
+assert (df_matriculas['matriculas'] == df_matriculas['matriculas_publica'] + df_matriculas['matriculas_privada']).all()
+assert df_matriculas.set_index('ano').loc[[2020, 2025], 'matriculas'].tolist() == [247133, 230284]
+df_matriculas.to_csv('tabelas_finais//matriculas_0_a_5_por_ano.csv', index=False)
+df_matriculas
 
 # %%
-serie_temporal(df_freq_escolar,'ano','matriculas','Matrículas de 0 a 6 anos por ano',
-               nome_arquivo='matriculas_0_a_6_por_ano', fonte_dados=fonte_matriculas)
+serie_temporal(df_matriculas, 'ano', 'matriculas', 'Matrículas de crianças de 0 a 5 anos por ano',
+               nome_arquivo='matriculas_0_a_5_por_ano', fonte_dados=fonte_matriculas)
+
+# %%
+serie_temporal_multipla(
+    df_matriculas, tempo='ano', colunas={'0 a 3 anos (creche)': 'matriculas_0_a_3', '4 a 5 anos (pré-escola)': 'matriculas_4_a_5'},
+    titulo='Matrículas de crianças de 0 a 5 anos, por faixa de idade', nome_arquivo='matriculas_0_a_5_creche_pre_por_ano',
+    ylabel='Matrículas', legend_title='Faixa de idade', fonte_dados=fonte_matriculas,
+)
+
+# %%
+serie_temporal_multipla(
+    df_matriculas, tempo='ano', colunas={'Rede pública': 'matriculas_publica', 'Rede privada': 'matriculas_privada'},
+    titulo='Matrículas de crianças de 0 a 5 anos, por rede', nome_arquivo='matriculas_0_a_5_rede_por_ano',
+    ylabel='Matrículas', legend_title='Rede', fonte_dados=fonte_matriculas,
+)
+
+# %% [markdown]
+# **Nota metodológica da taxa de atendimento** (decisão D7 de `matriculas/`; a nota geral de população de
+# referência está no início da seção Censo 2022):
+# 1. **Denominador:** estimativas Ripsa/MS 2000-2025 (Nota Técnica Ripsa nº 01/2025), população em 1º de
+#    julho, por idade simples, ajustada às Projeções do IBGE (revisão 2024); consulta ao Tabnet de
+#    2026-09-24 (coluna `data_consulta` do extrato).
+# 2. **Por que não o Censo 2022:** ele conta 379.609 crianças de 0-5 no Rio contra 439.907 da Ripsa (+16%),
+#    com a maior diferença em menores de 1 ano (sub-registro de crianças pequenas, corrigido pelo IBGE). Com
+#    o Censo, a taxa de 2022 seria **64,9%** (0-3: 47,8%; 4-5: 94,4%) em vez de 56,0%; números do Censo 2022
+#    no notebook (SIDRA) não se comparam diretamente com esta taxa.
+# 3. **Taxa bruta:** o numerador conta matrículas em escolas do município, inclusive de crianças que moram
+#    em outros municípios; o denominador são os residentes. As datas de referência diferem (fim de maio e 1º
+#    de julho).
+# 4. **Revisões:** a Ripsa revisa as estimativas todo ano, então uma consulta nova pode mudar anos passados.
+# 5. **Diferença com a PNAD** (taxa de frequência escolar, acima): aquela é declarada no domicílio; esta é
+#    registro administrativo ÷ estimativa. Ordem de grandeza coerente (PNAD ~83% aos 4 anos e ~90% aos 5).
+# 6. **Metas do PNE** (Lei 13.005/2014, Meta 1): 50% de atendimento em creche (0-3) e universalização da
+#    pré-escola (4-5), como linhas de referência no gráfico.
+
+# %%
+serie_temporal_multipla(
+    df_matriculas, tempo='ano',
+    colunas={'0 a 3 anos (creche)': 'taxa_atendimento_0_a_3', '4 a 5 anos (pré-escola)': 'taxa_atendimento_4_a_5',
+             '0 a 5 anos': 'taxa_atendimento_0_a_5'},
+    titulo='Taxa bruta de atendimento escolar de 0 a 5 anos (%)', nome_arquivo='taxa_atendimento_0_a_5_por_ano',
+    ylabel='Matrículas por 100 crianças residentes', legend_title='Faixa de idade', fonte_dados=fonte_taxa_atendimento,
+    linhas_referencia=[(50, 'Meta PNE creche: 50%'), (100, 'Meta PNE pré-escola: 100%')],
+)
 
 # %% [markdown]
 # #### Juncao de tabelas por bairro
