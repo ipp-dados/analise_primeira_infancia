@@ -64,11 +64,11 @@ Um commit por bloco. Marcar `[x]` só depois da verificação correspondente em 
 
 ## Bloco 7: Deploy, integração, docs
 
-- [ ] **T7.1**: Workflow de deploy com lista de inclusão + checagem de extensões; `404.html` e `.nojekyll`.
-- [ ] **T7.2**: `sincroniza_docx.py` aponta para o novo gerador/destino.
-- [ ] **T7.3**: `git rm relatorio/index.html`; `.gitignore` ajustado para `website/`.
-- [ ] **T7.4**: `website/README.md` e `website/ROADMAP.md` (mobile).
-- [ ] **T7.5**: `relatorio/specs.md` v8, SKILL.md, CLAUDE.md, tech-stack, roadmap, README/CHANGELOG.
+- [x] **T7.1**: Workflow de deploy com lista de inclusão + checagem de extensões; `404.html` e `.nojekyll`.
+- [x] **T7.2**: `sincroniza_docx.py` aponta para o novo gerador/destino (feito já nos Blocos 1-2, para cada commit continuar funcionando).
+- [x] **T7.3**: `git rm relatorio/index.html`; `.gitignore` ajustado para `website/`.
+- [x] **T7.4**: `website/README.md` e `website/ROADMAP.md` (mobile).
+- [x] **T7.5**: `relatorio/specs.md` v8, SKILL.md (descrição + passo 3), CLAUDE.md, constitution §4/§6, tech-stack, roadmap (peso ✅, Fale Conosco, logo SVG, mobile → `website/ROADMAP.md`), README (0.22.0) e CHANGELOG. Comentários dos scripts do PDF que citam `build_html_report.py` ficam como estão (fora do escopo, registro histórico).
 - [ ] **T7.6**: P1 — skill `build_website` (decisão do usuário).
 
 ## Bloco 8: Validação

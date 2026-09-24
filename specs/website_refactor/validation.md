@@ -77,10 +77,9 @@ Referência: 20,9 MB (V0). Medir depois de cada passo do Bloco 3b.
 
 ## V7: Integração
 
-- [ ] Workflow: `_site/` contém só `index.html`, `css/`, `js/`, `data/`, `assets/` (conferir com um dry run local
-  do passo de cópia).
-- [ ] `sincroniza_docx.py` regenera `website/index.html` (rodar com o DOCX atual).
-- [ ] `git status` limpo de `relatorio/index.html`; `website/index.html` e `website/data/*` rastreados.
+- [x] Dry run local dos passos do workflow: `_site/` com 34 arquivos, 1,5 MB, só tipos permitidos; teste negativo (um `.py` plantado) detectado pela checagem.
+- [x] `sincroniza_docx.regenera_html()` regenera `website/index.html` com md5 idêntico ao build direto (só a função de regeneração; a sincronização completa mexe em `analise.py` e não foi rodada).
+- [x] `relatorio/index.html` removido do git (`git rm`), exceção do `.gitignore` retirada; `git check-ignore` não ignora nada em `website/` (index, 404, .nojekyll, data, assets).
 
 ## V8: Navegadores
 

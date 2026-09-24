@@ -1,8 +1,9 @@
 name: Deploy relatório
 
-# Publica relatorio/index.html no GitHub Pages -- specs/relatorio-interativo/plan.md §8.
-# Gatilho manual nesta primeira versão (workflow_dispatch); push-trigger automático
-# fica para depois, se for pedido (specification.md §5.1).
+# Publica o site estático website/ no GitHub Pages -- specs/website_refactor §4.10
+# (antes: só relatorio/index.html, specs/relatorio-interativo/plan.md §8).
+# Gatilho manual (workflow_dispatch). O CI NÃO gera nada: website/ já vem gerado e
+# versionado (o gerador precisa de tabelas_finais/, que é gitignorado).
 on:
   workflow_dispatch: {}
 
@@ -26,12 +27,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Publica só o relatório -- não o resto de relatorio/ (wireframe_relatorio_interativo.pdf,
-      # o PDF de ~50MB), que não precisa ir para o site (plan.md §8, decisão T9.3).
+      # Lista de INCLUSÃO (não de exclusão): só o que o site usa. build/ (gerador Python,
+      # protótipo), README.md e ROADMAP.md ficam de fora sem depender de ninguém lembrar.
       - name: Prepara o site
         run: |
           mkdir -p _site
-          cp relatorio/index.html _site/index.html
+          cp website/index.html website/404.html website/.nojekyll _site/
+          cp -r website/css website/js website/data website/assets _site/
+
+      # Site estático de verdade (spec §4.10): falha se aparecer qualquer tipo de arquivo
+      # fora da lista (ex. um .py ou .md copiado por engano).
+      - name: Confere o conteúdo publicado
+        run: |
+          fora=$(find _site -type f ! -name '.nojekyll' ! -regex '.*\.\(html\|css\|js\|svg\|png\|jpg\)$')
+          if [ -n "$fora" ]; then echo "Arquivos fora do permitido:"; echo "$fora"; exit 1; fi
+          echo "Conteúdo OK: $(find _site -type f | wc -l) arquivos, $(du -sh _site | cut -f1)"
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
