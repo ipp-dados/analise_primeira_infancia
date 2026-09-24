@@ -34,7 +34,7 @@ estão em `matriculas/tasks.md`.
 
 ## Bloco 4: Parte E
 
-- [ ] **T4.1**: `matriculas/tasks.md` Blocos 1-3, com a população vinda da Parte A.
+- [x] **T4.1**: `matriculas/tasks.md` Blocos 1-3, com a população vinda da Parte A. Os leitores dos relatórios (ainda com `matriculas_0_a_6`) mudam no Bloco 6.
 
 ## Bloco 5: Parte D
 

@@ -11,27 +11,27 @@ IDs D/P são os de `specification.md`, e os blocos são os de `plan.md`.
 - [x] **T0.4**: Regra `/dados_locais/educacao/inep_microdados/` no `.gitignore`; ZIPs de 2020-2025 em cache.
 - [x] **T0.5**: Renomear para `0_a_5` ✅ e D6 no escopo ✅ (usuário, 2026-09-24). Fonte de população levantada e testada (spec §3.6).
 - [x] **T0.6**: Usuário revisou as specs e decidiu D7 ✅ Ripsa com nota metodológica, D8 ✅, D9 ✅ (2026-09-24).
-- [ ] **T0.7**: Ok do usuário para implementar.
+- [x] **T0.7**: Ok do usuário para implementar (2026-09-24, como Parte E de `populacao-referencia`).
 
 ## Bloco 1: Downloads e P6
 
-- [ ] **T1.1**: Baixar os ZIPs de 2007-2019 no cache.
-- [ ] **T1.2**: Tabela por ano (arquivo, encoding, colunas, total 0-5 do Rio) em V1. Parar se faltar coluna.
+- [x] **T1.1**: Baixar os ZIPs de 2007-2019 no cache (2007 precisou de nova tentativa; todos passam em `testzip`).
+- [x] **T1.2**: Tabela por ano em V1. Nenhuma coluna faltando.
 
 ## Bloco 2: Funções
 
-- [ ] **T2.1**: `carrega_censo_escolar_matriculas(...)`, com regex de arquivo, exceção de URL de 2025, latin-1 e extrato.
-- [ ] **T2.2**: `carrega_populacao_ripsa(...)`, com POST no Tabnet, extrato e checagem de anos e idades.
-- [ ] **T2.3**: `resume_matriculas_0_a_5(...)`, somando antes de dividir.
-- [ ] **T2.4**: D8: `linhas_referencia=None` em `serie_temporal_multipla`, sem mudar gráficos existentes.
-- [ ] **T2.5**: Extratos `dados_locais/educacao/inep_matriculas_rio.csv` (76 linhas) e `dados_locais/populacao/ripsa_populacao_rio_0_6_idade_simples.csv` (133 linhas) gerados e versionados.
+- [x] **T2.1**: `carrega_censo_escolar_matriculas(...)`, com regex de arquivo, exceção de URL de 2025, latin-1 e extrato.
+- [x] **T2.2**: *(substituída pela Parte A de `../`: `carrega_populacao_ripsa`/`populacao_ripsa`.)*
+- [x] **T2.3**: `resume_matriculas_0_a_5(...)`, somando antes de dividir.
+- [x] **T2.4**: D8: `linhas_referencia=None` em `serie_temporal_multipla`, sem mudar gráficos existentes.
+- [x] **T2.5**: Extrato `dados_locais/educacao/inep_matriculas_rio.csv` (76 linhas) versionado; população no extrato da Parte A (`dados_locais/populacao/ripsa_populacao_rio.csv`).
 
 ## Bloco 3: Seção de análise
 
-- [ ] **T3.1**: Markdown com título e nota de método; nota metodológica de D7 (6 pontos da spec §5) em célula própria.
-- [ ] **T3.2**: Tabela final e os 4 PNG, com `fonte_dados`.
-- [ ] **T3.3**: `git rm` de `censo_escolar_matriculas_ate_6anos.csv` e dos dois arquivos `matriculas_0_a_6_*` rastreados; `git add -f` dos novos rastreáveis.
-- [ ] **T3.4**: Variável `df_freq_escolar` da célula de matrículas renomeada (`df_matriculas`).
+- [x] **T3.1**: Markdown com título e nota de método; nota metodológica de D7 (6 pontos da spec §5) em célula própria.
+- [x] **T3.2**: Tabela final e os 4 PNG, com `fonte_dados`.
+- [x] **T3.3**: `git rm` de `censo_escolar_matriculas_ate_6anos.csv` e dos dois arquivos `matriculas_0_a_6_*` rastreados; `git add -f` dos novos rastreáveis.
+- [x] **T3.4**: Variável `df_freq_escolar` da célula de matrículas renomeada (`df_matriculas`).
 
 ## Bloco 4: Crosswalk e relatórios
 
