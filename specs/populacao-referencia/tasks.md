@@ -45,9 +45,9 @@ estão em `matriculas/tasks.md`.
 
 ## Bloco 6: Crosswalk e relatórios
 
-- [ ] **T6.1**: `estrutura_eixos.md` atualizado (A2, A3, A4, D1-D3, E).
-- [ ] **T6.2**: Três scripts de relatório atualizados, incluindo o Bloco 4 de `matriculas/plan.md`.
-- [ ] **T6.3**: HTML, PDF e DOCX regenerados e comparados com o baseline.
+- [x] **T6.1**: `estrutura_eixos.md` atualizado (A2, A3, A4, D1-D3, E; mortalidade por sexo `pendente`). 51 subseções, 8 pendentes, 0 itens sem arquivo e sem status.
+- [x] **T6.2**: Três scripts atualizados. HTML: `refLines` opcional no `lineChart` (D8) e `col_extra` opcional no `mapa_svg` (tooltip com % do município, D1). `regen_missing_pngs.py`: matrículas 0-5, só se o PNG faltar (o snapshot não tem rodapé de fonte).
+- [x] **T6.3**: HTML (option cards 40 → 44; JS validado com `node --check`), PDF (127 → 140 páginas) e DOCX (160 → 171 headings) regenerados. Passo 1 (`regen_missing_pngs.py`) não rodado: todas as referências existem e ele só sobrescreveria PNGs do notebook com o estilo antigo. **Achado:** o texto curado do item "Crianças até 6 anos (número)" (sobre o SIDRA 9606) foi para "Textos órfãos" do DOCX, porque o item passou a ter arquivos; está preservado lá, para o usuário decidir onde fica.
 
 ## Bloco 7: Parte C
 

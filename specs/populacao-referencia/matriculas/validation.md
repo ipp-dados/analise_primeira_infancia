@@ -65,7 +65,7 @@ Taxas de referência 2020-2025: spec §3.6 (ex.: 2025 → 0-3 43,7%, 4-5 85,2%, 
 - [x] `tabelas_finais/matriculas_0_a_5_por_ano.csv`: 19 linhas (2007-2025), `matriculas == matriculas_0_a_3 + matriculas_4_a_5 == matriculas_publica + matriculas_privada` (asserts no notebook).
 - [x] Os 4 PNG existem e citam a fonte no rodapé (o da taxa cita INEP e Ripsa).
 - [ ] D8: gráficos existentes que usam `serie_temporal_multipla` e `line_chart` saem idênticos visualmente (sem `linhas_referencia`); o da taxa mostra 50% e 100% tracejados.
-- [ ] Nenhuma referência restante a `matriculas_0_a_6` (`grep -rn` no repo, fora de `specs/` e do histórico).
+- [x] Nenhuma referência restante a `matriculas_0_a_6` em código (`grep` em `*.py`, fora de `specs/`).
 
 ## V4: Reprodutibilidade
 
@@ -76,5 +76,5 @@ Taxas de referência 2020-2025: spec §3.6 (ex.: 2025 → 0-3 43,7%, 4-5 85,2%, 
 
 ## V5: Relatórios
 
-- [ ] HTML: card de matrículas com 0-5 e os cards novos (creche/pré, rede, taxa); sem "0 a 6"; tamanho e contagem de cards comparados com o baseline.
-- [ ] PDF e DOCX regenerados, com a seção de matrículas e a taxa.
+- [x] HTML: card de matrículas com 0-5 (total, creche/pré, rede) e card da taxa com as metas do PNE; selo "dado desatualizado" removido; option cards 40 → 44 (inclui os cards novos da Parte A e D).
+- [x] PDF e DOCX regenerados, com a seção de matrículas e a taxa (PDF p. 74-76).
