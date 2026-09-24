@@ -17,9 +17,10 @@ sessão; aqui só o resumo.
 
 ## V2: Arquivos separados
 
-- [ ] `<body>` igual à baseline, exceto `src` do logo.
-- [ ] Capturas iguais à baseline (comparação por pixel, tolerância só para antialiasing).
-- [ ] Zero erro no console.
+- [x] Markup de `.doc` idêntico à baseline (20.632.907 chars), só com o `src` do logo normalizado; `js/charts.js` = antigo `ENGINE` e `data/charts.js` = antigo `RENDER_CALLS`, byte a byte.
+- [x] Estilos computados + caixas (sonda injetada, Chrome headless 1440px, 17.644 elementos fora de `<svg>`): **0 diferenças** com o `<!doctype>` removido — a divisão do CSS em 3 arquivos preserva a cascata.
+- [x] Com o `<!doctype>` (modo padrão; antes a página rodava em *quirks mode*): única mudança é `line-height` herdado em `<table>` (quirks não herda fonte em tabela) → tabelas um pouco mais altas, +124 px na página inteira; larguras 0 diferenças. Intencional.
+- [ ] Zero erro no console (verificar com Playwright, Bloco 8).
 
 ## V3: Geometria compartilhada
 
