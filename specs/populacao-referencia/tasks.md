@@ -11,13 +11,14 @@ estão em `matriculas/tasks.md`.
 - [x] **T0.3**: Levantamento: a Ripsa não tem bairro; inventário de denominadores; diagnóstico do item 7; itens do crosswalk sem arquivo.
 - [x] **T0.4**: B1 = opção (a), ordem = população primeiro (usuário, 2026-09-24).
 - [x] **T0.5**: A-D1 ✅, A-D2 ✅ (A3, A4), C-D1 ✅, D-D1 ✅ (item 7 reinterpretado: coluna % na gêmea de contagem, sem mapa novo), D-D2 ✅ (usuário, 2026-09-24). A4 viável com o `.env` atual.
-- [ ] **T0.6**: Ok do usuário para implementar.
+- [x] **T0.6**: Ok do usuário para implementar ("ok, implement the spec/populacao-referencia", 2026-09-24).
 
 ## Bloco 1: Parte A, base
 
-- [ ] **T1.1**: `carrega_populacao_ripsa(...)`, com retry, parse, checagens e extrato `dados_locais/populacao/ripsa_populacao_rio.csv`.
-- [ ] **T1.2**: Helper `populacao_ripsa(...)` para faixa, sexo e anos.
-- [ ] **T1.3**: Nota geral A5 com a tabela Ripsa × Censo.
+- [x] **T1.1**: `carrega_populacao_ripsa(...)`, com retry, parse, checagens e extrato `dados_locais/populacao/ripsa_populacao_rio.csv` (390 linhas: 364 + 26 totais; consulta de 2026-09-24).
+- [x] **T1.2**: Helper `populacao_ripsa(...)` para faixa, sexo e anos.
+- [x] **T1.3**: Nota geral A5 com a tabela Ripsa × Censo (início da seção Censo 2022).
+- [x] **T1.4** *(achado)*: `.gitignore` do Bloco 0 tinha a regra `inep_microdados/` colada em `*env` (sem quebra de linha), anulando as duas; separadas.
 
 ## Bloco 2: Parte A, saídas
 
