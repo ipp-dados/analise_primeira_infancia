@@ -58,7 +58,7 @@ As células foram rodadas numa cópia de rascunho do projeto (só topo + célula
 
 ## V5: Parte C
 
-- [ ] `auditoria_faixas.md` cobre todas as fontes (CadÚnico, Censo por bairro, SIDRA, Sinan, Ripsa, Censo Escolar, SISVAN, vacinação, PNAD).
+- [x] `auditoria_faixas.md` cobre todas as fontes (CadÚnico, Censo por bairro e série, SIDRA 9606/10056/10057, Sinan, Ripsa, Censo Escolar, SISVAN, vacinação, PNAD, SIM/SINASC). *(2026-09-24)*
 - [ ] Renomeações executadas = lista aprovada; `grep` sem referência a nomes antigos fora de `specs/`.
 
 ## V6: Fechamento
