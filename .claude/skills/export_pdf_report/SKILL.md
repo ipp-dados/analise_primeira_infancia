@@ -287,11 +287,35 @@ text in the DOCX — most regeneration requests never need it.
    duplicate notes on repeat runs; never touches a code cell). This script
    does **not** render the final PDF binary — run step 4.2-4.4 above
    afterward if you want `relatorio/analise_primeira_infancia.pdf`
-   updated too. Two identifier gaps are known and accepted (not bugs):
+   updated too. One identifier gap is known and accepted (not a bug):
    the ~24 HTML pill options with no single backing file (granular cuts
-   the catalog crosswalk doesn't enumerate) and the 2 PDF "out_pair" cases
-   with a combined two-file seed — curated text for those needs manual
-   placement, this script can't locate them automatically.
+   the catalog crosswalk doesn't enumerate) — curated text for those needs manual
+   placement. (The 2 PDF "out_pair" CadÚnico cases used to be a second gap; since
+   2026-09-24 `_texto_par` joins the curated texts of both files.) Since 2026-09-24 this
+   script only runs `jupytext --sync` if `analise.ipynb` already exists (it's a disposable copy).
+
+7. **Incorporate an "update" DOCX edited outside Word (Google Docs), with review tracking.**
+   Files like `relatorio/curadoria_textos_update_N.docx` come back **without bookmarks** (the
+   Google Docs round trip drops them) and are often based on an older structure (old filenames,
+   subsections that changed). Don't copy texts by hand — run, with ALL update files in
+   chronological order:
+   ```
+   python .claude/skills/export_pdf_report/scripts/incorpora_update_docx.py relatorio/curadoria_textos_update_1.docx relatorio/curadoria_textos_update_2.docx --saida <scratchpad>/casamento.json --controle relatorio/controle_revisao.json --datas 2026-09-23,2026-09-24
+   python .claude/skills/export_pdf_report/scripts/gera_docx_curadoria.py relatorio/curadoria_textos.docx --textos <scratchpad>/casamento.json
+   python .claude/skills/export_pdf_report/scripts/sincroniza_docx.py relatorio/curadoria_textos.docx <scratchpad>/pdf/pdf_source.html   # create <scratchpad>/pdf first
+   ```
+   then render the PDF (step 4.2-4.4). The matcher pairs texts by H3 title (normalized, with the
+   known file renames in `RENOMES`), untitled images by position inside the H2, and H2-level text
+   by subsection; anything unmatched is reported, never dropped. `relatorio/controle_revisao.json`
+   records per block `revisado` (confirmed unchanged in a later round) / `atualizado` (new or
+   changed in its last round), items new since the last update, editorial notes and relocation
+   cases; its `alertas` field (and `realocar[].sugestao`) is **hand-edited and preserved**. The DOCX
+   generator reads it to put a status mark at the end of each H2/H3 (so the Word Sumário doubles
+   as a checklist) and a "Controle de revisão" table right after the Sumário. Never edit the
+   user's curated text to fix an alert — flag it and let them decide (constitution).
+   Verify: every matched text is under its bookmark in the new DOCX, no previously curated text
+   lost, and (after rendering) every `textos_curados.json` entry appears in the PDF text —
+   except section-level texts of subsections that have charts, which intentionally aren't published.
 
 ## Known limitations to mention if relevant
 

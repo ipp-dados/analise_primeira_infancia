@@ -214,6 +214,17 @@ def _texto_analise(seed, palavras=None):
     import html as _html
     return "<br><br>".join(_html.escape(t.strip()) for t in curado.split("\n") if t.strip())
 
+
+def _texto_par(seed_a, seed_b):
+    """Texto de um par de gráficos lado a lado que divide 1 bloco no PDF (CadÚnico renda/idade).
+    O DOCX de curadoria tem 1 bookmark por arquivo; quando algum dos dois já tem texto curado, o
+    bloco junta os textos curados (na ordem do par). Senão, lorem do seed combinado, como antes
+    (curadoria 2026-09-24: os textos do update 2 desses gráficos não chegavam ao PDF)."""
+    curados = [s for s in (seed_a, seed_b) if _TEXTOS_CURADOS.get(s)]
+    if curados:
+        return "<br><br>".join(_texto_analise(s) for s in curados)
+    return _texto_analise(f"{seed_a}_{seed_b}")
+
 def pending(titulo, nota):
     """Placeholder for a catalog indicator not yet implemented in analise.py
     (specs/estrutura_eixos.md, status: pendente) -- always labeled with the
@@ -478,10 +489,16 @@ MAP_GROUPS_PRIORIDADE = [
     ("Mortalidade neonatal", [
         ("mapa_obitos_neonatal_precoce_bairro_2025.png", "Óbitos precoces (0-6 dias) por bairro (2025)"),
         ("mapa_taxa_mortalidade_precoce_bairro_2025.png", "Taxa de óbitos precoces por bairro (2025)"),
+        ("mapa_obitos_neonatal_tardia_bairro_2025.png", "Óbitos tardios (7-27 dias) por bairro (2025)"),
         ("mapa_taxa_obitos_tardios_bairro_2025.png", "Taxa de óbitos tardios por bairro (2025)"),
         ("mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png", "Taxa de mortalidade pós-neonatal por bairro (2025)"),
         ("mapa_mortalidade_infantil_bairro_2025.png", "Óbitos infantis (0-364 dias) por bairro (2025)"),
         ("mapa_taxa_mortalidade_infantil_bairro_2025.png", "Taxa de mortalidade infantil por bairro (2025)"),
+    ]),
+    # curadoria 2026-09-24: mapas que o site já tinha e o PDF não (os textos curados deles ficavam de fora)
+    ("Óbitos durante a gravidez e o puerpério", [
+        ("mapa_obitos_gravidez_bairro_2025.png", "Óbitos durante a gravidez por bairro (2025)"),
+        ("mapa_obitos_puerperio_bairro_2025.png", "Óbitos durante o puerpério por bairro (2025)"),
     ]),
     ("Causas evitáveis, por CAP (2025)", [
         ("mapa_obitos_evitaveis_menores_1_ano_cap_2025.png", "Óbitos evitáveis, menores de 1 ano, por CAP"),
@@ -611,7 +628,7 @@ add('</div>')
 # combinado dos dois stems (specs/ajuste_eixos/specs.md §7). Caso
 # PDF-only: nao existe um bookmark equivalente no DOCX de curadoria (que
 # ainda trata os dois arquivos separadamente), so este texto combinado.
-add(p(_texto_analise("cadunico_familias_por_faixa_renda_cadunico_criancas_por_faixa_renda")))
+add(p(_texto_par("cadunico_familias_por_faixa_renda", "cadunico_criancas_por_faixa_renda")))
 add(registra_tabela("CadÚnico por faixa de renda", table_html(read("cadunico_por_faixa_renda_2026.csv"), rename={"faixa de renda": "Faixa de renda"})))
 
 add(h4('Análise por idade'))
@@ -622,7 +639,7 @@ add('</div>')
 # Mesmo caso do par acima: um bloco de texto compartilhado, PDF-only.
 add(note('<b>Leitura.</b> Em cada idade, conta as famílias com ao menos uma criança daquela idade — as barras de famílias '
          '<b>não somam</b> o total de famílias. A barra de 0 anos é baixa porque o recém-nascido entra no cadastro com atraso.'))
-add(p(_texto_analise("cadunico_familias_por_idade_cadunico_criancas_por_idade")))
+add(p(_texto_par("cadunico_familias_por_idade", "cadunico_criancas_por_idade")))
 df_idade = read("cadunico_por_idade_2026.csv")
 df_idade["idade"] = df_idade["idade"].astype(int)
 add(registra_tabela("CadÚnico por idade", table_html(df_idade, rename={"idade": "Idade"})))
@@ -636,6 +653,8 @@ add(notes_list([
 df_vac = read("cobertura_vacinal_epi_por_ano.csv")
 vac_cols = [c for c in df_vac.columns if c != "ano"]
 add(table_html(df_vac, pct_cols=vac_cols, rename={"ano": "Ano"}))
+# no PDF a série vem como tabela (não gráfico); o texto do gráfico cobertura_vacinal_epi_ano vai aqui
+add(p(_texto_analise("cobertura_vacinal_epi_ano")))
 
 add(p('Comparativo direto entre quatro anos (2016, 2019, 2022 e 2025) por imunobiológico, para visualizar o impacto da pandemia (queda em 2022) e a recuperação até 2025.'))
 add(chart_block("cobertura_vacinal_epi_comparativo_anos.png", "cobertura_vacinal_epi_comparativo_anos.csv"))

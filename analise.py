@@ -1746,7 +1746,7 @@ grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Famílias',
 
 # %% [markdown]
 # <!-- nota-curadoria:cadunico_familias_por_faixa_renda -->
-# **Nota de curadoria:** É possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R$218, um dos critérios de extrema pobreza, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade.
+# **Nota de curadoria:** A partir do dado de famílias com crianças até 6 anos no CadÚnico é possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R$218, um dos critérios de extrema pobreza, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade. No que diz respeito às rendas mais altas a tendência é diminuindo conforme aumenta-se a renda, chegando a patamares estatisticamente irrelevantes.
 
 # %%
 grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Crianças',
@@ -1784,7 +1784,7 @@ grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: C
 
 # %% [markdown]
 # <!-- nota-curadoria:cadunico_criancas_por_idade -->
-# **Nota de curadoria:** A quantidade de crianças no Cadúnico vai crescendo à medida que a idade vai aumentando, Um total de 11.328 crianças de 0 anos estão no CadÚnico, ao passo que quando se trata de crianças de 5 anos o número salta para 43.187 crianças. É importante frisar que esse dado não pode afirmar que os nascimentos estão diminuindo ou aumentando, haja vista o universo utilizado aqui diz respeito apenas às crianças que estão cadastradas no CadÚnico. Diversos podem ser os motivos para esse movimento: momento de inclusão da família no CadÚnico, atualização cadastral, dentre outros.
+# **Nota de curadoria:** A quantidade de crianças no Cadúnico vai crescendo à medida que a idade vai aumentando. Um total de 11.328 crianças de 0 anos estão no CadÚnico, ao passo que quando se trata de crianças de 5 anos o número salta para 43.187 crianças. É importante frisar que esse dado não pode afirmar que os nascimentos estão diminuindo ou aumentando, haja vista o universo utilizado aqui diz respeito apenas às crianças que estão cadastradas no CadÚnico. Diversos podem ser os motivos para esse movimento: momento de inclusão da família no CadÚnico, atualização cadastral, dentre outros.
 
 # %% [markdown]
 # #### Razão municipal: crianças de 0 a 5 anos no CadÚnico sobre a população (Ripsa)
@@ -1944,7 +1944,7 @@ mapa_coropletico_bairros(
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_cadunico_criancas_0_a_4_bairro_2026 -->
-# **Nota de curadoria:** Olhando para a distribuição espacial, pode-se observar que a maior concentração tanto de crianças de 0 a 6 quanto de 0 a 4 no CadÚnico está presente nas Zonas Oeste e Norte da cidade, há uma alteração absolutas nos intervalos de distribuição quando se olha para os dois mapas, mas o padrão de distribuição geográfica segue praticamente o mesmo. Nos dois mapa a Zona Oeste apresenta a maior concentração de crianças cadastradas. Já a Zona Sul e parte da extensão litorânea da Barra da Tijuca/Recreio apresentam menores quantitativos. Na Zona Norte e no Centro apresentam-se uma maior fragmentação por terem muitos bairros, favelas e comunidades.
+# **Nota de curadoria:** Olhando para a distribuição espacial, pode-se observar que a maior concentração tanto de crianças de 0 a 6 quanto de 0 a 4 no CadÚnico está presente nas Zonas Oeste e Norte da cidade. Há alterações absolutas nos intervalos de distribuição quando se olha para os dois mapas, mas o padrão de distribuição geográfica segue praticamente o mesmo. Nos dois mapas, a Zona Oeste apresenta a maior concentração de crianças cadastradas. Já a Zona Sul e parte da extensão litorânea da Barra da Tijuca/Recreio apresentam menores quantitativos. Na Zona Norte e no Centro apresentam-se uma maior fragmentação por terem muitos bairros, favelas e comunidades.
 
 # %% [markdown]
 # #### 👨‍👩‍👧 Recortes por família: sexo, raça/cor, arranjo familiar e renda
@@ -2196,7 +2196,7 @@ serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nasc
 
 # %% [markdown]
 # <!-- nota-curadoria:nascidos_vivos_por_ano -->
-# **Nota de curadoria:** A partir do gráfico de nascidos vivos é possível observar que há uma tendência de queda no número de nascidos vivos na cidade do Rio de Janeiro. Entre os anos de 2020 e 2021 é registrada uma queda muito acentuada, período que coincide com o pico da pandemia da COVID-19, apontando que em 2022 a recuperação aparece como um ajuste estatístico da série. Logo, a queda, ainda que não linear, é consistente e aponta para uma redução de cerca de 30% ao longo da série histórica.
+# **Nota de curadoria:** A partir do gráfico de nascidos vivos é possível observar que há uma tendência de queda no número de nascidos vivos na cidade do Rio de Janeiro, com alguns períodos de recuperação. Entre os anos de 2020 e 2021, após um período com uma persistente queda acentuada, a série atinge um patamar muito baixo, período que coincide com o pico da pandemia da COVID-19, apontando que em 2022 a recuperação aparece como um ajuste estatístico da série. Logo, a queda, ainda que não linear, é consistente e aponta para uma redução de cerca de 30% ao longo da série histórica.
 
 # %% [markdown]
 # #### Nascidos abaixo peso
@@ -2234,6 +2234,14 @@ mapa_coropletico_bairros(
     legenda_titulo='% baixo peso', fonte_dados=fonte_datasus_bairro,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:mapa_percentual_baixo_peso_bairro_2025 -->
+# **Nota de curadoria:** Em 2025, a maior parte dos bairros do Rio de Janeiro apresentou percentuais de nascidos com baixo peso entre 7,4% e 29,4%. Alguns bairros apresentam percentuais mais elevados, chegando a valores acima de 20%. Diferentemente dos números absolutos, o mapa percentual permite comparar melhor os bairros, pois considera a quantidade de nascidos com baixo peso em relação ao total de nascimentos. Valores extremos devem ser analisados com cautela, especialmente em bairros com poucos nascimentos.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_nascidos_baixo_peso_bairro_2025 -->
+# **Nota de curadoria:** A distribuição espacial dos nascidos com baixo peso em 2025 mostra maior concentração em bairros das Zona Oeste e Norte, com destaque para Campo Grande, Santa Cruz, Bangu, Jacarepaguá e Guaratiba. Em contraste, grande parte dos bairros apresenta até 30 registros. Como o mapa utiliza números absolutos, os maiores valores não indicam necessariamente maior incidência, sendo importante compará-los ao total de nascimentos de cada bairro.
+
 # %%
 df_baixo_ano = df_baixo_peso.loc[:,['ano','nascidos abaixo peso']].groupby(by='ano').sum()
 df_baixo_ano.reset_index(inplace=True)
@@ -2244,6 +2252,10 @@ df_baixo_ano.head(25)
 # %%
 serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titulo='Percentual Nascidos com baixo peso por ano',
                nome_arquivo='nascidos_abaixo_peso_percentual_por_ano', fonte_dados=fonte_datasus_bairro)
+
+# %% [markdown]
+# <!-- nota-curadoria:nascidos_abaixo_peso_percentual_por_ano -->
+# **Nota de curadoria:** Em 2006 e 2025, o percentual de nascidos com baixo peso apresentou oscilações moderadas. Após permanecer próximo de 10% até 2010, o indicador caiu e atingiu seu menor valor em 2017, com 9,15%. A partir de 2018, observa-se uma tendência de crescimento, chegando ao pico de 10,63% em 2023. Nos anos seguintes houve pequena redução, com o percentual chegando a 10,26% em 2025.
 
 # %% [markdown]
 # #### 📉 Mortalidade
@@ -2364,6 +2376,10 @@ serie_temporal_multipla(
     ylabel='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:obitos_raca_ano -->
+# **Nota de curadoria:** A série permite observar mudanças distintas na trajetória dos óbitos segundo raça/cor. Entre 2006 e 2025, os registros para crianças brancas passaram de 468 para 272, enquanto entre crianças pardas passaram de 373 para 396, após oscilações e valores superiores a 500 em alguns anos. Entre crianças pretas, os registros passaram de 89 para 57. A categoria “não informada” também apresentou redução, de 167 para 47, o que altera sua participação na série ao longo do período. Essas diferenças podem ser analisadas em conjunto com os nascidos vivos por raça/cor, disponíveis a partir de 2011, para distinguir composição dos nascimentos e ocorrência dos óbitos.
+
 # %%
 # percentual só existe a partir de 2011 (início da série de nascidos vivos por raça/cor da mãe)
 df_percentual_raca_municipio = df_mortalidade_raca_municipio[df_mortalidade_raca_municipio['ano'] >= 2011]
@@ -2376,6 +2392,10 @@ serie_temporal_multipla(
     nome_arquivo='percentual_mortalidade_raca_ano',
     ylabel='Percentual (%)', fonte_dados=fonte_datasus_bairro,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:percentual_mortalidade_raca_ano -->
+# **Nota de curadoria:** A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, os percentuais de crianças brancas e pardas permaneceram próximos, variando de 1,76% a 1,13% e de 1,98% a 1,43%, respectivamente. Para crianças pretas, o percentual variou entre 0,50% e 1,43%, enquanto as categorias indígena e amarela apresentam oscilações maiores associadas ao pequeno número de registros. A categoria “não informada” também apresenta forte variação, relacionada à quantidade de nascidos classificados nessa categoria. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
 
 # %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025) — total de óbitos, todas as raças
@@ -2396,6 +2416,14 @@ mapa_coropletico_bairros(
     cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='% s/ nascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_taxa_obitos_raca_total_bairro_2025 -->
+# **Nota de curadoria:** A taxa de mortalidade infantil permite comparar os bairros considerando a relação entre os óbitos e os nascidos vivos de cada território. Em 2025, Cidade Nova e Gericinó apresentaram a maior taxa registrada, de 7,14%, mas com números diferentes de óbitos e nascidos vivos: 3 óbitos entre 42 nascidos vivos em Cidade Nova e 1 entre 14 em Gericinó. Cidade Universitária apresentou 5,88%, com 1 óbito entre 17 nascidos vivos. A comparação entre taxa, número de óbitos e nascidos vivos permite qualificar a leitura das diferenças territoriais e serve de base para relacionar o indicador a outros recortes da mortalidade infantil.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_obitos_raca_total_bairro_2025 -->
+# **Nota de curadoria:** A distribuição territorial dos óbitos infantis evidencia diferenças na quantidade de registros entre os bairros do município. Em 2025, Santa Cruz concentrou 53 óbitos, seguido por Campo Grande, com 40, e Jacarepaguá, com 32. Dos 167 bairros presentes na tabela, 139 registraram ao menos um óbito e 28 não apresentaram registros. Como o mapa utiliza números absolutos, essas diferenças podem ser relacionadas ao número de nascidos vivos de cada território, permitindo complementar a análise com a taxa de mortalidade infantil e outros recortes demográficos.
 
 # %%
 ## Retirar não informados do gráfico de percentual
@@ -2561,6 +2589,10 @@ serie_temporal_multipla(
     legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_grupo_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, observa-se uma redução expressiva dos óbitos de crianças de 0 a 364 dias por causas evitáveis. O número caiu de cerca de 1,5 mil registros no início da série para 502 em 2025. As causas mal definidas também apresentaram forte redução, chegando a 15 registros, enquanto as demais causas recuaram de forma mais moderada, alcançando 206 óbitos em 2025.
+
 # %%
 colunas_subgrupo = {c: c for c in df_evitaveis_subgrupo_wide.columns if c != 'ano'}
 serie_temporal_multipla(
@@ -2573,6 +2605,10 @@ serie_temporal_multipla(
     legend_title='Subgrupo',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_ano -->
+# **Nota de curadoria:** Nos subgrupos de causas evitáveis, observa-se redução ao longo da série na maior parte das categorias. Os óbitos reduzíveis por adequada atenção à mulher na gestação permanecem como o principal grupo em 2025, com 263 registros. Também houve queda expressiva nos óbitos relacionados à atenção ao recém-nascido, que passaram de 543 em 1996 para 67 em 2025, enquanto aqueles relacionados à atenção à mulher no parto chegaram a 68 registros.
 
 # %% [markdown]
 # ##### Óbitos por causas evitáveis, por grupo de causa e faixa etária
@@ -2608,6 +2644,10 @@ serie_temporal_multipla(
     legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_grupo_0_a_6_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos de crianças de 0 a 6 dias apresentaram queda expressiva. As causas evitáveis permaneceram como o principal grupo durante toda a série, reduzindo-se para 269 registros em 2025. No mesmo ano, as demais causas somaram 62 óbitos, enquanto as causas mal definidas ficaram em apenas 2 registros.
+
 # %%
 colunas_subgrupo_0_6 = {c: c for c in df_evitaveis_subgrupo_0_6_wide.columns if c != 'ano'}
 serie_temporal_multipla(
@@ -2620,6 +2660,10 @@ serie_temporal_multipla(
     legend_title='Subgrupo',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_0_a_6_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos de crianças de 0 a 6 dias apresentaram redução em praticamente todos os subgrupos. As causas reduzíveis por atenção à mulher na gestação permaneceram como o principal componente, chegando a 183 registros em 2025. Também houve queda importante nos óbitos relacionados à atenção ao recém-nascido e à atenção à mulher no parto, enquanto as causas mal definidas ficaram em apenas 2 registros no final da série.
 
 # %% [markdown]
 # ###### Tardia (7 a 27 dias)
@@ -2649,6 +2693,10 @@ serie_temporal_multipla(
     legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_grupo_7_a_27_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos entre 7 e 27 dias de vida apresentaram tendência de queda. As causas evitáveis permaneceram como o principal grupo, passando de níveis próximos a 250-280 registros no início da série para 99 em 2025. As demais causas também diminuíram, chegando a 42 registros, enquanto as causas mal definidas ficaram praticamente zeradas no final do período.
+
 # %%
 colunas_subgrupo_7_27 = {c: c for c in df_evitaveis_subgrupo_7_27_wide.columns if c != 'ano'}
 serie_temporal_multipla(
@@ -2661,6 +2709,10 @@ serie_temporal_multipla(
     legend_title='Subgrupo',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_7_a_27_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos entre 7 e 27 dias de vida apresentaram tendência de queda na maior parte dos subgrupos. A maior queda ocorreu nas causas reduzíveis por adequada atenção ao recém-nascido, que passaram de 157 registros em 1996 para 20 em 2025. Já as causas relacionadas à atenção a mulher na gestação permaneceram como o principal subgrupo no final da série, com 64 óbitos em 2025. Os demais aparesentaram valores mais abaixos.
 
 # %% [markdown]
 # ###### Pós-neonatal (28 a 364 dias)
@@ -2690,6 +2742,10 @@ serie_temporal_multipla(
     legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_grupo_28_a_364_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos entre 28 e 364 dias apresentaram tendência de redução. As causas evitáveis permaneceram como o principal grupo, passando de 461 registros em 1996 para 134 em 2025. As demais causas também diminuíram, chegando a 102 óbitos, enquanto as causas mal definidas apresentaram a maior redução proporcional, passando de 108 para 13 registros.
+
 # %%
 colunas_subgrupo_28_364 = {c: c for c in df_evitaveis_subgrupo_28_364_wide.columns if c != 'ano'}
 serie_temporal_multipla(
@@ -2702,6 +2758,10 @@ serie_temporal_multipla(
     legend_title='Subgrupo',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_28_a_364_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos entre 28 e 364 dias apresentaram queda na maior parte dos subgrupos. O principal destaque é a redução dos óbitos reduzíveis por ações de diagnóstico e tratamento adequado, que saíram de patamares muito elevados no início da série e chegaram a 43 registros em 2025. No final do período, os maiores valores ficaram em ações de promoção vinculadas às ações de atenção, com 56 óbitos, seguidas por diagnóstico e tratamento adequado, enquanto os demais subgrupos apresentaram números mais baixos.
 
 # %% [markdown]
 # ###### Comparação entre faixas etárias (2025)
@@ -2787,6 +2847,10 @@ serie_temporal(
     'Taxa de mortalidade por causas evitáveis (< 5 anos), por mil nascidos vivos - Rio de Janeiro (2006-2025)',
     nome_arquivo='taxa_mortalidade_evitaveis_menores_5_ano', fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:taxa_mortalidade_evitaveis_menores_5_ano -->
+# **Nota de curadoria:** A taxa relaciona os óbitos por causas evitáveis ao número de nascidos vivos, permitindo acompanhar a ocorrência do indicador ao longo do tempo. Em 2006, foram registrados 1.353 óbitos e taxa de 16,48 por mil nascidos vivos. Em 2025, foram 856 óbitos e 14,58 por mil, enquanto o menor valor da série ocorreu em 2014, com 13,10 por mil. A trajetória apresenta oscilações, inclusive nos anos mais recentes, quando a taxa passou de 14,28 em 2022 para 14,97 em 2023, 14,28 em 2024 e 14,58 em 2025. A série permite acompanhar conjuntamente a ocorrência dos óbitos e sua relação com os nascidos vivos.
 
 # %% [markdown]
 # ###### Panorama municipal, por subgrupo — demais faixas etárias
@@ -2900,6 +2964,10 @@ serie_temporal_multipla(
     legend_title='CAP',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_evitaveis_total_cap_ano -->
+# **Nota de curadoria:** A série permite acompanhar a evolução dos óbitos de menores de 5 anos nas diferentes Áreas Programáticas de Saúde (CAP) e comparar como esses registros variam entre os territórios ao longo do tempo. No conjunto das CAPs, os óbitos passaram de 1.311 em 2006 para 856 em 2025, com redução ao longo da série, embora tenha ocorrido aumento entre 2024 e 2025, de 819 para 856 registros. A distribuição territorial também apresenta diferenças importantes em 2025, com 150 óbitos na CAP 4.0 e 131 na CAP 3.3. Esses dados podem ser relacionados à composição das causas e ao percentual de óbitos evitáveis em cada CAP.
 
 # %% [markdown]
 # ###### Por subgrupo e CAP — séries temporais
@@ -3326,6 +3394,10 @@ serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','
                nome_arquivo='taxa_mortalidade_infantil_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
+# <!-- nota-curadoria:taxa_mortalidade_infantil_ano -->
+# **Nota de curadoria:** A série histórica mostra oscilações na taxa de mortalidade infantil entre 2006 e 2025. O indicador passou de 13,37 óbitos por mil nascidos vivos em 2006 para 13,06 em 2025, atingindo seu menor valor em 2017, com 11,26 por mil. A partir de 2018, observa-se elevação gradual da taxa, chegando a 13,03 em 2024 e 13,06 em 2025. A leitura conjunta da taxa com o número de óbitos e de nascidos vivos permite acompanhar como o indicador se comporta em diferentes períodos e relacionar sua trajetória às demais taxas de mortalidade na primeira infância.
+
+# %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
 
 # %%
@@ -3362,6 +3434,10 @@ df_desnutricao.to_csv('tabelas_finais/sisvan_desnutricao_por_ano.csv')
 serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual de crianças de 0 a 5 anos com baixo peso - SISVAN',
                nome_arquivo='sisvan_desnutricao_percentual_por_ano', fonte_dados=fonte_sisvan)
 
+# %% [markdown]
+# <!-- nota-curadoria:sisvan_desnutricao_percentual_por_ano -->
+# **Nota de curadoria:** Ao longo da série, o percentual de nascidos com baixo peso apresentou oscilações, permanecendo na maior parte dos anos entre 3% e 7%. O principal destaque ocorreu em 2018, quando o indicador atingiu 15,5%, valor muito acima dos outros anos. Após esse pico, o percentual retorna a níveis mais próximos do padrão da série, chegando a 7,5% em 2025. O valor de 2018 se destaca como um ponto fora do comportamento geral e merece atenção ao ser analisado.
+
 # %%
 df_sobrepeso = pd.read_csv("dados_locais/tratados/sobrepeso.csv", index_col=0)
 df_sobrepeso.head()
@@ -3374,9 +3450,17 @@ df_sobrepeso.to_csv('tabelas_finais/sisvan_sobrepeso_por_ano.csv')
 serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual de crianças de 0 a 5 anos com sobrepeso e obesidade - SISVAN',
                nome_arquivo='sisvan_sobrepeso_percentual_por_ano', fonte_dados=fonte_sisvan)
 
+# %% [markdown]
+# <!-- nota-curadoria:sisvan_sobrepeso_percentual_por_ano -->
+# **Nota de curadoria:** O percentual de crianças com sobrepeso apresentou oscilações ao longo da série. O indicador cresce até atingir seu maior valor em 2013, com 21,48%, e depois passa a apresentar redução, chegando a 12,30% em 2021. A partir de 2022, observa-se nova elevação, alcançando 16,89% em 2025.
+
 # %%
 serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual de crianças de 0 a 5 anos com obesidade - SISVAN',
                nome_arquivo='sisvan_obesidade_percentual_por_ano', fonte_dados=fonte_sisvan)
+
+# %% [markdown]
+# <!-- nota-curadoria:sisvan_obesidade_percentual_por_ano -->
+# **Nota de curadoria:** O percentual de crianças com obesidade, semelhante ao com sobrepeso, também apresentou oscilações ao longo da série Após crescimento entre 2008 e 2013, o indicdor atingiu seu maior valor em 2013, com 11,36%. Nos anos seguintes houve tendência de redução, chegando a 5,36% em 2020. A partir de 2022, os valores permaneceram relativamente estáveis, com leve aumento recente, alcançando 7,34% em 2025. O valor de 2009, de 0,07%, aparece muito abaixo do restante da série e deve ser interpretado com cautela.
 
 # %% [markdown]
 # ### 💉 Cobertura Vacinal EPI
@@ -3410,6 +3494,10 @@ df_cobertura_vacinal_wide.head()
 # )
 
 # %% [markdown]
+# <!-- nota-curadoria:cobertura_vacinal_epi_ano -->
+# **Nota de curadoria:** A evolução da cobertura vacinal na cidade do Rio de Janeiro traz uma trajetória com uma elevada cobertura para grande parte dos imunizantes até 2018, momento que se inicia uma redução entre os anos de 2019 e 2022. A partir de 2023 observa-se recuperação das coberturas, especialmente para pneumocócica 10-valente, poliomielite, meningocócica C, rotavírus e primeira dose da tríplice viral. Entretanto, a recuperação não é homogênea entre os imunizantes, permanecendo níveis baixos em vacinas como DTP de primeiro reforço, hepatite A e segunda dose da tríplice viral, chamando atenção para o cuidado com as doses de reforço.
+
+# %% [markdown]
 # Comparativo da cobertura vacinal por imunobiológico nos anos de 2016, 2019, 2022 e 2025.
 
 # %%
@@ -3436,6 +3524,10 @@ grafico_barra_agrupado(
     rotacao_x=0,
     figsize=(16,7), fonte_dados=fonte_cobertura_vacinal,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:cobertura_vacinal_epi_comparativo_anos -->
+# **Nota de curadoria:** A cobertura vacinal no município do Rio de Janeiro quando analisada comparando-se os anos apresenta uma trajetória marcada por um patamar relativamente elevado e heterogêneo no início da série, uma redução generalizada que atinge seu ponto mais baixo em 2022e e uma recuperação observada a partir de 2023, ficando mais evidente em 2025. Entretanto, a recuperação não é uniforme entre os imunobiológicos, permanecendo baixas em coberturas de algumas doses de reforço/esquema vacinal.
 
 # %% [markdown]
 # ### 🎓 PNAD Contínua, Censo Escolar e INEP

@@ -1,0 +1,534 @@
+{
+ "_leia": "Controle de revisão dos textos de curadoria (gerado por incorpora_update_docx.py; 'alertas' é editado à mão e preservado). O gerador do DOCX usa este arquivo para marcar status nos títulos (e portanto no Sumário) e montar a tabela 'Controle de revisão'.",
+ "rodadas": [
+  {
+   "id": "curadoria_textos_update_1",
+   "arquivo": "curadoria_textos_update_1.docx",
+   "data": "2026-09-23"
+  },
+  {
+   "id": "curadoria_textos_update_2",
+   "arquivo": "curadoria_textos_update_2.docx",
+   "data": "2026-09-24"
+  }
+ ],
+ "blocos": {
+  "PrioridadesemsecundrioCrianasat6_c0234de1": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "cadunico_criancas_por_idade": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "cadunico_familias_por_faixa_renda": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "cadunico_familias_por_idade": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "censo_0_a_4_serie_percentual_ano": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "censo_0_a_4_serie_total_ano": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "cobertura_vacinal_epi_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "cobertura_vacinal_epi_comparativo_anos": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "introducao": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_cadunico_criancas_0_a_4_bairro_2026": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_censo_0_4_absoluto": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_censo_0_4_percentual": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_nascidos_baixo_peso_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_nascidos_vivos_bairro_2025": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_obitos_evitaveis_1_a_4_anos_bafbfc56": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_obitos_evitaveis_menores_1__18c6fb13": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_obitos_evitaveis_menores_5__df30f8ec": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_obitos_gravidez_bairro_2025": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_obitos_neonatal_precoce_bairro_2025": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_obitos_neonatal_tardia_bairro_2025": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_obitos_puerperio_bairro_2025": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_obitos_raca_total_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_percentual_baixo_peso_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_percentual_evitaveis_1_a_4__86855c81": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_percentual_evitaveis_menore_dde05eb4": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_percentual_evitaveis_menore_f3f74434": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_taxa_mortalidade_precoce_ba_f81600c7": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_taxa_obitos_raca_total_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "mapa_taxa_obitos_tardios_bairro_2025": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "nascidos_abaixo_peso_percentual_por_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "nascidos_vivos_por_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_causas_evitaveis_grupo_0__2f7d770b": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_causas_evitaveis_grupo_28_ee4ec937": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_causas_evitaveis_grupo_7__a417769c": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_causas_evitaveis_grupo_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_causas_evitaveis_subgrupo_42391d7a": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_causas_evitaveis_subgrupo_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_causas_evitaveis_subgrupo_c49bc893": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_causas_evitaveis_subgrupo_ddc68472": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_evitaveis_cap_1_a_4_anos_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_evitaveis_cap_menores_1_ano_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_evitaveis_cap_menores_5_anos_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_evitaveis_total_cap_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_gravidez_por_ano": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_puerperio_por_ano": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "obitos_raca_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "percentual_evitaveis_cap_1_a_4_anos_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "percentual_evitaveis_cap_menores_0686f13b": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "percentual_evitaveis_cap_menores_f7c82908": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "percentual_mortalidade_raca_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "pnad_frequencia_escolar_por_idade": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "sisvan_desnutricao_percentual_por_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "sisvan_obesidade_percentual_por_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "sisvan_sobrepeso_percentual_por_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "taxa_mortalidade_evitaveis_menores_5_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "taxa_mortalidade_infantil_ano": {
+   "status": "atualizado",
+   "rodada": "curadoria_textos_update_2",
+   "historico": [
+    "curadoria_textos_update_2"
+   ]
+  },
+  "taxa_mortalidade_precoce_ano": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  },
+  "taxa_obitos_tardios_ano": {
+   "status": "revisado",
+   "rodada": "curadoria_textos_update_1",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2"
+   ]
+  }
+ },
+ "novos_desde_ultima_rodada": [
+  "AlimentaoDesnutrioSISVANnmero",
+  "AlimentaoSobrepesoSISVANnmero",
+  "InclusoCrianasde0a5anosnoCadnico_bdc2b96f",
+  "ProteoViolnciafamiliarporCAP",
+  "cadunico_criancas_por_raca_cor",
+  "cadunico_criancas_por_sexo",
+  "cadunico_familias_arranjo_renda",
+  "cadunico_familias_por_arranjo",
+  "cadunico_familias_por_raca_cor",
+  "cadunico_familias_por_sexo_criancas",
+  "mapa_cadunico_criancas_bairro_2026",
+  "mapa_notif_autoprovocada_bairro_2026",
+  "mapa_percentual_cadunico_crianca_f5a050bc",
+  "mapa_percentual_cadunico_familia_2db06e9b",
+  "mapa_violencia_familiar_mae_bairro_2025",
+  "mapa_violencia_familiar_mae_taxa_2f9a513c",
+  "mapa_violencia_familiar_mae_taxa_ra_2025",
+  "mapa_violencia_familiar_outros_b_efdf4dc4",
+  "mapa_violencia_familiar_outros_t_3bba0ada",
+  "mapa_violencia_familiar_outros_t_c90ee6c4",
+  "mapa_violencia_familiar_pai_bairro_2025",
+  "mapa_violencia_familiar_pai_taxa_188732ea",
+  "mapa_violencia_familiar_pai_taxa_ra_2025",
+  "mapa_violencia_territorial_homic_2692246a",
+  "mapa_violencia_territorial_homic_8313068c",
+  "mapa_violencia_territorial_homic_8696845a",
+  "matriculas_0_a_5_creche_pre_por_ano",
+  "matriculas_0_a_5_por_ano",
+  "matriculas_0_a_5_rede_por_ano",
+  "notif_autoprovocada_antes_2026_vs_2026",
+  "populacao_ripsa_0_a_6_percentual_por_ano",
+  "populacao_ripsa_0_a_6_por_ano",
+  "sidra_frequencia_escola_0_5_total_2022",
+  "taxa_atendimento_0_a_5_por_ano",
+  "violencia_familiar_outros_serie",
+  "violencia_familiar_serie_vinculos",
+  "violencia_familiar_taxa_municipio_ano",
+  "violencia_familiar_taxa_top_bairros_2025",
+  "violencia_familiar_top_bairros_2025"
+ ],
+ "notas": [
+  {
+   "bookmark": "obitos_causas_evitaveis_subgrupo_c49bc893",
+   "h2": "Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10)",
+   "h3": "Obitos causas evitaveis subgrupo 28 364 ano",
+   "texto": "OPÇÃO DE TEXTO QUE JUNTE TUDO POR CONTA DA REPETIÇÃO:",
+   "origem": "curadoria_textos_update_2.docx"
+  }
+ ],
+ "realocar": [
+  {
+   "bookmark": "PrioridadesemsecundrioCrianasat6_c0234de1",
+   "h2": "Crianças até 6 anos (número)",
+   "texto": "Os dados do Censo Demográfico 2022 permitem detalhar a população de crianças até 6 anos no município do Rio de Janeiro por idade, raça/cor e sexo. A distribuição por idade possibilita observar a composição desse grupo ao longo dos primeiros anos de vida, enquanto os recortes por raça/cor e sexo ampliam a caracterização demográfica da primeira infância. Os dados são apresentados para o conjunto do município e complementam o recorte territorial de crianças de 0 a 4 anos analisado anteriormente. Essa caracterização é importante para contextualizar os indicadores de saúde, educação, proteção social e demais dimensões analisadas no relatório.",
+   "origem": "curadoria_textos_update_2.docx",
+   "sugestao": "O texto descreve o Censo 2022 por idade, raça/cor e sexo, mas a subseção passou a mostrar a série de estimativas Ripsa (0 a 6 anos). Sugestão: mover para Inclusão › “Crianças até 6 anos, por sexo” e “por raça/cor” (auditoria de faixas etárias, specs/populacao-referencia)."
+  }
+ ],
+ "alertas": {
+  "censo_0_a_4_serie_percentual_ano": [
+   "Conferir dado: o texto cita 7,1% / 5,4% / 4,7% (2000/2010/2022). Depois da correção da série dos Censos (specs/populacao-referencia, C-D3) os valores são 7,6% / 5,8% / 5,0%."
+  ],
+  "mapa_censo_0_4_percentual": [
+   "Conferir dado: o texto cita 7,1% / 5,4% / 4,7%; os valores corrigidos são 7,6% / 5,8% / 5,0% (mesmo caso do gráfico da série)."
+  ],
+  "cadunico_familias_por_idade": [
+   "Conferir faixa: o texto diz \"crianças até 6 anos\"; o recorte do CadÚnico é de 0 a 5 anos (auditoria de faixas etárias)."
+  ],
+  "mapa_cadunico_criancas_0_a_4_bairro_2026": [
+   "Conferir faixa: o texto diz \"de 0 a 6 quanto de 0 a 4\"; os dados são de 0 a 5 e de 0 a 4 anos."
+  ],
+  "sisvan_desnutricao_percentual_por_ano": [
+   "Conferir assunto: o texto fala em \"percentual de nascidos com baixo peso\", mas o gráfico é de desnutrição (SISVAN) — provável cópia do texto de baixo peso."
+  ],
+  "mapa_obitos_gravidez_bairro_2025": [
+   "Conferir número: o mapa cita 14 óbitos em 2025 e a série municipal, 15 — a diferença provavelmente é óbito sem bairro informado; vale dizer isso no texto."
+  ],
+  "mapa_obitos_puerperio_bairro_2025": [
+   "Conferir número: o mapa cita 31 óbitos em 2025 e a série municipal, 35 — provável óbito sem bairro informado; vale dizer isso no texto."
+  ],
+  "sisvan_obesidade_percentual_por_ano": [
+   "Revisão de texto: \"indicdor\" → \"indicador\"; falta ponto antes de \"Após crescimento\"."
+  ],
+  "nascidos_abaixo_peso_percentual_por_ano": [
+   "Revisão de texto: \"Em 2006 e 2025\" → \"Entre 2006 e 2025\"."
+  ]
+ }
+}
