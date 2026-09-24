@@ -1529,6 +1529,7 @@ nota_metodologica(
     "Ressalva de denominador: numerador com crianças de 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022) — a taxa superestima ~20%, "
     "de forma uniforme, então o ranking entre bairros se preserva. \"Outros\" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: "
     "nos mapas por bairro a escala de cor é limitada ao percentil 95 (o valor real aparece ao passar o mouse). "
+    "O denominador por bairro/RA/CAP é a população do Censo 2022, fixa: o Censo subconta crianças pequenas (o que puxa a taxa para cima) e é de 2022, enquanto as notificações são de 2025 (o que puxa para baixo). Por isso as taxas por território servem para comparar territórios entre si, e não com a taxa do município, que usa a estimativa populacional Ripsa/MS do mesmo ano. "
     "Nos mapas de taxa há o botão \"Remover outliers\"."
 )
 _mapas_taxa = []
@@ -1537,13 +1538,13 @@ for _nome, _rot, _per in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '202
     _teto = float(_dft["taxa_escala_mapa"].max())
     _mapas_taxa.append((f"{_rot.capitalize()} ({_per})", lambda d=_dft, n=_nome, r=_rot, p=_per, t=_teto: mapa_svg(
         d, "codbairro", f"taxa_por_mil_{n}", "protecao", f"Notificações de violência ({r}) por 1.000 crianças de 0 a 4 anos ({p})",
-        "Por 1.000 crianças 0-4", FONTE_SINAN_CENSO, fmt="dec1", teto=t),
+        "Por 1.000 crianças 0-4 (Censo 2022)", FONTE_SINAN_CENSO, fmt="dec1", teto=t),
         f"mapa_violencia_familiar_{_nome.split('_')[0]}_taxa_bairro_{_nome.split('_', 1)[1]}"))
 for _nome, _rot, _per in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
     _dfr = read(f"tabela_mapa_violencia_familiar_taxa_ra_{_nome}.csv")
     _mapas_taxa.append((f"{_rot.capitalize()} · RA ({_per})", lambda d=_dfr, n=_nome, r=_rot, p=_per: mapa_svg(
         d, "codra", f"taxa_por_mil_{n}", "protecao", f"Notificações de violência ({r}) por 1.000 crianças de 0 a 4 anos, por RA ({p})",
-        "Por 1.000 crianças 0-4", FONTE_SINAN_CENSO, fmt="dec1", nivel="ra"),
+        "Por 1.000 crianças 0-4 (Censo 2022)", FONTE_SINAN_CENSO, fmt="dec1", nivel="ra"),
         f"mapa_violencia_familiar_{_nome.split('_')[0]}_taxa_ra_{_nome.split('_', 1)[1]}"))
 option_card(_mapas_taxa, 'mapa')
 h5('Dez maiores taxas (2025, bairros com 100 ou mais crianças de 0 a 4 anos)')
@@ -1552,7 +1553,7 @@ _bairros_t = list(dict.fromkeys(df_top_t["bairro"]))
 _ptt = df_top_t.pivot(index="bairro", columns="vinculo", values="taxa por 1.000").reindex(_bairros_t)
 option_card([("Mãe e pai (2025)", lambda: grouped_bar_chart(
     _bairros_t, [{'label': 'Mãe', 'values': _ptt['Mãe'].tolist(), 'format': 'dec1f'}, {'label': 'Pai', 'values': _ptt['Pai'].tolist(), 'format': 'dec1f'}],
-    fonte=FONTE_SINAN_CENSO, titulo="Dez maiores taxas de notificação por 1.000 crianças de 0 a 4 anos (2025)"),
+    fonte=FONTE_SINAN_CENSO, titulo="Dez maiores taxas de notificação por 1.000 crianças de 0 a 4 anos (2025; população: Censo 2022)"),
     "violencia_familiar_taxa_top_bairros_2025")], 'grafico')
 
 emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e idade)", "dado ainda não extraído do Tabnet municipal")

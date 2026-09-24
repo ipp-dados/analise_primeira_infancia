@@ -1822,10 +1822,10 @@ mapa_coropletico_bairros(
     bins=[200, 500, 1000, 2000], legenda_titulo='Crianças', fonte_dados=fonte_mapa_cadunico,
 )
 mapa_coropletico_bairros(
-    df_ate_4_mapa, coluna_valor='Percentual Primeira Inf. Cadúnico', titulo='% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro',
+    df_ate_4_mapa, coluna_valor='Percentual Primeira Inf. Cadúnico', titulo='% de crianças 0-4 anos no CadÚnico sobre a população 0-4 do Censo 2022, por bairro',
     nome_arquivo='mapa_percentual_cadunico_primeira_infancia_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'],
-    legenda_titulo='% CadÚnico/Censo', fonte_dados=fonte_mapa_cadunico,
+    legenda_titulo='% CadÚnico/Censo 2022', fonte_dados=fonte_mapa_cadunico + '; população 0 a 4 anos: Censo 2022 (IBGE/Data.Rio)',
 )
 
 # %% [markdown]
@@ -3463,7 +3463,8 @@ df_final.head()
 # > - Possível **quebra de série em 2017** (salto de mães 600 → 1.514 e pais 371 → 1.261): *hipótese* de mudança
 # >   de ficha/notificação, **a confirmar com a fonte**.
 # > - Contagem absoluta **não é risco**: bairros populosos concentram mais casos. A taxa por 1.000 crianças usa
-# >   numerador 0-5 anos e denominador 0-4 anos (Censo 2022) — superestima ~20%, de modo uniforme.
+# >   numerador 0-5 anos e denominador 0-4 anos (Censo 2022) — superestima ~20%, de modo uniforme. No município, a
+# >   taxa usa a população de 0 a 5 anos da Ripsa/MS do mesmo ano (A3), sem essa ressalva.
 # > - Violência territorial (IPS): dado da **população geral (todas as idades), NÃO específico de crianças nem de jovens**; só 2024.
 
 # %% [markdown]
@@ -3714,6 +3715,17 @@ for coluna, (rotulo, sufixo) in indicadores_territoriais.items():
 # > superestima ~20%, de forma uniforme, então o *ranking* entre bairros se preserva. "Outros" usa o acumulado
 # > 2021-2025 (numerador) sobre a mesma população. Bairros com poucas crianças geram taxas instáveis (D10): a escala
 # > de cor é limitada ao percentil 95 (valores maiores aparecem com a cor máxima); a tabela guarda o valor real.
+# >
+# > **População de referência (`specs/populacao-referencia`, B3):** o denominador por bairro, RA e CAP é **fixo no
+# > Censo 2022** (decisão B1), porque não há população por bairro × idade × ano.
+# > - **Anos diferentes:** o numerador é de 2025 (mãe, pai) ou 2021-2025 (outros), e a população é de 2022. A
+# >   população de 0 a 5 anos do município caiu ~11% entre 2022 e 2025 (Ripsa: 439.907 → 393.073), então a população
+# >   de 2022 tende a ser maior que a de 2025, o que puxa a taxa para baixo.
+# > - **O Censo 2022 subconta crianças pequenas:** no município, 0-4 anos soma 310.648 no Censo contra 361.163 na
+# >   Ripsa (+16%; nota no início da seção Censo 2022). Com o denominador subcontado, a taxa por bairro tende a ficar
+# >   **mais alta** do que ficaria com uma estimativa corrigida.
+# > - Os dois efeitos vão em sentidos opostos e não se anulam de forma exata; por isso as taxas por bairro servem para
+# >   comparar territórios entre si, não para comparar com a taxa municipal (A3), que usa a Ripsa. Nenhum cálculo muda.
 
 # %%
 df_vf_taxa_bairro = (df_vf_2025[['codbairro', 'bairro', 'mae', 'pai']]
@@ -3747,7 +3759,7 @@ for _nome, _rotulo, _periodo in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai
         _mapa, coluna_valor='taxa_escala_mapa', chave='codbairro',
         titulo=f'Notificações de violência ({_rotulo}) por 1.000 crianças de 0 a 4 anos ({_periodo})',
         nome_arquivo=f'mapa_violencia_familiar_{_nome.split("_")[0]}_taxa_bairro_{_nome.split("_", 1)[1]}',
-        cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', legenda_titulo=f'Notificações por\n1.000 crianças 0-4\n(escala até {_lim})',
+        cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', legenda_titulo=f'Notificações por\n1.000 crianças 0-4\n(Censo 2022; escala até {_lim})',
         fonte_dados=fonte_sinan_censo,
     )
 
@@ -3774,7 +3786,7 @@ for _nome, _rotulo, _periodo in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai
         titulo=f'Notificações de violência ({_rotulo}) por 1.000 crianças de 0 a 4 anos, por RA ({_periodo})',
         nome_arquivo=f'mapa_violencia_familiar_{_nome.split("_")[0]}_taxa_ra_{_nome.split("_", 1)[1]}',
         cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
-        legenda_titulo=f'Notificações por\n1.000 crianças 0-4', fonte_dados=fonte_sinan_censo,
+        legenda_titulo='Notificações por\n1.000 crianças 0-4\n(Censo 2022)', fonte_dados=fonte_sinan_censo,
     )
 
 # %% [markdown]
@@ -3792,7 +3804,7 @@ df_top_taxa.to_csv('tabelas_finais/violencia_familiar_taxa_top_bairros_2025.csv'
 grafico_barra_agrupado(
     df_top_taxa, categoria='bairro', valor='taxa por 1.000', agrupador='vinculo',
     titulo='Dez maiores taxas de notificação por 1.000 crianças de 0 a 4 anos (2025)',
-    nome_arquivo='violencia_familiar_taxa_top_bairros_2025', ylabel='Notificações por 1.000 crianças',
+    nome_arquivo='violencia_familiar_taxa_top_bairros_2025', ylabel='Notificações por 1.000 crianças\nde 0 a 4 anos (Censo 2022)',
     legend_title='Vínculo', ordem_categoria=list(top10_taxa['bairro']), ordem_agrupador=['Mãe', 'Pai'],
     fonte_dados=fonte_sinan_censo + '; bairros com 100+ crianças',
 )
