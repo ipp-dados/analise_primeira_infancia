@@ -27,6 +27,11 @@
   padding:10px 16px; border-radius:var(--radius-sm); margin-bottom:24px;
 }
 .banner-logo .ipp-logo{height:40px; width:auto; display:block;}
+/* logo = link para ipp.prefeitura.rio (banner e rodapé) */
+a.banner-logo{transition:box-shadow .15s ease, transform .15s ease;}
+a.banner-logo:hover{box-shadow:var(--shadow-2); transform:translateY(-1px);}
+a.footer-logo{display:inline-block; border-radius:var(--radius-sm);}
+a.footer-logo:hover{opacity:.85;}
 .banner-eyebrow{color:var(--accent); margin-bottom:8px;}
 .site-banner h1{
   font-size:clamp(2rem,4.2vw,2.7rem); line-height:1.08; letter-spacing:-.015em; margin:0;
@@ -51,8 +56,8 @@
 /* ---- barra de abas (fixa no topo; spec §4.3) ---- */
 .tabbar{
   position:sticky; top:0; z-index:30;
-  background:rgba(255,255,255,.94);
-  -webkit-backdrop-filter:saturate(1.4) blur(10px); backdrop-filter:saturate(1.4) blur(10px);
+  /* opaco: com fundo translúcido o texto que rola por baixo aparecia entre as abas (visto no Firefox) */
+  background:var(--surface);
   border-bottom:1px solid var(--hairline);
   transition:box-shadow .2s ease;
 }

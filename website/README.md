@@ -34,7 +34,7 @@ versionada e o deploy só copia. Regerou → confira → commit → dispare o wo
 | `js/charts.js` (motor de gráficos, pills, outliers, CSV, tooltip de mapa) | à mão |
 | `js/navigation.js` (abas, URL), `js/sidebar.js` (sumário lateral) | à mão |
 | `assets/icons/*.svg` (Lucide, licença ISC), `assets/images/ipp-logo.png` | à mão (fonte) |
-| `404.html`, `.nojekyll` | à mão |
+| `404.html`, `.nojekyll`, `assets/images/favicon.svg` | à mão |
 | `build/` (gerador, protótipo do Bloco 4) | à mão — **não publicado** |
 
 `*.png`/`*.svg` são ignorados globalmente no `.gitignore`; `!/website/assets/**` é a exceção que

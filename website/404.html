@@ -5,16 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Página não encontrada · Diagnóstico da Primeira Infância Carioca</title>
 <!-- Página de erro do GitHub Pages (specs/website_refactor §4.10). Editada à mão.
-     Caminhos relativos: o 404 pode ser servido em qualquer profundidade de URL, então
-     o CSS usa o caminho do site (/<repo>/) resolvido por <base> via script, com fallback. -->
+     O Pages serve este arquivo em QUALQUER URL inexistente (/<repo>/a/b/c), então caminhos
+     relativos não bastam: o <base> aponta para a raiz do site, que num site de projeto é o
+     1º segmento do caminho (/<repo>/). Se um dia houver domínio próprio sem subcaminho,
+     trocar a base por "/" (raiz do domínio). -->
 <script>
   (function(){
-    // /<repo>/qualquer/coisa -> /<repo>/ ; em domínio próprio (sem subcaminho) -> /
     var partes = location.pathname.split('/').filter(Boolean);
-    var base = (location.hostname.endsWith('github.io') && partes.length) ? '/' + partes[0] + '/' : '/';
+    var base = (partes.length && partes[0] !== '404.html') ? '/' + partes[0] + '/' : '/';
     document.write('<base href="' + base + '">');
   })();
 </script>
+<link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/main.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">

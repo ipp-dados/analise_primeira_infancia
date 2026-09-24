@@ -76,6 +76,8 @@ progresso) e visual mais suave. O PDF não muda nesta rodada.
     descartado (publicaria uma marca oficial alterada); se a Ascom do IPP fornecer o SVG, ele substitui.
   - **Página "Fale Conosco"** na barra de navegação: registrada em `website/ROADMAP.md` e
     `specs/roadmap.md` (fora desta rodada).
+  - **Logo como link** (pedido no Bloco 8): o logo do IPP, no banner e no rodapé, abre
+    `https://ipp.prefeitura.rio/` em nova aba.
   - **Título**: "Diagnóstico da Primeira Infância Carioca", sempre em 2 linhas
     ("Diagnóstico da" / "Primeira Infância Carioca"); `<title>` na mesma forma em 1 linha.
 
