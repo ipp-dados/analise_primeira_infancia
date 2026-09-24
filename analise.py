@@ -1517,6 +1517,40 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
+# #### 👶 População de 0 a 6 anos por ano (estimativas Ripsa/MS, 2000-2025)
+#
+# Série anual da população de 0 a 6 anos do município (idade simples), com o total de 0 a 5 anos (faixa
+# das taxas municipais do projeto) e a participação de 0 a 6 anos no total da população
+# (`specs/populacao-referencia`, A2). Fonte e ressalvas na nota de população de referência, no início
+# desta seção: **os valores não se comparam com os dos Censos acima** (a Ripsa corrige a subcontagem do
+# Censo 2022). A participação é recalculada da soma (0 a 6 anos ÷ total), nunca média de anos.
+
+# %%
+fonte_ripsa = 'Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025)'
+
+df_ripsa = carrega_populacao_ripsa()
+df_pop_infantil = (df_ripsa[(df_ripsa['idade'] != 'total')]
+                   .assign(idade=lambda d: 'populacao_idade_' + d['idade'])
+                   .pivot_table(index='ano', columns='idade', values='populacao', aggfunc='sum'))
+df_pop_infantil.columns.name = None
+df_pop_infantil['populacao_0_a_5'] = populacao_ripsa(df_ripsa, 0, 5).set_index('ano')['populacao']
+df_pop_infantil['populacao_0_a_6'] = populacao_ripsa(df_ripsa, 0, 6).set_index('ano')['populacao']
+df_pop_infantil['populacao_total'] = populacao_ripsa(df_ripsa, None, None).set_index('ano')['populacao']
+df_pop_infantil['percentual_0_a_6'] = df_pop_infantil['populacao_0_a_6'] / df_pop_infantil['populacao_total'] * 100
+df_pop_infantil = df_pop_infantil.reset_index()
+assert len(df_pop_infantil) == 26 and df_pop_infantil.loc[df_pop_infantil['ano'] == 2025, 'populacao_0_a_5'].item() == 393073
+df_pop_infantil.to_csv('tabelas_finais//populacao_ripsa_0_a_6_por_ano.csv', index=False)
+df_pop_infantil[['ano', 'populacao_0_a_5', 'populacao_0_a_6', 'populacao_total', 'percentual_0_a_6']]
+
+# %%
+serie_temporal(df_pop_infantil, 'ano', 'populacao_0_a_6', 'População de 0 a 6 anos por ano (estimativas Ripsa/MS)',
+               nome_arquivo='populacao_ripsa_0_a_6_por_ano', fonte_dados=fonte_ripsa)
+
+# %%
+serie_temporal(df_pop_infantil, 'ano', 'percentual_0_a_6', 'Participação de 0 a 6 anos na população total (%, estimativas Ripsa/MS)',
+               nome_arquivo='populacao_ripsa_0_a_6_percentual_por_ano', fonte_dados=fonte_ripsa)
+
+# %% [markdown]
 # ##### Pendente: Censo 2022 por idade e raça/cor (0 a 6 anos, cidade toda)
 
 # %% [markdown]
@@ -1637,6 +1671,38 @@ grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: C
 # %% [markdown]
 # <!-- nota-curadoria:cadunico_criancas_por_idade -->
 # **Nota de curadoria:** A quantidade de crianças no Cadúnico vai crescendo à medida que a idade vai aumentando, Um total de 11.328 crianças de 0 anos estão no CadÚnico, ao passo que quando se trata de crianças de 5 anos o número salta para 43.187 crianças. É importante frisar que esse dado não pode afirmar que os nascimentos estão diminuindo ou aumentando, haja vista o universo utilizado aqui diz respeito apenas às crianças que estão cadastradas no CadÚnico. Diversos podem ser os motivos para esse movimento: momento de inclusão da família no CadÚnico, atualização cadastral, dentre outros.
+
+# %% [markdown]
+# #### Razão municipal: crianças de 0 a 5 anos no CadÚnico sobre a população (Ripsa)
+#
+# Número-resumo do eixo Inclusão (`specs/populacao-referencia`, A4): crianças do grupo `'0-6'` do CadÚnico
+# (na prática **0 a 5 anos completos**, ver a nota de idade no início da seção) ÷ população de 0 a 5 anos
+# do município em 2025 (estimativas Ripsa/MS). Ressalvas:
+# - **Um ano de diferença:** o cadastro é da partição de 2026 e a estimativa mais recente da Ripsa é de
+#   2025 (1º de julho). Como a população de 0 a 5 anos vem caindo (439.907 em 2022, 393.073 em 2025), a
+#   razão com a população de 2026 tende a ser um pouco maior.
+# - **Registro administrativo × estimativa:** o numerador conta cadastros (inclusive desatualizados, se a
+#   silver não os excluir, S9), e o denominador é uma estimativa demográfica. É uma razão, não a cobertura
+#   exata do cadastro.
+# - Só no nível município. Por bairro, o % CadÚnico/Censo fica só no notebook (mapa mais abaixo, decisão
+#   D6 de `recortes_cadunico`).
+
+# %%
+fonte_cadunico_ripsa = f'{fonte_cadunico_particao}; população 0 a 5 anos: estimativas Ripsa/Ministério da Saúde (2025)'
+
+_ano_pop_cadunico = 2025
+_pop_0_5 = populacao_ripsa(carrega_populacao_ripsa(), 0, 5, anos=[_ano_pop_cadunico])['populacao'].item()
+assert df_original['idade'].between(0, 5).all(), "grupo '0-6' do CadÚnico fora de 0 a 5 anos"
+df_cadunico_razao = pd.DataFrame([{
+    'data_particao': str(pd.Timestamp(df_original['data_particao'].max()).date()),
+    'criancas_cadunico_0_a_5': len(df_original),
+    'familias_cadunico': df_original['id_familia'].nunique(),
+    'ano_populacao': _ano_pop_cadunico,
+    'populacao_ripsa_0_a_5': _pop_0_5,
+    'razao_percentual': len(df_original) / _pop_0_5 * 100,
+}])
+df_cadunico_razao.to_csv('tabelas_finais/cadunico_razao_populacao_0_a_5_2026.csv', index=False)
+df_cadunico_razao
 
 # %% [markdown]
 # #### Análise por bairros
@@ -3441,6 +3507,35 @@ serie_temporal_multipla_marcos(
     nome_arquivo='violencia_familiar_serie_vinculos', marcos={2017: 'possível quebra de série (2017)'},
     ylabel='Notificações', legend_title='Vínculo do provável autor', fonte_dados=fonte_sinan,
 )
+
+# %% [markdown]
+# ##### A3 · Taxa municipal por 1.000 crianças de 0 a 5 anos, por vínculo (2011-2025)
+#
+# > Notificações de cada vínculo ÷ população de **0 a 5 anos** do mesmo ano (estimativas Ripsa/MS) × 1.000
+# > (`specs/populacao-referencia`, A3). No município, numerador e denominador têm a mesma faixa (0-5) e o
+# > mesmo ano, então a ressalva D9 (numerador 0-5 sobre população 0-4 do Censo) **não se aplica aqui**; ela
+# > vale só para as taxas por bairro/RA/CAP mais abaixo. Os vínculos seguem sem soma entre si, e a possível
+# > quebra de série de 2017 vale também para a taxa. Fonte da população: nota no início da seção Censo 2022.
+
+# %%
+fonte_sinan_ripsa = 'Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 5 anos: estimativas Ripsa/Ministério da Saúde'
+
+df_vf_taxa_municipio = df_vf_vinculo_ano[['ano', 'mae', 'pai', 'outros']].merge(
+    populacao_ripsa(carrega_populacao_ripsa(), 0, 5, anos=ANOS_VF).rename(columns={'populacao': 'populacao_0_a_5'}), on='ano')
+for _v in ['mae', 'pai', 'outros']:
+    df_vf_taxa_municipio = taxa_por_mil(df_vf_taxa_municipio, _v, 'populacao_0_a_5', f'taxa_por_mil_{_v}')
+assert len(df_vf_taxa_municipio) == len(ANOS_VF)
+assert round(df_vf_taxa_municipio.loc[df_vf_taxa_municipio['ano'] == 2025, 'taxa_por_mil_mae'].item(), 2) == round(1756 / 393073 * 1000, 2)
+df_vf_taxa_municipio.to_csv('tabelas_finais/violencia_familiar_taxa_municipio_ano.csv', index=False)
+
+serie_temporal_multipla_marcos(
+    df_vf_taxa_municipio, tempo='ano',
+    colunas={'Mãe': 'taxa_por_mil_mae', 'Pai': 'taxa_por_mil_pai', 'Outros vínculos': 'taxa_por_mil_outros'},
+    titulo='Notificações de violência familiar por 1.000 crianças de 0 a 5 anos, por vínculo (2011-2025)',
+    nome_arquivo='violencia_familiar_taxa_municipio_ano', marcos={2017: 'possível quebra de série (2017)'},
+    ylabel='Notificações por 1.000 crianças', legend_title='Vínculo do provável autor', fonte_dados=fonte_sinan_ripsa,
+)
+df_vf_taxa_municipio.round(2)
 
 # %% [markdown]
 # ##### T4 e G2 · Composição de "outros"
