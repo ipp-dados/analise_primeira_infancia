@@ -1,8 +1,10 @@
 # Especificação: Matrículas de 0 a 6 anos, Censo Escolar/INEP (`specs/matriculas-censo-escolar`)
 
 Branch: `spec/matriculas-censo-escolar` (a partir de `staging_main`, em 2026-09-24)
-Status: **rascunho 1**, em planejamento. Decisões D1-D6 (§5) aguardam o usuário. `plan.md`, `tasks.md`
-e `validation.md` só serão escritos depois que elas forem aprovadas.
+Status: **rascunho 2** (2026-09-24). D1-D5 aprovadas pelo usuário. D4 foi aprovada sob a condição de checar
+2025 antes do resto, e o check foi feito (§3.5, compatível). D6 ficou sem resposta explícita e segue a
+proposta (fora de escopo) até o usuário dizer o contrário. Desdobramento: `plan.md`, `tasks.md`,
+`validation.md`.
 Roadmap: seção "Matrículas" de `specs/roadmap.md` ("Update dados de matrículas escolares for years
 2021-2025").
 
@@ -111,6 +113,45 @@ exclusão de alguma modalidade ou etapa; idade calculada em outra data; ou filtr
 
 ---
 
+### 3.5 Check de 2025 e série 2020-2025 (condição de D4, feito em 2026-09-24)
+
+O ZIP de 2025 (`microdados_censo_escolar_2025_.zip`, pasta interna `microdados_censo_escolar_2025_v2/`)
+**mudou de organização**, mas é compatível:
+
+- Em vez de um único `microdados_ed_basica_<ANO>.csv`, vem **uma tabela por tema**: `Tabela_Escola`,
+  `Tabela_Matricula`, `Tabela_Turma`, `Tabela_Docente`, `Tabela_Gestor_Escolar` e
+  `Tabela_Curso_Tecnico`, todas com sufixo `_2025_V2.csv`. Continua sendo **uma linha por escola**, sem
+  dado por aluno. O tamanho maior vem das tabelas de docente, turma e gestor.
+- As contagens de matrícula **saíram da tabela de escola** e estão agora na `Tabela_Matricula_2025_V2.csv`
+  (263 colunas, com `CO_MUNICIPIO` e `TP_DEPENDENCIA`). `QT_MAT_BAS_0_3`, `QT_MAT_BAS_4_5`, `QT_MAT_INF*`
+  existem com o mesmo nome.
+- **Encoding latin-1**, apesar de o cabeçalho ser ASCII. Ler como UTF-8 falha no meio do arquivo.
+- **Novas colunas `QT_MAT_BAS_*_REF_31_03`**, com a idade em 31 de março (data de corte do CNE). Em 2025,
+  0-3 = 119.514 e 4-5 = 122.171, contra 110.097 e 120.187 na data padrão. **Usa-se a data padrão**
+  (última quarta-feira de maio, P2), a única que existe em todos os anos. As colunas `_REF_31_03` não
+  entram.
+
+Série do Rio (`CO_MUNICIPIO == 3304557`) na data padrão, lida dos ZIPs:
+
+| Ano | Arquivo lido | Escolas | 0-3 | 4-5 | **0-5** | pública 0-5 | `INF` (etapa) |
+|---|---|---|---|---|---|---|---|
+| 2020 | `microdados_ed_basica_2020.CSV` | 4.235 | 107.422 | 139.711 | **247.133** | 143.909 | 258.749 |
+| 2021 | `microdados_ed_basica_2021.csv` | 4.209 | 101.421 | 128.839 | **230.260** | 140.722 | 242.372 |
+| 2022 | `microdados_ed_basica_2022.csv` | 4.487 | 114.822 | 131.700 | **246.522** | 136.691 | 258.292 |
+| 2023 | `microdados_ed_basica_2023.csv` | 4.198 | 113.935 | 132.184 | **246.119** | 131.935 | 258.120 |
+| 2024 | `microdados_ed_basica_2024.csv` | 4.203 | 114.934 | 127.641 | **242.575** | 127.851 | 254.222 |
+| 2025 | `Tabela_Matricula_2025_V2.csv` | 3.875 | 110.097 | 120.187 | **230.284** | 122.236 | 241.391 |
+
+"Pública" = `TP_DEPENDENCIA` 1-3 (federal, estadual, municipal). "Escolas" é o número de linhas do
+município no arquivo lido. Em 2025 a tabela de matrícula tem menos linhas que a antiga tabela de escola,
+então esse número não é comparável entre os dois formatos e não é publicado.
+
+Leituras que vão para a nota do notebook, sem interpretação no relatório:
+- **2021 é um vale** (-6,8% sobre 2020). É coerente com a pandemia e aparece também em `INF`.
+- **2025 cai 5,1% sobre 2024**, puxado pela pré-escola (4-5: -5,8%). A rede pública de 0-5 cai todo ano
+  desde 2020 (143.909 → 122.236, -15%). A privada (total - pública) cai em 2021 (89.538), sobe até 2024
+  (114.724) e recua em 2025 (108.048). Desde 2023 a privada é quase metade de 0-5.
+
 ## 4. Proposta
 
 ### 4.1 Função de carga (topo de `analise.py`, seção 📦)
@@ -159,6 +200,12 @@ Data.Rio/SME ou pelo endereço), o que é uma rodada à parte.
 
 ## 5. Decisões para o usuário
 
+**Registro (usuário, 2026-09-24):** D1 ✅ 0-5 · D2 ✅ reconstruir · D3 ✅ creche × pré e pública × privada ·
+D4 ✅, com check de 2025 antes do resto (feito, §3.5) · D5 ✅ · D6 sem resposta, segue a proposta (fora).
+**Sub-decisão aberta em D1:** o nome dos arquivos. A proposta está em `plan.md` §Decisões.
+
+A tabela abaixo é a proposta original, mantida como histórico.
+
 | # | Decisão | Proposta |
 |---|---|---|
 | **D1** | **Definição de "até 6 anos"**, já que 6 anos exatos não existe nos dados abertos (§3.2). Opções: (a) **0 a 5 anos** = `QT_MAT_BAS_0_3 + QT_MAT_BAS_4_5`; (b) **educação infantil por etapa** (`QT_MAT_INF`), que inclui crianças mais velhas retidas e exclui 6 anos no fundamental; (c) pedir microdados restritos ao INEP/SEDAP (fora do prazo). | **(a) 0 a 5**, que é a faixa da educação infantil (creche 0-3, pré 4-5) e corresponde à idade, não à etapa. O título passa a "Matrículas de crianças de 0 a 5 anos", e o nome do arquivo `matriculas_0_a_6_por_ano` é mantido ou renomeado (sub-decisão). A etapa (b) pode entrar como série complementar em D3. |
@@ -172,16 +219,20 @@ Data.Rio/SME ou pelo endereço), o que é uma rodada à parte.
 
 ## 6. Pendências e riscos
 
-- **P1: formato de 2025.** 537 MB contra ~30 MB nos anos anteriores. Pode ser outra organização,
-  com várias tabelas ou dado por matrícula de volta. Baixar e inspecionar antes de fechar o plano.
-- **P2: data de referência da idade.** Pelo dicionário de dados (confirmar no `leia-me/` de cada ZIP),
+- **P1: formato de 2025.** ✅ **Resolvida** (§3.5): tabelas separadas, contagens na
+  `Tabela_Matricula`, mesmas colunas, latin-1. A função localiza o CSV pelos dois padrões de nome.
+- **P2: data de referência da idade.** ✅ **Resolvida** (dicionário de 2025): última quarta-feira de maio de cada ano. Texto original: Pelo dicionário de dados (confirmar no `leia-me/` de cada ZIP),
   a idade é calculada na data de referência do Censo (última quarta-feira de maio). Isso vai para a
   nota de método.
-- **P3: escolas paralisadas ou extintas.** Verificar se `TP_SITUACAO_FUNCIONAMENTO != 1` tem
+- **P3: escolas paralisadas ou extintas.** ✅ **Resolvida** (2020): escolas com `TP_SITUACAO_FUNCIONAMENTO` 2 ou 3 (331 no Rio) têm 0 matrícula de 0-5, então não é preciso filtrar. Texto original: Verificar se `TP_SITUACAO_FUNCIONAMENTO != 1` tem
   matrícula > 0. Se tiver, decidir o filtro. Em 2023 a soma de `TP_SITUACAO_FUNCIONAMENTO` (4.615 em
   4.198 escolas) mostra que há escolas não ativas no arquivo.
-- **P4: pipeline de relatório.** Verificar como `build_html_report.py`, `build_notebook_report.py` e o
+- **P4: pipeline de relatório.** ✅ **Levantada**: `build_html_report.py:1415-1416`, `build_notebook_report.py:623-625` e `regen_missing_pngs.py:156-159` leem `matriculas_0_a_6_por_ano.csv` com o rótulo "0 a 6 anos" hard-coded. Nenhum trata o card como pendente. Texto original: Verificar como `build_html_report.py`, `build_notebook_report.py` e o
   DOCX leem `matriculas_0_a_6_por_ano.*` e se mostram o card como pendente (hard-coded, como
   aconteceu no CadÚnico, ver `specs/recortes_cadunico/plan.md` "Descobertas" item 2).
+- **P6: 2007-2019 no formato novo.** A reconstrução da série inteira (D2) supõe que os ZIPs republicados
+  de 2007-2019 têm `QT_MAT_BAS_0_3`/`_4_5` (só verificado por tamanho). É checado no Bloco 1, antes de
+  qualquer código. Se faltarem as faixas de idade em algum ano, a série começa no primeiro ano com as
+  colunas, e isso é registrado aqui.
 - **P5: comparação com números oficiais.** Conferir 1 ou 2 anos contra a Sinopse Estatística do
   INEP (tabela de educação infantil por município) como validação externa.
