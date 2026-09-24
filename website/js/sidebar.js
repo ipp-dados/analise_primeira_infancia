@@ -31,10 +31,12 @@
     pct = Math.max(0, Math.min(1, pct));
     if (barra) barra.style.width = (pct * 100).toFixed(1) + '%';
     if (pctEl) pctEl.textContent = Math.round(pct * 100) + '%';
-    // subseção ativa
+    // subseção ativa: último h3 que já chegou ao terço superior da área visível (abaixo da barra);
+    // no fim do painel, o último item (a subseção final pode ser curta demais para subir até lá)
+    const linha = topoBarra + (window.innerHeight - topoBarra) * 0.3;
     let ativo = -1;
-    itens.forEach((it, i)=>{ if (it.alvo.getBoundingClientRect().top - topoBarra - 90 <= 0) ativo = i; });
-    if (pct >= 0.999 && itens.length) ativo = itens.length - 1;
+    itens.forEach((it, i)=>{ if (it.alvo.getBoundingClientRect().top <= linha) ativo = i; });
+    if (pct >= 0.99 && itens.length) ativo = itens.length - 1;
     itens.forEach((it, i)=>{
       if (i === ativo) it.link.setAttribute('aria-current', 'true'); else it.link.removeAttribute('aria-current');
       it.link.classList.toggle('is-past', i < ativo);

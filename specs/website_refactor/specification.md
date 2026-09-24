@@ -60,6 +60,24 @@ progresso) e visual mais suave. O PDF não muda nesta rodada.
   a paleta de dados (11 cores) e os `cmap` dos mapas.
 - **D5 — Redução de tamanho** (pedido do usuário, 2026-09-24): orçamento explícito para os arquivos do
   site, com técnicas além de D2 — ver §4.9.
+- **D6 — Ajustes pedidos na revisão do protótipo** (Bloco 4, 2026-09-24; protótipo aprovado com ajustes):
+  - **Conclusões por eixo**: bloco de 100-200 palavras (lorem até haver texto curado) no fim de cada
+    painel de eixo, antes da caixa de fontes; não na Visão geral. Visualmente distinto (cartão azul
+    institucional escuro com faixa ciano), com h3 "Conclusões" que entra no sumário lateral. Seed
+    `conclusao-<sid>` em `relatorio/textos_curados.json`; o DOCX de curadoria ainda não tem bookmark
+    para ele (fora do escopo: `gera_docx_curadoria.py` não muda nesta rodada).
+  - **Banner sem a descrição**: no lugar, links para o repositório no GitHub, para o relatório final em
+    PDF e a data de atualização. O PDF (~48 MB) não é publicado no Pages; o link aponta para o arquivo
+    versionado no GitHub (`blob/staging_main/relatorio/analise_primeira_infancia.pdf`).
+  - **Logo em resolução maior**: não existe SVG oficial publicado (o site do IPP usa um PNG de 212×77;
+    o nosso original tem 1723×310). O borrado vinha da redução de 14× no navegador. Solução: logo
+    exibido maior (40 px no banner, 32 px no rodapé) com cópias reduzidas em Lanczos para 1×/2×/3×
+    (`srcset`), geradas pelo build a partir do original. Vetorizar o brasão por conta própria foi
+    descartado (publicaria uma marca oficial alterada); se a Ascom do IPP fornecer o SVG, ele substitui.
+  - **Página "Fale Conosco"** na barra de navegação: registrada em `website/ROADMAP.md` e
+    `specs/roadmap.md` (fora desta rodada).
+  - **Título**: "Diagnóstico da Primeira Infância Carioca", sempre em 2 linhas
+    ("Diagnóstico da" / "Primeira Infância Carioca"); `<title>` na mesma forma em 1 linha.
 
 ## 4. Requisitos
 

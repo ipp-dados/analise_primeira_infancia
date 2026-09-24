@@ -302,33 +302,8 @@
   // tooltip de mapa -- tudo delegado/inicializado uma vez no DOMContentLoaded, ja que
   // esses elementos sao HTML estatico gerado em Python, nao criados por lineChart/etc.)
 
-  function initNavbar(){
-    const burger = document.getElementById('navbar-burger');
-    const menu = document.getElementById('navbar-menu');
-    if (!burger || !menu) return;
-    burger.addEventListener('click', ()=>{
-      const abrindo = menu.hasAttribute('hidden');
-      if (abrindo) menu.removeAttribute('hidden'); else menu.setAttribute('hidden','');
-      burger.setAttribute('aria-expanded', abrindo ? 'true' : 'false');
-    });
-    menu.querySelectorAll('a.navbar-link').forEach(a=>{
-      a.addEventListener('click', ()=>{ menu.setAttribute('hidden',''); burger.setAttribute('aria-expanded','false'); });
-    });
-  }
-
-  function initSections(){
-    document.querySelectorAll('.rsec').forEach(sec=>{
-      const btn = sec.querySelector(':scope > .rsec-head > .rsec-toggle');
-      const label = btn && btn.querySelector('.rsec-toggle-label');
-      if (!btn) return;
-      btn.addEventListener('click', ()=>{
-        const colapsando = sec.getAttribute('data-collapsed') !== 'true';
-        sec.setAttribute('data-collapsed', colapsando ? 'true' : 'false');
-        btn.setAttribute('aria-expanded', colapsando ? 'false' : 'true');
-        if (label) label.textContent = colapsando ? 'EXPANDIR' : 'RECOLHER';
-      });
-    });
-  }
+  // initNavbar/initSections (navbar hambúrguer e seções retráteis) removidos -- substituídos pelas
+  // abas (js/navigation.js) e pelo sumário lateral (js/sidebar.js), specs/website_refactor Bloco 5.
 
   function initPills(){
     document.querySelectorAll('.option-card').forEach(card=>{
@@ -398,7 +373,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    initNavbar(); initSections(); initPills(); initOutliers(); initDownloads(); initMapTooltips();
+    initPills(); initOutliers(); initDownloads(); initMapTooltips();
   });
 
   window.byId = byId; window.lineChart = lineChart; window.barChart = barChart; window.groupedBarChart = groupedBarChart;

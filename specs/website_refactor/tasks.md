@@ -38,28 +38,29 @@ Um commit por bloco. Marcar `[x]` só depois da verificação correspondente em 
 - [~] **T3b.3**: **Não feito, por decisão medida** (spec §4.9): variantes custam 0,21 MB / ~30 KB gzip.
 - [~] **T3b.4**: **Não feito, por decisão medida** (spec §4.9): dados somam 109 KB / 17 KB gzip.
 - [x] **T3b.5**: Relatório de tamanho (bruto e gzip) + `AVISO` de orçamento no gerador; 1,33 MB publicado (V3b).
-- [ ] **T3b.6** *(achado)*: AP/RP/RA dissolvidos têm furinhos brancos (anéis internos minúsculos que sobram do dissolve de bairros que não fecham perfeitamente) — já existiam na baseline. Corrigir no Bloco 6 descartando anéis internos abaixo de uma área mínima.
+- [x] **T3b.6** *(achado)*: AP/RP/RA dissolvidos têm furinhos brancos (anéis internos minúsculos que sobram do dissolve de bairros que não fecham perfeitamente) — já existiam na baseline. Corrigido no Bloco 6 (`_fecha_frestas`): furo que nenhuma outra região cobre é preenchido, enclave real fica. Anéis: AP 629→135, RP 505→145, RA 448→164, bairro 302→298, CAP 144→140.
 
 ## Bloco 4: Protótipo
 
 - [x] **T4.1**: Tokens em `website/build/prototype/css/` (raios 8/14/20, 2 sombras, espaçamento 4-64, fundo `#F3F5F8` + cartões brancos, acento azul IPP `#0A5A99`); contraste AA medido (V4).
 - [x] **T4.2**: `website/build/prototype/make_prototype.py` → `prototype/index.html` com pedaços reais (9 gráficos, mapa com pills, pendente, nota, fontes). `js/navigation.js` e `js/sidebar.js` já escritos (reais) e usados pelo protótipo; ícones Lucide em `assets/icons/`. Capturas via DevTools Protocol (script no scratchpad; a captura por linha de comando do Chrome não serve para página rolada).
-- [ ] **T4.3**: Aprovação do usuário (ou rodada de ajustes registrada aqui). Rótulo curto na aba ("Prioridade"), título completo no h2.
+- [x] **T4.3**: Aprovado com ajustes (2026-09-24) — conclusões por eixo, banner com links (GitHub, PDF, data) no lugar da descrição, logo em resolução maior, "Fale Conosco" no roadmap, título "Diagnóstico da Primeira Infância Carioca" em 2 linhas (spec D6). Rótulo curto na aba ("Prioridade"), título completo no h2.
 
 ## Bloco 5: Abas e conteúdo
 
-- [ ] **T5.1**: Coletor de fontes por h2 + caixa "FONTES DESTA SEÇÃO".
-- [ ] **T5.2**: Painéis de aba, eyebrow "EIXO N DE 6", remoção do toggle retrátil.
-- [ ] **T5.3**: Painel Visão geral (Introdução + 6 cartões com contagens do gerador).
-- [ ] **T5.4**: Barra de abas gerada; remoção da navbar hambúrguer e do Sumário.
-- [ ] **T5.5**: Ícones Lucide em `assets/icons/`, embutidos inline; emojis de h2, 🚧 e ℹ️ substituídos.
-- [ ] **T5.6**: `js/navigation.js` (abas, hash, âncora antiga, teclado, `--nav-h`).
+- [x] **T5.1**: Coletor de fontes por h2 + caixa "FONTES DESTA SEÇÃO".
+- [x] **T5.2**: Painéis de aba, eyebrow "EIXO N DE 6", remoção do toggle retrátil.
+- [x] **T5.3**: Painel Visão geral (Introdução + 6 cartões com contagens do gerador).
+- [x] **T5.4**: Barra de abas gerada; remoção da navbar hambúrguer e do Sumário.
+- [x] **T5.5**: Ícones Lucide em `assets/icons/`, embutidos inline; emojis de h2, 🚧 e ℹ️ substituídos.
+- [x] **T5.6**: `js/navigation.js` (abas, hash, âncora antiga, teclado, `--nav-h`).
 
 ## Bloco 6: Sumário lateral e restyle
 
-- [ ] **T6.1**: `<aside class="outline">` gerado por painel.
-- [ ] **T6.2**: `js/sidebar.js` (scroll-spy, progresso, clique com URL).
-- [ ] **T6.3**: Tokens aprovados aplicados a todos os componentes.
+- [x] **T6.1**: `<aside class="outline">` gerado por painel.
+- [x] **T6.2**: `js/sidebar.js` (scroll-spy, progresso, clique com URL).
+- [x] **T6.3**: Tokens aprovados aplicados a todos os componentes (CSS do protótipo promovido a `website/css/`).
+- [x] **T6.4** *(D6)*: Conclusões por eixo, banner com links, logo com `srcset` (40/32 px), título em 2 linhas. `initNavbar`/`initSections` removidos de `js/charts.js`.
 
 ## Bloco 7: Deploy, integração, docs
 

@@ -1,129 +1,123 @@
-/* layout.css -- container, cabecalho, navegacao, sumario, secoes, rodape.
-   specs/website_refactor Bloco 2: extraido da string CSS de build_site.py (ex-build_html_report.py),
-   mesma ordem relativa das regras. Editado a mao a partir daqui -- o gerador nao escreve este arquivo. */
+/* layout.css -- container, faixa de aviso, banner, barra de abas, grade conteúdo + sumário
+   lateral, cabeçalho de painel, rodapé. specs/website_refactor Blocos 4-6 (protótipo aprovado com ajustes).
+   Só desktop nesta rodada (spec §4.8); grid/flex e variáveis para a versão mobile
+   (website/ROADMAP.md) mexer em poucas regras. */
 
-.doc{max-width:1200px; margin:0 auto; padding:0 24px 110px;}
+.container{max-width:var(--container); margin:0 auto; padding:0 var(--gutter);}
 
-header.doc-head{margin-bottom:8px; padding-top:56px;}
-header.doc-head h1{
-  font-family:var(--font-display); font-weight:600; font-size:clamp(1.9rem,4.4vw,2.7rem);
-  margin:0 0 8px; line-height:1.12; text-wrap:balance; letter-spacing:-.01em;
-  display:flex; align-items:center; gap:14px;
-}
-header.doc-head h1 .glyph{font-size:.82em; flex:none;}
-header.doc-head .sub{color:var(--ink-2); font-size:1.02rem; max-width:68ch; margin:0 0 18px;}
-header.doc-head .meta{
-  display:flex; flex-wrap:wrap; gap:6px 16px; font-family:var(--font-mono); font-size:.76rem;
-  color:var(--ink-3); padding-bottom:28px;
-}
-
-/* ---------- table of contents ---------- */
-.toc{
-  background:var(--surface-2); border:1px solid var(--hairline); border-radius:12px;
-  padding:22px 26px 20px; margin:0 0 48px;
-}
-.toc-label{
-  font-family:var(--font-body); font-weight:600; font-size:.76rem; color:var(--ink-3);
-  text-transform:uppercase; letter-spacing:.08em; margin:0 0 12px;
-}
-ul.toc-list{
-  list-style:none; margin:0; padding:0; columns:2; column-gap:32px;
-}
-ul.toc-list > li{break-inside:avoid; margin:0 0 10px;}
-ul.toc-list > li > a{
-  font-weight:600; color:var(--ink); text-decoration:none; font-size:.92rem;
-}
-ul.toc-list > li > a:hover{color:var(--accent);}
-ul.toc-list ul{list-style:none; margin:5px 0 0; padding:0 0 0 14px; border-left:1px solid var(--hairline);}
-ul.toc-list ul li{margin:4px 0;}
-ul.toc-list ul a{color:var(--ink-2); text-decoration:none; font-size:.82rem;}
-ul.toc-list ul a:hover{color:var(--accent); text-decoration:underline;}
-.doc-toc{margin:32px 0 0;}
-.doc-intro{margin:0 0 8px;}
-.doc-intro .lede{color:var(--ink-2); font-size:1.02rem; max-width:70ch; margin:8px 0 0;}
-
-/* Faixa "em desenvolvimento" -- cor de alerta fixa, igual em tema claro/escuro
-   (não usa as variáveis de tema de propósito: precisa continuar chamativa nos dois,
-   e alto contraste de texto é mais importante aqui do que combinar com o resto). */
+/* Faixa "em desenvolvimento" -- cor de alerta fixa, de propósito fora dos tokens
+   (specs/roadmap.md publicar_teste_pages). */
 .dev-banner{
-  background:#ffb300; color:#1a1a1a; font-weight:800; text-align:center;
-  padding:12px 16px; font-size:.95rem; line-height:1.4;
-  border-bottom:3px solid #1a1a1a;
-  margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  background:#ffb300; color:#1a1a1a; font-weight:700; text-align:center;
+  padding:10px 16px; font-size:.82rem; line-height:1.4;
 }
 
-.topbar-accent{
-  height:4px; background:var(--ipp-navy);
-  margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-}
-.navbar{
-  height:56px; background:var(--page); border-bottom:2px solid var(--ink);
-  margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-  position:sticky; top:0; z-index:20;
-}
-/* max-width+margin:auto (nao so padding) pra alinhar com `.doc`/footer-cols em
-   telas largas -- o full-bleed do navbar media a partir da viewport, nao do
-   centro do body, entao so padding fixo desalinhava em telas >1248px */
-.navbar-inner{
-  max-width:1200px; margin:0 auto; height:100%; padding:0 24px;
-  display:flex; align-items:center; justify-content:space-between; gap:16px;
-}
-.navbar-burger{display:flex; align-items:center; gap:10px; background:none; border:none; cursor:pointer; color:var(--ink); padding:6px 0;}
-.navbar-label{color:var(--ink); font-weight:600;}
-.navbar-logo{background:var(--ipp-navy); padding:6px 12px; display:flex; align-items:center; flex:none;}
-.navbar-logo .ipp-logo{height:20px; width:auto; display:block;}
-.navbar-menu{
-  margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-  background:var(--surface); border-bottom:2px solid var(--ink); box-shadow:var(--shadow-hover);
-  position:sticky; top:56px; z-index:19; max-height:70vh; overflow-y:auto;
-}
-.navbar-menu[hidden]{display:none;}
-.navbar-link{
-  display:block; max-width:1200px; margin:0 auto; padding:10px 24px;
-  font-family:var(--font-mono); font-size:.85rem; color:var(--ink); text-decoration:none;
+/* ---- banner (rola junto com a página; spec §4.2) ---- */
+.site-banner{
+  background:linear-gradient(180deg, #FFFFFF 0%, var(--accent-soft) 100%);
   border-bottom:1px solid var(--hairline);
 }
-.navbar-link:hover{color:var(--accent);}
-
-/* topo alinhado: eyebrow+titulo (esquerda) comecam na mesma linha que o
-   texto de descricao (direita) -- pedido explicito do usuario */
-.doc-head-row{display:grid; grid-template-columns:1fr 420px; align-items:start; gap:40px;}
-@media (max-width:760px){ .doc-head-row{grid-template-columns:1fr;} }
-.doc-eyebrow{color:var(--accent); font-weight:700; margin-bottom:10px;}
-.doc-head-desc{max-width:420px;}
-header.doc-head .doc-head-desc .meta{display:block; font-family:var(--font-mono); font-size:.72rem; color:var(--ink-3); padding-bottom:0; margin:8px 0 0;}
-.spectrum-bar{display:flex; height:6px; margin-top:24px;}
+.banner-inner{
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--s7);
+  align-items:end; padding-top:40px; padding-bottom:36px;
+}
+/* logo maior que no protótipo (pedido do usuário): 40 px de altura, srcset 1x/2x/3x gerado pelo build */
+.banner-logo{
+  display:inline-flex; align-items:center; background:var(--ipp-navy);
+  padding:10px 16px; border-radius:var(--radius-sm); margin-bottom:24px;
+}
+.banner-logo .ipp-logo{height:40px; width:auto; display:block;}
+.banner-eyebrow{color:var(--accent); margin-bottom:8px;}
+.site-banner h1{
+  font-size:clamp(2rem,4.2vw,2.7rem); line-height:1.08; letter-spacing:-.015em; margin:0;
+}
+/* título sempre em 2 linhas (pedido do usuário) */
+.site-banner h1 .h1-linha{display:block;}
+/* links do projeto no lugar da descrição (pedido do usuário) */
+.banner-links{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; align-items:flex-start; gap:10px;}
+.banner-links a{
+  display:inline-flex; align-items:center; gap:10px; padding:9px 16px;
+  background:var(--surface); border-radius:var(--radius-pill); box-shadow:var(--shadow-1);
+  color:var(--accent); font-size:.8rem; font-weight:600; text-decoration:none;
+  transition:box-shadow .15s ease, color .15s ease;
+}
+.banner-links a:hover{box-shadow:var(--shadow-2); color:var(--accent-ink);}
+.banner-links .icon{width:18px; height:18px;}
+.banner-date{display:inline-flex; align-items:center; gap:10px; padding:4px 16px; font-family:var(--font-mono); font-size:.68rem; color:var(--ink-3);}
+.banner-date .icon{width:16px; height:16px;}
+.spectrum-bar{display:flex; height:4px;}
 .spectrum-bar span{flex:1;}
 
-/* ---- secoes retrateis, cartao brutalista ---- */
-.rsec{border:2px solid var(--ink); border-radius:0; margin:40px 0; background:var(--surface);}
-.rsec-head{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 22px; border-bottom:2px solid var(--ink);}
-.rsec-head-l{display:flex; flex-direction:column; gap:4px; min-width:0;}
-.rsec-head-title{color:var(--ink);}
-.rsec-head-title h2{margin:0; padding:0; border:none; color:inherit;}
-.rsec-eyebrow{color:var(--accent);}
-.rsec[data-collapsed="true"] .rsec-eyebrow{color:var(--ink-3); font-weight:400;}
-.rsec-toggle{
-  display:flex; align-items:center; gap:8px; background:var(--ink); color:var(--page); border:none; border-radius:0;
-  font-family:var(--font-mono); font-size:.72rem; font-weight:600; padding:8px 14px; cursor:pointer; flex:none;
+/* ---- barra de abas (fixa no topo; spec §4.3) ---- */
+.tabbar{
+  position:sticky; top:0; z-index:30;
+  background:rgba(255,255,255,.94);
+  -webkit-backdrop-filter:saturate(1.4) blur(10px); backdrop-filter:saturate(1.4) blur(10px);
+  border-bottom:1px solid var(--hairline);
+  transition:box-shadow .2s ease;
 }
-.rsec[data-collapsed="true"] .rsec-toggle{background:var(--page); color:var(--ink); border:2px solid var(--ink); padding:6px 12px;}
-.section-body{padding:24px 22px 30px;}
-.rsec[data-collapsed="true"] .section-body{display:none;}
+.tabbar.is-stuck{box-shadow:0 6px 18px -12px rgba(16,24,40,.35);}
+.tabbar-inner{display:flex; align-items:center; gap:6px; padding-top:10px; padding-bottom:10px; overflow-x:auto; scrollbar-width:none;}
+.tab{
+  display:inline-flex; align-items:center; gap:8px; flex:none;
+  padding:9px 16px; border:1px solid transparent; border-radius:var(--radius-pill);
+  background:none; color:var(--ink-2); cursor:pointer; white-space:nowrap;
+  font-family:var(--font-body); font-size:.78rem; font-weight:600; line-height:1.2;
+  transition:background .15s ease, color .15s ease;
+}
+.tab .icon{width:18px; height:18px;}
+.tab:hover{background:var(--surface-3); color:var(--ink);}
+.tab[aria-selected="true"]{background:var(--ipp-navy); color:#fff;}
 
-/* ---- rodape institucional ---- */
-footer.doc-foot{
-  margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-  background:var(--ipp-navy); color:#EAF2F8; padding:36px 24px 24px; margin-top:60px;
+/* ---- grade: painéis + sumário lateral (spec §4.7/§4.8) ---- */
+.page-grid{
+  display:grid; grid-template-columns:minmax(0,1fr) var(--outline-w); gap:var(--s7);
+  align-items:start; padding-top:40px; padding-bottom:96px;
 }
-.footer-cols{max-width:1200px; margin:0 auto; display:flex; gap:40px; flex-wrap:wrap; padding-bottom:20px;}
+.panels{min-width:0;}
+.tab-panel[hidden]{display:none;}
+/* o navegador rola sozinho até #<painel> ao abrir um link; sem isso o topo fica sob a barra */
+.tab-panel{scroll-margin-top:calc(var(--nav-h) + 24px);}
+
+.panel-head{display:flex; align-items:center; gap:18px; margin:0 0 28px;}
+.panel-icon{
+  width:56px; height:56px; flex:none; display:grid; place-items:center;
+  border-radius:var(--radius-md); background:var(--accent-soft); color:var(--accent);
+}
+.panel-icon .icon{width:28px; height:28px;}
+.panel-eyebrow{color:var(--accent); margin-bottom:4px;}
+
+/* ---- sumário lateral ---- */
+.outline{
+  position:sticky; top:calc(var(--nav-h) + 24px);
+  max-height:calc(100vh - var(--nav-h) - 48px); overflow-y:auto;
+}
+.outline-card{background:var(--surface); border-radius:var(--radius-md); box-shadow:var(--shadow-1); padding:18px 16px 14px;}
+.outline-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin:0 0 10px;}
+.outline-label{color:var(--ink-3);}
+.outline-pct{font-family:var(--font-mono); font-size:.66rem; font-weight:600; color:var(--accent);}
+.outline-progress{height:4px; background:var(--surface-3); border-radius:var(--radius-pill); overflow:hidden; margin:0 0 14px;}
+.outline-progress span{display:block; height:100%; width:0; background:var(--accent); border-radius:inherit; transition:width .12s linear;}
+.outline-nav[hidden]{display:none;}
+.outline-nav a{
+  display:block; padding:7px 10px 7px 12px; margin:1px 0;
+  border-left:2px solid var(--hairline); border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  color:var(--ink-2); font-size:.74rem; line-height:1.35; text-decoration:none;
+}
+.outline-nav a:hover{background:var(--surface-2); color:var(--ink);}
+.outline-nav a.is-past{color:var(--ink-3);}
+.outline-nav a[aria-current="true"]{border-left-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink); font-weight:600;}
+
+/* ---- rodapé institucional ---- */
+footer.doc-foot{background:var(--ipp-navy); color:#EAF2F8; padding:40px 0 26px;}
+.footer-cols{display:flex; gap:40px; flex-wrap:wrap; padding-bottom:22px;}
 .footer-col{min-width:180px; flex:1;}
 .footer-col-logo{min-width:220px; flex:1.4;}
-.footer-col-logo .ipp-logo{height:24px; width:auto; display:block; margin-bottom:12px;}
+.footer-col-logo .ipp-logo{height:32px; width:auto; display:block; margin-bottom:14px;}
 .footer-col-logo p{font-size:.76rem; color:#B9D2E4; max-width:260px; line-height:1.6; margin:0;}
-.footer-col .eyebrow{color:#7FA9C6; margin-bottom:8px;}
+.footer-col .eyebrow{color:#9CC0DA; margin-bottom:8px;}
 .footer-col > div{font-size:.76rem; color:#DCE9F2; line-height:1.9;}
 .footer-col a{color:#DCE9F2;}
 .footer-col a:hover{color:#fff;}
-.footer-rule{max-width:1200px; margin:0 auto; height:1px; background:var(--ipp-cyan); opacity:.4;}
-.footer-credit{max-width:1200px; margin:0 auto; padding-top:14px; font-family:var(--font-mono); font-size:.66rem; color:#7FA9C6;}
+.footer-rule{height:1px; background:var(--ipp-cyan); opacity:.4;}
+.footer-credit{padding-top:14px; font-family:var(--font-mono); font-size:.66rem; color:#9CC0DA;}

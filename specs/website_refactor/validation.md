@@ -65,13 +65,15 @@ Referência: 20,9 MB (V0). Medir depois de cada passo do Bloco 3b.
 
 ## V5-V6: Abas, sumário, restyle
 
-- [ ] 7 abas; cada eixo mostra os mesmos h3 e o mesmo nº de `.out` da baseline (tabela da spec §2).
-- [ ] Caixa de fontes em cada um dos 6 eixos, sem repetição, com todas as fontes dos cartões do eixo.
-- [ ] Nenhum emoji restante em h2, pendentes e notas metodológicas.
-- [ ] Barra de abas fica em y=0 depois de rolar; banner some rolando.
-- [ ] `#inclusao`, `#inclusao/<id-h3>`, `#<id-h3>` antigo e sem hash abrem no lugar certo; voltar/avançar funciona.
-- [ ] Sumário lateral: item ativo acompanha a rolagem; progresso 0% no topo e 100% no fim do painel;
-  clique rola e atualiza a URL.
+- [x] 7 abas; por eixo, h3 (sem contar "Conclusões"), `.out`, mapas, pills, CSV, outlier-cards e blocos de texto **idênticos à baseline** nos 6 eixos (contagem sobre o HTML gerado).
+- [x] Caixa de fontes nos 5 eixos com cartões (Prioridade 5, Inclusão 5, Família 7, Proteção 6, Alimentação 2 fontes); Moradia não tem cartão de dado, então não tem caixa. Fontes quase iguais aparecem separadas (spec §4.5).
+- [x] Nenhum emoji no texto de `<main>` nem nas abas (regex de faixas de emoji sobre `innerText`). A faixa "EM DESENVOLVIMENTO" mantém ⚠️ de propósito.
+- [x] Barra de abas em y=0 depois de rolar; banner some rolando (Chrome, DevTools Protocol).
+- [x] `#inclusão` (topo do painel a 83 px, sob a barra de 59), `#família-e-cuidados/cadúnico` e `#violência-territorial-…` antigo (h3 a 79 px), `#introducao` → Visão geral, hash inexistente → Visão geral, sem hash → Visão geral; voltar/avançar entre abas funciona.
+- [x] Sumário lateral: item ativo acompanha a rolagem (terço superior da área visível); 0% no topo, 100% no fim com "Conclusões" ativo; clique rola e grava `#<painel>/<h3>`.
+
+- [x] Título em 2 linhas (altura do h1 / line-height = 2); logo carrega a cópia de 40 px exibida a 40 px; 0 erros de console.
+- [x] Mapas AP/RP/RA sem furinhos (captura do mapa AP) depois de `_fecha_frestas`.
 
 ## V7: Integração
 
