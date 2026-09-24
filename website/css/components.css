@@ -194,8 +194,9 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.78rem;}
   position:relative; background:var(--surface-2);
 }
 .map-svg{display:block; width:100%; height:auto; background-size:100% 100%; background-repeat:no-repeat;}
-.map-region{transition:filter .15s ease; cursor:pointer; fill-opacity:.88;}
-.map-region:hover{filter:brightness(1.08); stroke-width:1.6;}
+/* regiões: <use href="#gb12"> etc. (specs/website_refactor Bloco 3) -- stroke antes era atributo por <path> */
+.map-svg use{stroke:var(--page); stroke-width:.7; transition:filter .15s ease; cursor:pointer; fill-opacity:.88;}
+.map-svg use:hover{filter:brightness(1.08); stroke-width:1.6;}
 .map-scalebar-label{font-family:var(--font-mono); font-size:9.6px; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
 .map-compass-label{font-family:var(--font-mono); font-size:13.2px; font-weight:700; fill:#262626; paint-order:stroke; stroke:#fff; stroke-width:2.5px;}
 /* legenda como overlay dentro do proprio mapa (specification.md §7) --

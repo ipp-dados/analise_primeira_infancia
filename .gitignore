@@ -18,6 +18,3 @@
 # specs/website_refactor: *.png/*.svg acima são ignorados globalmente; os assets do site são fonte versionada
 !/website/assets/**
 
-# specs/website_refactor: saída gerada fica fora do git até o Bloco 3b (tamanho final)
-/website/index.html
-/website/data/

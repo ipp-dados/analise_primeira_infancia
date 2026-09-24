@@ -27,17 +27,18 @@ Um commit por bloco. Marcar `[x]` só depois da verificação correspondente em 
 
 ## Bloco 3: Geometria compartilhada
 
-- [ ] **T3.1**: `data/geo.js` com `<defs>` por nível; mapas com `<use>`.
-- [ ] **T3.2**: Fundo cartográfico em `assets/images/basemap-*.jpg`.
-- [ ] **T3.3**: Hover/tooltip/outliers/CSV nos 5 níveis; tamanho < 3 MB; capturas iguais (V3).
+- [x] **T3.1**: `data/geo.js` com `<defs>` por nível (230 paths, só níveis usados); mapas com `<use>` (7.107).
+- [x] **T3.2**: Fundo cartográfico em `assets/images/basemap-<hash da bbox>.jpg`, reaproveitado se existir (saída determinística, geração offline).
+- [x] **T3.3**: Hover/tooltip/outliers nos 5 níveis; capturas iguais (V3). CSV não muda (gerado em Python, sem geometria).
 
 ## Bloco 3b: Redução de tamanho (D5)
 
-- [ ] **T3b.1**: Simplificação da geometria por nível (tolerância registrada) + paths relativos.
-- [ ] **T3b.2**: `stroke` no CSS; nomes das regiões em `geo.js`; `<use>` enxuto.
-- [ ] **T3b.3**: Outliers dos mapas como fills alternativos (1 SVG por mapa).
-- [ ] **T3b.4**: `data/charts-<eixo>.js` carregado na primeira ativação da aba.
-- [ ] **T3b.5**: Relatório de tamanho + aviso de orçamento no gerador; metas de spec §4.9 cumpridas (V3b).
+- [x] **T3b.1**: `coverage_simplify`, tolerância 0,3; paths relativos com 1 casa decimal.
+- [x] **T3b.2**: `stroke` no CSS; nomes em `window.GEO_NOMES`; ids curtos (`#gb12`).
+- [~] **T3b.3**: **Não feito, por decisão medida** (spec §4.9): variantes custam 0,21 MB / ~30 KB gzip.
+- [~] **T3b.4**: **Não feito, por decisão medida** (spec §4.9): dados somam 109 KB / 17 KB gzip.
+- [x] **T3b.5**: Relatório de tamanho (bruto e gzip) + `AVISO` de orçamento no gerador; 1,33 MB publicado (V3b).
+- [ ] **T3b.6** *(achado)*: AP/RP/RA dissolvidos têm furinhos brancos (anéis internos minúsculos que sobram do dissolve de bairros que não fecham perfeitamente) — já existiam na baseline. Corrigir no Bloco 6 descartando anéis internos abaixo de uma área mínima.
 
 ## Bloco 4: Protótipo
 
