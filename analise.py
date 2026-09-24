@@ -1470,6 +1470,10 @@ grafico_barra_agrupado(
 )
 
 # %% [markdown]
+# <!-- nota-curadoria:censo_sidra_populacao_0_6_sexo_2022 -->
+# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem detalhar a população de crianças até 6 anos no município do Rio de Janeiro por idade, raça/cor e sexo. A distribuição por idade possibilita observar a composição desse grupo ao longo dos primeiros anos de vida, enquanto os recortes por raça/cor e sexo ampliam a caracterização demográfica da primeira infância. Os dados são apresentados para o conjunto do município e complementam o recorte territorial de crianças de 0 a 4 anos analisado anteriormente. Essa caracterização é importante para contextualizar os indicadores de saúde, educação, proteção social e demais dimensões analisadas no relatório.
+
+# %% [markdown]
 # #### 🗺️ Mapa coroplético (bairros)
 #
 # Mapas coropléticos de crianças de 0 a 4 anos por bairro (Censo 2022), a partir de
@@ -1517,7 +1521,7 @@ mapa_coropletico_bairros(
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_censo_0_4_percentual -->
-# **Nota de curadoria:** A participação das crianças de 0 a 4 anos na população total do município diminuiu entre os Censos de 2000, 2010 e 2022. A proporção passou de aproximadamente 7,1% em 2000 para 5,4% em 2010 e 4,7% em 2022. O mapa complementa essa tendência ao mostrar diferenças na participação dessa faixa etária entre os bairros. A análise percentual permite comparar territórios de diferentes tamanhos populacionais, evidenciando o peso relativo das crianças de 0 a 4 anos em cada localidade. Esse indicador contribui para caracterizar a estrutura etária do município e contextualizar as demandas relacionadas à primeira infância.
+# **Nota de curadoria:** A participação das crianças de 0 a 4 anos na população total do município diminuiu entre os Censos de 2000, 2010 e 2022. A proporção passou de aproximadamente 7,6% em 2000 para 5,8% em 2010 e 5,0% em 2022. O mapa complementa essa tendência ao mostrar diferenças na participação dessa faixa etária entre os bairros. A análise percentual permite comparar territórios de diferentes tamanhos populacionais, evidenciando o peso relativo das crianças de 0 a 4 anos em cada localidade. Esse indicador contribui para caracterizar a estrutura etária do município e contextualizar as demandas relacionadas à primeira infância.
 
 # %% [markdown]
 # #### 🗺️ Versões alternativas: por Área e por Região de Planejamento
@@ -1746,7 +1750,7 @@ grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Famílias',
 
 # %% [markdown]
 # <!-- nota-curadoria:cadunico_familias_por_faixa_renda -->
-# **Nota de curadoria:** A partir do dado de famílias com crianças até 6 anos no CadÚnico é possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R$218, um dos critérios de extrema pobreza, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade. No que diz respeito às rendas mais altas a tendência é diminuindo conforme aumenta-se a renda, chegando a patamares estatisticamente irrelevantes.
+# **Nota de curadoria:** A partir do dado de famílias com crianças de 0 a 5 anos no CadÚnico é possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R$218, um dos critérios de extrema pobreza, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade. No que diz respeito às rendas mais altas a tendência é diminuindo conforme aumenta-se a renda, chegando a patamares estatisticamente irrelevantes.
 
 # %%
 grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Crianças',
@@ -1776,7 +1780,7 @@ grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: F
 
 # %% [markdown]
 # <!-- nota-curadoria:cadunico_familias_por_idade -->
-# **Nota de curadoria:** No recorte por família com crianças até 6 anos no CadÚnico, à medida que se avança a idade, aumenta-se a quantidade de família com criança naquela idade que está cadastrada no CadÚnico. Seguindo, notoriamente, o mesmo padrão do gráfico das crianças cadastradas no CadÚnico.
+# **Nota de curadoria:** No recorte por família com crianças de 0 a 5 anos no CadÚnico, à medida que se avança a idade, aumenta-se a quantidade de família com criança naquela idade que está cadastrada no CadÚnico. Seguindo, notoriamente, o mesmo padrão do gráfico das crianças cadastradas no CadÚnico.
 
 # %%
 grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças de 0 a 5 anos, por idade',
@@ -1944,7 +1948,7 @@ mapa_coropletico_bairros(
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_cadunico_criancas_0_a_4_bairro_2026 -->
-# **Nota de curadoria:** Olhando para a distribuição espacial, pode-se observar que a maior concentração tanto de crianças de 0 a 6 quanto de 0 a 4 no CadÚnico está presente nas Zonas Oeste e Norte da cidade. Há alterações absolutas nos intervalos de distribuição quando se olha para os dois mapas, mas o padrão de distribuição geográfica segue praticamente o mesmo. Nos dois mapas, a Zona Oeste apresenta a maior concentração de crianças cadastradas. Já a Zona Sul e parte da extensão litorânea da Barra da Tijuca/Recreio apresentam menores quantitativos. Na Zona Norte e no Centro apresentam-se uma maior fragmentação por terem muitos bairros, favelas e comunidades.
+# **Nota de curadoria:** Olhando para a distribuição espacial, pode-se observar que a maior concentração tanto de crianças de 0 a 5 quanto de 0 a 4 anos no CadÚnico está presente nas Zonas Oeste e Norte da cidade. Há alterações absolutas nos intervalos de distribuição quando se olha para os dois mapas, mas o padrão de distribuição geográfica segue praticamente o mesmo. Nos dois mapas, a Zona Oeste apresenta a maior concentração de crianças cadastradas. Já a Zona Sul e parte da extensão litorânea da Barra da Tijuca/Recreio apresentam menores quantitativos. Na Zona Norte e no Centro apresentam-se uma maior fragmentação por terem muitos bairros, favelas e comunidades.
 
 # %% [markdown]
 # #### 👨‍👩‍👧 Recortes por família: sexo, raça/cor, arranjo familiar e renda
@@ -2255,7 +2259,7 @@ serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titul
 
 # %% [markdown]
 # <!-- nota-curadoria:nascidos_abaixo_peso_percentual_por_ano -->
-# **Nota de curadoria:** Em 2006 e 2025, o percentual de nascidos com baixo peso apresentou oscilações moderadas. Após permanecer próximo de 10% até 2010, o indicador caiu e atingiu seu menor valor em 2017, com 9,15%. A partir de 2018, observa-se uma tendência de crescimento, chegando ao pico de 10,63% em 2023. Nos anos seguintes houve pequena redução, com o percentual chegando a 10,26% em 2025.
+# **Nota de curadoria:** Entre 2006 e 2025, o percentual de nascidos com baixo peso apresentou oscilações moderadas. Após permanecer próximo de 10% até 2010, o indicador caiu e atingiu seu menor valor em 2017, com 9,15%. A partir de 2018, observa-se uma tendência de crescimento, chegando ao pico de 10,63% em 2023. Nos anos seguintes houve pequena redução, com o percentual chegando a 10,26% em 2025.
 
 # %% [markdown]
 # #### 📉 Mortalidade
@@ -3154,7 +3158,7 @@ df_obitos_gravidez_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_gravidez_2025
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_obitos_gravidez_bairro_2025 -->
-# **Nota de curadoria:** A distribuição territorial dos óbitos durante a gravidez permite identificar os bairros com registros do evento em 2025. Foram registrados 14 óbitos em 12 bairros, com dois registros em Vigário Geral e Rocinha. Como são números absolutos e contagens pequenas, o mapa pode ser utilizado como referência territorial e relacionado a outros indicadores, como nascidos vivos, população e características demográficas, para ampliar a análise da mortalidade materna.
+# **Nota de curadoria:** A distribuição territorial dos óbitos durante a gravidez permite identificar os bairros com registros do evento em 2025. Foram registrados 14 óbitos em 12 bairros, com dois registros em Vigário Geral e Rocinha. O total do mapa é menor que o da série municipal (15 óbitos em 2025) porque 1 registro não tem bairro de residência informado. Como são números absolutos e contagens pequenas, o mapa pode ser utilizado como referência territorial e relacionado a outros indicadores, como nascidos vivos, população e características demográficas, para ampliar a análise da mortalidade materna.
 
 # %%
 df_obitos_puerperio = pd.read_csv('dados_locais/mortalidade/obitos_puerperio_bairro_2006_2025.csv')
@@ -3196,7 +3200,7 @@ df_obitos_puerperio_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_puerperio_20
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_obitos_puerperio_bairro_2025 -->
-# **Nota de curadoria:** A distribuição territorial dos óbitos durante o puerpério permite identificar os bairros com registros do evento em 2025. Foram registrados 31 óbitos distribuídos em 24 bairros, com maior número em Senador Camará, que apresentou 3 registros. Jacarepaguá, Bangu, Pavuna, Guaratiba e Complexo do Alemão registraram 2 óbitos cada, enquanto os demais bairros com ocorrência apresentaram 1 registro. Como são números absolutos, o mapa pode ser relacionado a outros indicadores, como nascidos vivos e características demográficas, para ampliar a análise territorial da mortalidade materna.
+# **Nota de curadoria:** A distribuição territorial dos óbitos durante o puerpério permite identificar os bairros com registros do evento em 2025. Foram registrados 31 óbitos distribuídos em 24 bairros, com maior número em Senador Camará, que apresentou 3 registros. Jacarepaguá, Bangu, Pavuna, Guaratiba e Complexo do Alemão registraram 2 óbitos cada, enquanto os demais bairros com ocorrência apresentaram 1 registro. O total do mapa é menor que o da série municipal (35 óbitos em 2025) porque 4 registros não têm bairro de residência informado. Como são números absolutos, o mapa pode ser relacionado a outros indicadores, como nascidos vivos e características demográficas, para ampliar a análise territorial da mortalidade materna.
 
 # %% [markdown]
 # #### 🩺 Mortalidade Neonatal
@@ -3436,7 +3440,7 @@ serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', tit
 
 # %% [markdown]
 # <!-- nota-curadoria:sisvan_desnutricao_percentual_por_ano -->
-# **Nota de curadoria:** Ao longo da série, o percentual de nascidos com baixo peso apresentou oscilações, permanecendo na maior parte dos anos entre 3% e 7%. O principal destaque ocorreu em 2018, quando o indicador atingiu 15,5%, valor muito acima dos outros anos. Após esse pico, o percentual retorna a níveis mais próximos do padrão da série, chegando a 7,5% em 2025. O valor de 2018 se destaca como um ponto fora do comportamento geral e merece atenção ao ser analisado.
+# **Nota de curadoria:** Ao longo da série, o percentual de crianças com baixo peso para a idade (desnutrição) apresentou oscilações, permanecendo na maior parte dos anos entre 3% e 7%. O principal destaque ocorreu em 2018, quando o indicador atingiu 15,5%, valor muito acima dos outros anos. Após esse pico, o percentual retorna a níveis mais próximos do padrão da série, chegando a 7,5% em 2025. O valor de 2018 se destaca como um ponto fora do comportamento geral e merece atenção ao ser analisado.
 
 # %%
 df_sobrepeso = pd.read_csv("dados_locais/tratados/sobrepeso.csv", index_col=0)
@@ -3460,7 +3464,7 @@ serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Pe
 
 # %% [markdown]
 # <!-- nota-curadoria:sisvan_obesidade_percentual_por_ano -->
-# **Nota de curadoria:** O percentual de crianças com obesidade, semelhante ao com sobrepeso, também apresentou oscilações ao longo da série Após crescimento entre 2008 e 2013, o indicdor atingiu seu maior valor em 2013, com 11,36%. Nos anos seguintes houve tendência de redução, chegando a 5,36% em 2020. A partir de 2022, os valores permaneceram relativamente estáveis, com leve aumento recente, alcançando 7,34% em 2025. O valor de 2009, de 0,07%, aparece muito abaixo do restante da série e deve ser interpretado com cautela.
+# **Nota de curadoria:** O percentual de crianças com obesidade, semelhante ao com sobrepeso, também apresentou oscilações ao longo da série. Após crescimento entre 2008 e 2013, o indicador atingiu seu maior valor em 2013, com 11,36%. Nos anos seguintes houve tendência de redução, chegando a 5,36% em 2020. A partir de 2022, os valores permaneceram relativamente estáveis, com leve aumento recente, alcançando 7,34% em 2025. O valor de 2009, de 0,07%, aparece muito abaixo do restante da série e deve ser interpretado com cautela.
 
 # %% [markdown]
 # ### 💉 Cobertura Vacinal EPI
