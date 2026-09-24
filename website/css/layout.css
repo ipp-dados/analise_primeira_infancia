@@ -21,12 +21,12 @@
   display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--s7);
   align-items:end; padding-top:40px; padding-bottom:36px;
 }
-/* logo maior que no protótipo (pedido do usuário): 40 px de altura, srcset 1x/2x/3x gerado pelo build */
+/* logo maior que no protótipo (pedido do usuário), depois um pouco reduzido: 34 px de altura, srcset 1x/2x/3x gerado pelo build */
 .banner-logo{
   display:inline-flex; align-items:center; background:var(--ipp-navy);
   padding:10px 16px; border-radius:var(--radius-sm); margin-bottom:24px;
 }
-.banner-logo .ipp-logo{height:40px; width:auto; display:block;}
+.banner-logo .ipp-logo{height:34px; width:auto; display:block;}
 /* logo = link para ipp.prefeitura.rio (banner e rodapé) */
 a.banner-logo{transition:box-shadow .15s ease, transform .15s ease;}
 a.banner-logo:hover{box-shadow:var(--shadow-2); transform:translateY(-1px);}
@@ -118,7 +118,7 @@ footer.doc-foot{background:var(--ipp-navy); color:#EAF2F8; padding:40px 0 26px;}
 .footer-cols{display:flex; gap:40px; flex-wrap:wrap; padding-bottom:22px;}
 .footer-col{min-width:180px; flex:1;}
 .footer-col-logo{min-width:220px; flex:1.4;}
-.footer-col-logo .ipp-logo{height:32px; width:auto; display:block; margin-bottom:14px;}
+.footer-col-logo .ipp-logo{height:28px; width:auto; display:block; margin-bottom:14px;}
 .footer-col-logo p{font-size:.76rem; color:#B9D2E4; max-width:260px; line-height:1.6; margin:0;}
 .footer-col .eyebrow{color:#9CC0DA; margin-bottom:8px;}
 .footer-col > div{font-size:.76rem; color:#DCE9F2; line-height:1.9;}

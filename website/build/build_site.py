@@ -534,7 +534,7 @@ def nota_metodologica(texto):
 # reduzir 14x para 22 px de altura. Agora: exibido maior e com cópias reduzidas por Lanczos na
 # altura exata de exibição x1/x2/x3 (srcset), geradas a partir do original (_logo_derivados).
 _LOGO_ALT = "Prefeitura do Rio de Janeiro — Instituto Pereira Passos"
-_LOGO_ALTURAS = {"banner": 40, "rodape": 32}
+_LOGO_ALTURAS = {"banner": 34, "rodape": 28}   # um pouco menor (pedido do usuário, 2026-09-24; antes 40/32)
 
 def _logo_derivados():
     orig = Path("website/assets/images/ipp-logo.png")
@@ -998,7 +998,9 @@ INTRO_HTML = _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") 
 
 # ============================================================== PRIORIDADE ==
 
-h2('🎯 Prioridade (sem secundário)')
+# título sem o "(sem secundário)" (pedido do usuário, 2026-09-24): id do painel vira "prioridade";
+# o id antigo continua abrindo a aba via data-alias (links já compartilhados)
+h2('🎯 Prioridade')
 
 h3('Por bairro')
 df_censo_bairro = read("censo_por_bairro.csv")
@@ -1783,7 +1785,8 @@ for en, pt in MESES.items():
 # URLs de Transparencia Rio/LGPD e o e-mail de contato sao os do site
 # institucional principal, copiados do mockup -- CONFIRMAR se sao os corretos
 # para este relatorio especificamente antes do deploy (plan.md §6, T6.2).
-FOOTER_FONTES = ["Censo 2022 (IBGE)", "CadÚnico", "DataSUS/Tabnet", "SISVAN · IBGE SIDRA"]
+FOOTER_FONTES = ["Censo 2022 (IBGE)", "CadÚnico", "DataSUS/Tabnet", "SISVAN · IBGE SIDRA",
+                 '<a href="https://basedosdados.org/" target="_blank" rel="noopener">Base dos Dados ↗</a>']   # pedido do usuário, 2026-09-24
 FOOTER_LINKS = [
     ("ipp.prefeitura.rio", "https://ipp.prefeitura.rio/"),
     ("Transparência Rio", "https://transparencia.rio/"),
@@ -1815,7 +1818,9 @@ TITULO_H1 = '<span class="h1-linha">Diagnóstico da</span><span class="h1-linha"
 URL_GITHUB = "https://github.com/ipp-dados/analise_primeira_infancia"
 # PDF não é publicado no Pages (~48 MB, fora do orçamento §4.9 e da decisão T9.3 de
 # specs/relatorio-interativo) -- link para o arquivo versionado no repositório (branch principal).
-URL_PDF = URL_GITHUB + "/blob/staging_main/relatorio/analise_primeira_infancia.pdf"
+# raw.githubusercontent.com serve o arquivo como application/octet-stream -> o navegador baixa direto
+# (pedido do usuário: link de download, não a página do GitHub)
+URL_PDF = "https://raw.githubusercontent.com/ipp-dados/analise_primeira_infancia/staging_main/relatorio/analise_primeira_infancia.pdf"
 
 # rótulo curto da aba e ícone por eixo (título completo continua no h2 do painel)
 _EIXO_META = [  # (prefixo do sid, rótulo curto, ícone)
@@ -1841,6 +1846,7 @@ for _nivel, _titulo, _sid in toc:
     elif _nivel == 3 and _atual:
         _h3_por_secao[_atual].append((_titulo, _sid))
 
+_ALIAS_PAINEL = {"prioridade": ["prioridade-sem-secundário"]}   # id antigo -> continua abrindo a aba
 n_secoes = len(section_starts)
 _fim_conteudo = len(parts)
 paineis, navs_outline, abas = [], [], []
@@ -1867,7 +1873,8 @@ for i, (start, titulo, sid) in enumerate(section_starts):
     caixa_fontes = callout("sources", "book-open", "Fontes desta seção",
                            "<ul>" + "".join(f"<li>{f}</li>" for f in fontes) + "</ul>") if fontes else ""
     paineis.append(
-        f'<section class="tab-panel" id="{sid}" role="tabpanel" aria-labelledby="tab-{sid}" hidden>'
+        f'<section class="tab-panel" id="{sid}" role="tabpanel" aria-labelledby="tab-{sid}"'
+        + (f' data-alias="{" ".join(_ALIAS_PAINEL[sid])}"' if sid in _ALIAS_PAINEL else "") + ' hidden>'
         f'<header class="panel-head"><span class="panel-icon">{icone(ic)}</span><div>'
         f'<div class="eyebrow panel-eyebrow">Eixo {i + 1} de {n_secoes}</div><h2>{titulo}</h2></div></header>'
         f'{achados}{corpo}{conclusao}{caixa_fontes}</section>'

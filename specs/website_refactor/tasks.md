@@ -79,4 +79,5 @@ Um commit por bloco. Marcar `[x]` só depois da verificação correspondente em 
 - [ ] **T8.4**: Deploy real no Pages e roteiro Chromium na URL publicada (com ok do usuário).
 - [x] **T8.5**: Capturas por motor no scratchpad; revisão final do usuário abrindo `website/index.html`.
 - [x] **T8.7** *(pedido no Bloco 8)*: logo do IPP (banner e rodapé) vira link para `ipp.prefeitura.rio`.
+- [x] **T8.8** *(ajustes finais)*: "(sem secundário)" removido do site (id `prioridade` + alias do antigo); logo 34/28 px; PDF com download direto; Base dos Dados no rodapé. Conferido no navegador (texto, rotas nova e antiga, alturas, links), 0 erros.
 - [ ] **T8.6**: Merge em `planning`/`staging_main` (com ok do usuário).

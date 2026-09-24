@@ -58,7 +58,11 @@
     const hash = decodeURIComponent(location.hash.replace(/^#/, ''));
     if (!hash) { ativa(tabs[0], {rolar: false}); return; }
     const [painelId, subId] = hash.split('/');
-    const direto = tabs.find(t => t.getAttribute('aria-controls') === painelId);
+    // id atual do painel, ou um id antigo listado em data-alias (ex. #prioridade-sem-secundário)
+    const direto = tabs.find(t => t.getAttribute('aria-controls') === painelId) || tabs.find(t => {
+      const p = panelOf(t);
+      return p && (p.dataset.alias || '').split(' ').includes(painelId);
+    });
     if (direto) {
       ativa(direto, {alvo: subId ? document.getElementById(subId) : null});
       return;
