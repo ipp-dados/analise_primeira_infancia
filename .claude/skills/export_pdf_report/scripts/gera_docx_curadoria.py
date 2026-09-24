@@ -339,7 +339,8 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
         textos_curados = extrai_textos_por_bookmark(docx_anterior)
     textos_curados.update(textos_extra or {})
     controle = controle or {}
-    ctl_blocos = controle.get("blocos", {})
+    # "ajustes_manuais" (correções feitas fora de um arquivo de update) vence o status calculado
+    ctl_blocos = {**controle.get("blocos", {}), **controle.get("ajustes_manuais", {})}
     ctl_alertas = controle.get("alertas", {})
     ctl_novos = set(controle.get("novos_desde_ultima_rodada", []))
     ctl_notas = {}

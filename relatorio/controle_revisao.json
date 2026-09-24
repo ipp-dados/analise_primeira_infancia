@@ -10,6 +10,11 @@
    "id": "curadoria_textos_update_2",
    "arquivo": "curadoria_textos_update_2.docx",
    "data": "2026-09-24"
+  },
+  {
+   "id": "correcoes",
+   "arquivo": "(correções pedidas pelo usuário, aplicadas por script)",
+   "data": "2026-09-24"
   }
  ],
  "blocos": {
@@ -493,42 +498,147 @@
    "origem": "curadoria_textos_update_2.docx"
   }
  ],
- "realocar": [
-  {
-   "bookmark": "PrioridadesemsecundrioCrianasat6_c0234de1",
-   "h2": "Crianças até 6 anos (número)",
-   "texto": "Os dados do Censo Demográfico 2022 permitem detalhar a população de crianças até 6 anos no município do Rio de Janeiro por idade, raça/cor e sexo. A distribuição por idade possibilita observar a composição desse grupo ao longo dos primeiros anos de vida, enquanto os recortes por raça/cor e sexo ampliam a caracterização demográfica da primeira infância. Os dados são apresentados para o conjunto do município e complementam o recorte territorial de crianças de 0 a 4 anos analisado anteriormente. Essa caracterização é importante para contextualizar os indicadores de saúde, educação, proteção social e demais dimensões analisadas no relatório.",
-   "origem": "curadoria_textos_update_2.docx",
-   "sugestao": "O texto descreve o Censo 2022 por idade, raça/cor e sexo, mas a subseção passou a mostrar a série de estimativas Ripsa (0 a 6 anos). Sugestão: mover para Inclusão › “Crianças até 6 anos, por sexo” e “por raça/cor” (auditoria de faixas etárias, specs/populacao-referencia)."
+ "realocar": [],
+ "alertas": {},
+ "ajustes_manuais": {
+  "censo_0_a_4_serie_percentual_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "correcoes"
+   ]
+  },
+  "mapa_censo_0_4_percentual": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "correcoes"
+   ]
+  },
+  "cadunico_familias_por_idade": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "correcoes"
+   ]
+  },
+  "cadunico_familias_por_faixa_renda": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "correcoes"
+   ]
+  },
+  "mapa_cadunico_criancas_0_a_4_bairro_2026": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "correcoes"
+   ]
+  },
+  "sisvan_desnutricao_percentual_por_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_2",
+    "correcoes"
+   ]
+  },
+  "mapa_obitos_gravidez_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "correcoes"
+   ]
+  },
+  "mapa_obitos_puerperio_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "correcoes"
+   ]
+  },
+  "sisvan_obesidade_percentual_por_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_2",
+    "correcoes"
+   ]
+  },
+  "nascidos_abaixo_peso_percentual_por_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_2",
+    "correcoes"
+   ]
+  },
+  "censo_sidra_populacao_0_6_sexo_2022": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "correcoes"
+   ]
   }
- ],
- "alertas": {
+ },
+ "alertas_resolvidos": {
   "censo_0_a_4_serie_percentual_ano": [
-   "Conferir dado: o texto cita 7,1% / 5,4% / 4,7% (2000/2010/2022). Depois da correção da série dos Censos (specs/populacao-referencia, C-D3) os valores são 7,6% / 5,8% / 5,0%."
+   "Conferir dado: o texto cita 7,1% / 5,4% / 4,7% (2000/2010/2022). Depois da correção da série dos Censos (specs/populacao-referencia, C-D3) os valores são 7,6% / 5,8% / 5,0%.",
+   "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ],
   "mapa_censo_0_4_percentual": [
-   "Conferir dado: o texto cita 7,1% / 5,4% / 4,7%; os valores corrigidos são 7,6% / 5,8% / 5,0% (mesmo caso do gráfico da série)."
+   "Conferir dado: o texto cita 7,1% / 5,4% / 4,7%; os valores corrigidos são 7,6% / 5,8% / 5,0% (mesmo caso do gráfico da série).",
+   "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ],
   "cadunico_familias_por_idade": [
-   "Conferir faixa: o texto diz \"crianças até 6 anos\"; o recorte do CadÚnico é de 0 a 5 anos (auditoria de faixas etárias)."
+   "Conferir faixa: o texto diz \"crianças até 6 anos\"; o recorte do CadÚnico é de 0 a 5 anos (auditoria de faixas etárias).",
+   "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ],
   "mapa_cadunico_criancas_0_a_4_bairro_2026": [
-   "Conferir faixa: o texto diz \"de 0 a 6 quanto de 0 a 4\"; os dados são de 0 a 5 e de 0 a 4 anos."
+   "Conferir faixa: o texto diz \"de 0 a 6 quanto de 0 a 4\"; os dados são de 0 a 5 e de 0 a 4 anos.",
+   "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ],
   "sisvan_desnutricao_percentual_por_ano": [
-   "Conferir assunto: o texto fala em \"percentual de nascidos com baixo peso\", mas o gráfico é de desnutrição (SISVAN) — provável cópia do texto de baixo peso."
+   "Conferir assunto: o texto fala em \"percentual de nascidos com baixo peso\", mas o gráfico é de desnutrição (SISVAN) — provável cópia do texto de baixo peso.",
+   "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ],
   "mapa_obitos_gravidez_bairro_2025": [
-   "Conferir número: o mapa cita 14 óbitos em 2025 e a série municipal, 15 — a diferença provavelmente é óbito sem bairro informado; vale dizer isso no texto."
+   "Conferir número: o mapa cita 14 óbitos em 2025 e a série municipal, 15 — a diferença provavelmente é óbito sem bairro informado; vale dizer isso no texto.",
+   "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ],
   "mapa_obitos_puerperio_bairro_2025": [
-   "Conferir número: o mapa cita 31 óbitos em 2025 e a série municipal, 35 — provável óbito sem bairro informado; vale dizer isso no texto."
+   "Conferir número: o mapa cita 31 óbitos em 2025 e a série municipal, 35 — provável óbito sem bairro informado; vale dizer isso no texto.",
+   "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ],
   "sisvan_obesidade_percentual_por_ano": [
-   "Revisão de texto: \"indicdor\" → \"indicador\"; falta ponto antes de \"Após crescimento\"."
+   "Revisão de texto: \"indicdor\" → \"indicador\"; falta ponto antes de \"Após crescimento\".",
+   "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ],
   "nascidos_abaixo_peso_percentual_por_ano": [
-   "Revisão de texto: \"Em 2006 e 2025\" → \"Entre 2006 e 2025\"."
+   "Revisão de texto: \"Em 2006 e 2025\" → \"Entre 2006 e 2025\".",
+   "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ]
- }
+ },
+ "realocar_resolvidos": [
+  {
+   "bookmark": "PrioridadesemsecundrioCrianasat6_c0234de1",
+   "destino": "censo_sidra_populacao_0_6_sexo_2022",
+   "data": "2026-09-24"
+  }
+ ]
 }

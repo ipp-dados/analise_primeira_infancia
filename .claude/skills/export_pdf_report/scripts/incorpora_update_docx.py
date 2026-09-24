@@ -209,10 +209,14 @@ def atualiza_controle(caminho, rodadas, por_rodada, vistos_ultima, notas, realoc
             r["sugestao"] = sugestoes[r["bookmark"]]
     controle = dict(
         _leia=("Controle de revisão dos textos de curadoria (gerado por incorpora_update_docx.py; "
-               "'alertas' é editado à mão e preservado). O gerador do DOCX usa este arquivo para marcar "
+               "'alertas', 'alertas_resolvidos' e 'ajustes_manuais' são editados à mão e preservados). O gerador do DOCX usa este arquivo para marcar "
                "status nos títulos (e portanto no Sumário) e montar a tabela 'Controle de revisão'."),
         rodadas=rodadas, blocos=blocos_, novos_desde_ultima_rodada=novos,
         notas=notas, realocar=realocar, alertas=anterior.get("alertas", {}),
+        alertas_resolvidos=anterior.get("alertas_resolvidos", {}),
+        # correções aplicadas fora de um arquivo de update: status/rodada que o DOCX mostra até a
+        # próxima rodada de update (que recalcula `blocos`; aí vale limpar o que ela já cobrir)
+        ajustes_manuais=anterior.get("ajustes_manuais", {}),
     )
     Path(caminho).write_text(json.dumps(controle, ensure_ascii=False, indent=1), encoding="utf-8")
     return controle

@@ -394,6 +394,17 @@ def _texto_analise(seed, palavras=None):
     import html as _html
     return "<br><br>".join(_html.escape(t.strip()) for t in curado.split("\n") if t.strip())
 
+def _texto_seed(seed):
+    """`seed` pode ser uma tupla (par de gráficos lado a lado sob 1 texto, ex. CadÚnico Crianças +
+    Famílias): junta os textos curados dos arquivos do par, na ordem; sem nenhum curado, lorem do
+    primeiro (comportamento anterior). Mesma regra de `_texto_par` no gerador do PDF (2026-09-24)."""
+    if not isinstance(seed, tuple):
+        return _texto_analise(seed)
+    curados = [s for s in seed if _TEXTOS_CURADOS.get(s)]
+    if curados:
+        return "<br><br>".join(_texto_analise(s) for s in curados)
+    return _texto_analise(seed[0])
+
 def _lorem_bullets(seed, n=5, palavras=8):
     """n frases curtas (placeholder) para o bloco 'principais achados' --
     mesmo gerador deterministico do _lorem, seed derivado por indice."""
@@ -471,7 +482,7 @@ def option_card(entries, padrao='grafico'):
         parts.append(
             f'<div class="option-card option-card-{padrao} option-card-single">'
             f'<div class="opt-panes">{html}</div>'
-            f'<div class="opt-texts"><div class="opt-text"><div class="opt-text-inner">{_texto_analise(seed)}</div></div></div>'
+            f'<div class="opt-texts"><div class="opt-text"><div class="opt-text-inner">{_texto_seed(seed)}</div></div></div>'
             '</div>'
         )
         return
@@ -481,7 +492,7 @@ def option_card(entries, padrao='grafico'):
         build_fn()
         html = "".join(parts[start:]); del parts[start:]
         panes.append(f'<div class="opt-pane"{" hidden" if i else ""}>{html}</div>')
-        texts.append(f'<div class="opt-text"{" hidden" if i else ""}><div class="opt-text-inner">{_texto_analise(seed)}</div></div>')
+        texts.append(f'<div class="opt-text"{" hidden" if i else ""}><div class="opt-text-inner">{_texto_seed(seed)}</div></div>')
         active = ' data-active="true"' if i == 0 else ''
         pills.append(f'<button type="button" class="pill"{active}>{_esc(label)}</button>')
     parts.append(
@@ -1505,20 +1516,18 @@ df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"].copy()
 df_renda_sem_total["faixa de renda"] = df_renda_sem_total["faixa de renda (descrição)"]
 df_idade = read("cadunico_por_idade_2026.csv")
 df_idade["idade_lbl"] = df_idade["idade"].astype(int).map(lambda i: f"{i} ano" if i == 1 else f"{i} anos")
-# seed: cada opcao mostra um out_pair (Criancas + Familias lado a lado) sob
-# 1 unico bloco de texto/pill -- so ha 1 seed por opcao, entao aponta para o
-# arquivo do lado "Criancas" (primeiro do par, aproximacao documentada); o
-# lado "Familias" (cadunico_familias_por_faixa_renda.png / _por_idade.png)
-# fica sem seed proprio nesta rodada.
+# seed: cada opcao mostra um out_pair (Criancas + Familias lado a lado) sob 1 bloco de texto --
+# seed em tupla (Criancas, Familias): _texto_seed junta os textos curados dos dois arquivos
+# (antes so o lado "Criancas" tinha seed e o texto das Familias nao chegava ao site).
 option_card([
     ("Por faixa de renda", lambda: out_pair(
         lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Crianças"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
         lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Famílias"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
-    ), "cadunico_criancas_por_faixa_renda"),
+    ), ("cadunico_criancas_por_faixa_renda", "cadunico_familias_por_faixa_renda")),
     ("Por idade", lambda: out_pair(
         lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Crianças"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
         lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Famílias"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
-    ), "cadunico_criancas_por_idade"),
+    ), ("cadunico_criancas_por_idade", "cadunico_familias_por_idade")),
 ], 'grafico')
 
 h4('Mapas')

@@ -353,3 +353,7 @@ processo um `NameError` real (célula ativa sobrevivente da curadoria). Detalhes
   no título (e no Sumário) e numa tabela de controle; alertas de dado/texto a conferir, sem editar o texto.
 - PDF: pares do CadÚnico usam os textos curados de cada gráfico; texto da série de vacinação; mapas de
   óbitos tardios, na gravidez e no puerpério incluídos.
+- Correções nos textos curados (pedido do usuário): percentuais do Censo 0-4 (7,6/5,8/5,0%), faixa do CadÚnico
+  (0 a 5 anos), assunto do texto de desnutrição SISVAN, óbitos sem bairro nos mapas de gravidez/puerpério,
+  dois erros de digitação; texto "Crianças até 6 anos" movido para Inclusão › por sexo. Site passa a mostrar
+  os textos das Famílias no CadÚnico (par Crianças + Famílias).
