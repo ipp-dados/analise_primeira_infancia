@@ -109,6 +109,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.21.0 | 2026-09-24 | População de referência: Ripsa/MS no município (taxas municipais novas) e Censo 2022 explícito abaixo dele; matrículas 0-5 refeitas dos microdados do INEP, com taxa de atendimento; auditoria de faixas etárias e correção do total dos Censos (`specs/populacao-referencia`). |
 | 0.20.0 | 2026-09-23 | CadÚnico: recortes por sexo, raça/cor e arranjo familiar × renda (eixo Inclusão), supressão de células < 20 e correções nas saídas existentes (`specs/recortes_cadunico`). |
 | 0.19.1 | 2026-09-22 | Revertido o rename de `relatorio/index.html` para `relatorio/relatorio.html` (0.19.0) — de volta a `index.html`. |
 | 0.19.0 | 2026-09-22 | Relatório/mapas/tabelas regenerados de verdade; `relatorio/index.html` renomeado para `relatorio/relatorio.html` (deploy continua publicando como `index.html`); primeiro deploy de teste no GitHub Pages; README reestruturado. |

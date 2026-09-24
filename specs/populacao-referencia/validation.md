@@ -63,6 +63,6 @@ As células foram rodadas numa cópia de rascunho do projeto (só topo + célula
 
 ## V6: Fechamento
 
-- [ ] Notebook do zero no `analises_env` sem erro, usando só os extratos (sem rede).
-- [ ] HTML, PDF e DOCX regenerados; diferenças em relação ao baseline explicadas (cards novos, rótulos).
-- [ ] `git status` sem ZIP e sem saída gerada por engano.
+- [x] `analise.py` do zero no `analises_env`, como script (o único kernel registrado é o do Anaconda base, sem `psycopg`), numa cópia de rascunho: **sem erro**. Ripsa e INEP lidos só dos extratos (a rede só foi usada pelos tiles dos mapas). 85 de 87 CSV idênticas ao repositório; as 2 diferentes (SISVAN) só mudam a ordem das linhas (`limpa_dados_sisvan` segue a ordem do sistema de arquivos, comportamento anterior). Saídas que o script não produz (`obitos_causas_evitaveis_raca_*`, `cobertura_vacinal_epi_ano`, 4 mapas de óbitos, as 2 séries do Censo) vêm de células já comentadas antes desta rodada, ou só de `regen_missing_pngs.py`. *(2026-09-24)* Observação: a cópia precisou rodar pelo caminho curto (8.3) do Windows: o caminho longo passava do limite de 260 caracteres.
+- [x] HTML, PDF e DOCX regenerados; diferenças em relação ao baseline: +4 option cards, 127 → 140 páginas, 160 → 171 headings no DOCX, rótulos com a faixa real, participação 0-4 dos Censos corrigida.
+- [x] `git status` sem ZIP e sem saída gerada por engano (a execução completa foi feita fora do repositório).

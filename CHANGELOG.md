@@ -316,3 +316,23 @@ processo um `NameError` real (célula ativa sobrevivente da curadoria). Detalhes
   `cadunico_por_faixa_renda_2026.csv` (o conteúdo sempre foi por renda); rótulos descritivos de renda; fonte com a data da extração.
 - Relatórios: HTML/PDF/DOCX com os 3 itens de Inclusão; mapa "% CadÚnico/Censo" retirado do HTML/PDF (fica no notebook);
   `mapa_svg(col_suprimido=...)` mostra "suprimido (< 20)" no tooltip.
+
+---
+
+## 2026-09-24 — `specs/populacao-referencia` (população de referência, matrículas, faixas etárias)
+
+- `analise.py`: `carrega_populacao_ripsa`/`populacao_ripsa` (estimativas Ripsa/MS 2000-2025 via Tabnet, extrato
+  `dados_locais/populacao/ripsa_populacao_rio.csv`) como denominador de toda taxa municipal; série de população de
+  0 a 6 anos, taxa municipal de violência familiar por 1.000 (0-5, 2011-2025) e razão CadÚnico/população (49,4%).
+  Abaixo do município o denominador segue o Censo 2022, agora citado em legendas, fontes e notas.
+- Matrículas: `carrega_censo_escolar_matriculas`/`resume_matriculas_0_a_5` refazem a série 2007-2025 (0 a 5 anos)
+  dos microdados do INEP (extrato `dados_locais/educacao/inep_matriculas_rio.csv`); taxa bruta de atendimento com
+  metas do PNE (`linhas_referencia` opcional em `serie_temporal_multipla`). O CSV antigo "até 6 anos" saiu de uso.
+- Correção: o total da série dos Censos 2000/2010/2022 contava 0-4 anos duas vezes (participação de 0-4 anos
+  passa de 7,1/5,4/4,7% para 7,6/5,8/5,0%).
+- Faixas etárias: auditoria em `specs/populacao-referencia/auditoria_faixas.md`; títulos com a faixa real (CadÚnico
+  e SISVAN são 0 a 5 anos); 21 arquivos renomeados (`*_primeira_infancia_*` → `*_0_a_4_*`; mortalidade `_0_6_` →
+  `_0_a_6_dias_`, idem 7-27 e 28-364).
+- Relatórios: cards novos no HTML/PDF/DOCX; % de nascidos vivos por bairro no tooltip do mapa; aviso no console
+  para itens do crosswalk sem arquivo e sem status.
+

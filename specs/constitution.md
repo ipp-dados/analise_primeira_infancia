@@ -53,6 +53,11 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   administrativas diferentes com códigos de formato parecido — não confundir.
 - Toda visualização/mapa cita sua fonte (`fonte_dados` ou equivalente). Não
   adicionar um call site novo sem isso.
+- **População de referência por nível** (`specs/populacao-referencia`, 2026-09-24): taxa **municipal**
+  usa as estimativas Ripsa/MS do mesmo ano (`populacao_ripsa`); taxa **sub-municipal** (bairro, AP, RP,
+  RA, CAP) usa o Censo 2022, fixo, e diz isso na fonte ou na legenda. Nunca comparar uma com a outra
+  sem dizer (o Censo 2022 subconta crianças pequenas). A faixa etária do rótulo é a faixa real do dado
+  (`specs/populacao-referencia/auditoria_faixas.md`), não a do catálogo.
 - `dados_locais/` **não é gitignorado** — arquivos colocados ali (inclusive
   camadas geo) são versionados. Confirme com `git status` antes de assumir o
   contrário; não versione dado bruto sensível sem checar antes se deveria
@@ -60,7 +65,7 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
 - `dados_locais/` é organizado **por tema, uma pasta por fonte, nome em
   snake_case sem espaço/acentuação maiúscula** (`censo/`, `mortalidade/`,
   `sisvan/`, `ibge_sidra/`, `vacinacao/`, `nascidos_vivos/`, `geo/`,
-  `tratados/`). Não duplicar o mesmo arquivo em duas pastas temáticas — se um
+  `tratados/`, `populacao/`, `educacao/`, `protecao/`). Não duplicar o mesmo arquivo em duas pastas temáticas — se um
   dado serve duas seções de análise, ele mora numa pasta só e as duas seções
   leem de lá. `tabelas_finais/`/`visualizacoes/`/`mapas/` seguem uma
   convenção de nome própria — ver `specs/tech-stack.md` (proposta em

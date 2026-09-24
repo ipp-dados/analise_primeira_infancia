@@ -58,6 +58,6 @@ estão em `matriculas/tasks.md`.
 
 ## Bloco 8: Validação e fechamento
 
-- [ ] **T8.1**: Notebook do zero no `analises_env`; `validation.md` completo.
-- [ ] **T8.2**: Roadmap, README, constitution e CLAUDE.md atualizados.
+- [x] **T8.1**: `analise.py` do zero (script, `analises_env`, Agg) numa cópia de rascunho: sem erro, com CadÚnico (`.env`). 85 de 87 CSV idênticas ao repositório; ver V6.
+- [x] **T8.2**: Roadmap (itens 6/7 e Matrículas concluídos; mapa por escola e validação P5 no backlog), README (0.21.0), CHANGELOG, constitution §3 (pastas; população de referência por nível) e CLAUDE.md atualizados.
 - [ ] **T8.3**: Revisão do usuário e merge em `staging_main`.

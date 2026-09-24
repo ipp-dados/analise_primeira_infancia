@@ -3,8 +3,8 @@
 Branch: `spec/populacao-referencia`. Aberta em 2026-09-24 como `spec/matriculas-censo-escolar` e renomeada no
 mesmo dia, quando o escopo cresceu (usuário: "can we use ripsa data for the whole project? [...] check if we
 can make this a larger reaching spec").
-Status: **rascunho 2** (2026-09-24). Todas as decisões aprovadas (§5). Item 7 reinterpretado pelo usuário
-(Parte D). A4 verificada com o `.env` atual. Implementação só depois do ok do usuário.
+Status: **implementada** (2026-09-24, Blocos 1-8; ver `tasks.md`). Rascunho 2 aprovado; ok para implementar
+dado pelo usuário em 2026-09-24; decisões da Parte C (C-D2..C-D4) em `auditoria_faixas.md` §6-7.
 
 > Histórico: rascunho 1 (ampliação, A-E), rascunho 2 (decisões, item 7 reinterpretado, A4 verificada).
 Roadmap: itens **6** (população por bairro ano a ano, auditoria de faixas etárias, revisão de nomes) e **7**
