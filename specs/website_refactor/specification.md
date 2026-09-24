@@ -197,6 +197,24 @@ Requisito próprio, além da deduplicação de D2. Medido sobre o `relatorio/ind
   se o orçamento for ultrapassado.
 - Escopo: só os arquivos do site. PDF (46 MB) e DOCX (5,9 MB) ficam fora (cerca do prompt, §4.11).
 
+**Resultado medido (Blocos 3/3b, 2026-09-24)** — site publicado **1.330.860 bytes** (gzip 310.059), contra
+20,9 MB: **−93,6%**. `index.html` 866.816 bytes, `data/geo.js` 248.221, `data/charts.js` 109.451, CSS+JS
+45.111, basemap 23.524, logo 37.737. Orçamento total (≤ 1 MB / ≤ 2 MB) cumprido.
+
+Decisões tomadas com os números na mão (a tabela acima era estimativa):
+- **Simplificação**: `coverage_simplify` com tolerância 0,3 (não Douglas-Peucker por polígono, que abriria
+  frestas entre vizinhos — a camada de bairros nem é uma cobertura perfeita). 1,44 → 0,24 MB, 0 anéis
+  perdidos, área −0,01%. Ids curtos (`#gb12`) em vez de `#geo-bairro-12`.
+- **Outliers dos mapas como fills alternativos: não feito.** As variantes "sem outliers" custam 0,21 MB
+  (≈ 30 KB com gzip) depois da deduplicação; reescrever o toggle, que funciona, para economizar isso não
+  compensa o risco.
+- **Dados por aba com carregamento tardio: não feito.** Todos os dados de gráfico somam 109 KB (17 KB com
+  gzip); o carregamento tardio traria o risco R1c (rolagem antes do script da aba chegar) por quase nada.
+  Se os dados crescerem muito, o gerador avisa pelo orçamento e a ideia volta.
+- Atributos por região ficaram em 0,44 MB (acima da estimativa de 0,3), dentro do orçamento total.
+- **Basemap**: arquivo nomeado pela bbox e reaproveitado se já existir — a saída ficou determinística
+  (antes o JPEG mudava a cada download) e a geração roda sem rede.
+
 ### 4.10 Formato final: site estático compatível com GitHub Pages (requisito, 2026-09-24)
 
 O GitHub Pages só serve arquivos; não roda código no servidor nem reescreve rotas. O que é publicado

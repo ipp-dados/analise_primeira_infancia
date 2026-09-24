@@ -24,11 +24,10 @@ sessão; aqui só o resumo.
 
 ## V3: Geometria compartilhada
 
-- [ ] Tamanho de `index.html` + `data/` registrado (as metas são as de V3b).
-- [ ] Um `<path id="geo-…">` por região por nível; nenhum `<path d=` dentro de `.map-svg-card`.
-- [ ] Capturas dos 5 níveis iguais à baseline.
-- [ ] Hover destaca a região, tooltip mostra nome + valor (inclusive "suprimido (< 20)" no CadÚnico),
-  toggle de outliers troca o mapa, CSV baixa com as linhas certas — em cada nível.
+- [x] Tamanho registrado (V3b).
+- [x] 230 `<path id>` em `<defs>` (bairro 166, AP 5, RP 16, RA 33, CAP 10 — só níveis usados); 0 `<path d=` de região dentro dos cartões; 7.107 `<use>`, 0 `href` sem alvo.
+- [x] Captura do 1º mapa de cada nível (cartão isolado, 820×760): 1 a 24 pixels com diferença > 40/255 por mapa (0,00%) — bordas simplificadas. Inspeção visual a 1× e 2×: sem fresta, sem ilha perdida.
+- [x] Sonda funcional (Chrome headless): tooltip mostra nome + valor nos 5 níveis; toggle de outliers de mapa troca os painéis e a variante limpa resolve a geometria; 0 erros de JS. CSV: `data-csv` gerado em Python, igual à baseline. Hover visual e "suprimido (< 20)": conferir no roteiro Playwright (Bloco 8).
 
 ## V3b: Redução de tamanho (spec §4.9)
 
@@ -36,17 +35,16 @@ Referência: 20,9 MB (V0). Medir depois de cada passo do Bloco 3b.
 
 | Passo | Geometria | Atributos | Outliers | Dados | `index.html` | Site todo (bruto / gzip) |
 |---|---|---|---|---|---|---|
-| Depois de D2 (Bloco 3) | | | | | | |
-| + simplificação (tol = ?) | | | | | | |
-| + atributos | | | | | | |
-| + outliers como fills | | | | | | |
-| + dados por aba | | | | | | |
+| Depois de D2 (Bloco 3, sem simplificar) | 1,35 MB | ~0,5 MB | ~0,5 MB | 109 KB | ~2,4 MB | ~3,9 MB |
+| + simplificação (tol = 0,3) + atributos + ids curtos | 0,25 MB | 0,44 MB | 0,21 MB | 109 KB | 0,87 MB | **1,33 MB / 0,31 MB** |
+| + outliers como fills | não feito (spec §4.9) | | | | | |
+| + dados por aba | não feito (spec §4.9) | | | | | |
 | **Meta** | ≤ 0,5 MB | ≤ 0,3 MB | ≤ 0,15 MB | ≤ 50 KB iniciais | ≤ 1 MB | ≤ 2 MB |
 
-- [ ] Nenhuma fresta entre vizinhos nem ilha perdida (Paquetá, ilhas da baía) em zoom 200%, 5 níveis.
-- [ ] Toggle de outliers do mapa: cores e legenda iguais às da variante "clean" da baseline.
-- [ ] Link direto `#<eixo>/<h3>` numa aba ainda não carregada rola para o lugar certo.
-- [ ] Gerador imprime o relatório de tamanho sem `AVISO`.
+- [x] Nenhuma fresta entre vizinhos nem ilha perdida: 0 anéis perdidos nos 5 níveis (contagem), área −0,01%, capturas em 1× e 2×.
+- [x] Toggle de outliers do mapa: mesma estrutura de 2 painéis da baseline (T3b.3 não feito).
+- [~] Não se aplica (dados por aba não feito).
+- [x] Gerador imprime o relatório de tamanho sem `AVISO`; duas execuções seguidas dão md5 idêntico (`index.html`, `data/*.js`).
 
 ## V4: Protótipo
 

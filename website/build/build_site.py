@@ -545,19 +545,6 @@ def _bounds_project(gdf, width, height, pad_frac=0.03):
     project.scale = scale  # px por grau ajustado por cos(lat) ~= px por grau de latitude real
     return project
 
-def _ring_path(coords, project):
-    pts = [project(x, y) for x, y in coords]
-    return "M" + " L".join(f"{px:.1f},{py:.1f}" for px, py in pts) + " Z"
-
-def _geom_path_d(geom, project):
-    polys = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
-    d = []
-    for poly in polys:
-        d.append(_ring_path(list(poly.exterior.coords), project))
-        for interior in poly.interiors:
-            d.append(_ring_path(list(interior.coords), project))
-    return " ".join(d)
-
 _NIVEL_COL = {"ap": "area_plane", "rp": "cod_rp", "ra": "codra"}
 _NIVEL_LABEL = {"ap": "AP", "rp": "RP", "cap": "CAP", "ra": "RA"}
 
@@ -608,6 +595,66 @@ def _geo_nivel(nivel):
     _GEO_CACHE[nivel] = result
     return result
 
+# ---- geometria compartilhada (specs/website_refactor Blocos 3/3b) ------------
+# Antes: cada mapa (e cada variante "sem outliers") repetia o `d` de todas as
+# regiões -- 7.107 <path>, 20 MB. Agora cada região de cada nível vira UM
+# <path id="geo-..."> em data/geo.js e o mapa só tem <use href="#geo-..." fill=...>.
+# A geometria é simplificada como cobertura (shapely.coverage_simplify: fronteira
+# compartilhada simplificada uma vez só, sem fresta entre vizinhos) já no espaço
+# de pixels do SVG. Tolerância 0,3 unidade (< meio pixel na largura exibida):
+# 1,44 MB -> 0,24 MB nos 5 níveis, nenhum anel (ilha) perdido, área -0,01%.
+_GEO_TOL = 0.3
+_GEO_DEFS = {}    # nivel -> {chave: (def_id, d)}
+_GEO_USADOS = {}  # nivel -> [(def_id, nome, d)] na ordem do geojson, só níveis usados
+_GEO_PREFIXO = {"bairro": "b", "ap": "a", "rp": "r", "ra": "x", "cap": "c"}
+
+def _num_svg(v):
+    s = f"{v:.1f}".rstrip("0").rstrip(".")
+    if s.startswith("0."):
+        s = s[1:]
+    elif s.startswith("-0."):
+        s = "-" + s[2:]
+    return "0" if s in ("", "-0", "-") else s
+
+def _path_d_relativo(geom):
+    """`d` compacto: M absoluto + l relativo por anel, 1 casa decimal. Deltas
+    calculados sobre as coordenadas já arredondadas (sem acúmulo de erro)."""
+    polys = list(geom.geoms) if geom.geom_type == "MultiPolygon" else [geom]
+    aneis = []
+    for poly in polys:
+        aneis.append(poly.exterior.coords)
+        aneis.extend(i.coords for i in poly.interiors)
+    out = []
+    for coords in aneis:
+        pts = [(round(x, 1), round(y, 1)) for x, y in coords][:-1]
+        if not pts:
+            continue
+        pts = [pts[0]] + [p for a, p in zip(pts, pts[1:]) if p != a]
+        seg, prev = "", pts[0]
+        for p in pts[1:]:
+            a, b = _num_svg(round(p[0] - prev[0], 1)), _num_svg(round(p[1] - prev[1], 1))
+            prev = p
+            seg += (a if (not seg or a.startswith("-")) else " " + a) + (b if b.startswith("-") else "," + b)
+        out.append(f"M{_num_svg(pts[0][0])},{_num_svg(pts[0][1])}" + (f"l{seg}" if seg else "") + "z")
+    return "".join(out)
+
+def _geo_defs(nivel):
+    if nivel not in _GEO_DEFS:
+        import numpy as np
+        import shapely
+        from shapely.ops import transform as _shp_transform
+        g, project, nomes = _geo_nivel(nivel)
+        px = np.array([_shp_transform(lambda x, y, z=None: project(x, y), geom) for geom in g.geometry.values])
+        simp = shapely.coverage_simplify(px, _GEO_TOL)
+        defs = {}
+        for chave, geom in zip(g["_chave"], simp):
+            # id curto (repetido em ~7 mil <use>): g + letra do nível + chave (ex. gb12, gr1_1, gc1_0)
+            def_id = "g" + _GEO_PREFIXO[nivel] + re.sub(r"[^0-9A-Za-z]", "_", str(chave))
+            defs[chave] = (def_id, _path_d_relativo(geom))
+        _GEO_DEFS[nivel] = defs
+        _GEO_USADOS[nivel] = [(defs[c][0], str(nomes.get(c, c)), defs[c][1]) for c in g["_chave"]]
+    return _GEO_DEFS[nivel]
+
 def _cor_sequencial(tema, frac):
     import matplotlib
     r, g, b, _ = matplotlib.colormaps[_CMAP_TEMA[tema]](0.22 + 0.68 * max(0.0, min(1.0, frac)))
@@ -635,6 +682,7 @@ def _chave_norm(v, nivel):
 # colorido por valor) nunca usam azul.
 _BASEMAP_CACHE = {}   # bbox (arredondado) -> (classe css, b64 jpeg)
 _BASEMAP_CSS_RULES = []
+_BASEMAP_FILES = {}   # nome do arquivo -> bytes JPEG (gravados em assets/images/ no fim)
 
 def _merc_para_lonlat(mx, my):
     r = 20037508.342789244
@@ -652,7 +700,18 @@ def _basemap_css_class(project):
     key = (round(minx, 4), round(miny, 4), round(maxx, 4), round(maxy, 4))
     if key in _BASEMAP_CACHE:
         return _BASEMAP_CACHE[key][0]
-    class_name = ""
+    # specs/website_refactor Bloco 3: JPEG em assets/images/ (antes base64 no <style>), nome
+    # derivado da bbox. Se o arquivo já existe em website/, é reaproveitado sem rede -- saída
+    # estável entre execuções (antes o JPEG mudava a cada download) e geração offline.
+    import hashlib
+    arquivo = "basemap-" + hashlib.md5(repr(key).encode()).hexdigest()[:8] + ".jpg"
+    class_name = f"map-bg-{len(_BASEMAP_CACHE) + 1}"
+    existente = Path("website/assets/images") / arquivo
+    if existente.exists():
+        _BASEMAP_FILES[arquivo] = existente.read_bytes()
+        _BASEMAP_CSS_RULES.append(f'.{class_name}{{background-image:url(assets/images/{arquivo});background-size:100% 100%;}}')
+        _BASEMAP_CACHE[key] = (class_name, None)
+        return class_name
     try:
         import contextily as ctx
         import numpy as np
@@ -681,12 +740,12 @@ def _basemap_css_class(project):
         canvas.paste(tile_img, (round(x0), round(y0)))
         buf = io.BytesIO()
         canvas.save(buf, format="JPEG", quality=72)
-        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
-        class_name = f"map-bg-{len(_BASEMAP_CACHE) + 1}"
+        _BASEMAP_FILES[arquivo] = buf.getvalue()
         _BASEMAP_CSS_RULES.append(
-            f'.{class_name}{{background-image:url(data:image/jpeg;base64,{b64});background-size:100% 100%;}}'
+            f'.{class_name}{{background-image:url(assets/images/{arquivo});background-size:100% 100%;}}'
         )
     except Exception as exc:
+        class_name = ""
         # sem internet/timeout etc -- mapa cai de volta pro fundo neutro
         # (--surface-2 em .map-svg-frame), nao trava a geracao do relatorio inteiro
         print(f"[aviso] fundo cartografico indisponivel para bbox {key}: {exc}", file=sys.stderr)
@@ -745,6 +804,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
     analise.py. Emite 1 construto (option_card-compativel) com SVG + legenda +
     tooltip por regiao + toggle de outliers + download CSV."""
     gdf, project, nomes = _geo_nivel(nivel)
+    defs = _geo_defs(nivel)
     valores = {}
     suprimidas = set()
     extras = {}
@@ -774,7 +834,6 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
         for _, row in gdf.iterrows():
             chave = row["_chave"]
             v = valor_por_regiao.get(chave)
-            d = _geom_path_d(row.geometry, project)
             if v is None:
                 fill = "var(--surface-2)"
             elif bins is not None and zero_branco and v == 0:
@@ -791,10 +850,9 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 val_txt += f" ({_fmt_ptbr(extras[chave], 1)}% {rotulo_extra})".replace(" )", ")")
             if chave in suprimidas:
                 val_txt = rotulo_suprimido
-            paths.append(
-                f'<path d="{d}" class="map-region" fill="{fill}" stroke="var(--page)" stroke-width="0.7" '
-                f'data-label="{_esc(label)}" data-valor="{_esc(val_txt)}"></path>'
-            )
+            # geometria em data/geo.js (<path id>), nome da região em window.GEO_NOMES;
+            # stroke/fill-opacity no CSS (`.map-svg use`) -- aqui só o que muda por mapa
+            paths.append(f'<use href="#{defs[chave][0]}" fill="{fill}" data-v="{_esc(val_txt)}"></use>')
             rows.append((label, v))
         legend_bits = []
         if bins is not None:
@@ -1810,6 +1868,7 @@ doc = f"""<!doctype html>
 <div class="doc">
 {body}
 </div>
+<script src="data/geo.js"></script>
 <script src="js/charts.js"></script>
 <script src="data/charts.js"></script>
 </body>
@@ -1828,10 +1887,53 @@ if OUT_DIR.resolve() != SITE_DIR.resolve():
     for nome in _ESTATICOS:
         shutil.copytree(SITE_DIR / nome, OUT_DIR / nome, dirs_exist_ok=True)
 (OUT_DIR / "data").mkdir(parents=True, exist_ok=True)
-_gerados = {"index.html": doc, "data/charts.js": RENDER_CALLS_JS}
+# geometria compartilhada (Blocos 3/3b): injeta um <svg> oculto com <defs> no início do <body>
+# e expõe window.GEO_NOMES (id -> nome da região, para o tooltip). Só os níveis usados.
+GEO_JS = """// GERADO por website/build/build_site.py -- não editar à mão.
+(function(){
+"use strict";
+var D = __DADOS__;
+var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), defs = document.createElementNS(NS, 'defs'), nomes = {};
+svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true');
+svg.style.position = 'absolute';
+Object.keys(D).forEach(function(n){ D[n].forEach(function(r){
+  var p = document.createElementNS(NS, 'path'); p.setAttribute('id', r[0]); p.setAttribute('d', r[2]);
+  defs.appendChild(p); nomes[r[0]] = r[1];
+}); });
+svg.appendChild(defs); document.body.insertBefore(svg, document.body.firstChild);
+window.GEO_NOMES = nomes;
+})();
+""".replace("__DADOS__", json.dumps(_GEO_USADOS, ensure_ascii=False, separators=(",", ":")))
+
+_gerados = {"index.html": doc, "data/charts.js": RENDER_CALLS_JS, "data/geo.js": GEO_JS}
 for rel, conteudo in _gerados.items():
     with open(OUT_DIR / rel, "w", encoding="utf-8", newline="\n") as f:
         f.write(conteudo)
+(OUT_DIR / "assets" / "images").mkdir(parents=True, exist_ok=True)
+for nome, conteudo in _BASEMAP_FILES.items():
+    (OUT_DIR / "assets" / "images" / nome).write_bytes(conteudo)
 print(f"wrote {OUT_DIR}: {len(scripts)} charts, {sum(1 for l,t,s in toc if l==2)} h2 / {sum(1 for l,t,s in toc if l==3)} h3 sections")
-for rel, conteudo in _gerados.items():
-    print(f"  {rel}: {len(conteudo.encode('utf-8')):,} bytes")
+
+# ---- relatório de tamanho + orçamento (specs/website_refactor §4.9) -----------
+# Só avisa, não falha: um estouro é sinal para investigar (ex. geometria voltou a
+# ser repetida por mapa), não motivo para travar a geração.
+import gzip
+ORCAMENTO_INDEX = 1_000_000
+ORCAMENTO_SITE = 2_000_000
+_PUBLICADOS = ["index.html", "404.html", ".nojekyll", "css", "js", "data", "assets"]   # = lista do workflow de deploy
+_tamanhos = []
+for nome in _PUBLICADOS:
+    alvo = OUT_DIR / nome
+    arquivos = [alvo] if alvo.is_file() else (sorted(p for p in alvo.rglob("*") if p.is_file()) if alvo.is_dir() else [])
+    for arq in arquivos:
+        dados = arq.read_bytes()
+        _tamanhos.append((arq.relative_to(OUT_DIR).as_posix(), len(dados), len(gzip.compress(dados))))
+for rel, bruto, gz in _tamanhos:
+    print(f"  {rel:40s} {bruto:>11,} bytes  (gzip {gz:>9,})")
+_total, _total_gz = sum(t[1] for t in _tamanhos), sum(t[2] for t in _tamanhos)
+print(f"  {'TOTAL publicado':40s} {_total:>11,} bytes  (gzip {_total_gz:>9,})")
+_idx = next((t[1] for t in _tamanhos if t[0] == "index.html"), 0)
+if _idx > ORCAMENTO_INDEX:
+    print(f"AVISO: index.html com {_idx:,} bytes passa do orçamento de {ORCAMENTO_INDEX:,} (specs/website_refactor §4.9)", file=sys.stderr)
+if _total > ORCAMENTO_SITE:
+    print(f"AVISO: site publicado com {_total:,} bytes passa do orçamento de {ORCAMENTO_SITE:,} (specs/website_refactor §4.9)", file=sys.stderr)

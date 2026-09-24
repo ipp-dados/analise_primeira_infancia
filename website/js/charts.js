@@ -381,10 +381,12 @@
       const tooltip = document.createElement('div'); tooltip.className = 'chart-tooltip';
       tooltip.style.position = 'absolute';
       card.appendChild(tooltip);
-      svg.querySelectorAll('.map-region').forEach(path=>{
+      // regiões são <use href="#gb12"> etc. (geometria em data/geo.js); nome vem de window.GEO_NOMES
+      svg.querySelectorAll('use[href]').forEach(path=>{
+        const nome = (window.GEO_NOMES || {})[path.getAttribute('href').slice(1)] || '';
         path.addEventListener('mousemove', e=>{
           const r = card.getBoundingClientRect();
-          tooltip.innerHTML = '<div class="tt-row"><b>'+path.dataset.label+'</b></div><div class="tt-row">'+path.dataset.valor+'</div>';
+          tooltip.innerHTML = '<div class="tt-row"><b>'+nome+'</b></div><div class="tt-row">'+path.dataset.v+'</div>';
           tooltip.style.display = 'block';
           tooltip.style.left = (e.clientX - r.left + 12) + 'px';
           tooltip.style.top = (e.clientY - r.top - 34) + 'px';
