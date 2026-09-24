@@ -3,7 +3,10 @@
 Branch: `spec/populacao-referencia`. Aberta em 2026-09-24 como `spec/matriculas-censo-escolar` e renomeada no
 mesmo dia, quando o escopo cresceu (usuário: "can we use ripsa data for the whole project? [...] check if we
 can make this a larger reaching spec").
-Status: **rascunho 1**, em planejamento. Implementação só depois da revisão e do ok do usuário.
+Status: **rascunho 2** (2026-09-24). Todas as decisões aprovadas (§5). Item 7 reinterpretado pelo usuário
+(Parte D). A4 verificada com o `.env` atual. Implementação só depois do ok do usuário.
+
+> Histórico: rascunho 1 (ampliação, A-E), rascunho 2 (decisões, item 7 reinterpretado, A4 verificada).
 Roadmap: itens **6** (população por bairro ano a ano, auditoria de faixas etárias, revisão de nomes) e **7**
 (percentual de nascidos vivos por bairro da mãe), e a seção "Matrículas".
 Desdobramento: `plan.md`, `tasks.md`, `validation.md` e a subpasta `matriculas/` (Parte E, que já estava
@@ -119,6 +122,9 @@ correção. Consequências para o projeto:
   2026-06-12: 194.138) ÷ população Ripsa de 0-5 em 2025 (393.073) ≈ 49,4%. Ressalvas: um ano de diferença
   (2026 × 2025); cadastro × estimativa; a faixa "0-6" do CadÚnico é 0-5 completos (auditoria C). Exige
   `.env` e o kernel `analises_env`. Decisão A-D2.
+  **Verificado em 2026-09-24:** a conexão com o `.env` atual funciona no `analises_env`. A partição mais
+  recente de `ctpe.silver_cadunico_geral` continua `2026-06-12`, com `grupo_idade='0-6'` = **194.138
+  crianças, 173.768 famílias, idade 0-5**. Razão = 194.138 ÷ 393.073 = **49,4%**.
 - **A5: Nota metodológica geral** (markdown, no início da seção Censo 2022 de `analise.py`, antes de
   qualquer taxa): população de referência por nível (Ripsa no município, Censo 2022 abaixo), diferença
   Ripsa × Censo (tabela de §3), revisões anuais da Ripsa e onde cada uma é usada. As notas de E (D7) e B
@@ -157,7 +163,16 @@ e (c) (participação variando entre 2010 e 2022) ficam registradas e fora do es
 
 ### Parte D: itens do crosswalk sem arquivo (inclui roadmap 7)
 
-**Causa do item 7 (diagnóstico de 2026-09-24):** o indicador do catálogo "Percentual de nascidos vivos por
+**Rascunho 2: item 7 reinterpretado pelo usuário** ("the percentual por bairro da mae is probably just
+the number of nascidos vivos"). O "percentual" do catálogo é a mesma informação que a contagem, só
+dividida por uma constante (o total do município no ano). O mapa teria o mesmo desenho do mapa de
+contagem que já existe. **Resolução (D1 revisada):** não criar mapa novo. O item do crosswalk passa a
+apontar para as saídas de contagem existentes (`mapa_nascidos_vivos_bairro_2025.png`,
+`tabela_mapa_nascidos_vivos_2025.csv`), e a gêmea ganha uma coluna `percentual_do_municipio` (nascidos
+vivos do bairro ÷ total do município × 100), para a fórmula do catálogo ficar disponível na tabela e no
+tooltip do HTML. A proposta original (mapa próprio) fica abaixo como histórico.
+
+**Causa do item 7 (diagnóstico de 2026-09-24, rascunho 1):** o indicador do catálogo "Percentual de nascidos vivos por
 bairro de residência da mãe", com metodologia "(nº de nascidos vivos segundo bairro de referência da mãe ÷
 nº de nascidos vivos no município) × 100" e visualização em mapa coroplético, **nunca foi implementado**.
 Não há código em `analise.py`, e a entrada em `estrutura_eixos.md:44` não lista arquivo. O HTML e o PDF
@@ -168,7 +183,7 @@ Itens do crosswalk sem arquivo e sem `status` (varredura de `estrutura_eixos.md`
 
 | Item | Eixo | Proposta |
 |---|---|---|
-| Nascidos vivos por bairro de residência da mãe (percentual) | Prioridade | **D1: implementar.** Mapa 2025 por bairro, contínuo (percentual); tabela gêmea; divisor = nascidos vivos do município **incluindo** "EM BRANCO" (bairro não informado), para a soma dos bairros não chegar a 100% e isso ficar visível. Decisão D-D1 |
+| Nascidos vivos por bairro de residência da mãe (percentual) | Prioridade | *(Rascunho 2: substituída pela resolução acima, que liga às saídas de contagem e acrescenta a coluna %.)* Proposta original: **D1: implementar.** Mapa 2025 por bairro, contínuo (percentual); tabela gêmea; divisor = nascidos vivos do município **incluindo** "EM BRANCO" (bairro não informado), para a soma dos bairros não chegar a 100% e isso ficar visível. Decisão D-D1 |
 | Crianças até 6 anos (número) | Prioridade | **D2:** preencher com a série da Parte A (A2) |
 | Crianças até 6 anos frequentando escola/creche (geral) | Família e Cuidados | **D3:** os CSV da SIDRA 10057 já carregados têm a categoria "Total" (o código a filtra fora dos gráficos por raça e sexo), e as tabelas pivotadas `sidra_frequencia_escola_0_5_*_2022.csv` já trazem a coluna `Total`. Proposta: gráfico de barras do Total por idade (0-5), mais a tabela, ligados ao item. **Faixa real 0-5**: o rótulo "até 6 anos" do item entra na auditoria C |
 | Mortalidade infantil por causas evitáveis, por sexo | Prioridade | **Fora do escopo** (não é população). Marcar `status: pendente` para aparecer como pendente, e não sumir |
@@ -198,7 +213,11 @@ com a ampliação:
 - **B1:** sub-municipal fica no Censo 2022, opção (a) ✅.
 - **Parte E:** todas as decisões de `matriculas/` (D1-D9) seguem valendo.
 
-### Abertas
+- **Rascunho 2 (usuário, 2026-09-24):** A-D1 ✅ (0-6 por idade simples) · A-D2 ✅ (A3 e A4) · C-D1 ✅ ·
+  D-D1 ✅, **mas o item 7 foi reinterpretado** (Parte D, resolução acima) · D-D2 ✅. A4 foi confirmada
+  viável com o `.env` atual.
+
+### Abertas no rascunho 1 (todas decididas no rascunho 2)
 
 | # | Decisão | Proposta |
 |---|---|---|
@@ -215,12 +234,13 @@ com a ampliação:
 - **P-A1: estabilidade e revisões do Tabnet/Ripsa.** Conexão instável (retry), nomes de campo com acento em
   latin-1, código interno `3262`. A Ripsa revisa anualmente, então uma nova consulta pode mudar anos passados.
   Mitigação: extrato versionado com `data_consulta` e checagem de 26 anos × 7 idades × 2 sexos.
-- **P-A2: CadÚnico (A4)** exige `.env` e `analises_env`. Se não houver acesso na hora, A4 fica para depois,
-  sem bloquear o resto.
+- **P-A2: CadÚnico (A4)** exige `.env` e `analises_env`. ✅ Acesso confirmado em 2026-09-24 (partição
+  `2026-06-12`). Se a partição mudar antes da implementação, o número muda, e V2 registra a partição usada.
 - **P-B1: cards do HTML com rótulo hard-coded.** Os rótulos de fonte nos cards de violência do
   `build_html_report.py` são strings. B2 tem que alterar o gerador também, não só `analise.py`.
 - **P-C1: alcance da renomeação.** Arquivos rastreados antes de 2026-09-22 seguem no git (constitution §3,
   atualização de 2026-09-23). Renomear exige `git rm` do antigo e `git add -f` do novo, mais os leitores.
-- **P-D1: "EM BRANCO" no denominador** do item 7. Confirmar quantos nascidos vivos ficam sem bairro por
-  ano antes de fixar a regra (D-D1).
+- **P-D1: "EM BRANCO" no denominador** da coluna `percentual_do_municipio`. O denominador é o total do
+  município **incluindo** "EM BRANCO", para a soma dos bairros ficar abaixo de 100% quando houver
+  nascidos sem bairro. Registrar quantos são em 2025.
 - As pendências da Parte E (P1-P7) estão em `matriculas/specification.md` §6.

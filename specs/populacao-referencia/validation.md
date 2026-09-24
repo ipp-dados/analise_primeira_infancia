@@ -40,7 +40,8 @@ A idade simples de 2007-2025 (0-6) está em `matriculas/validation.md` V2.
 
 - [ ] A2: tabela 2000-2025 (26 linhas); o gráfico cita a Ripsa; o `percentual_0_a_6` é recalculado da soma, e não a média.
 - [ ] A3: `taxa_por_mil_mae` de 2025 = 1.756 ÷ 393.073 × 1.000 ≈ 4,47; 15 anos (2011-2025); vínculos não somados entre si.
-- [ ] A4: razão = 194.138 ÷ 393.073 ≈ 49,4% (partição 2026-06-12); nenhuma contagem sub-municipal nova gravada.
+- [x] A4 viável: conexão com o `.env` atual no `analises_env`; partição `2026-06-12`; 194.138 crianças, 173.768 famílias, idade 0-5. *(2026-09-24)*
+- [ ] A4: razão = 194.138 ÷ 393.073 ≈ 49,4% (ou os números da partição vigente, registrada); nenhuma contagem sub-municipal nova gravada.
 
 ## V3: Parte B
 
@@ -49,7 +50,7 @@ A idade simples de 2007-2025 (0-6) está em `matriculas/validation.md` V2.
 
 ## V4: Parte D
 
-- [ ] D1: soma dos percentuais por bairro + "EM BRANCO" = 100% em 2025; mapa em escala contínua; gêmea gravada.
+- [ ] D1: na gêmea de 2025, soma de `percentual_do_municipio` dos bairros + "EM BRANCO" = 100%; o mapa de contagem é idêntico ao baseline.
 - [ ] D2/D3: os itens do crosswalk têm arquivo e aparecem no HTML, PDF e DOCX.
 - [ ] D4: o gerador não lista mais nenhum item sem arquivo e sem status.
 
