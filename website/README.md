@@ -2,7 +2,7 @@
 
 Site estático (HTML/CSS/JS puros, sem etapa de build no deploy) publicado no GitHub Pages
 pelo workflow `.github/workflows/deploy-relatorio.yml`. Histórico e decisões:
-`specs/website_refactor/` (esta estrutura) e `relatorio/specs.md` (versões anteriores, v1-v8).
+`specs/2026-09-24_website_refactor/` (esta estrutura) e `relatorio/specs.md` (versões anteriores, v1-v8).
 
 ## Gerar
 

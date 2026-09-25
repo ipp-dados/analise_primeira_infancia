@@ -6,7 +6,7 @@ description: Regenerate, check and prepare the deploy of the static website in w
 # Build website
 
 Thin wrapper: the full reference is `website/README.md` (what is generated vs. hand-edited,
-local testing, static-site rules) and the design history is `specs/website_refactor/` +
+local testing, static-site rules) and the design history is `specs/2026-09-24_website_refactor/` +
 `relatorio/specs.md` (v8). Read those before changing structure or styling — several
 "obvious" alternatives were measured and rejected there (per-polygon simplification,
 lazy per-tab data, tracing the IPP logo, translucent tab bar).
@@ -39,11 +39,11 @@ python website/build/build_site.py
 - `website/css/*.css` and `website/js/*.js` are hand-edited source — edit them directly, never
   as strings in the generator. `index.html` and `data/` are generated — never hand-edit.
 - Tokens (colors, radii, shadows, spacing) live in `css/main.css`; text contrast must stay WCAG AA
-  (table in `specs/website_refactor/validation.md` V4). Data palette `--c1..--c11` and the map
+  (table in `specs/2026-09-24_website_refactor/validation.md` V4). Data palette `--c1..--c11` and the map
   colormaps are fixed project conventions — don't restyle them with the UI.
 - New icons: add a Lucide SVG to `website/assets/icons/` (keep the ISC license comment); the
   generator inlines it with `icone(nome)`.
-- Desktop only so far; mobile work is listed in `website/ROADMAP.md`.
+- Desktop only so far; mobile work is listed in `ROADMAP.md` (root, "Próximos" → versão mobile).
 
 ## Verify before publishing
 

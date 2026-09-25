@@ -19,7 +19,7 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
 - **Changelog breve** (feedback do usuário, 2026-09-22): entradas na "Update
   Table" e em "Notable code changes" do README são 1-3 linhas — o quê e por
   quê, não uma lista exaustiva de sub-itens. Detalhe completo mora na spec
-  da rodada (`specs/<nome>/`), o README só aponta pra lá.
+  da rodada (`specs/<AAAA-MM-DD>_<nome>/`), o README só aponta pra lá.
 
 ## 2. `analise.py` é a fonte de verdade
 
@@ -32,7 +32,7 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   análise abaixo só **chamam** essas funções — não redefinem lógica de
   limpeza ou de plot inline numa célula de análise.
 - Rode o notebook do zero (kernel limpo, top-to-bottom) antes de considerar
-  uma mudança validada — já houve bug real (`specs/maps-and-ibge`) que só
+  uma mudança validada — já houve bug real (`specs/2026-09-09_maps-and-ibge`) que só
   aparecia fora de uma reexecução de células fora de ordem.
 
 ## 3. Convenções de dados que não têm exceção
@@ -53,11 +53,11 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   administrativas diferentes com códigos de formato parecido — não confundir.
 - Toda visualização/mapa cita sua fonte (`fonte_dados` ou equivalente). Não
   adicionar um call site novo sem isso.
-- **População de referência por nível** (`specs/populacao-referencia`, 2026-09-24): taxa **municipal**
+- **População de referência por nível** (`specs/2026-09-24_populacao-referencia`, 2026-09-24): taxa **municipal**
   usa as estimativas Ripsa/MS do mesmo ano (`populacao_ripsa`); taxa **sub-municipal** (bairro, AP, RP,
   RA, CAP) usa o Censo 2022, fixo, e diz isso na fonte ou na legenda. Nunca comparar uma com a outra
   sem dizer (o Censo 2022 subconta crianças pequenas). A faixa etária do rótulo é a faixa real do dado
-  (`specs/populacao-referencia/auditoria_faixas.md`), não a do catálogo.
+  (`specs/2026-09-24_populacao-referencia/auditoria_faixas.md`), não a do catálogo.
 - `dados_locais/` **não é gitignorado** — arquivos colocados ali (inclusive
   camadas geo) são versionados. Confirme com `git status` antes de assumir o
   contrário; não versione dado bruto sensível sem checar antes se deveria
@@ -69,7 +69,7 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   dado serve duas seções de análise, ele mora numa pasta só e as duas seções
   leem de lá. `tabelas_finais/`/`visualizacoes/`/`mapas/` seguem uma
   convenção de nome própria — ver `specs/tech-stack.md` (proposta em
-  `specs/reorganize-naming/` até ser aprovada e aplicada).
+  `specs/2026-09-22_reorganize-naming/` até ser aprovada e aplicada).
 - ⚠️ **Achado 2026-09-22, ainda não corrigido**: `.gitignore` tem as regras
   de `mapas/`, `tabelas_finais/` e `visualizacoes/*.png` comentadas (`#` no
   início da linha) — na prática essas pastas **estão sendo versionadas**,
@@ -77,7 +77,7 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   regeneração completa nem apague esses arquivos achando que são
   recuperáveis via regeneração até isso ser decidido — confirme com o
   usuário antes.
-  **Atualização 2026-09-23 (`specs/recortes_cadunico`):** o achado acima
+  **Atualização 2026-09-23 (`specs/2026-09-23_recortes_cadunico`):** o achado acima
   não vale mais. As regras foram reativadas em 2026-09-22 (commit
   `5907196`), então `tabelas_finais/`, `mapas/` e `visualizacoes/` voltaram a
   ser ignorados. Só os arquivos rastreados **antes** disso seguem no git e
@@ -89,7 +89,7 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
 
 `visualizacoes/*.png`, `mapas/*.png`, `tabelas_finais/*`, `website/index.html` e
 `website/data/*` (antes `relatorio/index.html`, substituído em 2026-09-24 por
-`specs/website_refactor`) e `relatorio/analise_primeira_infancia.pdf` são saídas de
+`specs/2026-09-24_website_refactor`) e `relatorio/analise_primeira_infancia.pdf` são saídas de
 pipeline. (Em `website/`, `css/` e `js/` são fonte editada à mão, não saída — ver
 `website/README.md`.) Uma
 mudança nesses arquivos que não vier de rodar `analise.py` ou os scripts em
@@ -101,10 +101,11 @@ gerado.
 
 - Toda mudança não-trivial (nova seção de análise, nova convenção visual,
   merge de um branch externo, refatoração) ganha uma pasta
-  `specs/<nome-da-rodada>/` **antes** da implementação, com o subconjunto
+  `specs/<AAAA-MM-DD>_<nome-da-rodada>/` (data de abertura da rodada, para
+  que `specs/` liste as rodadas em ordem cronológica) **antes** da implementação, com o subconjunto
   relevante de `plan.md`, `specification.md`/`specs.md`, `tasks.md`,
-  `validation.md`. Ver as pastas existentes (`specs/mortalidade-ap`,
-  `specs/maps-and-ibge`, `specs/visual-identity`, `specs/relatorio-interativo`)
+  `validation.md`. Ver as pastas existentes (`specs/2026-09-08_mortalidade-ap`,
+  `specs/2026-09-09_maps-and-ibge`, `specs/2026-09-09_visual-identity`, `specs/2026-09-14_relatorio-interativo`)
   para o formato — não é rígido, mas todo spec documenta contexto, decisões
   tomadas (com o *porquê*) e o que foi validado.
 - **Antes de executar uma mudança arriscada ou que envolva reconciliar
@@ -130,7 +131,7 @@ nas specs existentes — não adicionar um recorte mais fino (indivíduo,
 endereço, faixa etária de 1 em 1 ano em grupos pequenos) sem confirmar
 antes que é apropriado.
 
-**Limiar de supressão (aprovado pelo usuário em 2026-09-23, `specs/recortes_cadunico` §5):**
+**Limiar de supressão (aprovado pelo usuário em 2026-09-23, `specs/2026-09-23_recortes_cadunico` §5):**
 nenhuma saída publicada (`tabelas_finais/`, o site `website/` (antes `relatorio/index.html`) com os
 tooltips e CSV de download, PDF, DOCX) mostra uma contagem de crianças ou
 famílias do CadÚnico **menor que 20** abaixo do nível município. O mesmo vale

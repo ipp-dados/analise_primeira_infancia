@@ -1,4 +1,4 @@
-"""Inventário de fontes × gráficos/mapas/tabelas (specs/relatorio_latex, Bloco 1).
+"""Inventário de fontes × gráficos/mapas/tabelas (specs/2026-09-25_relatorio_latex, Bloco 1).
 
 Gera relatorio/inventario_fontes.md e relatorio/inventario_fontes.csv -- documento de conferência
 para a equipe, NÃO entra no PDF. Cruza três coisas:
@@ -403,7 +403,7 @@ def escreve_md(linhas, alertas, bib):
         "# Inventário de fontes",
         "",
         f"> Gerado por `relatorio/latex/build/inventario_fontes.py` em {date.today():%d/%m/%Y} — **não editar à mão**.",
-        "> Documento de conferência da equipe (`specs/relatorio_latex` §7); não entra no relatório.",
+        "> Documento de conferência da equipe (`specs/2026-09-25_relatorio_latex` §7); não entra no relatório.",
         "> Cruza `analise.py` (leitura estática), `specs/estrutura_eixos.md` e `relatorio/latex/fontes.bib`.",
         "> A versão em planilha, com todos os campos, é `relatorio/inventario_fontes.csv` (separador `;`).",
         "",

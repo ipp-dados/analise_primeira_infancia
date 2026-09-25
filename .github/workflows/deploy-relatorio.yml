@@ -1,7 +1,7 @@
 name: Deploy relatório
 
-# Publica o site estático website/ no GitHub Pages -- specs/website_refactor §4.10
-# (antes: só relatorio/index.html, specs/relatorio-interativo/plan.md §8).
+# Publica o site estático website/ no GitHub Pages -- specs/2026-09-24_website_refactor §4.10
+# (antes: só relatorio/index.html, specs/2026-09-14_relatorio-interativo/plan.md §8).
 # Gatilho manual (workflow_dispatch). O CI NÃO gera nada: website/ já vem gerado e
 # versionado (o gerador precisa de tabelas_finais/, que é gitignorado).
 on:

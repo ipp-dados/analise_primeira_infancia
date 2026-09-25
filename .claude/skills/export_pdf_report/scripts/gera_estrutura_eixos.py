@@ -1,9 +1,9 @@
 """Parser e validador de `specs/estrutura_eixos.md` (Bloco 1 de
-`specs/ajuste_eixos/plan.md`).
+`specs/2026-09-22_ajuste_eixos/plan.md`).
 
 `specs/estrutura_eixos.md` e' a fonte unica e editavel a mao da organizacao
 de `relatorio/index.html`/PDF/DOCX por eixo de politica municipal de
-primeira infancia (ver `specs/ajuste_eixos/specs.md` SS5.1 para o formato e
+primeira infancia (ver `specs/2026-09-22_ajuste_eixos/specs.md` SS5.1 para o formato e
 a decisao de projeto). Este modulo faz so duas coisas:
 
 1. `parse_estrutura_eixos()` -- le o `.md` (heading `##` = eixo, `###` =
@@ -143,7 +143,7 @@ def valida_estrutura(estrutura, base_dir="."):
 def itens_sem_arquivo(estrutura):
     """Subseções sem nenhuma `visualização`/`mapa`/`tabela` e sem `status` -- o HTML e o PDF as pulam
     em silêncio (foi assim que o item "percentual de nascidos vivos por bairro" sumiu do relatório;
-    `specs/populacao-referencia` D4). Devolve `[(eixo, título)]`."""
+    `specs/2026-09-24_populacao-referencia` D4). Devolve `[(eixo, título)]`."""
     return [(eixo["eixo"], sub["titulo"])
             for eixo in estrutura for sub in eixo["subsecoes"]
             if not any(c in sub["campos"] for c in _DIRS_POR_CAMPO) and "status" not in sub["campos"]]
@@ -163,7 +163,7 @@ def chave_eixo(bruto):
 
 
 def blocos_relatorio(estrutura):
-    """Textos do relatório que não pertencem a uma figura (specs/relatorio_latex, Bloco 6): resumo, principais
+    """Textos do relatório que não pertencem a uma figura (specs/2026-09-25_relatorio_latex, Bloco 6): resumo, principais
     achados e síntese de cada eixo, considerações finais. {chave: bloco}, onde a chave é ao mesmo tempo o nome do
     bookmark no DOCX de curadoria e a chave em relatorio/textos_curados.json. `seed`/`palavras`/`linhas` definem o
     placeholder (ver `placeholder_bloco`), que a sincronização compara para saber se o texto foi editado."""

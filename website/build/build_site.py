@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Build the static website (website/) -- specs/website_refactor.
+"""Build the static website (website/) -- specs/2026-09-24_website_refactor.
 
 Moved here from .claude/skills/export_pdf_report/scripts/build_html_report.py
-(specs/website_refactor, Bloco 1); the history below predates the move and
+(specs/2026-09-24_website_refactor, Bloco 1); the history below predates the move and
 still says relatorio/index.html, which was the output path until then.
 
 Usage (from anywhere; paths resolve against the project root):
@@ -11,13 +11,13 @@ Usage (from anywhere; paths resolve against the project root):
 ---- previous docstring ----
 Build the single consolidated interactive HTML report (relatorio/index.html).
 
-Note (specs/ajuste_eixos, Bloco 3): the report's 9 h2 sections used to mirror
+Note (specs/2026-09-22_ajuste_eixos, Bloco 3): the report's 9 h2 sections used to mirror
 analise.py's section order (one per data source: Censo, CadUnico, DataSUS/
 Tabnet, causas evitaveis, gravidez/puerperio, mortalidade neonatal, SISVAN,
 cobertura vacinal, Educacao). As of this round they were regrouped into 6 h2
 "eixos da politica municipal" (Prioridade sem secundario, Inclusao, Familia e
 Cuidados, Protecao, Alimentacao, Moradia), per specs/estrutura_eixos.md (the
-authoritative crosswalk) and specs/ajuste_eixos/specs.md (the decision
+authoritative crosswalk) and specs/2026-09-22_ajuste_eixos/specs.md (the decision
 record for the classification rules and the 18 discarded indicators). Some
 old h2 sections (CadUnico, causas evitaveis, gravidez/puerperio, mortalidade
 neonatal, SISVAN, cobertura vacinal) now appear as h3 subsections nested
@@ -34,7 +34,7 @@ is the first *persisted* generator: it reads tabelas_finais/*.csv (same source t
 PDF pipeline uses) and renders interactive SVG charts via a small JS engine
 (lineChart/barChart/groupedBarChart, lifted from the old lighter_index.html and
 extended with the "many-series" highlight logic used in analise.py's
-serie_temporal_multipla). Per specs/visual-identity decision B, this report is
+serie_temporal_multipla). Per specs/2026-09-09_visual-identity decision B, this report is
 visualization-only: title + source + chart/map + optional data table, no prose/notes
 (those stay in the notebook and the PDF). Maps are interleaved in the same position
 they appear in analise.py (not grouped in one trailing section), and the page opens
@@ -44,7 +44,7 @@ This is a direct transcription of analise.py's chart/map call sites, in the same
 order they appear there -- if analise.py's sections, column names, exported
 filenames, or cell order change, this needs matching edits.
 
-v6 (specs/relatorio-interativo) rebuilt the visual identity and interaction model to
+v6 (specs/2026-09-14_relatorio-interativo) rebuilt the visual identity and interaction model to
 match a reviewed wireframe/mockup -- brutalist bordered cards (no shadow/radius),
 retractable h2 sections, a pill-selector (`option_card`) replacing what used to be a
 wall of near-identical repeated charts, an outlier toggle (Tukey fences, applied
@@ -60,7 +60,7 @@ kept only as a fallback for any future indicator that doesn't fit one of those 4
 geometry regimes. Known tradeoff: embedding real SVG geometry per map instance (166
 bairro paths, repeated per indicator) makes the output much heavier than the old
 base64-PNG version (~20MB vs ~5MB) -- not yet optimized (e.g. sharing paths via
-<defs>/<use>), tracked in specs/roadmap.md.
+<defs>/<use>), tracked in ROADMAP.md (done in specs/2026-09-24_website_refactor).
 
 Usage (from project root):
     python .claude/skills/export_pdf_report/scripts/build_html_report.py [out_path]
@@ -76,7 +76,7 @@ import sys
 import datetime
 from pathlib import Path
 
-# specs/website_refactor Bloco 1: o gerador saiu de .claude/skills/export_pdf_report/scripts/
+# specs/2026-09-24_website_refactor Bloco 1: o gerador saiu de .claude/skills/export_pdf_report/scripts/
 # (era build_html_report.py). Os caminhos abaixo continuam relativos ao root do projeto
 # (tabelas_finais/, dados_locais/geo/, relatorio/textos_curados.json), por isso o chdir;
 # gera_estrutura_eixos continua morando na skill do PDF/DOCX e é só importado daqui.
@@ -94,7 +94,7 @@ from PIL import Image
 
 TF = "tabelas_finais"
 MAPAS = "mapas"
-OUT_PATH = _OUT_ARG or "website"   # pasta de saída (specs/website_refactor Bloco 2)
+OUT_PATH = _OUT_ARG or "website"   # pasta de saída (specs/2026-09-24_website_refactor Bloco 2)
 
 # ---------------------------------------------------------------- helpers --
 
@@ -142,7 +142,7 @@ section_starts = []  # (index_in_parts, title, sid) -- 1 per h2, used to wrap se
 _FONTES_SECAO = {}   # sid do h2 -> fontes citadas pelos cartões da seção, em ordem, sem repetição
 
 def h2(t):
-    # specs/website_refactor: cada h2 vira um painel de aba (id = sid, igual ao id antigo do h2,
+    # specs/2026-09-24_website_refactor: cada h2 vira um painel de aba (id = sid, igual ao id antigo do h2,
     # para links já compartilhados continuarem valendo); o emoji do título sai (ícone SVG no lugar).
     sid = slugify(t)
     titulo = re.sub(r"^[^\w(]+", "", t).strip()
@@ -331,9 +331,9 @@ def check_maps(imgs):
     if missing:
         raise SystemExit(f"missing map PNGs: {missing}")
 
-# ------------------------------------------------ specs/relatorio-interativo --
+# ------------------------------------------------ specs/2026-09-14_relatorio-interativo --
 # Outliers, option-card (pill selector), CSV download, institutional identity,
-# and the SVG choropleth pipeline -- see specs/relatorio-interativo/plan.md.
+# and the SVG choropleth pipeline -- see specs/2026-09-14_relatorio-interativo/plan.md.
 
 def _esc(s):
     return str(s).replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
@@ -345,7 +345,7 @@ def _fmt_ptbr(v, dec=0):
     s = s.replace(",", "\x00").replace(".", ",").replace("\x00", ".")
     return s
 
-# ---- texto de analise: lorem ipsum, por opcao (specs/relatorio-interativo/plan.md §10.3) --
+# ---- texto de analise: lorem ipsum, por opcao (specs/2026-09-14_relatorio-interativo/plan.md §10.3) --
 # Placeholder deliberado (specification.md §3.4/§3.13): marca onde o texto real
 # vai entrar depois, sem fabricar uma leitura analitica dos dados que ninguem
 # validou. Deterministico por `seed` (o label da opcao) para o texto nao mudar
@@ -365,7 +365,7 @@ _LOREM_WORDS = (
 def _lorem(seed, palavras=None):
     rng = random.Random(seed)
     if palavras is None:
-        # specs/ajuste_eixos/specs.md §7: faixa 100-200 palavras por bloco de
+        # specs/2026-09-22_ajuste_eixos/specs.md §7: faixa 100-200 palavras por bloco de
         # analise (era um valor fixo de 150 ate a rodada ajuste_eixos) --
         # RNG proprio (nao consome do `rng` de escolha de palavras acima) e
         # deterministico por seed, pra nao mudar a cada regeracao do relatorio.
@@ -520,14 +520,14 @@ def tabela_com_texto(build_fn, seed):
 
 def emite_bloco_pendente(titulo, nota):
     """Subsecao 'a reservar' (catalogo tem o indicador, analise.py ainda nao o
-    implementa) -- specs/ajuste_eixos/specs.md §3-E: nunca uma secao vazia sem
+    implementa) -- specs/2026-09-22_ajuste_eixos/specs.md §3-E: nunca uma secao vazia sem
     explicacao, sempre com o selo + a razao (Status da planilha). Mesmo
     padrao visual do key-takeaways (--surface-2), com um selo proprio para
     nao ser confundido com 'Principais achados'. Sem bloco de texto lorem --
     nao ha conteudo real a comentar ainda (specs.md §7)."""
     h3(titulo)
     _PENDENTES_SECAO[section_starts[-1][2]] = _PENDENTES_SECAO.get(section_starts[-1][2], 0) + 1
-    # specs/website_refactor: callout com ícone (sai o emoji 🚧)
+    # specs/2026-09-24_website_refactor: callout com ícone (sai o emoji 🚧)
     parts.append(callout("pending", "construction", "Indicador catalogado, ainda não disponível", f"<p>{_esc(nota)}</p>"))
 
 _PENDENTES_SECAO = {}   # sid do h2 -> nº de indicadores pendentes (cartões da Visão geral)
@@ -582,7 +582,7 @@ LOGO_IMG = logo_link("rodape", "footer-logo")
 
 # ---- SVG choropleth pipeline (Bloco 3) -------------------------------------
 # Aplicado nesta rodada ao mapa do Censo por bairro (prova de conceito real,
-# ver specs/relatorio-interativo/tasks.md T3.4) -- os demais ~30 mapas
+# ver specs/2026-09-14_relatorio-interativo/tasks.md T3.4) -- os demais ~30 mapas
 # continuam como PNG (map_card acima) ate uma rodada de conversao mecanica.
 
 # altura reduzida ~20% (560->448, pedido explicito do usuario) -- checado
@@ -665,7 +665,7 @@ def _geo_nivel(nivel):
     _GEO_CACHE[nivel] = result
     return result
 
-# ---- geometria compartilhada (specs/website_refactor Blocos 3/3b) ------------
+# ---- geometria compartilhada (specs/2026-09-24_website_refactor Blocos 3/3b) ------------
 # Antes: cada mapa (e cada variante "sem outliers") repetia o `d` de todas as
 # regiões -- 7.107 <path>, 20 MB. Agora cada região de cada nível vira UM
 # <path id="geo-..."> em data/geo.js e o mapa só tem <use href="#geo-..." fill=...>.
@@ -709,7 +709,7 @@ def _path_d_relativo(geom):
     return "".join(out)
 
 def _fecha_frestas(geoms):
-    """Remove anéis internos que nenhuma outra região cobre (specs/website_refactor T3b.6).
+    """Remove anéis internos que nenhuma outra região cobre (specs/2026-09-24_website_refactor T3b.6).
     O geojson de bairros não fecha perfeitamente (coverage_is_valid = False); o dissolve em
     AP/RP/RA deixa essas frestas como furinhos brancos dentro da região. Um furo coberto por
     outra região é um enclave real e fica; um furo que ninguém cobre é fresta e é preenchido."""
@@ -794,7 +794,7 @@ def _basemap_css_class(project):
     key = (round(minx, 4), round(miny, 4), round(maxx, 4), round(maxy, 4))
     if key in _BASEMAP_CACHE:
         return _BASEMAP_CACHE[key][0]
-    # specs/website_refactor Bloco 3: JPEG em assets/images/ (antes base64 no <style>), nome
+    # specs/2026-09-24_website_refactor Bloco 3: JPEG em assets/images/ (antes base64 no <style>), nome
     # derivado da bbox. Se o arquivo já existe em website/, é reaproveitado sem rede -- saída
     # estável entre execuções (antes o JPEG mudava a cada download) e geração offline.
     import hashlib
@@ -887,7 +887,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
     """`col_extra` (populacao-referencia D1): coluna percentual opcional de `df` mostrada no tooltip ao lado do
     valor, como "1.234 (1,9% do município)" com `rotulo_extra`; None (padrão) não muda nada.
     `teto`: limite superior só da escala de cor contínua (valores acima usam a cor máxima; o tooltip mostra o real).
-    `col_suprimido` (specs/recortes_cadunico §5): coluna booleana de `df` marcando regiões suprimidas por
+    `col_suprimido` (specs/2026-09-23_recortes_cadunico §5): coluna booleana de `df` marcando regiões suprimidas por
     privacidade (valor já vazio na tabela) -- o tooltip mostra `rotulo_suprimido` em vez de "—" e a legenda
     ganha uma linha própria. None (padrão) = comportamento anterior, usado pelos demais mapas.
     `zero_branco` (só com `bins`): valor 0 vira branco, com linha própria "0 (sem casos)" na legenda.
@@ -1001,10 +1001,10 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
         build(valores)
 
 # ============================================================ BANNER/INTRO ==
-# specs/website_refactor Bloco 5: faixa de aviso, banner, barra de abas, painel Visão geral e
+# specs/2026-09-24_website_refactor Bloco 5: faixa de aviso, banner, barra de abas, painel Visão geral e
 # sumário lateral são montados no fim (ASSEMBLE), quando todos os h2/h3 já existem. Aqui só o
 # texto da Introdução (curado sob o bookmark "introducao" do DOCX, senão lorem de 250 palavras --
-# specs/ajuste_eixos §7), que vai para o painel Visão geral.
+# specs/2026-09-22_ajuste_eixos §7), que vai para o painel Visão geral.
 INTRO_HTML = _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 250)
 
 # ============================================================== PRIORIDADE ==
@@ -1362,7 +1362,7 @@ for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
         FONTE_EVITAVEIS, fmt="pct1", nivel="cap"), f"mapa_percentual_evitaveis_{sufixo}_cap_2025"))
 # mapas de gestação/parto por CAP removidos: merge-waleska-changes descontinuou a
 # curadoria desses subgrupos em analise.py (tabela_mapa_obitos_evitaveis_*_menores_1_ano_cap_2025.csv
-# não é mais gerada) -- ver specs/merge-waleska-changes/specs.md
+# não é mais gerada) -- ver specs/2026-09-22_merge-waleska-changes/specs.md
 option_card(_entries_mapas_cap_faixa, 'mapa')
 
 emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo", "recorte por sexo ainda não extraído do SIM")
@@ -1407,7 +1407,7 @@ option_card([
     ("Taxa 0-6, por sexo", lambda: grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU), "sidra_taxa_frequencia_0_6_sexo_2022"),
 ], 'grafico')
 
-# ---- CadÚnico: recortes por sexo, raça/cor, arranjo familiar e renda (specs/recortes_cadunico) ----
+# ---- CadÚnico: recortes por sexo, raça/cor, arranjo familiar e renda (specs/2026-09-23_recortes_cadunico) ----
 FONTE_CADUNICO = "CadÚnico (extração CTPE, jun/2026)"
 FONTE_MAPA_CADUNICO = (FONTE_CADUNICO + ". Bairro atribuído pelo CEP (Correios), pode divergir do bairro oficial; "
                        "bairros com menos de 20 famílias suprimidos")
@@ -1818,7 +1818,7 @@ footer = (
 )
 
 # ======================================================= site em abas (Bloco 5) ==
-# specs/website_refactor §4.2-4.7. Substitui navbar hambúrguer + Sumário + seções retráteis
+# specs/2026-09-24_website_refactor §4.2-4.7. Substitui navbar hambúrguer + Sumário + seções retráteis
 # (relatorio/specs.md v6/v7 -> v8): cada h2 vira um painel de aba; Visão geral é a 1ª aba.
 
 TITULO_SITE = "Diagnóstico da Primeira Infância Carioca"
@@ -1826,7 +1826,7 @@ TITULO_SITE = "Diagnóstico da Primeira Infância Carioca"
 TITULO_H1 = '<span class="h1-linha">Diagnóstico da</span><span class="h1-linha">Primeira Infância Carioca</span>'
 URL_GITHUB = "https://github.com/ipp-dados/analise_primeira_infancia"
 # PDF não é publicado no Pages (~48 MB, fora do orçamento §4.9 e da decisão T9.3 de
-# specs/relatorio-interativo) -- link para o arquivo versionado no repositório (branch principal).
+# specs/2026-09-14_relatorio-interativo) -- link para o arquivo versionado no repositório (branch principal).
 # raw.githubusercontent.com serve o arquivo como application/octet-stream -> o navegador baixa direto
 # (pedido do usuário: link de download, não a página do GitHub)
 URL_PDF = "https://raw.githubusercontent.com/ipp-dados/analise_primeira_infancia/staging_main/relatorio/analise_primeira_infancia.pdf"
@@ -1914,7 +1914,7 @@ navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-l
                     + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in section_starts) + '</nav>')
 
 banner = (
-    # faixa de aviso: remover quando publicar_teste_pages for encerrado (specs/roadmap.md)
+    # faixa de aviso: remover quando publicar_teste_pages for encerrado (ROADMAP.md, backlog do site)
     '<div class="dev-banner" role="alert">'
     '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
     'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
@@ -1943,7 +1943,7 @@ body = (banner + "\n" + tabbar + "\n"
         '<div class="container page-grid">\n<main class="panels">\n' + "\n".join(paineis) + '\n</main>\n'
         + outline + '\n</div>\n' + footer)
 
-# CSS e motor JS são arquivos estáticos editados à mão (specs/website_refactor Bloco 2):
+# CSS e motor JS são arquivos estáticos editados à mão (specs/2026-09-24_website_refactor Bloco 2):
 # website/css/{main,layout,components}.css e website/js/{charts,navigation,sidebar}.js.
 
 # Bloco 2: as chamadas de render (dados embutidos) saem do HTML para data/charts.js,
@@ -1980,7 +1980,7 @@ doc = f"""<!doctype html>
 </html>
 """
 
-# ---- escrita (specs/website_refactor) ----------------------------------------
+# ---- escrita (specs/2026-09-24_website_refactor) ----------------------------------------
 # OUT_DIR = website/ por padrão. Com outro destino (ex. scratchpad para comparar), os
 # arquivos estáticos editados à mão são copiados junto, para a pasta abrir sozinha.
 import shutil
@@ -2019,7 +2019,7 @@ for nome, conteudo in _BASEMAP_FILES.items():
     (OUT_DIR / "assets" / "images" / nome).write_bytes(conteudo)
 print(f"wrote {OUT_DIR}: {len(scripts)} charts, {sum(1 for l,t,s in toc if l==2)} h2 / {sum(1 for l,t,s in toc if l==3)} h3 sections")
 
-# ---- relatório de tamanho + orçamento (specs/website_refactor §4.9) -----------
+# ---- relatório de tamanho + orçamento (specs/2026-09-24_website_refactor §4.9) -----------
 # Só avisa, não falha: um estouro é sinal para investigar (ex. geometria voltou a
 # ser repetida por mapa), não motivo para travar a geração.
 import gzip
@@ -2039,6 +2039,6 @@ _total, _total_gz = sum(t[1] for t in _tamanhos), sum(t[2] for t in _tamanhos)
 print(f"  {'TOTAL publicado':40s} {_total:>11,} bytes  (gzip {_total_gz:>9,})")
 _idx = next((t[1] for t in _tamanhos if t[0] == "index.html"), 0)
 if _idx > ORCAMENTO_INDEX:
-    print(f"AVISO: index.html com {_idx:,} bytes passa do orçamento de {ORCAMENTO_INDEX:,} (specs/website_refactor §4.9)", file=sys.stderr)
+    print(f"AVISO: index.html com {_idx:,} bytes passa do orçamento de {ORCAMENTO_INDEX:,} (specs/2026-09-24_website_refactor §4.9)", file=sys.stderr)
 if _total > ORCAMENTO_SITE:
-    print(f"AVISO: site publicado com {_total:,} bytes passa do orçamento de {ORCAMENTO_SITE:,} (specs/website_refactor §4.9)", file=sys.stderr)
+    print(f"AVISO: site publicado com {_total:,} bytes passa do orçamento de {ORCAMENTO_SITE:,} (specs/2026-09-24_website_refactor §4.9)", file=sys.stderr)

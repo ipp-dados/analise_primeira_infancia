@@ -1,5 +1,5 @@
 /* components.css -- cartões, gráficos, pills, outliers, CSV, mapas, callouts, Visão geral.
-   specs/website_refactor Blocos 4-6 (protótipo aprovado com ajustes): mesmas classes que o gerador e js/charts.js
+   specs/2026-09-24_website_refactor Blocos 4-6 (protótipo aprovado com ajustes): mesmas classes que o gerador e js/charts.js
    já emitem para gráficos/mapas (só o visual muda: cantos arredondados, sombra suave em
    vez da borda preta de 2px -- reverte v6.1, ver relatorio/specs.md v8); callouts novos. */
 

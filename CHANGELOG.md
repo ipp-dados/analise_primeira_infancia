@@ -366,3 +366,19 @@ e dos textos curados no build; figuras em versão de impressão gravadas pelas p
 `relatorio/latex/fontes.bib` e inventário de fontes. Lista de exclusões em `specs/exclusoes.md`. Fundo padrão dos
 mapas passa a `mapa_oceano_base`. Detalhe na spec da rodada; mudanças do site planejadas em `specs/website_graficos`.
 
+
+## 2026-09-25 — curadoria: updates 3 e 4 incorporados
+
+Textos novos (taxa de mortalidade pós-neonatal, mapas de taxa de mortalidade infantil e pós-neonatal, série da taxa
+de mortalidade infantil reescrita) e as Considerações finais; textos de figuras fora do relatório guardados como
+órfãos no DOCX. As regressões do update 3 às correções de 2026-09-24 foram ignoradas. Alertas para a equipe em
+`relatorio/controle_revisao.json`.
+
+## 2026-09-25 — organização de `specs/` e roadmap único
+
+As pastas de rodada em `specs/` passam a ter a data de abertura como prefixo (`specs/<AAAA-MM-DD>_<nome>/`, ex.
+`specs/website_refactor` → `specs/2026-09-24_website_refactor`); as referências fora deste arquivo foram
+atualizadas, as entradas acima mantêm os nomes antigos como registro histórico. `specs/roadmap.md` e
+`website/ROADMAP.md` fundidos em `ROADMAP.md` na raiz, reorganizado (em andamento → próximos → backlog por tema →
+concluído), com dois itens novos: organização do projeto (pastas de dados/saídas, `analise.py` em módulos, scripts
+das skills) e empacotamento de scripts para outros projetos.

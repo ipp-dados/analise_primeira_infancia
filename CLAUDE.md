@@ -26,7 +26,7 @@ The CadÚnico section needs the `.env` DB credentials **and** a kernel with
 `psycopg` 3 (dev machine: conda env `analises_env`; base Anaconda only has
 `psycopg2`). Every sub-municipal CadÚnico output goes through
 `suprime_celulas_pequenas` (< 20 families blanked) before it is written —
-see `specs/recortes_cadunico/specification.md` §5. A full run also writes the
+see `specs/2026-09-23_recortes_cadunico/specification.md` §5. A full run also writes the
 print version of every figure used by the PDF report (`GERA_VARIANTE_A4`,
 section "🖨️ Variante de impressão"; `visualizacoes/a4/`, `mapas/a4/`).
 
@@ -41,7 +41,7 @@ Three project skills wrap multi-step regeneration pipelines — prefer them over
 reimplementing this logic:
 - `generate_map` — produces a choropleth PNG via `mapa_coropletico_bairros` (defined in `analise.py`).
 - `build_website` — regenerates/checks the static site in `website/` (`website/build/build_site.py`) and describes its manual GitHub Pages deploy.
-- `export_pdf_report` — builds the final report: an ABNT technical report in LaTeX (`relatorio/latex/`, abnTeX2 + xelatex; `specs/relatorio_latex`) whose chapters are generated from `specs/estrutura_eixos.md` + `relatorio/textos_curados.json` at build time, with print versions of `analise.py`'s own figures (`visualizacoes/a4/`, `mapas/a4/`) and `tabelas_finais/` tables in the appendix; also the DOCX curation export and the DOCX → site/PDF/`analise.py` text sync. Distinct from and NOT related to the `website/` static site's SVG charts — see below.
+- `export_pdf_report` — builds the final report: an ABNT technical report in LaTeX (`relatorio/latex/`, abnTeX2 + xelatex; `specs/2026-09-25_relatorio_latex`) whose chapters are generated from `specs/estrutura_eixos.md` + `relatorio/textos_curados.json` at build time, with print versions of `analise.py`'s own figures (`visualizacoes/a4/`, `mapas/a4/`) and `tabelas_finais/` tables in the appendix; also the DOCX curation export and the DOCX → site/PDF/`analise.py` text sync. Distinct from and NOT related to the `website/` static site's SVG charts — see below.
 
 ## Architecture
 
@@ -67,7 +67,7 @@ reimplementing this logic:
    subtitles are the 6 active policy axes (`specs/estrutura_eixos.md`), not
    the source-order sections above.
 
-**Presentation order vs. build order** (`specs/ajuste_eixos/`): the sections
+**Presentation order vs. build order** (`specs/2026-09-22_ajuste_eixos/`): the sections
 above are ordered by *data dependency* (a section may read results computed
 by an earlier one, e.g. the bairro-level joins near the end of the file read
 nascidos vivos/baixo peso/óbitos already computed above) — this order is not
@@ -78,7 +78,7 @@ Cuidados, Proteção, Alimentação, Moradia), read from `specs/estrutura_eixos.
 — a hand-editable crosswalk from the indicator catalog
 (`dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx`) to the real
 visualization/map/table files. To change the published grouping, edit that
-`.md` file, not this one's section order (see `specs/ajuste_eixos/specs.md`
+`.md` file, not this one's section order (see `specs/2026-09-22_ajuste_eixos/specs.md`
 §5 and §9.1 for why cells are not physically moved).
 
 Key conventions enforced throughout, worth checking before adding a new call site:
@@ -94,7 +94,7 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 - Choropleth convention (`mapa_coropletico_bairros`): **absolute counts always
   use discrete `bins`, percentages/rates always use a continuous colorbar**
   (`bins=None`) — this is fixed project-wide, not a per-map choice.
-- **Population denominators by level** (`specs/populacao-referencia`): municipal rates divide by the
+- **Population denominators by level** (`specs/2026-09-24_populacao-referencia`): municipal rates divide by the
   Ripsa/MS estimate of the same year (`carrega_populacao_ripsa`/`populacao_ripsa`, versioned extract in
   `dados_locais/populacao/`, network only if a year is missing); sub-municipal rates keep the fixed
   Censo 2022 (0-4) and must say so in the source/legend. Labels use the data's real age range (CadÚnico
@@ -125,21 +125,24 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 - `tabelas_finais/` — standardized CSV/Excel output tables from the pipeline (gitignored except `.gitkeep`).
 - `visualizacoes/` — exported chart PNGs from `analise.py`, named by section/theme (gitignored except `.gitkeep`).
 - `mapas/` — choropleth PNGs from `mapa_coropletico_bairros`, plus each map's twin input table in `tabelas_finais/tabela_mapa_*.csv` (gitignored except `.gitkeep`). `mapas/tabelas_bairros/` is a legacy Excel-based leftover, kept only for two files not yet migrated.
-- `website/` — the published static site (GitHub Pages; `specs/website_refactor`): tabs per eixo, sticky outline, interactive SVG charts/maps. `website/build/build_site.py` (moved from the PDF skill's `build_html_report.py`) generates `index.html`, `data/charts.js`, `data/geo.js` (map geometry, one `<path>` per region, shared by all maps via `<use>`) and `assets/images/basemap-*`/`ipp-logo-*`; `css/` and `js/` are **hand-edited static files**, not generator strings. Generated output is committed (CI has no `tabelas_finais/`, so it only copies). **Distinct pipeline and visual identity from `relatorio/analise_primeira_infancia.pdf`** — don't mix their conventions. Static-site rules (relative lowercase paths, hash-only routes, no `fetch`, only html/css/js/svg/png/jpg published) and the size budget (the generator warns above 1 MB `index.html` / 2 MB site) are in `website/README.md`. `*.png`/`*.svg` are gitignored globally; `!/website/assets/**` keeps the site's assets tracked.
+- `website/` — the published static site (GitHub Pages; `specs/2026-09-24_website_refactor`): tabs per eixo, sticky outline, interactive SVG charts/maps. `website/build/build_site.py` (moved from the PDF skill's `build_html_report.py`) generates `index.html`, `data/charts.js`, `data/geo.js` (map geometry, one `<path>` per region, shared by all maps via `<use>`) and `assets/images/basemap-*`/`ipp-logo-*`; `css/` and `js/` are **hand-edited static files**, not generator strings. Generated output is committed (CI has no `tabelas_finais/`, so it only copies). **Distinct pipeline and visual identity from `relatorio/analise_primeira_infancia.pdf`** — don't mix their conventions. Static-site rules (relative lowercase paths, hash-only routes, no `fetch`, only html/css/js/svg/png/jpg published) and the size budget (the generator warns above 1 MB `index.html` / 2 MB site) are in `website/README.md`. `*.png`/`*.svg` are gitignored globally; `!/website/assets/**` keeps the site's assets tracked.
 - `relatorio/` — the published PDF (`analise_primeira_infancia.pdf`, copied there only by `gera_latex.py --publicar`), `latex/` (LaTeX source: hand-edited `relatorio.tex`/`estilo.sty`/`pretextual/`/`fontes.bib`, generated `gerado/`, gitignored `_build/`), the sources inventory (`inventario_fontes.md/.csv`, for the team), the DOCX curation export, and `textos_curados.json` (curated text read by the site and the PDF). `relatorio/index.html` no longer exists (replaced by `website/`).
+- `ROADMAP.md` (root) — the single roadmap (in progress → prioritized queue → backlog by theme → done); `specs/roadmap.md` and `website/ROADMAP.md` were merged into it on 2026-09-25. Update it when a round opens or closes.
 - `specs/exclusoes.md` — hand-edited list of what the team excluded from the PDF/site/figures, why, and how to restore it. Check it before re-adding an indicator.
 - `.github/workflows/deploy-relatorio.yml` — manual (`workflow_dispatch`) GitHub Pages deploy of `website/` (explicit include list, excludes `build/`; fails if a non-static file type slips in). Not the PDF.
 - `specs/` — the project's spec-driven workflow. `specs/constitution.md` (non-negotiable
   project-wide rules), `specs/tech-stack.md` (what's used and why, including rejected
-  alternatives), `specs/roadmap.md` (prioritized/backlog work items), and one directory per
-  feature/planning round (`specs/mortalidade-ap`, `specs/maps-and-ibge`, `specs/visual-identity`,
-  `specs/relatorio-interativo`, ...), each with `plan.md`, `specification.md`/`specs.md`,
+  alternatives), and one directory per
+  feature/planning round (`specs/2026-09-08_mortalidade-ap`, `specs/2026-09-09_maps-and-ibge`, `specs/2026-09-09_visual-identity`,
+  `specs/2026-09-14_relatorio-interativo`, ...), each with `plan.md`, `specification.md`/`specs.md`,
   `tasks.md`, `validation.md`. **Read `specs/constitution.md` first** — check the relevant
   `specs/<round>/` dir and `relatorio/specs.md` (the interactive report's own change history)
   for prior design decisions and *why* before changing related code; several document
   multi-round iteration histories with rejected approaches that shouldn't be re-tried without
   new instruction. Before a risky change or incorporating outside work (e.g. merging another
-  branch), open a new `specs/<name>/` round and summarize the plan before executing.
+  branch), open a new `specs/<AAAA-MM-DD>_<name>/` round and summarize the plan before executing.
+  Round folders are prefixed with the date the round was opened (first commit of its files), so
+  `ls specs/` lists them in chronological order; git branches keep the bare name (`spec/<name>`).
 - `.claude/skills/` — see Commands above.
 
 ### Working with `dados_locais/geo/`
