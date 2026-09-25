@@ -3,14 +3,17 @@
 ## Bloco 0 — Aprovação
 - [x] T0.1 Decisões D1-D4 (`specification.md` §8) registradas neste spec (2026-09-25)
 - [x] T0.3 Nomes da equipe para a folha de rosto (2026-09-25; funções não informadas)
-- [ ] T0.2 Branch `spec/relatorio-latex` a partir de `planning`
+- [x] T0.2 Branch `spec/relatorio-latex` a partir de `planning`
 
 ## Bloco 1 — Inventário de fontes
-- [ ] T1.1 `inventario_fontes.py`: AST de `analise.py` (chamadas de gráfico/mapa/`to_csv`, `fonte_*` resolvidos)
-- [ ] T1.2 Cruzar com `estrutura_eixos.md` (`fonte:`, arquivos por subseção) e com o disco
-- [ ] T1.3 `relatorio/inventario_fontes.md` + `.csv`: por fonte, por arquivo, alertas
-- [ ] T1.4 `fontes.bib` (NBR 6023) com campo `variaveis`; alerta de fonte sem entrada
-- [ ] T1.5 Revisar alertas com o usuário (não corrigir `fonte:` sem aprovação)
+- [x] T1.1 `inventario_fontes.py`: AST de `analise.py` (chamadas de gráfico/mapa/`to_csv`, `fonte_*` resolvidos)
+- [x] T1.2 Cruzar com `estrutura_eixos.md` (`fonte:`, arquivos por subseção) e com o disco
+- [x] T1.3 `relatorio/inventario_fontes.md` + `.csv`: por fonte, por arquivo, alertas
+- [x] T1.4 `fontes.bib` (NBR 6023) com campo `variaveis`; alerta de fonte sem entrada
+- [ ] T1.5 Revisar alertas com o usuário (não corrigir `fonte:` sem aprovação). Achados de 2026-09-25:
+  10 arquivos do relatório vêm de chamadas **comentadas** em `analise.py` (arquivos antigos no disco);
+  13 gráficos são regravados por `regen_missing_pngs.py` sem `fonte_dados`; 2 (`censo_0_a_4_serie_*`) só
+  existem via esse script; 10 campos `conferir` em `fontes.bib`
 
 ## Bloco 2 — Esqueleto e páginas-amostra
 - [ ] T2.1 `relatorio.tex` (abntex2, relatório técnico, A4, oneside, 12 pt, 1,5) + `estilo.sty`
