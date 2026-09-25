@@ -134,7 +134,8 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 - Backlog: validar 1 ou 2 anos contra a Sinopse Estatística do INEP (pendência P5 da mesma spec).
 
 ## Relatório interativo (`specs/relatorio-interativo`)
-- **`improve charts`** (pedido do usuário, 2026-09-25) — levar para o site (`website/build/build_site.py`,
+- **`improve charts`** — *planejado em `specs/website_graficos` (branch `spec/website-graficos`), junto com a parte
+  do site de `specs/exclusoes.md`; validação escrita antes da implementação.* (pedido do usuário, 2026-09-25) — levar para o site (`website/build/build_site.py`,
   `website/js/charts.js`) as melhorias de leitura desenhadas para o PDF em `specs/relatorio_latex` §5.1
   (protótipo em `specs/relatorio_latex/prototipo/`). Fazer **depois do Bloco 5** daquela rodada, para que
   rótulos e paleta venham de uma fonte só:
