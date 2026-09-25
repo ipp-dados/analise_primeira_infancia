@@ -124,6 +124,11 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 ## Educação e Violência
 - Import the data from CSVs
 - Create tables and visualizations
+- **Agregar amarela + indígena na frequência escolar por raça/cor** (decidido pelo usuário em 2026-09-25, para a
+  próxima rodada; `specs/exclusoes.md` E12) — na taxa de frequência escolar bruta por idade e raça/cor do Censo 2022
+  (`sidra_taxa_frequencia_0_6_raca_2022`), os dois grupos são pequenos e chegam a 100% em várias idades. Mesma
+  regra de E5: somar os absolutos (frequentam / população) e recalcular a taxa, nunca somar percentuais; aplicar no
+  gráfico do `analise.py` (versão de tela e de impressão), na tabela do PDF e no site.
 
 ## Matrículas
 - ✅ Update dados de matrículas escolares for years 2021-2025 — feito em `specs/populacao-referencia/matriculas`
