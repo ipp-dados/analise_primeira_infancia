@@ -218,9 +218,12 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
             for nome in lista(c.get("tabela")):
                 if nome not in [t for t, _ in tabs_eixo]:
                     tabs_eixo.append((nome, sub["titulo"]))
-                refs.append(rf"Tabela~\ref{{tab:{rotulo_label(Path(nome).stem)}}}")
+                if tabelas.cabe_no_pdf(RAIZ / "tabelas_finais" / nome):
+                    refs.append(rf"Tabela~\ref{{tab:{rotulo_label(Path(nome).stem)}}}")
+                else:
+                    refs.append(r"\texttt{" + esc(nome) + "} (formato digital)")
             if refs:
-                tex.append(r"\vertabelas{" + ", ".join(refs) + rf", no Apêndice~\ref{{ap:eixo-{i}}}}}")
+                tex.append(r"\vertabelas{" + ", ".join(refs) + rf"; ver Apêndice~\ref{{ap:eixo-{i}}}}}")
         tex.append(r"\section{Síntese do eixo}")
         tex.append(rf"\begin{{sintese}}{{{esc(titulo)}}}" + texto(f"conclusao-{sid}") + r"\end{sintese}")
 
@@ -235,10 +238,22 @@ def apendices(tabelas_por_eixo, info_por_arquivo):
         tex.append(rf"\chapter{{Tabelas do eixo {esc(titulo)}}}\label{{ap:eixo-{i}}}")
         if not tabs:
             tex.append("Este eixo não tem tabelas de dados nesta edição.")
+        digitais = []
         for nome, titulo_secao in tabs:
+            caminho = RAIZ / "tabelas_finais" / nome
+            if not tabelas.cabe_no_pdf(caminho):
+                digitais.append((nome, titulo_secao, tabelas.n_linhas(caminho)))
+                continue
             info = info_por_arquivo.get("tabelas_finais/" + nome, {})
-            tex.append(tabelas.tabela_latex(RAIZ / "tabelas_finais" / nome, titulo_secao,
+            tex.append(tabelas.tabela_latex(caminho, titulo_secao,
                                             legenda_fonte(info, "tabela"), f"tab:{rotulo_label(Path(nome).stem)}"))
+        if digitais:   # T4.4: tabelas longas demais para o papel ficam só no formato digital
+            tex.append(r"\section*{Tabelas disponíveis em formato digital}")
+            tex.append(rf"As tabelas abaixo têm mais de {tabelas.MAX_LINHAS_PDF} linhas e não são impressas; estão em "
+                       r"\texttt{tabelas\_finais/} no repositório do projeto.")
+            tex.append(r"\begin{itemize}" + "".join(
+                rf"\item \texttt{{{esc(n)}}} --- {esc(s)} ({tabelas.num(l, 0)} linhas)" for n, s, l in digitais)
+                + r"\end{itemize}")
     tex.append(r"\end{apendicesenv}")
     return "\n\n".join(tex) + "\n"
 

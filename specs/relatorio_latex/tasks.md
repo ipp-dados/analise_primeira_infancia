@@ -36,7 +36,10 @@
 ## Bloco 4 — Apêndice de tabelas
 - [ ] T4.1 `tabelas.py`: portar seleção/formatação de `build_notebook_report.py`
 - [ ] T4.2 `longtable` + `booktabs`, pt-BR, `ano` sem separador, Fonte abaixo
-- [ ] T4.4 Proposta: tabela com mais de ~200 linhas não entra no PDF; quadro "Tabelas disponíveis em formato digital"
+- [~] T4.4 Implementado como experimento (`MAX_LINHAS_PDF = 200` em `tabelas.py`), aguardando o usuário.
+  Medido em 2026-09-25: **276 páginas** (corpo até a p. 115; apêndices p. 116-276), 68 tabelas impressas,
+  10 só digitais. Das impressas, 20 têm 101-200 linhas (bairro/RA, ~3.200 linhas, a maior parte dos ~160
+  páginas de apêndice) e 46 têm até 30 linhas. Proposta original: tabela com mais de ~200 linhas não entra no PDF; quadro "Tabelas disponíveis em formato digital"
   com o nome do arquivo; o apêndice fica com a tabela do mapa (último ano, 1 linha por bairro)
 - [ ] T4.3 Chave opcional `tabela_no_texto:` em `estrutura_eixos.md` (+ parser)
 

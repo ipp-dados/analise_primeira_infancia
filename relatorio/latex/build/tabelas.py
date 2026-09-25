@@ -12,6 +12,18 @@ from pathlib import Path
 import pandas as pd
 
 MAX_COLUNAS_RETRATO = 7
+MAX_LINHAS_PDF = 200      # T4.4: acima disso a tabela fica só no formato digital (CSV)
+_LINHAS = {}
+
+
+def n_linhas(caminho):
+    if caminho not in _LINHAS:
+        _LINHAS[caminho] = len(pd.read_csv(caminho))
+    return _LINHAS[caminho]
+
+
+def cabe_no_pdf(caminho):
+    return n_linhas(caminho) <= MAX_LINHAS_PDF
 COLUNAS_SEM_MILHAR = re.compile(r"^(ano|idade|cod\w*|codigo|cod_ap_sms|codbairro|codra|cap|ap|rp|ra)$", re.I)
 COLUNAS_PCT = re.compile(r"(percent|%|taxa|propor|cobertura)", re.I)
 
