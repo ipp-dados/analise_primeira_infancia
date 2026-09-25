@@ -1,4 +1,4 @@
-# Tarefas — `specs/website_graficos`
+# Tarefas — `specs/2026-09-25_website_graficos`
 
 ## Bloco 0 — Planejamento
 - [x] T0.1 Spec, plano e validação escritos antes da implementação (2026-09-25)

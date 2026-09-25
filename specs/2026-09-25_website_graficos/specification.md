@@ -1,4 +1,4 @@
-# SPEC — Site: exclusões e melhoria dos gráficos (`specs/website_graficos`)
+# SPEC — Site: exclusões e melhoria dos gráficos (`specs/2026-09-25_website_graficos`)
 
 > Rodada aberta em 2026-09-25, branch `spec/website-graficos` (a partir de `spec/relatorio-latex`, porque depende
 > de `specs/exclusoes.md` e dos helpers novos de `analise.py`). Status: **planejamento — nada implementado.**
@@ -27,7 +27,7 @@ Mantidos por decisão explícita (não mexer): lesão autoprovocada; % de evitá
 causas evitáveis por faixa; taxas neonatais por bairro.
 
 **B. `improve charts`** (`specs/roadmap.md`, 2026-09-25) — a partir das regras de impressão do PDF
-(`specs/relatorio_latex/specification.md` §5.1). Estado de cada item **no site hoje**, conferido no código:
+(`specs/2026-09-25_relatorio_latex/specification.md` §5.1). Estado de cada item **no site hoje**, conferido no código:
 
 | Item | Estado no site | Proposta |
 | :--- | :--- | :--- |
@@ -62,7 +62,7 @@ causas evitáveis por faixa; taxas neonatais por bairro.
 - **P5** — B1 depende do dicionário `ROTULOS_EIXO` do Bloco 5 de `relatorio_latex`: esperar por ele ou criar aqui
   e o PDF reaproveitar?
 
-## 3b. Textos do relatório (dependência do `specs/relatorio_latex`, Bloco 6)
+## 3b. Textos do relatório (dependência do `specs/2026-09-25_relatorio_latex`, Bloco 6)
 
 O PDF e o DOCX de curadoria passaram a ter blocos de texto fora das figuras, com chaves próprias em
 `relatorio/textos_curados.json` (definidas em `blocos_relatorio()`, `.claude/skills/export_pdf_report/scripts/
