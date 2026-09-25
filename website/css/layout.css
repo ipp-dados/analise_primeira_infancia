@@ -1,12 +1,12 @@
 /* layout.css -- container, faixa de aviso, banner, barra de abas, grade conteúdo + sumário
-   lateral, cabeçalho de painel, rodapé. specs/website_refactor Blocos 4-6 (protótipo aprovado com ajustes).
+   lateral, cabeçalho de painel, rodapé. specs/2026-09-24_website_refactor Blocos 4-6 (protótipo aprovado com ajustes).
    Só desktop nesta rodada (spec §4.8); grid/flex e variáveis para a versão mobile
-   (website/ROADMAP.md) mexer em poucas regras. */
+   (ROADMAP.md) mexer em poucas regras. */
 
 .container{max-width:var(--container); margin:0 auto; padding:0 var(--gutter);}
 
 /* Faixa "em desenvolvimento" -- cor de alerta fixa, de propósito fora dos tokens
-   (specs/roadmap.md publicar_teste_pages). */
+   (ROADMAP.md, backlog do site). */
 .dev-banner{
   background:#ffb300; color:#1a1a1a; font-weight:700; text-align:center;
   padding:10px 16px; font-size:.82rem; line-height:1.4;

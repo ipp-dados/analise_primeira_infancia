@@ -1,5 +1,5 @@
 // charts.js -- motor de graficos, pills, outliers, CSV e tooltips de mapa.
-// specs/website_refactor Bloco 2: extraido da string ENGINE de build_site.py; editado a mao a partir daqui.
+// specs/2026-09-24_website_refactor Bloco 2: extraido da string ENGINE de build_site.py; editado a mao a partir daqui.
 (function(){
   "use strict";
   function fmt(n, d){ d = d||0; return Number(n).toLocaleString('pt-BR', {minimumFractionDigits:d, maximumFractionDigits:d}); }
@@ -18,7 +18,7 @@
   // limiar acima do qual so as series mais relevantes (top N pelo ultimo valor
   // nao-nulo) ficam coloridas/na legenda; o resto vira uma linha cinza fina,
   // agrupada numa unica entrada "Outras (N)" -- mesma regra de
-  // serie_temporal_multipla em analise.py (ver specs/visual-identity).
+  // serie_temporal_multipla em analise.py (ver specs/2026-09-09_visual-identity).
   const LIMIAR_DESTAQUE = 6, N_DESTACADAS = 4;
 
   function prepararSeries(series){
@@ -297,13 +297,13 @@
     }
   }
 
-  // ================= specs/relatorio-interativo: controladores estaticos =================
+  // ================= specs/2026-09-14_relatorio-interativo: controladores estaticos =================
   // (navbar, secoes retrateis, seletor de opcoes, toggle de outliers, download CSV,
   // tooltip de mapa -- tudo delegado/inicializado uma vez no DOMContentLoaded, ja que
   // esses elementos sao HTML estatico gerado em Python, nao criados por lineChart/etc.)
 
   // initNavbar/initSections (navbar hambúrguer e seções retráteis) removidos -- substituídos pelas
-  // abas (js/navigation.js) e pelo sumário lateral (js/sidebar.js), specs/website_refactor Bloco 5.
+  // abas (js/navigation.js) e pelo sumário lateral (js/sidebar.js), specs/2026-09-24_website_refactor Bloco 5.
 
   function initPills(){
     document.querySelectorAll('.option-card').forEach(card=>{

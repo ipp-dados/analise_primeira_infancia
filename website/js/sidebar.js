@@ -1,5 +1,5 @@
 // sidebar.js -- sumário lateral da aba ativa: subseção atual destacada e barra de progresso.
-// specs/website_refactor §4.7. Editado à mão (não gerado).
+// specs/2026-09-24_website_refactor §4.7. Editado à mão (não gerado).
 //
 // Marcação (gerada): <aside class="outline"> com um <nav class="outline-nav" data-panel="<id>">
 // por painel; cada <a href="#<painel>/<id-h3>" data-alvo="<id-h3>">. Escuta `tabchange` de navigation.js.

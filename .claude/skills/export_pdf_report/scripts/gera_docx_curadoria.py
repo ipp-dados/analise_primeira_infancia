@@ -1,4 +1,4 @@
-"""Gera `relatorio/curadoria_textos.docx` (Bloco 5 de `specs/ajuste_eixos/plan.md`).
+"""Gera `relatorio/curadoria_textos.docx` (Bloco 5 de `specs/2026-09-22_ajuste_eixos/plan.md`).
 
 Documento Word para curadoria de textos de análise fora do notebook/HTML:
 abre com um Sumário (campo TOC nativo do Word, sob controle do usuário --
@@ -88,7 +88,7 @@ _BOOKMARK_TRUNC = 32
 
 # ------------------------------------------------------------ lorem ipsum --
 # Copiado literalmente de build_html_report.py (_LOREM_WORDS/_lorem) --
-# specs/ajuste_eixos/specs.md §7 pede o MESMO vocabulário/algoritmo
+# specs/2026-09-22_ajuste_eixos/specs.md §7 pede o MESMO vocabulário/algoritmo
 # determinístico nos 3 artefatos (HTML/PDF/DOCX). Não importado de lá de
 # propósito -- este script é autocontido (ver docstring acima).
 _LOREM_WORDS = (
@@ -397,7 +397,7 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
 
     doc = Document()
 
-    # ---- sumario + introducao (pedido do usuario, specs/ajuste_eixos) -----
+    # ---- sumario + introducao (pedido do usuario, specs/2026-09-22_ajuste_eixos) -----
     # Sumario = campo TOC nativo do Word (add_toc_field), nao uma lista
     # estatica -- "para controle do usuario": ele mesmo pede a atualizacao
     # no Word conforme edita o documento, sem depender de regerar via
@@ -424,7 +424,7 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
     registra_linha("—", "Introdução", "Introdução", "introducao")
     avisos_do_bloco("introducao")
 
-    # textos do relatório que não pertencem a uma figura (specs/relatorio_latex, Bloco 6): resumo, achados e
+    # textos do relatório que não pertencem a uma figura (specs/2026-09-25_relatorio_latex, Bloco 6): resumo, achados e
     # síntese por eixo, considerações finais -- chave = bookmark = chave em textos_curados.json
     blocos = blocos_relatorio(estrutura)
 

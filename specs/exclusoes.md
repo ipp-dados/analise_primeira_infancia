@@ -3,13 +3,13 @@
 > Registro único do que foi **tirado** (ou agregado) do relatório PDF, do site e/ou do `analise.py` por decisão
 > da equipe — o quê, onde, por quê, quando e como voltar atrás. Editado à mão, como `specs/estrutura_eixos.md`.
 > Pedido do usuário (2026-09-25): "keep track of those decisions in a excluded list". A análise que embasou os
-> itens E1-E12 está em `specs/relatorio_latex/sugestoes_omissao.md` (códigos A1-D).
+> itens E1-E12 está em `specs/2026-09-25_relatorio_latex/sugestoes_omissao.md` (códigos A1-D).
 >
 > Onde cada produto aplica a exclusão:
 > - **PDF e DOCX** — `specs/estrutura_eixos.md` (o arquivo sai da subseção, com uma `nota:`) ou, só para tabelas
 >   do apêndice, `SUBSTITUI_NO_PDF` em `relatorio/latex/build/tabelas.py`;
 > - **site** — `website/build/build_site.py` (agrupamento fixo no código). **Ainda não aplicado**: a pedido do
->   usuário (2026-09-25), as mudanças do site foram para a rodada `specs/website_graficos` (branch
+>   usuário (2026-09-25), as mudanças do site foram para a rodada `specs/2026-09-25_website_graficos` (branch
 >   `spec/website-graficos`), junto com o item `improve charts` do roadmap — lá está a validação escrita antes
 >   da implementação. Coluna "Site" abaixo = o que aquela rodada vai fazer;
 > - **figuras** — `analise.py`, seção de funções auxiliares (`subgrupo_excluido`, `agrupa_racas_raras`); as PNGs
