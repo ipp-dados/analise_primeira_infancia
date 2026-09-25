@@ -134,6 +134,26 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 - Backlog: validar 1 ou 2 anos contra a Sinopse Estatística do INEP (pendência P5 da mesma spec).
 
 ## Relatório interativo (`specs/relatorio-interativo`)
+- **`improve charts`** (pedido do usuário, 2026-09-25) — levar para o site (`website/build/build_site.py`,
+  `website/js/charts.js`) as melhorias de leitura desenhadas para o PDF em `specs/relatorio_latex` §5.1
+  (protótipo em `specs/relatorio_latex/prototipo/`). Fazer **depois do Bloco 5** daquela rodada, para que
+  rótulos e paleta venham de uma fonte só:
+  - **Rótulos de eixo por extenso, com unidade** — reaproveitar o dicionário `ROTULOS_EIXO` do Bloco 5 em vez
+    de nomes de coluna;
+  - **Teto de cor no percentil 95 em todos os mapas de taxa/percentual por bairro** — hoje só os mapas de
+    violência usam `teto`; alinha o site à decisão D5 do PDF (tooltip continua mostrando o valor real);
+  - **Rótulos diretos seletivos** — último valor na ponta de cada linha, valor na ponta das barras; o tooltip
+    não existe no celular e não se lê de relance;
+  - **Pequenos múltiplos** como opção (pill) nos gráficos de 8-11 séries (CAP × ano, imunobiológicos,
+    subgrupos CID) — um painel por série, as demais em cinza ao fundo;
+  - **Paleta de dados** — a atual herda do notebook tons que falham em fundo branco (amarelo `#deb254` sem
+    contraste 3:1; laranja × verde confundíveis para protanopia; azul `#6a95c8` de croma baixo). A paleta
+    validada do PDF (`#3f76b8 #dc7a45 #0f7d5c #b88a1e #b8527b #5c9a3c #6f64ae #b84f4e`) mantém a mesma ordem
+    de matizes; rodar o validador da skill `dataviz` contra as superfícies do site antes de trocar;
+  - **Fontes com referência completa** — as caixas "Fontes desta seção" passam a mostrar a referência ABNT
+    de `relatorio/latex/fontes.bib`, igual à lista "Fontes" do PDF;
+  - Conferir se o site repete algum dos problemas achados no protótipo (ex. linha `Total` desenhada como
+    categoria em `cadunico_por_faixa_renda_2026.csv`).
 - ✅ **Concluído em `specs/website_refactor` (2026-09-24)**: geometria compartilhada via `<use>` + simplificação, site todo 1,5 MB. Registro original:
   **Reduzir o peso de `relatorio/index.html` (~17MB)** — todos os ~32 mapas
   agora são SVG interativo (concluído), mas cada instância embute sua própria
