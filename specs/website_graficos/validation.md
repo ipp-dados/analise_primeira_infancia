@@ -57,6 +57,11 @@ resultado e data ao fim de cada bloco. Nada conta como validado só porque o ger
 - [ ] VB.7 (B7) Nenhum gráfico de categorias com linha "Total"/"Subtotal" desenhada como categoria
 - [ ] VB.8 (B8) Conforme P1: taxas com base zero, ou o corte do eixo visível no próprio gráfico
 
+## Textos do relatório
+
+- [ ] VT.1 Com `achados_<eixo>`/`sintese_<eixo>` preenchidos em `textos_curados.json`, o site mostra o mesmo texto do PDF
+      na caixa "Principais achados" (uma frase por item) e em "Conclusões"; sem eles, o placeholder de hoje
+
 ## Navegador
 
 - [ ] VN.1 Chrome (DevTools Protocol) e Firefox/WebKit (Playwright): troca de aba + hash, âncoras antigas, barra
