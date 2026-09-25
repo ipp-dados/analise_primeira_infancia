@@ -1,0 +1,174 @@
+% fontes.bib -- lista "Fontes" do relatório (ABNT NBR 6023), editada à mão.
+% specs/relatorio_latex (Bloco 1). Uma entrada por base de dados usada em analise.py.
+%
+% Campos próprios deste projeto (ignorados pelo BibTeX/abntex2cite):
+%   padroes     = expressões regulares (Python, sem distinção de maiúsculas, separadas por " || ")
+%                 que casam com os textos de `fonte_dados` / `fonte:` -- usadas por
+%                 relatorio/latex/build/inventario_fontes.py para ligar cada gráfico/mapa/tabela
+%                 à sua entrada aqui. Uma fonte composta (ex. "Sinan ...; população: Censo 2022")
+%                 casa com mais de uma entrada, de propósito.
+%   conferir    = o que ainda precisa ser confirmado pela equipe (URL, órgão, data de acesso).
+%                 O inventário lista essas pendências; apagar o campo quando confirmado.
+%
+% Data de acesso: provisória (data desta rodada) até a equipe confirmar a data real de extração.
+
+@misc{ibge_censo2022,
+  author        = {{INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA}},
+  title         = {Censo Demográfico 2022: população residente, por idade, sexo e cor ou raça},
+  howpublished  = {Sistema IBGE de Recuperação Automática (SIDRA), tabelas 9606, 10056 e 10057},
+  address       = {Rio de Janeiro},
+  publisher     = {IBGE},
+  year          = {2023},
+  url           = {https://sidra.ibge.gov.br},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {Censo Demogr[aá]fico 2022 \(IBGE[ /]SIDRA || IBGE SIDRA},
+}
+
+@misc{ipp_datario_censo,
+  author        = {{INSTITUTO PEREIRA PASSOS}},
+  title         = {População residente por bairro: Censos Demográficos 2000, 2010 e 2022},
+  howpublished  = {Data.Rio},
+  address       = {Rio de Janeiro},
+  publisher     = {IPP},
+  year          = {2024},
+  url           = {https://www.data.rio},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {IBGE/Data\.Rio || Censo Demogr[aá]fico 2022 \(IBGE\)$ || Censo Demogr[aá]fico 2022$ || Censo 2022},
+  conferir      = {URL da tabela específica no Data.Rio; confirmar que a série 2000/2010 vem da mesma publicação},
+}
+
+@misc{ms_ripsa_populacao,
+  author        = {{BRASIL. Ministério da Saúde}},
+  title         = {Estimativas populacionais por município, idade e sexo, 2000-2025 (Ripsa)},
+  howpublished  = {DATASUS, TabNet},
+  address       = {Brasília, DF},
+  publisher     = {Ministério da Saúde},
+  year          = {2025},
+  url           = {http://tabnet.datasus.gov.br/cgi/deftohtm.exe?ibge/cnv/popsvs2024br.def},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {Ripsa},
+  conferir      = {URL exata da tabela consultada por carrega_populacao_ripsa},
+}
+
+@misc{sms_rio_sim,
+  author        = {{RIO DE JANEIRO (RJ). Secretaria Municipal de Saúde}},
+  title         = {Sistema de Informações sobre Mortalidade (SIM): óbitos de residentes no município do Rio de Janeiro},
+  howpublished  = {TabNet/TabWin municipal},
+  address       = {Rio de Janeiro},
+  publisher     = {SMS-Rio},
+  year          = {2026},
+  url           = {https://tabnet.rio.rj.gov.br},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {\bSIM\b || [óo]bitos || Tabnet municipal || DataSUS/Tabnet \(`limpeza_tabnet_bairros`\)},
+  conferir      = {confirmar se a extração foi no TabNet da SMS-Rio (bairro de residência) ou no DATASUS nacional; URL},
+}
+
+@misc{sms_rio_sinasc,
+  author        = {{RIO DE JANEIRO (RJ). Secretaria Municipal de Saúde}},
+  title         = {Sistema de Informações sobre Nascidos Vivos (SINASC): nascimentos de mães residentes no município do Rio de Janeiro},
+  howpublished  = {TabNet municipal},
+  address       = {Rio de Janeiro},
+  publisher     = {SMS-Rio},
+  year          = {2026},
+  url           = {https://tabnet.rio.rj.gov.br},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {SINASC || nascimentos || nascidos vivos || DataSUS/Tabnet \(`limpeza_tabnet_bairros`\)},
+  conferir      = {mesma dúvida do SIM (SMS-Rio ou DATASUS nacional); URL},
+}
+
+@misc{sms_rio_sinan,
+  author        = {{RIO DE JANEIRO (RJ). Secretaria Municipal de Saúde}},
+  title         = {Sistema de Informação de Agravos de Notificação (Sinan): notificações de violência interpessoal e autoprovocada},
+  howpublished  = {Sinan NET, TabNet municipal},
+  address       = {Rio de Janeiro},
+  publisher     = {SMS-Rio},
+  year          = {2026},
+  url           = {https://tabnet.rio.rj.gov.br},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {Sinan},
+  conferir      = {URL},
+}
+
+@misc{ms_sisvan,
+  author        = {{BRASIL. Ministério da Saúde}},
+  title         = {Sistema de Vigilância Alimentar e Nutricional (SISVAN): relatórios públicos de estado nutricional},
+  address       = {Brasília, DF},
+  publisher     = {Ministério da Saúde},
+  year          = {2026},
+  url           = {https://sisaps.saude.gov.br/sisvan/relatoriopublico/},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {SISVAN},
+}
+
+@misc{sms_rio_epi_vacinal,
+  author        = {{RIO DE JANEIRO (RJ). Secretaria Municipal de Saúde. Superintendência de Vigilância em Saúde}},
+  title         = {Cobertura vacinal por imunobiológico, 2016-2026},
+  howpublished  = {EPI Rio},
+  address       = {Rio de Janeiro},
+  publisher     = {SMS-Rio},
+  year          = {2026},
+  url           = {https://epirio.svs.rio.br},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {EPI/SVS || Epi Rio},
+  conferir      = {URL do painel e data da extração},
+}
+
+@misc{mds_cadunico,
+  author        = {{BRASIL. Ministério do Desenvolvimento e Assistência Social, Família e Combate à Fome}},
+  title         = {Cadastro Único para Programas Sociais: base de famílias e pessoas do município do Rio de Janeiro},
+  howpublished  = {Extração municipal (CTPE), junho de 2026},
+  address       = {Rio de Janeiro},
+  year          = {2026},
+  padroes       = {Cad[ÚU]nico || Cadastro [ÚU]nico},
+  conferir      = {nome por extenso do órgão responsável pela extração (CTPE) e forma de citação acordada com o órgão},
+}
+
+@misc{ibge_pnadc,
+  author        = {{INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA}},
+  title         = {Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD Contínua): educação},
+  howpublished  = {SIDRA},
+  address       = {Rio de Janeiro},
+  publisher     = {IBGE},
+  year          = {2025},
+  url           = {https://sidra.ibge.gov.br},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {PNAD},
+  conferir      = {número da tabela SIDRA e ano de referência},
+}
+
+@misc{inep_censo_escolar,
+  author        = {{INSTITUTO NACIONAL DE ESTUDOS E PESQUISAS EDUCACIONAIS ANÍSIO TEIXEIRA}},
+  title         = {Censo Escolar da Educação Básica: microdados, 2007-2025},
+  address       = {Brasília, DF},
+  publisher     = {INEP},
+  year          = {2026},
+  url           = {https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/censo-escolar},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {Censo Escolar || INEP},
+}
+
+@misc{ipp_ips2024,
+  author        = {{INSTITUTO PEREIRA PASSOS}},
+  title         = {Índice de Progresso Social do Rio de Janeiro 2024: indicadores por Região Administrativa},
+  howpublished  = {Data.Rio},
+  address       = {Rio de Janeiro},
+  publisher     = {IPP},
+  year          = {2024},
+  url           = {https://www.data.rio},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {Progresso Social || \bIPS\b},
+  conferir      = {URL do conjunto de dados},
+}
+
+@misc{ipp_limites_bairros,
+  author        = {{INSTITUTO PEREIRA PASSOS}},
+  title         = {Limite de bairros do município do Rio de Janeiro},
+  howpublished  = {Data.Rio},
+  address       = {Rio de Janeiro},
+  publisher     = {IPP},
+  year          = {2024},
+  url           = {https://www.data.rio},
+  urlaccessdate = {25 set. 2026},
+  padroes       = {Limite de bairros},
+  conferir      = {URL; entradas equivalentes para as CAP (SMS-Rio) e as malhas do IBGE usadas no contexto dos mapas},
+}
