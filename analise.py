@@ -2194,12 +2194,20 @@ serie_temporal_multipla(
     fonte_dados=fonte_censo,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:censo_0_a_4_serie_total_ano -->
+# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem dimensionar a população de crianças de 0 a 4 anos no município e observar sua distribuição territorial. A análise combina a série municipal e o mapa por bairro, permitindo visualizar tanto a magnitude da população infantil quanto sua concentração no território. A leitura dos números absolutos é importante para identificar os bairros que concentram maior quantidade de crianças nessa faixa etária, mas deve considerar as diferenças no tamanho da população de cada bairro. Esse indicador contribui para contextualizar os demais resultados do relatório, especialmente aqueles relacionados à saúde, proteção social e educação na primeira infância.
+
 # %%
 serie_temporal(
     df_serie_censo, 'ano', 'Percentual 0 a 4 anos',
     titulo='Percentual da população de 0 a 4 anos — Censos 2000, 2010 e 2022',
     nome_arquivo='censo_0_a_4_serie_percentual_ano', fonte_dados=fonte_censo,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:censo_0_a_4_serie_percentual_ano -->
+# **Nota de curadoria:** A participação das crianças de 0 a 4 anos na população total do município diminuiu entre os Censos de 2000, 2010 e 2022. A proporção passou de aproximadamente 7,6% em 2000 para 5,8% em 2010 e 5,0% em 2022. O mapa complementa essa tendência ao mostrar diferenças na participação dessa faixa etária entre os bairros. A análise percentual permite comparar territórios de diferentes tamanhos populacionais, evidenciando o peso relativo das crianças de 0 a 4 anos em cada localidade. Esse indicador contribui para caracterizar a estrutura etária do município e contextualizar as demandas relacionadas à primeira infância.
 
 # %% [markdown]
 # #### 👶 População de 0 a 6 anos por ano (estimativas Ripsa/MS, 2000-2025)
@@ -3286,7 +3294,7 @@ serie_temporal_multipla(
 
 # %% [markdown]
 # <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_7_a_27_dias_ano -->
-# **Nota de curadoria:** Entre 1996 e 2025, os óbitos entre 7 e 27 dias de vida apresentaram tendência de queda na maior parte dos subgrupos. A maior queda ocorreu nas causas reduzíveis por adequada atenção ao recém-nascido, que passaram de 157 registros em 1996 para 20 em 2025. Já as causas relacionadas à atenção a mulher na gestação permaneceram como o principal subgrupo no final da série, com 64 óbitos em 2025. Os demais aparesentaram valores mais abaixos.
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos entre 7 e 27 dias de vida apresentaram tendência de queda na maior parte dos subgrupos. A maior queda ocorreu nas causas reduzíveis por adequada atenção ao recém-nascido, que passaram de 157 registros em 1996 para 20 em 2025. Já as causas relacionadas à atenção a mulher na gestação permaneceram como o principal subgrupo no final da série, com 64 óbitos em 2025. Os demais apresentaram valores mais abaixos.
 
 # %% [markdown]
 # ###### Pós-neonatal (28 a 364 dias)
@@ -3941,6 +3949,10 @@ serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonata
                nome_arquivo='taxa_mortalidade_pos_neonatal_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
+# <!-- nota-curadoria:taxa_mortalidade_pos_neonatal_ano -->
+# **Nota de curadoria:** Ao longo da série, o indicador apresenta oscilações, com valores mais elevados no início do período e redução até 2020, quando atingiu 3,70 óbitos por mil nascidos vivos. A partir de 2021, observa-se retomada dos valores, chegando a 4,65 em 2024 e 4,48 em 2025. A comparação entre os anos permite identificar mudanças no comportamento desse componente da mortalidade infantil e verificar como sua trajetória se relaciona às variações observadas na taxa de mortalidade infantil total.
+
+# %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
 
 # %%
@@ -3961,6 +3973,10 @@ mapa_coropletico_bairros(
 )
 
 # %% [markdown]
+# <!-- nota-curadoria:mapa_taxa_mortalidade_pos_neonatal_bairro_2025 -->
+# **Nota de curadoria:** A taxa permite comparar os bairros considerando o número de nascidos vivos de cada território. Em 2025, os maiores valores ocorreram em Cidade Nova (47,62 por mil), Camorim (28,57) e Pitangueiras (26,32). Esses valores correspondem a poucos registros de óbitos: 2 em Cidade Nova, 1 em Camorim e 2 em Pitangueiras. A leitura conjunta da taxa com o número de óbitos e de nascidos vivos é importante para contextualizar as diferenças entre os territórios, especialmente nos bairros com menor número de nascimentos.
+
+# %% [markdown]
 # ##### Total (0 a 364 dias)
 
 # %%
@@ -3969,7 +3985,7 @@ serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','
 
 # %% [markdown]
 # <!-- nota-curadoria:taxa_mortalidade_infantil_ano -->
-# **Nota de curadoria:** A série histórica mostra oscilações na taxa de mortalidade infantil entre 2006 e 2025. O indicador passou de 13,37 óbitos por mil nascidos vivos em 2006 para 13,06 em 2025, atingindo seu menor valor em 2017, com 11,26 por mil. A partir de 2018, observa-se elevação gradual da taxa, chegando a 13,03 em 2024 e 13,06 em 2025. A leitura conjunta da taxa com o número de óbitos e de nascidos vivos permite acompanhar como o indicador se comporta em diferentes períodos e relacionar sua trajetória às demais taxas de mortalidade na primeira infância.
+# **Nota de curadoria:** A série histórica apresenta oscilações entre 2006 e 2025, com redução até 2017, quando atingiu 11,26 óbitos por mil nascidos vivos. A partir de 2018, observa-se uma retomada gradual, chegando a 13,03 em 2024 e 13,06 em 2025. A comparação ao longo do período permite identificar mudanças no comportamento do indicador e relacioná-las às variações no número de óbitos e de nascidos vivos. A trajetória também pode ser analisada em conjunto com os diferentes componentes da mortalidade na primeira infância.
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -3987,6 +4003,14 @@ mapa_coropletico_bairros(
     cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_mortalidade_infantil_bairro_2025 -->
+# **Nota de curadoria:** Em 2025, foram registrados 773 óbitos infantis nos bairros analisados. Santa Cruz concentrou 53 registros, seguida por Campo Grande, com 40, e Jacarepaguá, com 32. Em 28 dos 167 bairros não houve registro de óbitos. Como os números variam também conforme o tamanho da população de nascidos vivos, a comparação entre os bairros ganha contexto quando relacionada à respectiva taxa de mortalidade infantil.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_taxa_mortalidade_infantil_bairro_2025 -->
+# **Nota de curadoria:** Em 2025, alguns bairros apresentaram taxas elevadas mesmo com poucos registros de óbitos. Em Cidade Nova, foram 2 óbitos entre 42 nascidos vivos, resultando em 47,62 óbitos por mil nascidos vivos. Em Camorim, 1 óbito entre 35 nascidos vivos correspondeu a 28,57 por mil, enquanto em Pitangueiras foram 2 óbitos entre 76 nascidos vivos, com taxa de 26,32 por mil. Esses exemplos mostram como o número de nascidos vivos influencia a taxa e reforçam a importância de analisá-la junto aos valores absolutos.
 
 # %% [markdown]
 # ### 🥗 DataSus - SISVAN
