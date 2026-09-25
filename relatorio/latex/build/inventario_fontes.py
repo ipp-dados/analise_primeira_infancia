@@ -275,7 +275,8 @@ def mapa_estrutura():
 
 
 # ---------------------------------------------------------------------------------------------
-def main():
+def coleta():
+    """(linhas, alertas, bib): uma linha por arquivo no disco -- também usada por gera_latex.py."""
     arvore = ast.parse(ANALISE.read_text(encoding="utf-8"))
     helpers = helpers_que_gravam(arvore)
     leitor = Leitor(helpers)
@@ -375,6 +376,11 @@ def main():
         if not chaves_da_fonte(t, bib):
             alertas["Texto `fonte:` de estrutura_eixos.md que não casa com nenhuma entrada de fontes.bib"].append(t)
 
+    return linhas, alertas, bib
+
+
+def main():
+    linhas, alertas, bib = coleta()
     escreve_csv(linhas)
     escreve_md(linhas, alertas, bib)
     print(f"{len(linhas)} arquivos ({sum(l['no_relatorio'] == 'sim' for l in linhas)} no relatório), "

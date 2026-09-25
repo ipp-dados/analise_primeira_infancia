@@ -1,0 +1,154 @@
+% estilo.sty -- identidade do relatório final (specs/relatorio_latex §4). Editado à mão.
+% Classe abntex2 (ABNT); cores, fontes e ícones tirados do site (website/css/main.css), usados com parcimônia:
+% azul institucional só em títulos, fios e caixas; faixa de 11 cores só na capa e na abertura de capítulo.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{estilo}[2026/09/25 Relatorio Primeira Infancia]
+
+\RequirePackage{fontspec}
+\RequirePackage{xcolor}
+\RequirePackage{graphicx}
+\RequirePackage{tikz}
+\usetikzlibrary{svg.path}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{booktabs,longtable,array}
+\RequirePackage{pdflscape}
+\RequirePackage{microtype}
+\RequirePackage{calc}
+
+% ------------------------------------------------------------------ fontes
+% Corpo: IBM Plex Sans (a do site; plex-otf do MiKTeX). Títulos: Fraunces (a do site; OFL, em fontes/).
+\setmainfont{IBMPlexSans}[
+  UprightFont=*-Regular, BoldFont=*-SemiBold, ItalicFont=*-Italic, BoldItalicFont=*-SemiBoldItalic,
+  Extension=.otf, Numbers=Proportional]
+\setmonofont{IBMPlexMono}[UprightFont=*-Regular, BoldFont=*-SemiBold, Extension=.otf]
+\newfontfamily\fraunces{Fraunces9pt}[Path=fontes/, Extension=.otf, UprightFont=*-Regular, BoldFont=*-SemiBold]
+\newfontfamily\frauncesdisplay{Fraunces72pt}[Path=fontes/, Extension=.otf, UprightFont=*-Regular, BoldFont=*-SemiBold]
+\newfontfamily\numtab{IBMPlexSans}[UprightFont=*-Regular, BoldFont=*-SemiBold, Extension=.otf, Numbers={Monospaced,Lining}]
+
+% ------------------------------------------------------------------ cores (website/css/main.css)
+\definecolor{tinta}{HTML}{16202A}
+\definecolor{tinta2}{HTML}{3F4B57}
+\definecolor{tinta3}{HTML}{5B6773}
+\definecolor{fio}{HTML}{D5DBE1}
+\definecolor{ippnavy}{HTML}{004A80}
+\definecolor{acento}{HTML}{0A5A99}
+\definecolor{acentosuave}{HTML}{E6F0F8}
+\definecolor{aviso}{HTML}{8A4B06}
+\definecolor{avisosuave}{HTML}{FFF4E0}
+\definecolor{superficie2}{HTML}{F6F8FA}
+\definecolor{c1}{HTML}{6A95C8}\definecolor{c2}{HTML}{D28060}\definecolor{c3}{HTML}{359C78}
+\definecolor{c4}{HTML}{DEB254}\definecolor{c5}{HTML}{CA688D}\definecolor{c6}{HTML}{4AA64A}
+\definecolor{c7}{HTML}{8177BB}\definecolor{c8}{HTML}{CC6766}\definecolor{c9}{HTML}{BC9776}
+\definecolor{c10}{HTML}{B67C99}\definecolor{c11}{HTML}{8E9EA4}
+\color{tinta}
+
+% faixa de 11 cores do site (.spectrum-bar) -- \faixaespectro[altura]{largura}
+\newcommand{\faixaespectro}[2][3pt]{%
+  \begin{tikzpicture}[x=#2/11]
+    \foreach \i in {1,...,11}{\fill[c\i] (\i-1,0) rectangle (\i,#1);}
+  \end{tikzpicture}}
+
+% ------------------------------------------------------------------ ícones (gerado/icones.tex)
+\newlength{\icone@u}
+\input{gerado/icones.tex}
+% \icone[tamanho]{nome}: Lucide 24x24, traço 2, herda a cor do texto
+\newcommand{\icone}[2][1em]{%
+  \setlength{\icone@u}{#1/24}%
+  \tikz[baseline={(0,3.5\icone@u)}, x=\icone@u, y=\icone@u, line width=2\icone@u,
+        line cap=round, line join=round]{%
+    \useasboundingbox (0,0) rectangle (24,24);
+    \csname icone@#2\endcsname}}
+
+% ------------------------------------------------------------------ títulos (abnTeX2)
+\renewcommand{\ABNTEXchapterfont}{\fraunces\bfseries\color{ippnavy}}
+\renewcommand{\ABNTEXchapterfontsize}{\LARGE}
+\renewcommand{\ABNTEXsectionfont}{\fraunces\bfseries\color{tinta}}
+\renewcommand{\ABNTEXsectionfontsize}{\Large}
+\renewcommand{\ABNTEXsubsectionfont}{\bfseries\color{tinta}}
+\renewcommand{\ABNTEXsubsectionfontsize}{\large}
+\renewcommand{\ABNTEXsubsubsectionfont}{\bfseries\color{tinta2}}
+\renewcommand{\ABNTEXsubsubsectionfontsize}{\normalsize}
+
+% Abertura de capítulo de eixo: \eixo{n}{total}{icone} antes de \chapter{...}. Faixa de cores, ícone
+% num quadrado azul-claro, "EIXO n DE total" e o título. Os demais capítulos usam o estilo ABNT simples.
+\newif\ifcapeixo
+\newcommand{\eixo@num}{}\newcommand{\eixo@tot}{}\newcommand{\eixo@ico}{}
+\newcommand{\eixo}[3]{\renewcommand{\eixo@num}{#1}\renewcommand{\eixo@tot}{#2}\renewcommand{\eixo@ico}{#3}\capeixotrue}
+\makechapterstyle{relatorio}{%
+  \chapterstyle{abnt}%
+  \renewcommand{\chapterheadstart}{%
+    \ifcapeixo
+      \vspace*{-1.2cm}\noindent\faixaespectro[3pt]{\textwidth}\par\vspace{1.1cm}%
+      \noindent\begin{tikzpicture}[baseline]
+        \node[fill=acentosuave, rounded corners=6pt, minimum size=1.35cm, text=ippnavy] {\icone[0.85cm]{\eixo@ico}};
+      \end{tikzpicture}\par\vspace{0.5cm}%
+      \noindent{\ttfamily\footnotesize\color{acento}\addfontfeature{LetterSpace=8}EIXO~\eixo@num~DE~\eixo@tot}\par\vspace{0.15cm}%
+    \else\vspace*{\beforechapskip}\fi}
+  \renewcommand{\printchaptername}{}\renewcommand{\chapternamenum}{}
+  \renewcommand{\printchapternum}{\ifcapeixo\else\ABNTEXchapterfont\ABNTEXchapterfontsize\thechapter\hspace{0.6em}\fi}
+  \renewcommand{\afterchapternum}{}
+  \renewcommand{\printchaptertitle}[1]{%
+    \ifcapeixo{\frauncesdisplay\bfseries\color{ippnavy}\fontsize{26}{31}\selectfont\raggedright
+      \thechapter\hspace{0.45em}##1\par}\global\capeixofalse
+    \else{\ABNTEXchapterfont\ABNTEXchapterfontsize\raggedright##1\par}\fi}
+  \setlength{\afterchapskip}{1.2cm}}
+\chapterstyle{relatorio}
+
+% ------------------------------------------------------------------ figuras (NBR 14724 §5.8)
+% Gráfico e Mapa como tipos próprios de ilustração, cada um com sua lista -- modelo do manual do abnTeX2.
+\newcommand{\graficoname}{Gráfico}\newcommand{\listofgraficosname}{Lista de gráficos}
+\newfloat[chapter]{grafico}{lgf}{\graficoname}
+\newlistof{listofgraficos}{lgf}{\listofgraficosname}
+\newlistentry{grafico}{lgf}{0}
+\counterwithout{grafico}{chapter}
+\renewcommand{\cftgraficoname}{\graficoname\space}
+\renewcommand*{\cftgraficoaftersnum}{\hfill--\hfill}
+\setfloatlocations{grafico}{htbp}
+
+\newcommand{\mapaname}{Mapa}\newcommand{\listofmapasname}{Lista de mapas}
+\newfloat[chapter]{mapa}{lmp}{\mapaname}
+\newlistof{listofmapas}{lmp}{\listofmapasname}
+\newlistentry{mapa}{lmp}{0}
+\counterwithout{mapa}{chapter}
+\renewcommand{\cftmapaname}{\mapaname\space}
+\renewcommand*{\cftmapaaftersnum}{\hfill--\hfill}
+\setfloatlocations{mapa}{htbp}
+\counterwithout{table}{chapter}
+
+% legenda: identificação acima, menor, sem recuo; \fonte{} (abnTeX2) abaixo
+\captionnamefont{\small\bfseries\color{tinta}}
+\captiontitlefont{\small\color{tinta}}
+\captiondelim{ -- }
+\setlength{\belowcaptionskip}{4pt}
+
+% \figura{tipo}{arquivo}{título}{fonte}{rótulo} -- o gerador usa só isto
+\newcommand{\figura}[5]{%
+  \begin{#1}[htbp]
+    \caption{#3}\label{#5}
+    \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{#2}
+    \fonte{#4}
+  \end{#1}}
+
+% ------------------------------------------------------------------ caixas (callouts do site, parcimoniosas)
+\tcbset{relcaixa/.style={enhanced, breakable, boxrule=0pt, arc=4pt, left=10pt, right=10pt, top=7pt, bottom=7pt,
+  before skip=10pt, after skip=12pt, fontupper=\small\setlength{\parindent}{0pt}\SingleSpacing}}
+% cabeçalho: ícone + rótulo em versalete espaçado
+\newcommand{\caixa@cab}[3]{{\color{#1}\icone[1.05em]{#2}\hspace{0.45em}\raisebox{0.1em}{\ttfamily\footnotesize\addfontfeature{LetterSpace=6}\MakeUppercase{#3}}}\par\smallskip}
+\newtcolorbox{achados}{relcaixa, colback=acentosuave, borderline west={2.5pt}{0pt}{acento},
+  before upper={\caixa@cab{acento}{lightbulb}{Principais achados}}}
+\newtcolorbox{sintese}[1]{relcaixa, colback=superficie2, borderline west={2.5pt}{0pt}{ippnavy},
+  before upper={\caixa@cab{ippnavy}{flag}{Síntese do eixo \textperiodcentered{} #1}}}
+\newtcolorbox{pendente}{relcaixa, colback=avisosuave, borderline west={2.5pt}{0pt}{aviso},
+  before upper={\caixa@cab{aviso}{construction}{Indicador em desenvolvimento}}}
+\newtcolorbox{caixanota}{relcaixa, colback=superficie2, borderline west={2.5pt}{0pt}{tinta3},
+  before upper={\caixa@cab{tinta3}{info}{Nota}}}
+
+% remissão à tabela do apêndice, logo após as figuras de uma seção
+\newcommand{\vertabelas}[1]{\par{\small\color{tinta3}\icone[0.95em]{file-text}\hspace{0.4em}Dados completos: #1.}\par}
+
+% ------------------------------------------------------------------ tabelas (IBGE: abertas nas laterais)
+\newcolumntype{R}{>{\raggedleft\arraybackslash\numtab}r}
+\setlength{\LTpre}{6pt}\setlength{\LTpost}{2pt}
+\renewcommand{\arraystretch}{1.15}
+
+\endinput

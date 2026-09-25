@@ -17,3 +17,6 @@
 # specs/website_refactor: *.png/*.svg acima são ignorados globalmente; os assets do site são fonte versionada
 !/website/assets/**
 
+
+# relatório LaTeX: auxiliares do latexmk e cache de imagens reduzidas (specs/relatorio_latex)
+relatorio/latex/_build/
