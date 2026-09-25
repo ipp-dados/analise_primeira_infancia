@@ -40,7 +40,10 @@ python website/build/build_site.py
   as strings in the generator. `index.html` and `data/` are generated — never hand-edit.
 - Tokens (colors, radii, shadows, spacing) live in `css/main.css`; text contrast must stay WCAG AA
   (table in `specs/2026-09-24_website_refactor/validation.md` V4). Data palette `--c1..--c11` and the map
-  colormaps are fixed project conventions — don't restyle them with the UI.
+  colormaps are fixed project conventions — don't restyle them with the UI (`--c1..--c4` were changed once, on
+  2026-09-25, because they failed the `dataviz` validator — `relatorio/specs.md` v9; re-run the validator before
+  any palette change). Chart conventions (value formats — `pm1` for per-mil rates, never `%` —, `unidade=`,
+  label/colour standardisation, `h3(..., antigo=)`) are in `website/README.md`.
 - New icons: add a Lucide SVG to `website/assets/icons/` (keep the ISC license comment); the
   generator inlines it with `icone(nome)`.
 - Desktop only so far; mobile work is listed in `ROADMAP.md` (root, "Próximos" → versão mobile).

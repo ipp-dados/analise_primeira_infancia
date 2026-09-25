@@ -1,7 +1,7 @@
 # SPEC — Site: exclusões e melhoria dos gráficos (`specs/2026-09-25_website_graficos`)
 
 > Rodada aberta em 2026-09-25, branch `spec/website-graficos` (a partir de `spec/relatorio-latex`, porque depende
-> de `specs/exclusoes.md` e dos helpers novos de `analise.py`). Status: **planejamento — nada implementado.**
+> de `specs/exclusoes.md` e dos helpers novos de `analise.py`). Status: **implementado em 2026-09-25** (decisões P1-P5 em `tasks.md`, resultados em `validation.md`; deploy não feito).
 > Pedido do usuário: "Move the changes pertaining to the website to a different branch, we will plan those changes
 > together with the roadmap feature of improving visualizations. Create the specs for validation before
 > implementing." A validação (`validation.md`) foi escrita antes de qualquer código, de propósito.
