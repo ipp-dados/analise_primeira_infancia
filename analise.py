@@ -474,6 +474,8 @@ _PROVEDORES_FUNDO = {
 # o serviço 'Ocean_Basemap' da Esri (provedor de 'mapa') passou a responder HTTP 500 em 2026-09; o sucessor
 # 'Ocean/World_Ocean_Base' tem o mesmo estilo (relevo suave, mar azul, sem rótulos) e serve os tiles.
 # Chave nova (não altera 'mapa'): use fundo='mapa_oceano_base' enquanto o serviço antigo estiver fora do ar.
+# 2026-09-25 (specs/relatorio_latex, aprovado pelo usuário após comparação lado a lado): 'mapa_oceano_base' passou a
+# ser o padrão de mapa_coropletico_bairros -- mesmo estilo; 'mapa' continua disponível se o serviço antigo voltar.
 _PROVEDORES_FUNDO['mapa_oceano_base'] = xyzservices.TileProvider(
     name='Esri.WorldOceanBase',
     url='https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',
@@ -582,7 +584,7 @@ def agrega_bairros_por_nivel(df, nivel, colunas_soma):
     return df.groupby(coluna_geo, as_index=False)[colunas_soma].sum()
 
 def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None, nivel='bairro', bins=None,
-                              cmap='Oranges', legenda_titulo=None, fundo='mapa', alpha=None, fonte_dados=None,
+                              cmap='Oranges', legenda_titulo=None, fundo='mapa_oceano_base', alpha=None, fonte_dados=None,
                               caminho_geojson='dados_locais/geo/limite_bairros_rio.geojson',
                               caminho_uf='dados_locais/geo/limite_uf_brasil.geojson',
                               caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson', formato='png', zero_branco=False):
