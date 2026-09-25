@@ -33,6 +33,52 @@ COLUNAS_PCT = re.compile(r"(percent|%|taxa|propor|cobertura)", re.I)
 NOTA_SUPRESSAO = ("Nota: -- indica célula suprimida (menos de 20 famílias ou crianças), "
                   "conforme a regra de proteção de dados do Cadastro Único.")
 
+# Tabelas repetidas no PDF (pedido do usuário, 2026-09-25: "many tables seem repetitive... merge/omit some").
+# Só o apêndice do PDF: o site e o DOCX continuam lendo estrutura_eixos.md inteiro.
+# arquivo -> arquivo que o substitui no apêndice (a remissão da seção aponta para ele), ou None (sai sem substituta).
+_MORT_BAIRRO = "tabela_mapa_mortalidade_infantil_2025.csv"
+_VIOL_BAIRRO = "violencia_familiar_taxa_por_bairro.csv"
+SUBSTITUI_NO_PDF = {
+    # mortalidade por bairro: uma tabela só (nascidos vivos, óbitos por faixa, taxas)
+    "tabela_mapa_nascidos_vivos_2025.csv": _MORT_BAIRRO,
+    "mortalidade_neonatal_precoce_bairro_ano.csv": _MORT_BAIRRO,
+    "tabela_mapa_obitos_neonatal_precoce_2025.csv": _MORT_BAIRRO,
+    "mortalidade_neonatal_tardia_bairro_ano.csv": _MORT_BAIRRO,
+    "tabela_mapa_obitos_neonatal_tardia_2025.csv": _MORT_BAIRRO,
+    "mortalidade_infantil_pos_neonatal_total_bairro_ano.csv": _MORT_BAIRRO,
+    "mortalidade_raca_bairro_ano.csv": _MORT_BAIRRO,           # raça × bairro: contagens de 0 a 3
+    "tabela_mapa_obitos_raca_total_2025.csv": _MORT_BAIRRO,
+    # óbitos maternos por bairro: 0 a 3 por bairro em 2025; os mapas já saíram do relatório (D6)
+    "obitos_gravidez_bairro_ano.csv": None, "tabela_mapa_obitos_gravidez_2025.csv": None,
+    "obitos_puerperio_bairro_ano.csv": None, "tabela_mapa_obitos_puerperio_2025.csv": None,
+    # causas evitáveis: série por faixa etária -> série total + recorte por faixa em 2025
+    "mortalidade_causas_evitaveis_grupo_0_a_6_dias_ano.csv": "mortalidade_causas_evitaveis_grupo_ano.csv",
+    "mortalidade_causas_evitaveis_grupo_7_a_27_dias_ano.csv": "mortalidade_causas_evitaveis_grupo_ano.csv",
+    "mortalidade_causas_evitaveis_grupo_28_a_364_dias_ano.csv": "mortalidade_causas_evitaveis_grupo_ano.csv",
+    "mortalidade_causas_evitaveis_subgrupo_0_a_6_dias_ano.csv": "mortalidade_causas_evitaveis_subgrupo_faixa_2025.csv",
+    "mortalidade_causas_evitaveis_subgrupo_7_a_27_dias_ano.csv": "mortalidade_causas_evitaveis_subgrupo_faixa_2025.csv",
+    "mortalidade_causas_evitaveis_subgrupo_28_a_364_dias_ano.csv": "mortalidade_causas_evitaveis_subgrupo_faixa_2025.csv",
+    "mortalidade_evitaveis_subgrupo_cap_2025.csv": "mortalidade_evitaveis_cap_2025.csv",
+    # violência familiar: uma tabela por bairro (casos e taxas); CAP e top-10 são recortes dela
+    "violencia_familiar_por_bairro.csv": _VIOL_BAIRRO,
+    "tabela_mapa_violencia_familiar_mae_2025.csv": _VIOL_BAIRRO,
+    "tabela_mapa_violencia_familiar_pai_2025.csv": _VIOL_BAIRRO,
+    "tabela_mapa_violencia_familiar_outros_2021_2025.csv": _VIOL_BAIRRO,
+    "violencia_familiar_top_bairros_2025.csv": _VIOL_BAIRRO,
+    "violencia_familiar_taxa_top_bairros_2025.csv": _VIOL_BAIRRO,
+    "violencia_familiar_por_cap.csv": _VIOL_BAIRRO,
+    "violencia_familiar_outros_detalhe.csv": "violencia_familiar_por_vinculo_ano.csv",
+    "notif_autoprovocada_por_bairro_ano.csv": "tabela_mapa_notif_autoprovocada_2026.csv",
+    # frequência escolar: contagens -> taxas (mesmo recorte)
+    "sidra_frequencia_escola_0_5_raca_2022.csv": "sidra_taxa_frequencia_0_6_raca_2022.csv",
+    "sidra_frequencia_escola_0_5_sexo_2022.csv": "sidra_taxa_frequencia_0_6_sexo_2022.csv",
+    # vacina: anos selecionados são subconjunto da série
+    "cobertura_vacinal_epi_comparativo_anos.csv": "cobertura_vacinal_epi_por_ano.csv",
+    # CadÚnico por bairro: a tabela de recortes já traz crianças e famílias
+    "cadunico_por_bairro_2026.csv": "tabela_mapa_cadunico_recortes_bairro_2026.csv",
+    "tabela_mapa_cadunico_criancas_2026.csv": "tabela_mapa_cadunico_recortes_bairro_2026.csv",
+}
+
 # nome do arquivo -> ajustes (Bloco 4, T4.1; títulos portados de build_notebook_report.py e completados):
 #   titulo      título ABNT (o período -- "2006-2025" ou o ano -- é acrescentado sozinho)
 #   colunas     colunas a manter, na ordem, pelo nome ORIGINAL do CSV (depois do pivô)
@@ -95,10 +141,10 @@ AJUSTES = {
         "colunas": ["bairro", "obitos_0_364", "obitos_28_364", "nascidos_vivos", "taxa_mortalidade_infantil", "taxa_mortalidade_pos_neonatal"],
         "renomeia": {"obitos_0_364": "Óbitos 0-364 d", "obitos_28_364": "Óbitos 28-364 d",
                      "taxa_mortalidade_infantil": "Taxa infantil (‰)", "taxa_mortalidade_pos_neonatal": "Taxa pós-neonatal (‰)"}},
-    "tabela_mapa_mortalidade_infantil_2025.csv": {"titulo": "Mortalidade infantil e pós-neonatal, por bairro",
-        "colunas": ["bairro", "obitos_0_364", "obitos_28_364", "nascidos_vivos", "taxa_mortalidade_infantil", "taxa_mortalidade_pos_neonatal"],
-        "renomeia": {"obitos_0_364": "Óbitos 0-364 d", "obitos_28_364": "Óbitos 28-364 d",
-                     "taxa_mortalidade_infantil": "Taxa infantil (‰)", "taxa_mortalidade_pos_neonatal": "Taxa pós-neonatal (‰)"}},
+    "tabela_mapa_mortalidade_infantil_2025.csv": {"titulo": "Nascidos vivos e óbitos de menores de 1 ano, por faixa etária e bairro",
+        "colunas": ["bairro", "nascidos_vivos", "obitos_0_6", "obitos_7_27", "obitos_28_364", "obitos_0_364", "taxa_mortalidade_infantil"],
+        "renomeia": {"nascidos_vivos": "Nascidos vivos", "obitos_0_6": "Óbitos 0-6 d", "obitos_7_27": "Óbitos 7-27 d",
+                     "obitos_28_364": "Óbitos 28-364 d", "obitos_0_364": "Óbitos < 1 ano", "taxa_mortalidade_infantil": "Taxa infantil (‰)"}},
     "mortalidade_causas_evitaveis_grupo_ano.csv": {"titulo": "Óbitos de menores de 1 ano, por grupo de causa (evitabilidade)"},
     "mortalidade_causas_evitaveis_subgrupo_ano.csv": {"titulo": "Óbitos de menores de 1 ano, por subgrupo de causa evitável"},
     "mortalidade_causas_evitaveis_grupo_0_a_6_dias_ano.csv": {"titulo": "Óbitos de 0 a 6 dias, por grupo de causa (evitabilidade)"},
@@ -175,10 +221,12 @@ AJUSTES = {
     "violencia_familiar_taxa_municipio_ano.csv": {"titulo": "Notificações de violência familiar por mil crianças de 0 a 5 anos, por vínculo",
         "renomeia": {"populacao_0_a_5": "População 0-5 (Ripsa)", "taxa_por_mil_mae": "Taxa mãe (‰)",
                      "taxa_por_mil_pai": "Taxa pai (‰)", "taxa_por_mil_outros": "Taxa outros (‰)"}},
-    "violencia_familiar_taxa_por_bairro.csv": {"titulo": "Notificações de violência familiar por mil crianças de 0 a 4 anos, por bairro",
-        "colunas": ["bairro", "taxa_por_mil_mae_2025", "taxa_por_mil_pai_2025", "taxa_por_mil_outros_2021_2025", "pop_0_4"],
-        "renomeia": {"taxa_por_mil_mae_2025": "Mãe, 2025 (‰)", "taxa_por_mil_pai_2025": "Pai, 2025 (‰)",
-                     "taxa_por_mil_outros_2021_2025": "Outros, 2021-2025 (‰)", "pop_0_4": "População 0-4 (Censo)"}},
+    "violencia_familiar_taxa_por_bairro.csv": {"titulo": "Notificações de violência familiar contra crianças, casos e taxa por mil crianças de 0 a 4 anos, por vínculo e bairro (mãe e pai: 2025; outros vínculos: 2021-2025)",
+        "colunas": ["bairro", "casos_mae_2025", "casos_pai_2025", "casos_outros_2021_2025",
+                    "taxa_por_mil_mae_2025", "taxa_por_mil_pai_2025", "taxa_por_mil_outros_2021_2025"],
+        "renomeia": {"casos_mae_2025": "Casos mãe", "casos_pai_2025": "Casos pai", "casos_outros_2021_2025": "Casos outros",
+                     "taxa_por_mil_mae_2025": "Taxa mãe (‰)", "taxa_por_mil_pai_2025": "Taxa pai (‰)",
+                     "taxa_por_mil_outros_2021_2025": "Taxa outros (‰)"}},
     "violencia_familiar_taxa_top_bairros_2025.csv": {"titulo": "Bairros com as maiores taxas de notificação de violência familiar por mil crianças de 0 a 4 anos, 2025"},
     # --- Alimentação
     "nascidos_abaixo_peso_por_ano.csv": {"titulo": "Nascidos vivos com baixo peso (menos de 2.500 g)",

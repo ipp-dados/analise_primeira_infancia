@@ -44,6 +44,12 @@
   mapa) impressa uma vez só. Resultado: **245 páginas** (corpo até a p. 114; 74 tabelas em 130 páginas de
   apêndice; 2 tabelas de CAP só digitais). Maiores restantes, para o T4.1: raça/cor por bairro (14 colunas, 7 p.),
   violência familiar por CAP e óbitos evitáveis por subgrupo (formato longo, pedem pivô), CadÚnico arranjo × renda.
+- [x] T4.1 Ajustes por tabela (`AJUSTES` em `tabelas.py`): títulos ABNT com período automático, acentos
+  (`ACENTOS`), pivôs (subgrupo × ano, arranjo × renda, vacina × ano), colunas selecionadas; quase-duplicatas por
+  bairro (mesmas colunas e ano). 209 páginas
+- [x] T4.5 Tabelas repetidas fundidas/omitidas no PDF (pedido do usuário, 2026-09-25; `SUBSTITUI_NO_PDF`):
+  **168 páginas, 43 tabelas**. Auditoria de omissões para relatório E site em `sugestoes_omissao.md` (A-D),
+  aguardando decisão
 - [ ] T4.3 Chave opcional `tabela_no_texto:` em `estrutura_eixos.md` (+ parser)
 
 ## Bloco 5 — Figuras A4 (D1 = B)

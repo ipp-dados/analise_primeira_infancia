@@ -217,6 +217,10 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
                     tex.append(texto(Path(nome).stem))
             refs = []
             for nome in lista(c.get("tabela")):
+                if nome in tabelas.SUBSTITUI_NO_PDF:          # tabela repetida: remete à que a cobre, ou sai
+                    nome = tabelas.SUBSTITUI_NO_PDF[nome]
+                    if nome is None:
+                        continue
                 caminho = RAIZ / "tabelas_finais" / nome
                 if not tabelas.cabe_no_pdf(caminho):
                     if nome not in [t for t, _ in tabs_eixo]:
