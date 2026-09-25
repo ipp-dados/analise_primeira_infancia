@@ -204,11 +204,12 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 
 ## Other (need to break down later)
 - Replace HTML visualization with proper Streamlit panel
-- Setup LaTeX final report
+- ~~Setup LaTeX final report~~ — ✅ em andamento/feito em `specs/relatorio_latex` (2026-09-25): Blocos 0-6 feitos, falta
+  a validação final (Bloco 7) e publicar com `gera_latex.py --publicar`
 - Refactor architecture (after `specs/maps-and-ibge` is completed) — analise.py has grown a lot
   across `specs/mortalidade-ap` and `specs/maps-and-ibge`; revisit whether the single-script
   notebook structure still scales, or whether wrangling/visualization/analysis should split
   into separate modules
-- Convert the PDF export pipeline to LaTeX (after `specs/visual-identity` is completed) —
+- ~~Convert the PDF export pipeline to LaTeX~~ — feito junto com o item acima (`specs/relatorio_latex`). Registro original:
   requested once the current `export_pdf_report` skill's Chrome-headless HTML-to-PDF pipeline
   and the new unified visual identity (`specs/visual-identity`) are both in place

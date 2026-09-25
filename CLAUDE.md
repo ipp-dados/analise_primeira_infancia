@@ -26,7 +26,9 @@ The CadÚnico section needs the `.env` DB credentials **and** a kernel with
 `psycopg` 3 (dev machine: conda env `analises_env`; base Anaconda only has
 `psycopg2`). Every sub-municipal CadÚnico output goes through
 `suprime_celulas_pequenas` (< 20 families blanked) before it is written —
-see `specs/recortes_cadunico/specification.md` §5.
+see `specs/recortes_cadunico/specification.md` §5. A full run also writes the
+print version of every figure used by the PDF report (`GERA_VARIANTE_A4`,
+section "🖨️ Variante de impressão"; `visualizacoes/a4/`, `mapas/a4/`).
 
 There is no test suite, linter, or build step — `analise.py` is the
 deliverable, run cell-by-cell in Jupyter (via Jupytext) or top-to-bottom as a
@@ -39,7 +41,7 @@ Three project skills wrap multi-step regeneration pipelines — prefer them over
 reimplementing this logic:
 - `generate_map` — produces a choropleth PNG via `mapa_coropletico_bairros` (defined in `analise.py`).
 - `build_website` — regenerates/checks the static site in `website/` (`website/build/build_site.py`) and describes its manual GitHub Pages deploy.
-- `export_pdf_report` — regenerates `relatorio/analise_primeira_infancia.pdf` from `analise.py`'s own matplotlib PNGs (`visualizacoes/`) and `tabelas_finais/` tables. Distinct from and NOT related to the `website/` static site's SVG charts — see below.
+- `export_pdf_report` — builds the final report: an ABNT technical report in LaTeX (`relatorio/latex/`, abnTeX2 + xelatex; `specs/relatorio_latex`) whose chapters are generated from `specs/estrutura_eixos.md` + `relatorio/textos_curados.json` at build time, with print versions of `analise.py`'s own figures (`visualizacoes/a4/`, `mapas/a4/`) and `tabelas_finais/` tables in the appendix; also the DOCX curation export and the DOCX → site/PDF/`analise.py` text sync. Distinct from and NOT related to the `website/` static site's SVG charts — see below.
 
 ## Architecture
 
@@ -124,7 +126,8 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 - `visualizacoes/` — exported chart PNGs from `analise.py`, named by section/theme (gitignored except `.gitkeep`).
 - `mapas/` — choropleth PNGs from `mapa_coropletico_bairros`, plus each map's twin input table in `tabelas_finais/tabela_mapa_*.csv` (gitignored except `.gitkeep`). `mapas/tabelas_bairros/` is a legacy Excel-based leftover, kept only for two files not yet migrated.
 - `website/` — the published static site (GitHub Pages; `specs/website_refactor`): tabs per eixo, sticky outline, interactive SVG charts/maps. `website/build/build_site.py` (moved from the PDF skill's `build_html_report.py`) generates `index.html`, `data/charts.js`, `data/geo.js` (map geometry, one `<path>` per region, shared by all maps via `<use>`) and `assets/images/basemap-*`/`ipp-logo-*`; `css/` and `js/` are **hand-edited static files**, not generator strings. Generated output is committed (CI has no `tabelas_finais/`, so it only copies). **Distinct pipeline and visual identity from `relatorio/analise_primeira_infancia.pdf`** — don't mix their conventions. Static-site rules (relative lowercase paths, hash-only routes, no `fetch`, only html/css/js/svg/png/jpg published) and the size budget (the generator warns above 1 MB `index.html` / 2 MB site) are in `website/README.md`. `*.png`/`*.svg` are gitignored globally; `!/website/assets/**` keeps the site's assets tracked.
-- `relatorio/` — the PDF (`analise_primeira_infancia.pdf`), the DOCX curation export, and `textos_curados.json` (curated text read by both the site and the PDF). `relatorio/index.html` no longer exists (replaced by `website/`).
+- `relatorio/` — the published PDF (`analise_primeira_infancia.pdf`, copied there only by `gera_latex.py --publicar`), `latex/` (LaTeX source: hand-edited `relatorio.tex`/`estilo.sty`/`pretextual/`/`fontes.bib`, generated `gerado/`, gitignored `_build/`), the sources inventory (`inventario_fontes.md/.csv`, for the team), the DOCX curation export, and `textos_curados.json` (curated text read by the site and the PDF). `relatorio/index.html` no longer exists (replaced by `website/`).
+- `specs/exclusoes.md` — hand-edited list of what the team excluded from the PDF/site/figures, why, and how to restore it. Check it before re-adding an indicator.
 - `.github/workflows/deploy-relatorio.yml` — manual (`workflow_dispatch`) GitHub Pages deploy of `website/` (explicit include list, excludes `build/`; fails if a non-static file type slips in). Not the PDF.
 - `specs/` — the project's spec-driven workflow. `specs/constitution.md` (non-negotiable
   project-wide rules), `specs/tech-stack.md` (what's used and why, including rejected

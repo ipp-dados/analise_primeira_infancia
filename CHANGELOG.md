@@ -357,3 +357,12 @@ processo um `NameError` real (célula ativa sobrevivente da curadoria). Detalhes
   (0 a 5 anos), assunto do texto de desnutrição SISVAN, óbitos sem bairro nos mapas de gravidez/puerpério,
   dois erros de digitação; texto "Crianças até 6 anos" movido para Inclusão › por sexo. Site passa a mostrar
   os textos das Famílias no CadÚnico (par Crianças + Famílias).
+
+## 2026-09-25 — `specs/relatorio_latex` (relatório final em LaTeX)
+
+Relatório técnico ABNT (abnTeX2, xelatex) em `relatorio/latex/`, com capítulos gerados de `specs/estrutura_eixos.md`
+e dos textos curados no build; figuras em versão de impressão gravadas pelas próprias funções de visualização do
+`analise.py` (`visualizacoes/a4/`, `mapas/a4/`); tabelas no apêndice com regras de tamanho; lista "Fontes" em
+`relatorio/latex/fontes.bib` e inventário de fontes. Lista de exclusões em `specs/exclusoes.md`. Fundo padrão dos
+mapas passa a `mapa_oceano_base`. Detalhe na spec da rodada; mudanças do site planejadas em `specs/website_graficos`.
+

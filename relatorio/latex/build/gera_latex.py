@@ -36,7 +36,7 @@ GERADO = LATEX / "gerado"
 CACHE = LATEX / "_build/img"
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(RAIZ / ".claude/skills/export_pdf_report/scripts"))
-from gera_estrutura_eixos import parse_estrutura_eixos, valida_estrutura  # noqa: E402
+from gera_estrutura_eixos import chave_eixo, parse_estrutura_eixos, valida_estrutura  # noqa: E402
 import inventario_fontes  # noqa: E402
 import tabelas  # noqa: E402
 
@@ -234,8 +234,15 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
         tex.append(rf"\eixo{{{i}}}{{{len(estrutura)}}}{{{icone}}}")
         tex.append(rf"\chapter{{{esc(titulo)}}}\label{{cap:eixo-{i}}}")
         tex.append(r"\begin{achados}\begin{itemize}")
-        for k in range(5):     # mesmo placeholder do site (_lorem_bullets)
-            tex.append(r"\item " + esc(lorem(f"{sid}-kt-{k}", 8)))
+        achados = TEXTOS.get(f"achados_{chave_eixo(eixo['eixo'])}")   # uma frase por linha (DOCX de curadoria)
+        if achados:
+            for frase in (linha.strip(" •-–\t") for linha in achados.split("\n")):
+                if frase:
+                    tex.append(r"\item " + esc(frase))
+        else:
+            EM_LOREM.append(f"achados_{chave_eixo(eixo['eixo'])}")
+            for k in range(5):     # mesmo placeholder do site (_lorem_bullets)
+                tex.append(r"\item " + esc(lorem(f"{sid}-kt-{k}", 8)))
         tex.append(r"\end{itemize}\end{achados}")
         for sub in eixo["subsecoes"]:
             c = sub["campos"]
@@ -274,7 +281,8 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
             if refs:
                 tex.append(r"\vertabelas{" + ", ".join(refs) + rf"; ver Apêndice~\ref{{ap:eixo-{i}}}}}")
         tex.append(r"\section{Síntese do eixo}")
-        tex.append(rf"\begin{{sintese}}{{{esc(titulo)}}}" + texto(f"conclusao-{sid}") + r"\end{sintese}")
+        tex.append(rf"\begin{{sintese}}{{{esc(titulo)}}}" + texto(f"sintese_{chave_eixo(eixo['eixo'])}" if TEXTOS.get(f"sintese_{chave_eixo(eixo['eixo'])}")
+                    or not TEXTOS.get(f"conclusao-{sid}") else f"conclusao-{sid}", lorem_seed=f"conclusao-{sid}") + r"\end{sintese}")
 
     tex.append(r"\chapter{Considerações finais}\label{cap:consideracoes}")
     tex.append(texto("consideracoes_finais", 300))

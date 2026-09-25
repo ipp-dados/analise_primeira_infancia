@@ -66,18 +66,25 @@
 - [x] T5.1e Mapas: tamanho final, legenda 7-7,5 pt, véu no fundo, teto P95 se D5 aprovar
 - [x] T5.2 Manifesto (arquivo, título, fonte, função) gravado pelos helpers
 - [x] T5.2a Os 2 gráficos do Censo 0-4 (desenhados à mão e nunca gravados) passam pelas funções da seção
+- [x] T5.4 Execução completa (2 rodadas, 2026-09-25): 66 gráficos + 37 mapas na versão de impressão; 10
+  falhas da 1ª rodada (índice nomeado) corrigidas; 70 saídas rastreadas regeneradas e commitadas
 - [x] T5.2b Testado fora do repositório (11 figuras, todos os tipos: série única, poucas séries, pequenos múltiplos,
   metas, marcos, barras com linha Total, barras agrupadas, mapa por classes, mapa de taxa com teto P95, mapa de CAP);
   mapas ~0,4 MB (fundo reduzido e clareado, `interpolation='none'`); gerador do LaTeX lê o manifesto
 - [ ] T5.3 `regen_missing_pngs.py`: não gera a variante A4 (é cópia antiga das funções); a variante sai só do notebook
-- [ ] T5.4 Execução completa do notebook pelo usuário (`analises_env` + `.env`). Atenção: só 8 chamadas de mapa usam
+- [x] (ver acima) Execução completa do notebook pelo usuário (`analises_env` + `.env`). Atenção: só 8 chamadas de mapa usam
   `fundo='mapa_oceano_base'`; as demais usam o padrão `'mapa'`, cujo serviço responde HTTP 500 desde 2026-09
 
 ## Bloco 6 — Curadoria e integração
-- [ ] T6.1 Chaves novas no DOCX (`gera_docx_curadoria.py`, preservando o texto já curado)
-- [ ] T6.2 `sincroniza_docx.py` regera o LaTeX
-- [ ] T6.3 Reescrever `.claude/skills/export_pdf_report/SKILL.md`; aposentar `build_notebook_report.py` após V1-V20
-- [ ] T6.4 `.gitignore`, `CLAUDE.md`, `README.md`, `specs/roadmap.md`, `specs/tech-stack.md`
+- [x] T6.1 Chaves novas no DOCX (`gera_docx_curadoria.py`, preservando o texto já curado)
+- [x] T6.2 `sincroniza_docx.py` regera o LaTeX
+- [x] T6.3 Reescrever `.claude/skills/export_pdf_report/SKILL.md`; aposentar `build_notebook_report.py` após V1-V20
+- [x] T6.4 `.gitignore`, `CLAUDE.md`, `README.md`, `specs/roadmap.md`, `specs/tech-stack.md`
+
+- [x] T6.5 Blocos de texto do relatório (`blocos_relatorio()`): `resumo`, `achados_<eixo>`, `sintese_<eixo>`,
+  `consideracoes_finais` -- chave estável por nome do eixo; DOCX regenerado preservando os 58 textos curados (7 órfãos no
+  apêndice do DOCX); ida e volta testada numa cópia (2 blocos editados detectados, 0 falso positivo)
+- [ ] T6.6 Nota na spec do site (`specs/website_graficos` §3b) para o site ler as mesmas chaves
 
 ## Bloco 7 — Validação
 - [ ] T7.1 Rodar `validation.md` inteiro; PDF final

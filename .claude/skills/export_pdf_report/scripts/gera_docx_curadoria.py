@@ -52,7 +52,8 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
 
-from gera_estrutura_eixos import _nomes_de_arquivo, parse_estrutura_eixos, valida_estrutura
+from gera_estrutura_eixos import (_nomes_de_arquivo, blocos_relatorio, parse_estrutura_eixos, placeholder_bloco,
+                                  valida_estrutura)
 
 CAMINHO_SAIDA_PADRAO = "relatorio/curadoria_textos.docx"
 CAMINHO_CONTROLE_PADRAO = "relatorio/controle_revisao.json"
@@ -423,6 +424,26 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
     registra_linha("—", "Introdução", "Introdução", "introducao")
     avisos_do_bloco("introducao")
 
+    # textos do relatório que não pertencem a uma figura (specs/relatorio_latex, Bloco 6): resumo, achados e
+    # síntese por eixo, considerações finais -- chave = bookmark = chave em textos_curados.json
+    blocos = blocos_relatorio(estrutura)
+
+    def bloco_relatorio(chave, nivel, eixo_nome="—"):
+        b = blocos[chave]
+        doc.add_heading(b["rotulo"] + (marca(status_de(chave), chave) if controle else ""), level=nivel)
+        if b["linhas"] > 1:
+            p_dica = doc.add_paragraph()
+            p_dica.add_run("Uma frase por linha (Shift+Enter entre as frases).").italic = True
+        texto = textos_curados.get(chave) or placeholder_bloco(b, _lorem)
+        p = doc.add_paragraph(texto)   # "\n" vira quebra de linha no Word
+        add_bookmark(p, chave, next_id())
+        registro_bookmarks[chave] = chave
+        ids_gerados.add(chave)
+        registra_linha(eixo_nome, b["rotulo"], b["rotulo"], chave)
+        avisos_do_bloco(chave)
+
+    bloco_relatorio("resumo", 1)
+
     def bloco_texto(id_):
         """Escreve 1 parágrafo de texto (curado, se já existir, senão lorem
         ipsum determinístico) com bookmark nomeado a partir de `id_`, e
@@ -446,6 +467,8 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
 
     for eixo in estrutura:
         doc.add_heading(eixo["eixo"], level=1)
+        chave_achados = next(k for k, b in blocos.items() if k.startswith("achados_") and b.get("eixo") == eixo["eixo"])
+        bloco_relatorio(chave_achados, 2, eixo["eixo"])
         for sub in eixo["subsecoes"]:
             titulo = sub["titulo"]
             campos = sub["campos"]
@@ -516,6 +539,11 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
                 nomes_fmt = ", ".join(f"`{t}`" for t in tabelas)
                 run = p.add_run(f"Tabela de apoio: {nomes_fmt}")
                 run.italic = True
+
+        chave_sintese = next(k for k, b in blocos.items() if k.startswith("sintese_") and b.get("eixo") == eixo["eixo"])
+        bloco_relatorio(chave_sintese, 2, eixo["eixo"])
+
+    bloco_relatorio("consideracoes_finais", 1)
 
     # Blocos cujo bookmark existia no docx_anterior mas não foi regenerado
     # nesta rodada (indicador removido/renomeado na estrutura) -- preservados
