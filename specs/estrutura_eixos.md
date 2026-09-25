@@ -54,12 +54,12 @@
 ### Taxa de mortalidade neonatal precoce (0 a 6 dias)
 - fonte: DataSUS/Tabnet (SIM/SINASC)
 - visualização: `taxa_mortalidade_precoce_ano.png`
-- mapa: `mapa_obitos_neonatal_precoce_bairro_2025.png`
 - mapa: `mapa_taxa_mortalidade_precoce_bairro_2025.png`
 - tabela: `mortalidade_neonatal_precoce_por_ano.csv`
 - tabela: `mortalidade_neonatal_precoce_bairro_ano.csv`
 - tabela: `tabela_mapa_obitos_neonatal_precoce_2025.csv`
 
+- nota: mapa_obitos_neonatal_precoce_bairro_2025.png fora do relatório (specs/exclusoes.md, E9, 2026-09-25): mapa de contagem ao lado do de taxa; no site vira alternância Taxa/Óbitos
 ### Taxa de mortalidade neonatal tardia (7 a 27 dias)
 - fonte: DataSUS/Tabnet (SIM/SINASC)
 - visualização: `taxa_obitos_tardios_ano.png`
@@ -89,12 +89,12 @@
 - fonte: DataSUS/Tabnet (SIM)
 - visualização: `obitos_raca_ano.png`
 - visualização: `percentual_mortalidade_raca_ano.png`
-- mapa: `mapa_obitos_raca_total_bairro_2025.png`
 - mapa: `mapa_taxa_obitos_raca_total_bairro_2025.png`
 - tabela: `mortalidade_raca_bairro_ano.csv`
 - tabela: `mortalidade_raca_municipio_ano.csv`
 - tabela: `tabela_mapa_obitos_raca_total_2025.csv`
 
+- nota: mapa_obitos_raca_total_bairro_2025.png fora do relatório (specs/exclusoes.md, E9, 2026-09-25): mapa de contagem ao lado do de taxa; no site vira alternância Taxa/Óbitos
 ### Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias)
 - fonte: DataSUS (SIM, classificação de evitabilidade)
 - visualização: `obitos_evitaveis_total_cap_ano.png`
@@ -119,7 +119,6 @@
 - fonte: DataSUS/Tabnet municipal
 - visualização: `taxa_mortalidade_infantil_ano.png`
 - visualização: `taxa_mortalidade_pos_neonatal_ano.png`
-- mapa: `mapa_mortalidade_infantil_bairro_2025.png`
 - mapa: `mapa_taxa_mortalidade_infantil_bairro_2025.png`
 - mapa: `mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png`
 - tabela: `mortalidade_infantil_pos_neonatal_total_por_ano.csv`
@@ -127,6 +126,7 @@
 - tabela: `tabela_mapa_mortalidade_infantil_2025.csv`
 
 - nota: `mapa_obitos_pos_neonatal_bairro_2025.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
+- nota: mapa_mortalidade_infantil_bairro_2025.png fora do relatório (specs/exclusoes.md, E9, 2026-09-25): mapa de contagem ao lado do de taxa; no site vira alternância Taxa/Óbitos
 ### Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10)
 - fonte: DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis)
 - visualização: `obitos_causas_evitaveis_grupo_ano.png`
@@ -178,20 +178,18 @@
 
 ### Crianças até 6 anos frequentando escola/creche, por raça/cor
 - fonte: Censo Demográfico 2022 (IBGE SIDRA)
-- visualização: `sidra_frequencia_escola_0_5_raca_2022.png`
 - visualização: `sidra_taxa_frequencia_0_6_raca_2022.png`
-- tabela: `sidra_frequencia_escola_0_5_raca_2022.csv`
 - tabela: `sidra_taxa_frequencia_0_6_raca_2022.csv`
 - nota: faixa real: frequência de 0 a 5 anos (tabela 10057) e taxa de frequência de 0 a 6 anos (tabela 10056)
 
+- nota: sidra_frequencia_escola_0_5_raca_2022.png, sidra_frequencia_escola_0_5_raca_2022.csv fora do relatório (specs/exclusoes.md, E8, 2026-09-25): número absoluto; fica a taxa por idade
 ### Crianças até 6 anos frequentando escola/creche, por sexo
 - fonte: Censo Demográfico 2022 (IBGE SIDRA)
-- visualização: `sidra_frequencia_escola_0_5_sexo_2022.png`
 - visualização: `sidra_taxa_frequencia_0_6_sexo_2022.png`
-- tabela: `sidra_frequencia_escola_0_5_sexo_2022.csv`
 - tabela: `sidra_taxa_frequencia_0_6_sexo_2022.csv`
 - nota: faixa real: frequência de 0 a 5 anos (tabela 10057) e taxa de frequência de 0 a 6 anos (tabela 10056)
 
+- nota: sidra_frequencia_escola_0_5_sexo_2022.png, sidra_frequencia_escola_0_5_sexo_2022.csv fora do relatório (specs/exclusoes.md, E8, 2026-09-25): número absoluto; fica a taxa por idade
 ### Crianças de 0 a 5 anos no CadÚnico em relação à população do município
 - fonte: Cadastro Único (extração CTPE, jun/2026); população: estimativas Ripsa/Ministério da Saúde (2025)
 - tabela: `cadunico_razao_populacao_0_a_5_2026.csv`
@@ -273,11 +271,10 @@
 
 ### Cobertura vacinal de rotina em crianças até 2 anos
 - fonte: Epi Rio
-- visualização: `cobertura_vacinal_epi_comparativo_anos.png`
 - tabela: `cobertura_vacinal_epi_por_ano.csv`
-- tabela: `cobertura_vacinal_epi_comparativo_anos.csv`
 
 - nota: `cobertura_vacinal_epi_ano.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
+- nota: cobertura_vacinal_epi_comparativo_anos.png, cobertura_vacinal_epi_comparativo_anos.csv fora do relatório (specs/exclusoes.md, E7, 2026-09-25): repete 4 anos da série anual
 ### Crianças até 6 anos frequentando escola/creche (geral)
 - fonte: Censo Demográfico 2022 (IBGE SIDRA, tabela 10057)
 - visualização: `sidra_frequencia_escola_0_5_total_2022.png`
@@ -350,9 +347,6 @@
 - fonte: Sinan NET/Tabnet (SMS-Rio); município: população 0 a 5 anos das estimativas Ripsa/Ministério da Saúde; bairro/RA/CAP: população 0 a 4 anos do Censo Demográfico 2022
 - visualização: `violencia_familiar_taxa_municipio_ano.png`
 - visualização: `violencia_familiar_taxa_top_bairros_2025.png`
-- mapa: `mapa_violencia_familiar_mae_taxa_bairro_2025.png`
-- mapa: `mapa_violencia_familiar_pai_taxa_bairro_2025.png`
-- mapa: `mapa_violencia_familiar_outros_taxa_bairro_2021_2025.png`
 - mapa: `mapa_violencia_familiar_mae_taxa_ra_2025.png`
 - mapa: `mapa_violencia_familiar_pai_taxa_ra_2025.png`
 - mapa: `mapa_violencia_familiar_outros_taxa_ra_2021_2025.png`
@@ -361,6 +355,7 @@
 - tabela: `violencia_familiar_taxa_top_bairros_2025.csv`
 - nota: município (2011-2025): numerador e denominador com 0 a 5 anos e o mesmo ano (Ripsa), sem ressalva de faixa (`specs/populacao-referencia`, A3). Bairro/RA/CAP: ressalva de denominador — numerador com 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022), o que superestima a taxa em ~20% de forma uniforme; o Censo 2022 é fixo (subconta crianças pequenas e é de outro ano), então as taxas por território comparam territórios entre si, não com a do município; "outros" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: escala de cor limitada ao percentil 95
 
+- nota: mapa_violencia_familiar_mae_taxa_bairro_2025.png, mapa_violencia_familiar_pai_taxa_bairro_2025.png, mapa_violencia_familiar_outros_taxa_bairro_2021_2025.png fora do relatório (specs/exclusoes.md, E6, 2026-09-25): taxa por bairro instável (bairros com poucas crianças); fica a taxa por RA
 ### Crianças que sofrem violência, por tipificação (sexo e idade)
 - fonte: Tabnet municipal
 - status: pendente

@@ -50,6 +50,10 @@
 - [x] T4.5 Tabelas repetidas fundidas/omitidas no PDF (pedido do usuário, 2026-09-25; `SUBSTITUI_NO_PDF`):
   **168 páginas, 43 tabelas**. Auditoria de omissões para relatório E site em `sugestoes_omissao.md` (A-D),
   aguardando decisão
+- [x] T4.6 Exclusões decididas pelo usuário (2026-09-25), registradas em `specs/exclusoes.md` (E1-E11): PDF/DOCX via
+  `estrutura_eixos.md` (E6-E9), tabelas (E3, E5, E6), `analise.py` (`subgrupo_excluido`, `agrupa_racas_raras`,
+  E2/E3/E5 -- PNGs mudam na próxima execução completa). **159 páginas.** Parte do site foi para
+  `specs/website_graficos` (branch `spec/website-graficos`), a pedido do usuário
 - [ ] T4.3 Chave opcional `tabela_no_texto:` em `estrutura_eixos.md` (+ parser)
 
 ## Bloco 5 — Figuras A4 (D1 = B)

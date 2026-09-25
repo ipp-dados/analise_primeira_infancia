@@ -89,7 +89,14 @@ SUBSTITUI_NO_PDF = {
 #   escala_pct  colunas em fração 0-1 que viram 0-100
 _TX = "Taxa (‰)"
 _RACAS_OBITOS = {"obitos_parda": "Parda", "obitos_preta": "Preta", "obitos_branca": "Branca",
-                 "obitos_amarela": "Amarela", "obitos_indigena": "Indígena", "obitos_nao_informado": "Não informada"}
+                 "obitos_amarela_indigena": "Amarela e indígena", "obitos_nao_informado": "Não informada"}
+
+
+def _agrupa_racas_raras(df):
+    """E5 (specs/exclusoes.md) -- mesma regra de agrupa_racas_raras() do analise.py, para o CSV atual."""
+    if "obitos_amarela_indigena" not in df.columns:
+        df = df.assign(obitos_amarela_indigena=df["obitos_amarela"] + df["obitos_indigena"])
+    return df
 AJUSTES = {
     # --- Prioridade
     "censo_0_a_4_anos_por_ano.csv": {"titulo": "População de 0 a 4 anos, por sexo, Censos Demográficos",
@@ -123,10 +130,10 @@ AJUSTES = {
     "obitos_puerperio_bairro_ano.csv": {"titulo": "Óbitos maternos durante o puerpério, por bairro", "renomeia": {"óbitos-puerpério": "Óbitos"}},
     "tabela_mapa_obitos_puerperio_2025.csv": {"titulo": "Óbitos maternos durante o puerpério, por bairro", "renomeia": {"óbitos-puerpério": "Óbitos"}},
     "mortalidade_raca_municipio_ano.csv": {"titulo": "Óbitos de menores de 1 ano, por raça/cor",
-        "colunas": ["ano"] + list(_RACAS_OBITOS), "renomeia": _RACAS_OBITOS},
-    "mortalidade_raca_bairro_ano.csv": {"titulo": "Óbitos de menores de 1 ano, por raça/cor e bairro",
+        "filtro": _agrupa_racas_raras, "colunas": ["ano"] + list(_RACAS_OBITOS), "renomeia": _RACAS_OBITOS},
+    "mortalidade_raca_bairro_ano.csv": {"titulo": "Óbitos de menores de 1 ano, por raça/cor e bairro", "filtro": _agrupa_racas_raras,
         "colunas": ["bairro"] + list(_RACAS_OBITOS) + ["obitos_total"], "renomeia": {**_RACAS_OBITOS, "obitos_total": "Total"}},
-    "tabela_mapa_obitos_raca_total_2025.csv": {"titulo": "Óbitos de menores de 1 ano, por raça/cor e bairro",
+    "tabela_mapa_obitos_raca_total_2025.csv": {"titulo": "Óbitos de menores de 1 ano, por raça/cor e bairro", "filtro": _agrupa_racas_raras,
         "colunas": ["bairro"] + list(_RACAS_OBITOS) + ["obitos_total"], "renomeia": {**_RACAS_OBITOS, "obitos_total": "Total"}},
     "mortalidade_evitaveis_cap_2025.csv": {"titulo": "Óbitos por causas evitáveis, por CAP e faixa etária",
         "colunas": ["cod_ap_sms", "faixa_etaria", "evitaveis", "mal_definidas", "demais", "total", "percentual_evitaveis"],
@@ -221,12 +228,10 @@ AJUSTES = {
     "violencia_familiar_taxa_municipio_ano.csv": {"titulo": "Notificações de violência familiar por mil crianças de 0 a 5 anos, por vínculo",
         "renomeia": {"populacao_0_a_5": "População 0-5 (Ripsa)", "taxa_por_mil_mae": "Taxa mãe (‰)",
                      "taxa_por_mil_pai": "Taxa pai (‰)", "taxa_por_mil_outros": "Taxa outros (‰)"}},
-    "violencia_familiar_taxa_por_bairro.csv": {"titulo": "Notificações de violência familiar contra crianças, casos e taxa por mil crianças de 0 a 4 anos, por vínculo e bairro (mãe e pai: 2025; outros vínculos: 2021-2025)",
-        "colunas": ["bairro", "casos_mae_2025", "casos_pai_2025", "casos_outros_2021_2025",
-                    "taxa_por_mil_mae_2025", "taxa_por_mil_pai_2025", "taxa_por_mil_outros_2021_2025"],
-        "renomeia": {"casos_mae_2025": "Casos mãe", "casos_pai_2025": "Casos pai", "casos_outros_2021_2025": "Casos outros",
-                     "taxa_por_mil_mae_2025": "Taxa mãe (‰)", "taxa_por_mil_pai_2025": "Taxa pai (‰)",
-                     "taxa_por_mil_outros_2021_2025": "Taxa outros (‰)"}},
+    # E6 (specs/exclusoes.md): por bairro, só a contagem -- a taxa fica por RA
+    "violencia_familiar_taxa_por_bairro.csv": {"titulo": "Notificações de violência familiar contra crianças de 0 a 5 anos, por vínculo do provável autor e bairro (mãe e pai: 2025; outros vínculos: 2021-2025)",
+        "colunas": ["bairro", "casos_mae_2025", "casos_pai_2025", "casos_outros_2021_2025"],
+        "renomeia": {"casos_mae_2025": "Mãe", "casos_pai_2025": "Pai", "casos_outros_2021_2025": "Outros vínculos"}},
     "violencia_familiar_taxa_top_bairros_2025.csv": {"titulo": "Bairros com as maiores taxas de notificação de violência familiar por mil crianças de 0 a 4 anos, 2025"},
     # --- Alimentação
     "nascidos_abaixo_peso_por_ano.csv": {"titulo": "Nascidos vivos com baixo peso (menos de 2.500 g)",
@@ -336,6 +341,9 @@ def prepara(caminho):
         df = df.drop(columns="ano_parcial")
     if aj.get("filtro"):
         df = aj["filtro"](df)
+    if "subgrupo" in df.columns:     # E3 (specs/exclusoes.md): subgrupo 1.1 fora de todas as tabelas
+        df = df[~df["subgrupo"].astype(str).str.startswith("1.1")]
+    df = df.drop(columns=[c for c in df.columns if str(c).startswith("1.1")])
     if aj.get("pivo"):
         idx, col, val = aj["pivo"]
         ordem = list(dict.fromkeys(df[col]))

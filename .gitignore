@@ -20,3 +20,7 @@
 
 # relatório LaTeX: auxiliares do latexmk e cache de imagens reduzidas (specs/relatorio_latex)
 relatorio/latex/_build/
+relatorio/latex/*.aux
+relatorio/latex/*.log
+relatorio/latex/*.fls
+relatorio/latex/*.fdb_latexmk

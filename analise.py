@@ -278,6 +278,33 @@ def agrega_grupo_cid(df, colunas_chave):
     df['grupo'] = df['subgrupo'].str[0].map(_GRUPOS_CID)
     return df.groupby(colunas_chave + ['grupo'], as_index=False)['obitos'].sum()
 
+def subgrupo_excluido(subgrupo, faixa=None):
+    """Subgrupos de causa evitável que ficam fora dos gráficos por decisão da equipe (specs/exclusoes.md):
+    E3 -- 1.1 (reduzível por imunização), em todas as faixas: 0 a 2 óbitos por ano;
+    E2 -- 1.2.x (gestação, parto, recém-nascido) em '1 a 4 anos': causa perinatal nessa idade é quase
+    sempre erro de registro/codificação (22, 6 e 4 óbitos em 20 anos). Os CSVs continuam completos;
+    só o que é desenhado muda."""
+    s = str(subgrupo).strip()
+    if s.startswith('1.1'):
+        return True
+    return faixa is not None and '1 a 4' in str(faixa) and s.startswith('1.2')
+
+def filtra_colunas_subgrupo(colunas, faixa=None):
+    """{rótulo: coluna} de `serie_temporal_multipla` sem os subgrupos de `subgrupo_excluido`."""
+    return {rotulo: col for rotulo, col in colunas.items() if not subgrupo_excluido(rotulo, faixa)}
+
+def agrupa_racas_raras(df):
+    """E5 (specs/exclusoes.md): amarela e indígena somam 0 a 2 óbitos de menores de 1 ano por ano cada e geram
+    picos sem significado no percentual -- viram 'amarela_indigena', com o percentual recalculado a partir dos
+    absolutos somados (nunca somando percentuais, constituição §3). Acrescenta colunas, não remove nenhuma."""
+    df = df.copy()
+    df['obitos_amarela_indigena'] = df['obitos_amarela'] + df['obitos_indigena']
+    if {'nascidos_amarela', 'nascidos_indigena'} <= set(df.columns):
+        df['nascidos_amarela_indigena'] = df['nascidos_amarela'] + df['nascidos_indigena']
+        pct = df['obitos_amarela_indigena'] / df['nascidos_amarela_indigena'] * 100
+        df['percentual_amarela_indigena'] = pct.replace([float('inf'), -float('inf')], float('nan')).round(2)
+    return df
+
 def junta_codbairro_por_bairro(df, df_referencia):
     """Junta `codbairro` a uma tabela cuja única chave de bairro é o nome (string) -- caso do
     CadÚnico, a única fonte do projeto sem `codigo`/`codbairro` nativo. Usa `df_referencia`
@@ -2363,13 +2390,15 @@ for raca in racas:
     percentual = (df_mortalidade_raca_municipio[f'obitos_{raca}'] / df_mortalidade_raca_municipio[f'nascidos_{raca}']) * 100
     df_mortalidade_raca_municipio[f'percentual_{raca}'] = percentual.replace([float('inf'), -float('inf')], float('nan')).round(2)
 
+df_mortalidade_raca_municipio = agrupa_racas_raras(df_mortalidade_raca_municipio)   # E5, specs/exclusoes.md
 df_mortalidade_raca_municipio.to_csv('dados_locais//tratados//mortalidade_raca_municipio_ano.csv', index=False)
 df_mortalidade_raca_municipio.to_csv('tabelas_finais//mortalidade_raca_municipio_ano.csv', index=False)
 df_mortalidade_raca_municipio
 
 # %%
-rotulos_raca = {'Amarela':'amarela','Branca':'branca','Indígena':'indigena',
-                 'Parda':'parda','Preta':'preta','Não informada':'nao_informado'}
+# E5 (specs/exclusoes.md): amarela e indígena desenhadas juntas
+rotulos_raca = {'Branca':'branca','Parda':'parda','Preta':'preta',
+                 'Amarela e indígena':'amarela_indigena','Não informada':'nao_informado'}
 
 serie_temporal_multipla(
     df_mortalidade_raca_municipio,
@@ -2602,7 +2631,7 @@ colunas_subgrupo = {c: c for c in df_evitaveis_subgrupo_wide.columns if c != 'an
 serie_temporal_multipla(
     df_evitaveis_subgrupo_wide,
     tempo='ano',
-    colunas=colunas_subgrupo,
+    colunas=filtra_colunas_subgrupo(colunas_subgrupo),   # E3, specs/exclusoes.md
     titulo='Óbitos por causas evitáveis (0-364 dias) por subgrupo - Rio de Janeiro (1996-2025)',
     nome_arquivo='obitos_causas_evitaveis_subgrupo_ano',
     ylabel='Óbitos',
@@ -2657,7 +2686,7 @@ colunas_subgrupo_0_6 = {c: c for c in df_evitaveis_subgrupo_0_6_wide.columns if 
 serie_temporal_multipla(
     df_evitaveis_subgrupo_0_6_wide,
     tempo='ano',
-    colunas=colunas_subgrupo_0_6,
+    colunas=filtra_colunas_subgrupo(colunas_subgrupo_0_6),   # E3
     titulo='Óbitos por causas evitáveis (0-6 dias) por subgrupo - Rio de Janeiro (1996-2025)',
     nome_arquivo='obitos_causas_evitaveis_subgrupo_0_a_6_dias_ano',
     ylabel='Óbitos',
@@ -2706,7 +2735,7 @@ colunas_subgrupo_7_27 = {c: c for c in df_evitaveis_subgrupo_7_27_wide.columns i
 serie_temporal_multipla(
     df_evitaveis_subgrupo_7_27_wide,
     tempo='ano',
-    colunas=colunas_subgrupo_7_27,
+    colunas=filtra_colunas_subgrupo(colunas_subgrupo_7_27),   # E3
     titulo='Óbitos por causas evitáveis (7-27 dias) por subgrupo - Rio de Janeiro (1996-2025)',
     nome_arquivo='obitos_causas_evitaveis_subgrupo_7_a_27_dias_ano',
     ylabel='Óbitos',
@@ -2755,7 +2784,7 @@ colunas_subgrupo_28_364 = {c: c for c in df_evitaveis_subgrupo_28_364_wide.colum
 serie_temporal_multipla(
     df_evitaveis_subgrupo_28_364_wide,
     tempo='ano',
-    colunas=colunas_subgrupo_28_364,
+    colunas=filtra_colunas_subgrupo(colunas_subgrupo_28_364),   # E3
     titulo='Óbitos por causas evitáveis (28-364 dias) por subgrupo - Rio de Janeiro (1996-2025)',
     nome_arquivo='obitos_causas_evitaveis_subgrupo_28_a_364_dias_ano',
     ylabel='Óbitos',
@@ -2837,7 +2866,7 @@ colunas_subgrupo_evitaveis_cap = {c: c for c in df_evitaveis_subgrupo_mrj_wide.c
 serie_temporal_multipla(
     df_evitaveis_subgrupo_mrj_wide,
     tempo='ano',
-    colunas=colunas_subgrupo_evitaveis_cap,
+    colunas=filtra_colunas_subgrupo(colunas_subgrupo_evitaveis_cap),   # E3
     titulo='Óbitos por causas evitáveis (< 5 anos) por subgrupo - Rio de Janeiro (2006-2025)',
     nome_arquivo='obitos_evitaveis_menores_5_subgrupo_ano',
     ylabel='Óbitos',
@@ -2879,7 +2908,7 @@ for sufixo, rotulo in faixas_evitaveis_municipio_extra.items():
     serie_temporal_multipla(
         df_municipio_faixa_wide,
         tempo='ano',
-        colunas={c: c for c in df_municipio_faixa_wide.columns if c != 'ano'},
+        colunas=filtra_colunas_subgrupo({c: c for c in df_municipio_faixa_wide.columns if c != 'ano'}, rotulo),   # E2/E3
         titulo=f'Óbitos por causas evitáveis ({rotulo}) por subgrupo - Rio de Janeiro (2006-2025)',
         nome_arquivo=f'obitos_evitaveis_{sufixo}_subgrupo_ano',
         ylabel='Óbitos', legend_title='Subgrupo', figsize=(14,7), fonte_dados=fonte_evitaveis,
