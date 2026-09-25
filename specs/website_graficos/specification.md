@@ -62,6 +62,15 @@ causas evitáveis por faixa; taxas neonatais por bairro.
 - **P5** — B1 depende do dicionário `ROTULOS_EIXO` do Bloco 5 de `relatorio_latex`: esperar por ele ou criar aqui
   e o PDF reaproveitar?
 
+## 3b. Textos do relatório (dependência do `specs/relatorio_latex`, Bloco 6)
+
+O PDF e o DOCX de curadoria passaram a ter blocos de texto fora das figuras, com chaves próprias em
+`relatorio/textos_curados.json` (definidas em `blocos_relatorio()`, `.claude/skills/export_pdf_report/scripts/
+gera_estrutura_eixos.py`, no branch `spec/relatorio-latex`): `achados_<eixo>` (uma frase por linha — o site hoje mostra
+`_lorem_bullets`) e `sintese_<eixo>` (o site hoje lê `conclusao-<sid>`), além de `resumo` e `consideracoes_finais` (só
+PDF). `<eixo>` = `chave_eixo()` (ex. `familia_e_cuidados`). Tarefa desta rodada: o site ler `achados_<eixo>` e
+`sintese_<eixo>` (com `conclusao-<sid>` como alternativa), para o mesmo texto aparecer nos dois produtos.
+
 ## 4. Fora do escopo
 
 - Mudar a ordem/estrutura das abas (continua fixa no gerador; `specs/estrutura_eixos.md` não é lido pelo site).

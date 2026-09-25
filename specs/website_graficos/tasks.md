@@ -31,5 +31,8 @@
 ## Bloco 6 — Fontes ABNT
 - [ ] T6.1 Referência de `fontes.bib` nas caixas de fontes
 
+## Bloco 6b — Textos do relatório
+- [ ] T6b.1 Site lê `achados_<eixo>` (uma frase por linha) e `sintese_<eixo>` de `textos_curados.json` (§3b)
+
 ## Bloco 7 — Navegador e publicação
 - [ ] T7.1 VN.*; commit do `website/` regenerado; deploy só com OK
