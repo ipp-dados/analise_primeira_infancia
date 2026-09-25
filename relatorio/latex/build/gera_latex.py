@@ -94,6 +94,15 @@ def esc(s):
     return s
 
 
+TEXTO_PENDENTE = ("Indicador previsto na Política Integrada da Primeira Infância, ainda sem dado disponível para "
+                  "o município nesta edição. Será incluído quando a fonte for incorporada.")
+
+
+def titulo_secao(s):
+    """Título de seção: escapado e com ponto de quebra depois de "/" ("escola/creche" não estoura a margem)."""
+    return esc(s).replace("/", r"/\allowbreak{}")
+
+
 def slug_site(titulo):
     """Mesmo slugify do site (id do painel = semente de conclusao-<sid>)."""
     t = re.sub(r"[^\w\s-]", "", titulo, flags=re.UNICODE).strip().lower()
@@ -230,10 +239,11 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
         tex.append(r"\end{itemize}\end{achados}")
         for sub in eixo["subsecoes"]:
             c = sub["campos"]
-            tex.append(rf"\section{{{esc(sub['titulo'])}}}")
+            tex.append(rf"\section{{{titulo_secao(sub['titulo'])}}}")
             if (c.get("status") or "").strip() == "pendente":
-                notas = lista(c.get("nota"))
-                tex.append(r"\begin{pendente}" + esc(" ".join(notas) or "Indicador catalogado, ainda sem dado disponível.")
+                # as `nota:` de estrutura_eixos.md são anotações internas da equipe ("baixar dados", nomes de
+                # arquivo, datas de decisão) -- o público lê só a frase fixa abaixo
+                tex.append(r"\begin{pendente}" + TEXTO_PENDENTE
                            + r"\end{pendente}")
                 continue
             for campo, tipo in (("visualização", "grafico"), ("mapa", "mapa")):

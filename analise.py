@@ -936,6 +936,10 @@ def _a4_seguro(funcao):
     def envelope(*args, **kwargs):
         if not GERA_VARIANTE_A4:
             return
+        # seaborn aceita x='ano' quando 'ano' é o índice do DataFrame; aqui a coluna precisa existir
+        if args and isinstance(args[0], pd.DataFrame) and not isinstance(args[0], gpd.GeoDataFrame) \
+                and any(n is not None and n not in args[0].columns for n in args[0].index.names):
+            args = (args[0].reset_index(),) + tuple(args[1:])
         try:
             with plt.rc_context(_rc_impressao()):
                 funcao(*args, **kwargs)
