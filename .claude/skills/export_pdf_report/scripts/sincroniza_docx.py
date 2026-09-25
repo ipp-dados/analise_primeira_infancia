@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Sincroniza `relatorio/curadoria_textos.docx` já curado (texto real
 escrito por um humano sobre o placeholder lorem ipsum) com o resto do
-pipeline -- Bloco 7 de `specs/ajuste_eixos/plan.md`.
+pipeline -- Bloco 7 de `specs/2026-09-22_ajuste_eixos/plan.md`.
 
 Lê os bookmarks do `.docx`, decide quais parágrafos foram genuinamente
 editados (texto difere do lorem ipsum determinístico que `_lorem` geraria
@@ -9,10 +9,10 @@ hoje para aquele bloco) e propaga o texto editado para:
 
   (a) `relatorio/textos_curados.json` -- merge, nunca substitui o arquivo
       inteiro (`atualiza_textos_curados`);
-  (b) `website/index.html` (site, specs/website_refactor), regenerado via subprocess
+  (b) `website/index.html` (site, specs/2026-09-24_website_refactor), regenerado via subprocess
       (`build_html_report.py` lê o JSON no import, por isso subprocess, não
       import direto -- ver nota em `regenera_html`);
-  (c) o relatório em LaTeX (`relatorio/latex/build/gera_latex.py`; antes a HTML-fonte do PDF antigo, `build_notebook_report.py`, removido em 2026-09-25 -- specs/relatorio_latex D2),
+  (c) o relatório em LaTeX (`relatorio/latex/build/gera_latex.py`; antes a HTML-fonte do PDF antigo, `build_notebook_report.py`, removido em 2026-09-25 -- specs/2026-09-25_relatorio_latex D2),
       mesma razão);
   (d) uma nota markdown nova/atualizada em `analise.py`, logo após a célula
       de código que produz o arquivo correspondente ao bloco -- a parte de
@@ -102,7 +102,7 @@ def _ids_originais_conhecidos():
     viram só um parágrafo `[PENDENTE]` sem `bloco_texto()`)."""
     estrutura = parse_estrutura_eixos()
     ids = {"introducao"}  # bookmark fixo da Introdução (fora da estrutura)
-    ids |= set(blocos_relatorio(estrutura))   # textos do relatório fora das figuras (specs/relatorio_latex Bloco 6)
+    ids |= set(blocos_relatorio(estrutura))   # textos do relatório fora das figuras (specs/2026-09-25_relatorio_latex Bloco 6)
     for eixo in estrutura:
         for sub in eixo["subsecoes"]:
             campos = sub["campos"]
@@ -177,7 +177,7 @@ def atualiza_textos_curados(edicoes, raiz=_RAIZ):
 
 def regenera_html(raiz=_RAIZ):
     """Roda o gerador do site (`website/build/build_site.py`, ex-`build_html_report.py`,
-    specs/website_refactor) como subprocess (não import direto -- o
+    specs/2026-09-24_website_refactor) como subprocess (não import direto -- o
     módulo carrega `_TEXTOS_CURADOS` uma vez, no import, então um import
     dentro do mesmo processo Python não veria o JSON recém-escrito).
     Invocação e cwd espelham exatamente `SKILL.md` ("rode a partir da raiz
@@ -383,7 +383,7 @@ def sincroniza(caminho_docx, raiz=_RAIZ, pdf_source_out=None, aplica_analise=Tru
     regenera_html(raiz=raiz)
     resultado["html_ok"] = True
 
-    # PDF: desde specs/relatorio_latex (D2) o relatório é gerado em LaTeX; o PDF fica em relatorio/latex/_build/ e
+    # PDF: desde specs/2026-09-25_relatorio_latex (D2) o relatório é gerado em LaTeX; o PDF fica em relatorio/latex/_build/ e
     # só vai para relatorio/analise_primeira_infancia.pdf com --publicar (decisão de quem publica, não da sincronização)
     resultado["pdf_source_path"] = str(regenera_relatorio_latex(raiz=raiz))
     resultado["pdf_source_ok"] = True

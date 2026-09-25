@@ -30,7 +30,7 @@ descartadas nas `SKILL.md` e nas specs por rodada).
 ### Convenção de nomes (`dados_locais/` · `tabelas_finais/` · `visualizacoes/` · `mapas/`)
 
 Formalizada em 2026-09-22 a partir do padrão que já era maioria — ver
-`specs/reorganize-naming/plan.md` para o levantamento completo (achados,
+`specs/2026-09-22_reorganize-naming/plan.md` para o levantamento completo (achados,
 arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 
 - `dados_locais/`: uma pasta por fonte, tema, snake_case sem espaço/acento
@@ -74,13 +74,13 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   `serie_temporal_multipla`) e para os mapas coropléticos. Estilo
   compartilhado: paleta categórica de 11 cores, título serifado (Palatino
   Linotype), rodapé de fonte, DPI 200 (gráficos) / 300 (mapas) — ver
-  `specs/visual-identity/`.
+  `specs/2026-09-09_visual-identity/`.
 - Export padrão em PNG (`visualizacoes/`, `mapas/`); export SVG existe mas
   fica comentado por padrão em cada função de plot.
 
 ## Site (`website/`) — antes relatório interativo `relatorio/index.html`
 
-- **Site estático, HTML/CSS/JS vanilla** (`specs/website_refactor`, 2026-09-24) — sem framework, sem
+- **Site estático, HTML/CSS/JS vanilla** (`specs/2026-09-24_website_refactor`, 2026-09-24) — sem framework, sem
   passo de build no deploy, sem dependência externa além das fontes do Google Fonts. Até essa rodada
   era um único `relatorio/index.html` autocontido (20,9 MB); agora `website/index.html` + `css/`
   (3 arquivos, tokens em `main.css`) + `js/` (`charts.js` motor, `navigation.js` abas, `sidebar.js`
@@ -101,7 +101,7 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 
 ## Exportação em PDF/DOCX
 
-- **Desde 2026-09-25 (`specs/relatorio_latex`)**: o relatório é **LaTeX** — classe **abnTeX2** (ABNT, modelo de
+- **Desde 2026-09-25 (`specs/2026-09-25_relatorio_latex`)**: o relatório é **LaTeX** — classe **abnTeX2** (ABNT, modelo de
   relatório técnico NBR 10719), **xelatex** via **latexmk** (MiKTeX no Windows), bibliografia **BibTeX** com
   `abntex2cite` (`alf`) para a lista "Fontes", **fontspec** com Fraunces + IBM Plex Sans (OFL, versionadas em
   `relatorio/latex/fontes/`), **TikZ** para os ícones (os SVG Lucide do site convertidos por
@@ -114,7 +114,7 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 
 - Pipeline separada (mesma pasta de skill, script diferente:
   `build_notebook_report.py`) monta um HTML espelhando `analise.py` (por
-  eixo da política municipal, `specs/ajuste_eixos/`) com os **PNGs reais do
+  eixo da política municipal, `specs/2026-09-22_ajuste_eixos/`) com os **PNGs reais do
   matplotlib** (não o motor SVG do relatório interativo) e renderiza para
   PDF via **Chrome headless** (`--headless=new` + `--user-data-dir`
   isolado, obrigatório — ver `.claude/skills/export_pdf_report/SKILL.md`
@@ -126,7 +126,7 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   quase vazio sem erro nenhum (achado registrado no `SKILL.md`).
 - Verificação do PDF gerado usa **pypdf** (contagem de páginas) e **PyMuPDF**
   (`fitz`, rasterizar páginas de amostra para inspeção visual).
-- **DOCX de curadoria** (`specs/ajuste_eixos/` Bloco 5): `python-docx`
+- **DOCX de curadoria** (`specs/2026-09-22_ajuste_eixos/` Bloco 5): `python-docx`
   (`requirements.txt`) gera `relatorio/curadoria_textos.docx` — 1 heading
   por eixo/subseção, imagens reais redimensionadas (Pillow, JPEG em
   memória — nunca embute o PNG original de `mapas/`, ~6MB cada), 1
@@ -136,7 +136,7 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   estável (nome de arquivo sem extensão). Sumário do DOCX usa um **campo
   `TOC` nativo do Word** (não uma lista estática) — o usuário atualiza
   clicando "Atualizar campo"/F9 conforme edita o documento.
-- **Sincronização de texto curado** (`specs/ajuste_eixos/` Bloco 7,
+- **Sincronização de texto curado** (`specs/2026-09-22_ajuste_eixos/` Bloco 7,
   `sincroniza_docx.py`): texto editado à mão no DOCX vira a fonte de
   `relatorio/textos_curados.json` (`{seed: texto}`, seed = mesmo nome de
   arquivo), lido por `website/build/build_site.py` (ex-`build_html_report.py`)/`build_notebook_report.py` via
@@ -155,20 +155,20 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 - Relatório em 3 variações estáticas (`index`/`lighter`/`white_index.html`)
   — consolidado num único `index.html` com tema automático.
 - Reordenar fisicamente as células de `analise.py` por eixo da política
-  municipal (`specs/ajuste_eixos/plan.md` §9.1) — mantida a ordem técnica
+  municipal (`specs/2026-09-22_ajuste_eixos/plan.md` §9.1) — mantida a ordem técnica
   de construção do dado; só a apresentação (HTML/PDF/DOCX) é reorganizada.
 - Reescrever `build_html_report.py` (hoje `website/build/build_site.py`)/`build_notebook_report.py` como
   renderizadores genéricos guiados por `specs/estrutura_eixos.md`
   (`parse_estrutura_eixos()` de verdade, não só os seeds de texto) — maior
   risco/custo do que o ganho, decisão do usuário registrada em
-  `specs/ajuste_eixos/specs.md` §9.3; os dois continuam Python hardcoded,
+  `specs/2026-09-22_ajuste_eixos/specs.md` §9.3; os dois continuam Python hardcoded,
   reorganizados fisicamente à mão quando o `.md` muda de agrupamento.
 - (site) Simplificar a geometria dos mapas polígono a polígono (Douglas-Peucker por região) — abriria
-  frestas entre bairros vizinhos; usa-se `coverage_simplify` (`specs/website_refactor` §4.9).
+  frestas entre bairros vizinhos; usa-se `coverage_simplify` (`specs/2026-09-24_website_refactor` §4.9).
 - (site) Vetorizar o logo do IPP por conta própria — publicaria uma marca oficial alterada; o PNG
-  oficial é servido em `srcset` até a Ascom fornecer o SVG (`specs/website_refactor` D6).
+  oficial é servido em `srcset` até a Ascom fornecer o SVG (`specs/2026-09-24_website_refactor` D6).
 
-## Inclusão dos dados de Proteção (`specs/inclusao_dados_protecao`)
+## Inclusão dos dados de Proteção (`specs/2026-09-23_inclusao_dados_protecao`)
 
 - Nível geográfico **RA** (`codra`) por `dissolve` do geojson de bairros (sem arquivo novo). Tema de cor `protecao` = `OrRd`
   (`Purples` descartado: já é `censo` no HTML).

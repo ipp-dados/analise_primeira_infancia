@@ -53,13 +53,14 @@ compartilhado, acesso restrito — solicitar a leonardoaucar@prefeitura.rio.*
     abas por eixo, sumário lateral, gráficos e mapas SVG interativos. `website/build/build_site.py`
     gera `index.html` e `data/`; CSS e JS são editados à mão. Detalhes em
     [`website/README.md`](website/README.md), pendências (versão mobile) em
-    [`website/ROADMAP.md`](website/ROADMAP.md).
+    [`ROADMAP.md`](ROADMAP.md).
 *   `relatorio/`: relatório em PDF (`analise_primeira_infancia.pdf`), DOCX de curadoria de textos
     e `textos_curados.json` (texto curado lido pelo site e pelo PDF). O antigo `relatorio/index.html`
-    foi substituído por `website/` (`specs/website_refactor`).
+    foi substituído por `website/` (`specs/2026-09-24_website_refactor`).
+*   `ROADMAP.md`: o que está em andamento, a fila priorizada, o backlog por tema e o histórico resumido.
 *   `specs/`: Constituição do projeto (`constitution.md`), stack técnica (`tech-stack.md`),
-    roadmap (`roadmap.md`) e uma subpasta por rodada de planejamento (`plan.md`,
-    `specification.md`/`specs.md`, `tasks.md`, `validation.md`) -- histórico completo de
+    lista de exclusões (`exclusoes.md`) e uma subpasta por rodada de planejamento (`<AAAA-MM-DD>_<nome>/`, pela data de abertura,
+    com `plan.md`, `specification.md`/`specs.md`, `tasks.md`, `validation.md`) -- histórico completo de
     decisões de design, com o *porquê* por trás de convenções do código.
 *   `notebooks/`: Notebook(s) .ipynb sincronizados com `analise.py` via Jupytext (opcional).
 *   `.env.example`: Exemplo de variáveis de ambiente necessárias (ex.: credenciais DB).
@@ -110,10 +111,10 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
-| 0.23.0 | 2026-09-25 | Relatório final em LaTeX/ABNT (capa, resumo, sumário, capítulo por eixo, apêndice de tabelas, Fontes), gerado de `estrutura_eixos.md`; figuras em versão de impressão pelo `analise.py`; lista de exclusões (`specs/relatorio_latex`, `specs/exclusoes.md`). |
-| 0.22.0 | 2026-09-24 | Site reestruturado em `website/` (arquivos separados, abas por eixo, sumário lateral, novo visual, título "Diagnóstico da Primeira Infância Carioca") e 20,9 MB → 1,5 MB (`specs/website_refactor`). |
-| 0.21.0 | 2026-09-24 | População de referência: Ripsa/MS no município (taxas municipais novas) e Censo 2022 explícito abaixo dele; matrículas 0-5 refeitas dos microdados do INEP, com taxa de atendimento; auditoria de faixas etárias e correção do total dos Censos (`specs/populacao-referencia`). |
-| 0.20.0 | 2026-09-23 | CadÚnico: recortes por sexo, raça/cor e arranjo familiar × renda (eixo Inclusão), supressão de células < 20 e correções nas saídas existentes (`specs/recortes_cadunico`). |
+| 0.23.0 | 2026-09-25 | Relatório final em LaTeX/ABNT (capa, resumo, sumário, capítulo por eixo, apêndice de tabelas, Fontes), gerado de `estrutura_eixos.md`; figuras em versão de impressão pelo `analise.py`; lista de exclusões (`specs/2026-09-25_relatorio_latex`, `specs/exclusoes.md`). |
+| 0.22.0 | 2026-09-24 | Site reestruturado em `website/` (arquivos separados, abas por eixo, sumário lateral, novo visual, título "Diagnóstico da Primeira Infância Carioca") e 20,9 MB → 1,5 MB (`specs/2026-09-24_website_refactor`). |
+| 0.21.0 | 2026-09-24 | População de referência: Ripsa/MS no município (taxas municipais novas) e Censo 2022 explícito abaixo dele; matrículas 0-5 refeitas dos microdados do INEP, com taxa de atendimento; auditoria de faixas etárias e correção do total dos Censos (`specs/2026-09-24_populacao-referencia`). |
+| 0.20.0 | 2026-09-23 | CadÚnico: recortes por sexo, raça/cor e arranjo familiar × renda (eixo Inclusão), supressão de células < 20 e correções nas saídas existentes (`specs/2026-09-23_recortes_cadunico`). |
 | 0.19.1 | 2026-09-22 | Revertido o rename de `relatorio/index.html` para `relatorio/relatorio.html` (0.19.0) — de volta a `index.html`. |
 | 0.19.0 | 2026-09-22 | Relatório/mapas/tabelas regenerados de verdade; `relatorio/index.html` renomeado para `relatorio/relatorio.html` (deploy continua publicando como `index.html`); primeiro deploy de teste no GitHub Pages; README reestruturado. |
 | 0.18.0 | 2026-09-22 | `dados_locais/` reorganizado por tema; convenção de nomes de `tabelas_finais/`/`visualizacoes/`/`mapas/` documentada em `specs/tech-stack.md`. |

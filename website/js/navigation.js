@@ -1,5 +1,5 @@
 // navigation.js -- barra de abas fixa: troca de painel sem recarregar, estado na URL, teclado.
-// specs/website_refactor §4.3. Editado à mão (não gerado).
+// specs/2026-09-24_website_refactor §4.3. Editado à mão (não gerado).
 //
 // URL (só hash -- o GitHub Pages não reescreve caminhos, spec §4.10):
 //   (vazio)            -> primeira aba (Visão geral)
