@@ -8,7 +8,7 @@ anterior da estrutura (títulos de imagem com nomes de arquivo antigos, subseç�
 conteúdo). Então o casamento é por contexto, nesta ordem:
 
   1. título do H3 (nome do arquivo da imagem), normalizado (sem acento/pontuação/marcas de status)
-     e traduzido pelos renomes conhecidos (`RENOMES`, specs/populacao-referencia/auditoria_faixas.md B1-B5);
+     e traduzido pelos renomes conhecidos (`RENOMES`, specs/2026-09-24_populacao-referencia/auditoria_faixas.md B1-B5);
   2. imagem sem título (H3 vazio, comum depois de edição à mão): a posição da imagem dentro do H2;
   3. texto direto sob o H2 (subseção sem imagem): o bookmark `{eixo}::{subseção}` do mesmo H2.
 

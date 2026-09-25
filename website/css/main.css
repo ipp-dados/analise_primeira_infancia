@@ -1,5 +1,5 @@
 /* main.css -- fontes, tokens (:root), base e tipografia.
-   specs/website_refactor Blocos 4-6 (protótipo aprovado com ajustes): tokens novos. Nomes que o motor de gráficos
+   specs/2026-09-24_website_refactor Blocos 4-6 (protótipo aprovado com ajustes): tokens novos. Nomes que o motor de gráficos
    (js/charts.js) e o gerador usam continuam existindo: --page, --surface, --surface-2,
    --ink*, --hairline*, --accent*, --shadow, --shadow-hover, --c1..--c11, --c-muted. */
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');

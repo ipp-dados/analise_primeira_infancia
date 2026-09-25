@@ -568,7 +568,7 @@
  },
  "alertas_resolvidos": {
   "censo_0_a_4_serie_percentual_ano": [
-   "Conferir dado: o texto cita 7,1% / 5,4% / 4,7% (2000/2010/2022). Depois da correção da série dos Censos (specs/populacao-referencia, C-D3) os valores são 7,6% / 5,8% / 5,0%.",
+   "Conferir dado: o texto cita 7,1% / 5,4% / 4,7% (2000/2010/2022). Depois da correção da série dos Censos (specs/2026-09-24_populacao-referencia, C-D3) os valores são 7,6% / 5,8% / 5,0%.",
    "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ],
   "mapa_censo_0_4_percentual": [

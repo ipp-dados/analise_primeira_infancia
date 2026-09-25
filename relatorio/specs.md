@@ -96,7 +96,7 @@ totalmente diferente."
   visualizador (`data-theme="light"`/`"dark"` e `prefers-color-scheme`, sem
   *stamp*).
 
-### v5 — `index.html` único, gerado por script, sem prosa (specs/visual-identity)
+### v5 — `index.html` único, gerado por script, sem prosa (specs/2026-09-09_visual-identity)
 
 - Os 3 arquivos (`index`/`lighter`/`white`) foram consolidados em **um único
   `relatorio/index.html`**, com tema claro/escuro automático via
@@ -110,7 +110,7 @@ totalmente diferente."
   tabela" — sem as notas de método/prosa que as versões anteriores copiavam do
   notebook (essas ficam no notebook e no PDF).
 - Cobertura ampliada para as ~73 visualizações do notebook (25 já existentes +
-  tudo que `specs/maps-and-ibge` adicionou: SIDRA, evitáveis por CAP/subgrupo,
+  tudo que `specs/2026-09-09_maps-and-ibge` adicionou: SIDRA, evitáveis por CAP/subgrupo,
   painéis D.1/D.2, raça sem "não informada") e as 32 imagens reais em
   `mapas/*.png` (7 grupos temáticos).
 - `lineChart` ganhou a mesma lógica de destaque de `serie_temporal_multipla`
@@ -138,14 +138,14 @@ totalmente diferente."
   agora têm papéis fixos (esquerda = Crianças, direita = Famílias).
 - `relatorio/index.html` passou a ser versionado no git (exceção adicionada
   ao `.gitignore`, que ignora `*.html` de forma genérica) — pedido direto,
-  substitui a decisão F de `specs/visual-identity/specs.md` (mantinha fora do
+  substitui a decisão F de `specs/2026-09-09_visual-identity/specs.md` (mantinha fora do
   git).
 
 ### v6 — relatório interativo: seções retráteis, seletor de opções, outliers,
-mapas SVG, identidade institucional (`specs/relatorio-interativo`)
+mapas SVG, identidade institucional (`specs/2026-09-14_relatorio-interativo`)
 
 Rodada baseada num wireframe manuscrito (`relatorio/Page 1.pdf`), planejada em
-`specs/relatorio-interativo/specification.md`/`plan.md` antes de implementar.
+`specs/2026-09-14_relatorio-interativo/specification.md`/`plan.md` antes de implementar.
 Motivo: o relatório v5.1 tinha paredes de 6-18 gráficos quase idênticos
 (cortes diferentes do mesmo indicador) e nenhuma interação além do hover.
 
@@ -180,7 +180,7 @@ Motivo: o relatório v5.1 tinha paredes de 6-18 gráficos quase idênticos
   relatório e paleta categórica de dados inalterados. Logo real embutido
   (`relatorio/assets/ipp-logo.png`) — **reverte a decisão de v2** que evitava
   logo institucional não verificado; autorização de uso ainda pendente de
-  confirmação antes de deploy público (`specs/relatorio-interativo/tasks.md`
+  confirmação antes de deploy público (`specs/2026-09-14_relatorio-interativo/tasks.md`
   T0.4).
 - **Rodapé institucional** novo: fontes de dados, links (IPP/Transparência
   Rio/LGPD), contato, data de atualização — escopo enxuto, sem
@@ -405,7 +405,7 @@ pra roxo
   pediu uma cor própria em vez de cinza, mantendo a regra de nunca usar
   azul (reservado ao mar/água do fundo cartográfico).
 
-### v7 — reorganização por eixo da política municipal (`specs/ajuste_eixos`)
+### v7 — reorganização por eixo da política municipal (`specs/2026-09-22_ajuste_eixos`)
 
 - **9 `<h2>` por fonte de dado → 6 `<h2>` por eixo da política municipal**
   (Prioridade sem secundário, Inclusão, Família e Cuidados, Proteção,
@@ -416,7 +416,7 @@ pra roxo
   `build_html_report.py` não lê esse `.md` em tempo de execução — foi
   reorganizado fisicamente uma vez para bater com ele; uma mudança de
   agrupamento no `.md` exige o mesmo ajuste manual de novo (decisão
-  registrada em `specs/ajuste_eixos/specs.md` §9.3, não um bug).
+  registrada em `specs/2026-09-22_ajuste_eixos/specs.md` §9.3, não um bug).
 - **16 indicadores do catálogo sem dado real ainda** (Proteção e Moradia
   quase inteiras, mais alguns em Inclusão/Família e Cuidados) aparecem como
   um bloco "🚧 Indicador catalogado, ainda não disponível" com a razão —
@@ -425,7 +425,7 @@ pra roxo
   favor da navbar — os dois convivem agora, motivos diferentes) + um bloco
   de Introdução (250 palavras, placeholder) logo após o cabeçalho.
 - Faixa de texto de análise por visualização ajustada de 150 palavras fixas
-  para 100-200 (`specs/ajuste_eixos/specs.md` §7).
+  para 100-200 (`specs/2026-09-22_ajuste_eixos/specs.md` §7).
 - **Seeds do texto de análise alinhados a nomes de arquivo reais** (antes
   eram o rótulo legível da pill) — prepara a sincronização com o novo DOCX
   de curadoria (`relatorio/curadoria_textos.docx`,
@@ -433,11 +433,11 @@ pra roxo
   editado à mão no Word passa a aparecer aqui automaticamente na próxima
   geração, via `relatorio/textos_curados.json`.
 
-### v8 — site estático em `website/`: abas por eixo, sumário lateral, novo visual (`specs/website_refactor`)
+### v8 — site estático em `website/`: abas por eixo, sumário lateral, novo visual (`specs/2026-09-24_website_refactor`)
 
 A partir desta versão o relatório interativo **não mora mais em `relatorio/`**: é o site estático
 `website/` (gerador `website/build/build_site.py`, ex-`build_html_report.py`; `relatorio/index.html`
-removido do git). Detalhes, medições e validação em `specs/website_refactor/`; uso em `website/README.md`.
+removido do git). Detalhes, medições e validação em `specs/2026-09-24_website_refactor/`; uso em `website/README.md`.
 
 - **Arquivos separados**: CSS (`css/main|layout|components.css`) e JS (`js/charts.js`,
   `navigation.js`, `sidebar.js`) saíram das strings do gerador e são editados à mão; o gerador escreve
@@ -491,7 +491,7 @@ removido do git). Detalhes, medições e validação em `specs/website_refactor/
   (lorem ipsum) — ainda precisa de curadoria editorial real.
 - (v7) Todo texto de análise por visualização também continua lorem ipsum —
   a infraestrutura de curadoria (DOCX + script de sincronização) existe
-  desde `specs/ajuste_eixos` Bloco 5/7, mas ninguém editou o `.docx` ainda.
+  desde `specs/2026-09-22_ajuste_eixos` Bloco 5/7, mas ninguém editou o `.docx` ainda.
 - (v7) ~24 opções de gráfico (cortes granulares que o catálogo não
   enumera um a um, ex. combinações CAP×subgrupo) e as 2 opções CadÚnico
   renda/idade (que compartilham 1 seed combinado no PDF) não têm um

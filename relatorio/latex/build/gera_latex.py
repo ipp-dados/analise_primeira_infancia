@@ -1,4 +1,4 @@
-"""Gera o relatório final em LaTeX e compila o PDF (specs/relatorio_latex, Blocos 2-4).
+"""Gera o relatório final em LaTeX e compila o PDF (specs/2026-09-25_relatorio_latex, Blocos 2-4).
 
 Lê, em tempo de build (nada de agrupamento fixo no código):
   - specs/estrutura_eixos.md      -> capítulos (## eixo) e seções (### indicador), na ordem do arquivo;
@@ -10,7 +10,7 @@ Lê, em tempo de build (nada de agrupamento fixo no código):
 
 Escreve relatorio/latex/gerado/*.tex (não editar à mão), reduz as imagens para o cache em _build/,
 roda latexmk -xelatex (PDF em relatorio/latex/_build/relatorio.pdf; com --publicar, copiado para
-relatorio/analise_primeira_infancia.pdf -- specs/relatorio_latex D2: só depois da validação).
+relatorio/analise_primeira_infancia.pdf -- specs/2026-09-25_relatorio_latex D2: só depois da validação).
 
 Uso (da raiz do projeto):  python relatorio/latex/build/gera_latex.py [--sem-pdf] [--eixo N] [--publicar]
   --sem-pdf   só gera os .tex (sem compilar)

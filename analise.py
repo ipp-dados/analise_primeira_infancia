@@ -173,7 +173,7 @@ def carrega_cobertura_vacinal(caminho):
     return df[['ano','IMUNO','cobertura']].rename(columns={'IMUNO':'imunobiologico'})
 
 # a planilha TabWin de causas evitáveis por CAP só traz os 8 subgrupos CID (nunca o nível
-# 'grupo' como linha própria, e nunca um terceiro nível 'causa' -- ver specs/mortalidade-ap/
+# 'grupo' como linha própria, e nunca um terceiro nível 'causa' -- ver specs/2026-09-08_mortalidade-ap/
 # specification.md §2.4); o rótulo bruto de 3 das 8 categorias ('1.2.*') traz um trecho 'ad '
 # redundante que não aparece no texto de subgrupo canônico -- este dicionário normaliza os 8
 # rótulos possíveis para esse texto canônico, usado em toda tabela derivada desta planilha
@@ -341,7 +341,7 @@ def carrega_sidra_longo(caminho, coluna_corte=None):
 
 # %%
 # Identidade visual compartilhada por todas as funções de visualização desta seção --
-# mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver specs/visual-identity).
+# mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver specs/2026-09-09_visual-identity).
 
 # paleta categórica de 11 cores -- mesmos hex do motor JS de relatorio/index.html (--c1..--c11),
 # para a mesma série ter a mesma cor no notebook, no PDF e no HTML.
@@ -474,7 +474,7 @@ _PROVEDORES_FUNDO = {
 # o serviço 'Ocean_Basemap' da Esri (provedor de 'mapa') passou a responder HTTP 500 em 2026-09; o sucessor
 # 'Ocean/World_Ocean_Base' tem o mesmo estilo (relevo suave, mar azul, sem rótulos) e serve os tiles.
 # Chave nova (não altera 'mapa'): use fundo='mapa_oceano_base' enquanto o serviço antigo estiver fora do ar.
-# 2026-09-25 (specs/relatorio_latex, aprovado pelo usuário após comparação lado a lado): 'mapa_oceano_base' passou a
+# 2026-09-25 (specs/2026-09-25_relatorio_latex, aprovado pelo usuário após comparação lado a lado): 'mapa_oceano_base' passou a
 # ser o padrão de mapa_coropletico_bairros -- mesmo estilo; 'mapa' continua disponível se o serviço antigo voltar.
 _PROVEDORES_FUNDO['mapa_oceano_base'] = xyzservices.TileProvider(
     name='Esri.WorldOceanBase',
@@ -496,7 +496,7 @@ _NIVEIS_AGREGACAO = {
 
 # geojson oficial das 10 CAPs (Coordenadoria de Área Programática de Saúde, SMS-Rio -- não
 # aninha no geojson de bairros do IPP, que só traz Área/Região de Planejamento), Data.Rio
-# ("Áreas Programáticas da Saúde"); ver specs/mortalidade-ap/specification.md §4
+# ("Áreas Programáticas da Saúde"); ver specs/2026-09-08_mortalidade-ap/specification.md §4
 _CAMINHO_GEO_CAP = 'dados_locais/geo/limite_ap_saude_rio.geojson'
 
 # de-para RA -> CAP, derivado do cruzamento espacial com o polígono oficial acima (não de
@@ -767,7 +767,7 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
 # ### 🖨️ Variante de impressão (relatório PDF)
 #
 # Cada função de visualização acima grava também uma **variante para o relatório em PDF**
-# (`specs/relatorio_latex`, §5.1 e Bloco 5): figura desenhada no tamanho final do A4 (16 cm de largura útil),
+# (`specs/2026-09-25_relatorio_latex`, §5.1 e Bloco 5): figura desenhada no tamanho final do A4 (16 cm de largura útil),
 # sem título nem fonte embutidos (vão para a legenda ABNT do LaTeX), eixo com rótulo por extenso e unidade,
 # números em pt-BR, rótulos diretos seletivos (sem tooltip no papel), paleta de impressão validada e IBM Plex
 # Sans (a fonte do corpo do relatório). Séries com mais de `_LIMIAR_DESTAQUE_SERIES` linhas viram pequenos
@@ -789,7 +789,7 @@ _MANIFESTO_A4 = 'visualizacoes/a4/_manifesto.csv'
 _CM = 1 / 2.54
 _LARGURA_A4 = 16 * _CM
 # paleta de impressão: mesmos matizes e ordem de _PALETA_CATEGORICA, em tons que passam no validador da skill
-# dataviz em fundo branco (luminância, croma, daltonismo, contraste >= 3:1) -- specs/relatorio_latex §5.1
+# dataviz em fundo branco (luminância, croma, daltonismo, contraste >= 3:1) -- specs/2026-09-25_relatorio_latex §5.1
 _PALETA_IMPRESSAO = ['#3f76b8', '#dc7a45', '#0f7d5c', '#b88a1e', '#b8527b', '#5c9a3c', '#6f64ae', '#b84f4e']
 _TINTA, _TINTA2, _TINTA3, _GRADE, _CINZA_CONTEXTO = '#16202A', '#3F4B57', '#6B7580', '#DDE2E7', '#C9CFD5'
 _PASTA_FONTES = 'relatorio/latex/fontes'
@@ -1308,7 +1308,7 @@ def _a4_mapa(gdf, coluna_valor, titulo, nome_arquivo, nivel, bins, cmap, legenda
 #
 # Funções do eixo Proteção (violência familiar/autoprovocada — Sinan/Tabnet por bairro;
 # violência territorial — Data.Rio/IPS por Região Administrativa) e utilitários de taxa e de
-# agregação geográfica. Ver `specs/inclusao_dados_protecao/`.
+# agregação geográfica. Ver `specs/2026-09-23_inclusao_dados_protecao/`.
 
 # %%
 import unicodedata
@@ -1510,7 +1510,7 @@ def agrega_violencia_familiar_nivel(df_bairro, df_pop, nivel, vinculos=('mae', '
 #
 # Recortes por sexo, raça/cor e arranjo familiar × renda das famílias com crianças na primeira
 # infância, e a regra de supressão de células pequenas aplicada a toda saída CadÚnico
-# sub-municipal. Ver `specs/recortes_cadunico/`.
+# sub-municipal. Ver `specs/2026-09-23_recortes_cadunico/`.
 
 # %%
 # faixas de renda per capita do CTPE (`grupo_renda_pct`) -> rótulo para público não técnico.
@@ -1657,7 +1657,7 @@ def suprime_celulas_pequenas(df, colunas_denominador, colunas, limiar=_LIMIAR_SU
 # Estimativas populacionais Ripsa/Ministério da Saúde 2000-2025 (Nota Técnica Ripsa nº 01/2025), por
 # município, sexo e idade simples, via Tabnet (`popsvs2024br.def`). É o denominador de **toda taxa
 # municipal** do projeto; abaixo do município (bairro, AP, RP, RA, CAP) o denominador continua sendo o
-# Censo 2022 (decisão B1). Ver `specs/populacao-referencia/` e a nota geral no início da seção Censo 2022.
+# Censo 2022 (decisão B1). Ver `specs/2026-09-24_populacao-referencia/` e a nota geral no início da seção Censo 2022.
 
 # %%
 import csv
@@ -1796,7 +1796,7 @@ def populacao_ripsa(df_ripsa, idade_min=0, idade_max=5, sexo='total', anos=None)
 #
 # Matrículas de 0 a 5 anos no município, direto dos microdados do Censo Escolar da Educação Básica/INEP
 # (uma linha por escola, com matrículas agregadas em faixas de idade desde a adequação à LGPD). Ver
-# `specs/populacao-referencia/matriculas/`.
+# `specs/2026-09-24_populacao-referencia/matriculas/`.
 
 # %%
 import zipfile
@@ -1920,7 +1920,7 @@ extrai_planilha_evitaveis_cap('dados_locais/mortalidade/obitos_causas_evitaveis_
 # > apresentação em `relatorio/index.html`, no PDF e no DOCX de curadoria é
 # > reorganizada por **eixo da política municipal de primeira infância**,
 # > definida em `specs/estrutura_eixos.md` (crosswalk e decisões de projeto em
-# > `specs/ajuste_eixos/specs.md`). Editar esse `.md` e pedir a atualização do
+# > `specs/2026-09-22_ajuste_eixos/specs.md`). Editar esse `.md` e pedir a atualização do
 # > relatório não exige reordenar nenhuma célula deste notebook.
 
 # %% [markdown]
@@ -1935,7 +1935,7 @@ extrai_planilha_evitaveis_cap('dados_locais/mortalidade/obitos_causas_evitaveis_
 # ### 🏘️ Censo 2022(10/00)
 
 # %% [markdown]
-# > **Nota metodológica: população de referência** (`specs/populacao-referencia`, A5). Vale para todo
+# > **Nota metodológica: população de referência** (`specs/2026-09-24_populacao-referencia`, A5). Vale para todo
 # > cálculo do notebook que divide por população.
 # >
 # > | Nível | Denominador | Anos | Onde é usado |
@@ -2185,7 +2185,7 @@ df_serie_censo.to_csv('tabelas_finais//censo_0_a_4_anos_por_ano.csv')
 
 # %%
 # gravado como censo_0_a_4_serie_total_ano (antes desenhado à mão e nunca salvo: o arquivo só existia via
-# regen_missing_pngs.py, sem fonte -- achado do inventário de fontes, specs/relatorio_latex Bloco 1)
+# regen_missing_pngs.py, sem fonte -- achado do inventário de fontes, specs/2026-09-25_relatorio_latex Bloco 1)
 serie_temporal_multipla(
     df_serie_censo, tempo='ano',
     colunas={'Total': '0 a 4 anos', 'Meninas': 'Sexo feminino, 0 a 4 anos', 'Meninos': 'Sexo masculino, 0 a 4 anos'},
@@ -2214,7 +2214,7 @@ serie_temporal(
 #
 # Série anual da população de 0 a 6 anos do município (idade simples), com o total de 0 a 5 anos (faixa
 # das taxas municipais do projeto) e a participação de 0 a 6 anos no total da população
-# (`specs/populacao-referencia`, A2). Fonte e ressalvas na nota de população de referência, no início
+# (`specs/2026-09-24_populacao-referencia`, A2). Fonte e ressalvas na nota de população de referência, no início
 # desta seção: **os valores não se comparam com os dos Censos acima** (a Ripsa corrige a subcontagem do
 # Censo 2022). A participação é recalculada da soma (0 a 6 anos ÷ total), nunca média de anos.
 
@@ -2256,11 +2256,11 @@ serie_temporal(df_pop_infantil, 'ano', 'percentual_0_a_6', 'Participação de 0 
 # > O driver é `psycopg` 3 (`requirements.txt`) -- rode com o kernel/env `analises_env`; o Python base do
 # > Anaconda só tem `psycopg2` e falha na conexão.
 #
-# **O que o grupo `'0-6'` representa (verificado no banco em 2026-09-23, `specs/recortes_cadunico` S3):**
+# **O que o grupo `'0-6'` representa (verificado no banco em 2026-09-23, `specs/2026-09-23_recortes_cadunico` S3):**
 # crianças nascidas a partir de **2020-08-12**, ou seja, **0 a 5 anos completos** (até 72 meses, o recorte
 # de primeira infância do Marco Legal). A `idade` da silver é calculada numa data de referência
 # (~2026-08-12) posterior à partição (2026-06-12). **Crianças com 6 anos completos NÃO estão aqui** -- caem
-# no grupo `'7-14'` do CTPE. Desde a auditoria de faixas etárias (`specs/populacao-referencia/auditoria_faixas.md`)
+# no grupo `'7-14'` do CTPE. Desde a auditoria de faixas etárias (`specs/2026-09-24_populacao-referencia/auditoria_faixas.md`)
 # os títulos abaixo dizem "0 a 5 anos"; antes diziam "0-6", o nome do grupo no CTPE. Comparação entre
 # fontes (roadmap item 6); outras fontes do projeto usam outros recortes (Censo 0-4, Sinan 0-5...).
 #
@@ -2369,7 +2369,7 @@ grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: C
 # %% [markdown]
 # #### Razão municipal: crianças de 0 a 5 anos no CadÚnico sobre a população (Ripsa)
 #
-# Número-resumo do eixo Inclusão (`specs/populacao-referencia`, A4): crianças do grupo `'0-6'` do CadÚnico
+# Número-resumo do eixo Inclusão (`specs/2026-09-24_populacao-referencia`, A4): crianças do grupo `'0-6'` do CadÚnico
 # (na prática **0 a 5 anos completos**, ver a nota de idade no início da seção) ÷ população de 0 a 5 anos
 # do município em 2025 (estimativas Ripsa/MS). Ressalvas:
 # - **Um ano de diferença:** o cadastro é da partição de 2026 e a estimativa mais recente da Ripsa é de
@@ -2415,7 +2415,7 @@ assert df_bairro.loc['Total', 'Crianças'] == len(df), 'tabela por bairro não f
 suprime_celulas_pequenas(df_bairro, 'Famílias', ['Crianças', 'Famílias']).to_csv('tabelas_finais/cadunico_por_bairro_2026.csv')
 
 # %% [markdown]
-# **Nota sobre a atribuição de bairro no CadÚnico** (reescrita em `specs/recortes_cadunico`, A1/A2):
+# **Nota sobre a atribuição de bairro no CadÚnico** (reescrita em `specs/2026-09-23_recortes_cadunico`, A1/A2):
 # o CadÚnico não traz bairro; ele é obtido pelo CEP da família em `dados_locais/lista_bairros.csv`
 # (bairro dos **Correios**, não o bairro oficial IPP usado em `df_censo`). Três perdas/distorções:
 # 1. **15.809 crianças (8,1% de 194.138) têm CEP fora da lista** e ficam sem bairro -- antes sumiam em
@@ -2489,7 +2489,7 @@ mapa_coropletico_bairros(
 )
 
 # %% [markdown]
-# **Nota (reescrita em `specs/recortes_cadunico`, A2):** o percentual abaixo passa de 100% em 8 bairros
+# **Nota (reescrita em `specs/2026-09-23_recortes_cadunico`, A2):** o percentual abaixo passa de 100% em 8 bairros
 # (Camorim ~510%, Bonsucesso ~341%, Gávea ~313%, Jacaré ~242%, Anil, Ramos, Gardênia Azul, Cidade de
 # Deus). A **causa principal é a atribuição de bairro pelo CEP** (nota da seção de bairros acima): o
 # numerador usa o bairro dos Correios e o denominador (Censo 2022) o bairro oficial IPP -- crianças de
@@ -2529,7 +2529,7 @@ mapa_coropletico_bairros(
 # %% [markdown]
 # #### 👨‍👩‍👧 Recortes por família: sexo, raça/cor, arranjo familiar e renda
 #
-# Indicadores do eixo **Inclusão** (`specs/estrutura_eixos.md`; spec `specs/recortes_cadunico`). "Crianças
+# Indicadores do eixo **Inclusão** (`specs/estrutura_eixos.md`; spec `specs/2026-09-23_recortes_cadunico`). "Crianças
 # até 6 anos" é a redação do catálogo (mantida nos subtítulos de `estrutura_eixos.md`, decisão C-D2 de
 # `populacao-referencia`); o dado é de **0 a 5 anos completos**, e é isso que os títulos dos gráficos e mapas
 # dizem (ver a nota de idade no início da seção). Sexo e raça/cor são atributos **da criança** (D1): uma família com um menino e uma
@@ -4232,7 +4232,7 @@ grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequê
 # %% [markdown]
 # #### Matrículas e taxa de atendimento de 0 a 5 anos (Censo Escolar/INEP, 2007-2025)
 #
-# **Nota de método** (`specs/populacao-referencia/matriculas/`):
+# **Nota de método** (`specs/2026-09-24_populacao-referencia/matriculas/`):
 # - **Fonte:** microdados do Censo Escolar da Educação Básica (INEP), município do Rio de Janeiro
 #   (`CO_MUNICIPIO` 3304557), lidos dos ZIPs originais por `carrega_censo_escolar_matriculas`. O extrato
 #   `dados_locais/educacao/inep_matriculas_rio.csv` (ano × dependência) deixa o notebook rodar sem os ZIPs.
@@ -4345,7 +4345,7 @@ df_final.head()
 # ## 🛡️ Proteção
 #
 # Violência contra crianças de 0 a 5 anos (Sinan NET/Tabnet, por bairro de residência) e violência
-# territorial (Data.Rio/IPS, por Região Administrativa). Especificação: `specs/inclusao_dados_protecao/`.
+# territorial (Data.Rio/IPS, por Região Administrativa). Especificação: `specs/2026-09-23_inclusao_dados_protecao/`.
 #
 # > **Leitura dos dados — avisos que valem para toda a seção**
 # > - Os **vínculos** (mãe, pai, padrasto...) **não são excludentes** e não existe "total de violência
@@ -4406,7 +4406,7 @@ serie_temporal_multipla_marcos(
 # ##### A3 · Taxa municipal por 1.000 crianças de 0 a 5 anos, por vínculo (2011-2025)
 #
 # > Notificações de cada vínculo ÷ população de **0 a 5 anos** do mesmo ano (estimativas Ripsa/MS) × 1.000
-# > (`specs/populacao-referencia`, A3). No município, numerador e denominador têm a mesma faixa (0-5) e o
+# > (`specs/2026-09-24_populacao-referencia`, A3). No município, numerador e denominador têm a mesma faixa (0-5) e o
 # > mesmo ano, então a ressalva D9 (numerador 0-5 sobre população 0-4 do Censo) **não se aplica aqui**; ela
 # > vale só para as taxas por bairro/RA/CAP mais abaixo. Os vínculos seguem sem soma entre si, e a possível
 # > quebra de série de 2017 vale também para a taxa. Fonte da população: nota no início da seção Censo 2022.
@@ -4609,7 +4609,7 @@ for coluna, (rotulo, sufixo) in indicadores_territoriais.items():
 # > 2021-2025 (numerador) sobre a mesma população. Bairros com poucas crianças geram taxas instáveis (D10): a escala
 # > de cor é limitada ao percentil 95 (valores maiores aparecem com a cor máxima); a tabela guarda o valor real.
 # >
-# > **População de referência (`specs/populacao-referencia`, B3):** o denominador por bairro, RA e CAP é **fixo no
+# > **População de referência (`specs/2026-09-24_populacao-referencia`, B3):** o denominador por bairro, RA e CAP é **fixo no
 # > Censo 2022** (decisão B1), porque não há população por bairro × idade × ano.
 # > - **Anos diferentes:** o numerador é de 2025 (mãe, pai) ou 2021-2025 (outros), e a população é de 2022. A
 # >   população de 0 a 5 anos do município caiu ~11% entre 2022 e 2025 (Ripsa: 439.907 → 393.073), então a população
@@ -4708,7 +4708,7 @@ grafico_barra_agrupado(
 #
 # *(Pendente)* Síntese narrativa dos achados, organizada pelos 6 eixos ativos
 # da política municipal de primeira infância (`specs/estrutura_eixos.md`,
-# `specs/ajuste_eixos/specs.md`) — substitui os 5 subtítulos antigos por
+# `specs/2026-09-22_ajuste_eixos/specs.md`) — substitui os 5 subtítulos antigos por
 # fonte de dado (Demografia e População, Assistência Social, Educação,
 # Saúde, Proteção).
 

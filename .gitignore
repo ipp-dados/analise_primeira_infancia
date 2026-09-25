@@ -14,11 +14,11 @@
 *env
 /dados_locais/educacao/inep_microdados/
 
-# specs/website_refactor: *.png/*.svg acima são ignorados globalmente; os assets do site são fonte versionada
+# specs/2026-09-24_website_refactor: *.png/*.svg acima são ignorados globalmente; os assets do site são fonte versionada
 !/website/assets/**
 
 
-# relatório LaTeX: auxiliares do latexmk e cache de imagens reduzidas (specs/relatorio_latex)
+# relatório LaTeX: auxiliares do latexmk e cache de imagens reduzidas (specs/2026-09-25_relatorio_latex)
 relatorio/latex/_build/
 relatorio/latex/*.aux
 relatorio/latex/*.log

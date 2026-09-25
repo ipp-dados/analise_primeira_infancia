@@ -1,7 +1,7 @@
 # Estrutura por Eixos da Política Municipal
 
-> Este arquivo implementa `specs/ajuste_eixos/specs.md` (Bloco 1 de
-> `specs/ajuste_eixos/plan.md`) — é a fonte única e editável à mão da
+> Este arquivo implementa `specs/2026-09-22_ajuste_eixos/specs.md` (Bloco 1 de
+> `specs/2026-09-22_ajuste_eixos/plan.md`) — é a fonte única e editável à mão da
 > organização de `relatorio/index.html`/PDF/DOCX por eixo de política
 > municipal de primeira infância, em vez de por fonte de dado. Formato:
 > `##` = eixo, `###` = subseção (um indicador do catálogo
@@ -36,7 +36,7 @@
 - visualização: `populacao_ripsa_0_a_6_por_ano.png`
 - visualização: `populacao_ripsa_0_a_6_percentual_por_ano.png`
 - tabela: `populacao_ripsa_0_a_6_por_ano.csv`
-- nota: série anual 2000-2025, nível município, idade simples 0 a 6 (a tabela traz também o total 0 a 5). Estimativa corrigida da subcontagem do Censo 2022: não se compara diretamente com os números do Censo. Ligado em `specs/populacao-referencia` (A2/D2)
+- nota: série anual 2000-2025, nível município, idade simples 0 a 6 (a tabela traz também o total 0 a 5). Estimativa corrigida da subcontagem do Censo 2022: não se compara diretamente com os números do Censo. Ligado em `specs/2026-09-24_populacao-referencia` (A2/D2)
 
 ### Nascidos vivos por bairro de residência da mãe (número)
 - fonte: DataSUS/Tabnet (nascidos vivos)
@@ -49,7 +49,7 @@
 - fonte: DataSUS/Tabnet (nascidos vivos)
 - mapa: `mapa_nascidos_vivos_bairro_2025.png`
 - tabela: `tabela_mapa_nascidos_vivos_2025.csv`
-- nota: mesma informação do mapa de contagem, dividida pelo total do município (coluna `percentual_do_municipio` da tabela; no HTML, no tooltip do mapa). O total inclui os nascidos sem bairro informado (6.336 de 65.507 em 2025), por isso os bairros somam ~90%. Sem mapa próprio (`specs/populacao-referencia`, D1 revisada)
+- nota: mesma informação do mapa de contagem, dividida pelo total do município (coluna `percentual_do_municipio` da tabela; no HTML, no tooltip do mapa). O total inclui os nascidos sem bairro informado (6.336 de 65.507 em 2025), por isso os bairros somam ~90%. Sem mapa próprio (`specs/2026-09-24_populacao-referencia`, D1 revisada)
 
 ### Taxa de mortalidade neonatal precoce (0 a 6 dias)
 - fonte: DataSUS/Tabnet (SIM/SINASC)
@@ -68,7 +68,7 @@
 - tabela: `mortalidade_neonatal_tardia_bairro_ano.csv`
 - tabela: `tabela_mapa_obitos_neonatal_tardia_2025.csv`
 
-- nota: `mapa_obitos_neonatal_tardia_bairro_2025.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
+- nota: `mapa_obitos_neonatal_tardia_bairro_2025.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 ### Razão de mortalidade materna (durante a gravidez)
 - fonte: DataSUS/Tabnet (SIM)
 - visualização: `obitos_gravidez_por_ano.png`
@@ -76,7 +76,7 @@
 - tabela: `obitos_gravidez_bairro_ano.csv`
 - tabela: `tabela_mapa_obitos_gravidez_2025.csv`
 
-- nota: `mapa_obitos_gravidez_bairro_2025.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
+- nota: `mapa_obitos_gravidez_bairro_2025.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 ### Razão de mortalidade materna (durante puerpério)
 - fonte: DataSUS/Tabnet (SIM)
 - visualização: `obitos_puerperio_por_ano.png`
@@ -84,7 +84,7 @@
 - tabela: `obitos_puerperio_bairro_ano.csv`
 - tabela: `tabela_mapa_obitos_puerperio_2025.csv`
 
-- nota: `mapa_obitos_puerperio_bairro_2025.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
+- nota: `mapa_obitos_puerperio_bairro_2025.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 ### Mortalidade infantil por raça/cor (menores de 1 ano)
 - fonte: DataSUS/Tabnet (SIM)
 - visualização: `obitos_raca_ano.png`
@@ -125,7 +125,7 @@
 - tabela: `mortalidade_infantil_pos_neonatal_total_bairro_ano.csv`
 - tabela: `tabela_mapa_mortalidade_infantil_2025.csv`
 
-- nota: `mapa_obitos_pos_neonatal_bairro_2025.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
+- nota: `mapa_obitos_pos_neonatal_bairro_2025.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 - nota: mapa_mortalidade_infantil_bairro_2025.png fora do relatório (specs/exclusoes.md, E9, 2026-09-25): mapa de contagem ao lado do de taxa; no site vira alternância Taxa/Óbitos
 ### Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10)
 - fonte: DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis)
@@ -157,7 +157,7 @@
 ### Mortalidade infantil por causas evitáveis, por raça/cor
 - fonte: DataSUS (SIM)
 - status: pendente
-- nota: os 4 gráficos (`obitos_causas_evitaveis_raca_ano`, `…_sem_nao_informado_ano`, `percentual_mortalidade_causas_evitaveis_raca_ano`, `…_sem_nao_informado_ano`) e a tabela `mortalidade_causas_evitaveis_raca_municipio_ano.csv` foram removidos do relatório em 2026-09-25 (specs/relatorio_latex, D6): as chamadas que os geravam estão comentadas em analise.py, então os arquivos no disco são antigos. Ver também a nota de analise.py: o cruzamento por raça/cor desse arquivo não é filtrado só para causas evitáveis
+- nota: os 4 gráficos (`obitos_causas_evitaveis_raca_ano`, `…_sem_nao_informado_ano`, `percentual_mortalidade_causas_evitaveis_raca_ano`, `…_sem_nao_informado_ano`) e a tabela `mortalidade_causas_evitaveis_raca_municipio_ano.csv` foram removidos do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): as chamadas que os geravam estão comentadas em analise.py, então os arquivos no disco são antigos. Ver também a nota de analise.py: o cruzamento por raça/cor desse arquivo não é filtrado só para causas evitáveis
 
 ### Mortalidade infantil por causas evitáveis, por sexo
 - fonte: DataSUS (SIM)
@@ -273,13 +273,13 @@
 - fonte: Epi Rio
 - tabela: `cobertura_vacinal_epi_por_ano.csv`
 
-- nota: `cobertura_vacinal_epi_ano.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
+- nota: `cobertura_vacinal_epi_ano.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 - nota: cobertura_vacinal_epi_comparativo_anos.png, cobertura_vacinal_epi_comparativo_anos.csv fora do relatório (specs/exclusoes.md, E7, 2026-09-25): repete 4 anos da série anual
 ### Crianças até 6 anos frequentando escola/creche (geral)
 - fonte: Censo Demográfico 2022 (IBGE SIDRA, tabela 10057)
 - visualização: `sidra_frequencia_escola_0_5_total_2022.png`
 - tabela: `sidra_frequencia_escola_0_5_total_2022.csv`
-- nota: faixa real 0 a 5 anos (a tabela 10057 vai só até 5 anos); total de todas as raças e sexos, por idade (`specs/populacao-referencia`, D3)
+- nota: faixa real 0 a 5 anos (a tabela 10057 vai só até 5 anos); total de todas as raças e sexos, por idade (`specs/2026-09-24_populacao-referencia`, D3)
 
 ### Matrículas na educação básica de crianças de 0 a 5 anos
 - fonte: Censo Escolar da Educação Básica (INEP), microdados
@@ -287,7 +287,7 @@
 - visualização: `matriculas_0_a_5_creche_pre_por_ano.png`
 - visualização: `matriculas_0_a_5_rede_por_ano.png`
 - tabela: `matriculas_0_a_5_por_ano.csv`
-- nota: 0 a 5 anos (`QT_MAT_BAS_0_3` + `QT_MAT_BAS_4_5`), idade na data de referência do Censo Escolar (última quarta-feira de maio); os dados abertos não separam 6 anos de 7-10. Série 2007-2025 refeita dos microdados (a série antiga, "até 6 anos", não batia com a fonte). Catálogo: "crianças até 6 anos" (`specs/populacao-referencia/matriculas`)
+- nota: 0 a 5 anos (`QT_MAT_BAS_0_3` + `QT_MAT_BAS_4_5`), idade na data de referência do Censo Escolar (última quarta-feira de maio); os dados abertos não separam 6 anos de 7-10. Série 2007-2025 refeita dos microdados (a série antiga, "até 6 anos", não batia com a fonte). Catálogo: "crianças até 6 anos" (`specs/2026-09-24_populacao-referencia/matriculas`)
 
 ### Taxa bruta de atendimento escolar de 0 a 5 anos
 - fonte: Censo Escolar (INEP), microdados; população: estimativas Ripsa/Ministério da Saúde
@@ -353,7 +353,7 @@
 - tabela: `violencia_familiar_taxa_municipio_ano.csv`
 - tabela: `violencia_familiar_taxa_por_bairro.csv`
 - tabela: `violencia_familiar_taxa_top_bairros_2025.csv`
-- nota: município (2011-2025): numerador e denominador com 0 a 5 anos e o mesmo ano (Ripsa), sem ressalva de faixa (`specs/populacao-referencia`, A3). Bairro/RA/CAP: ressalva de denominador — numerador com 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022), o que superestima a taxa em ~20% de forma uniforme; o Censo 2022 é fixo (subconta crianças pequenas e é de outro ano), então as taxas por território comparam territórios entre si, não com a do município; "outros" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: escala de cor limitada ao percentil 95
+- nota: município (2011-2025): numerador e denominador com 0 a 5 anos e o mesmo ano (Ripsa), sem ressalva de faixa (`specs/2026-09-24_populacao-referencia`, A3). Bairro/RA/CAP: ressalva de denominador — numerador com 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022), o que superestima a taxa em ~20% de forma uniforme; o Censo 2022 é fixo (subconta crianças pequenas e é de outro ano), então as taxas por território comparam territórios entre si, não com a do município; "outros" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: escala de cor limitada ao percentil 95
 
 - nota: mapa_violencia_familiar_mae_taxa_bairro_2025.png, mapa_violencia_familiar_pai_taxa_bairro_2025.png, mapa_violencia_familiar_outros_taxa_bairro_2021_2025.png fora do relatório (specs/exclusoes.md, E6, 2026-09-25): taxa por bairro instável (bairros com poucas crianças); fica a taxa por RA
 ### Crianças que sofrem violência, por tipificação (sexo e idade)

@@ -1,6 +1,6 @@
 """CSV de tabelas_finais/ -> tabela ABNT/IBGE em LaTeX (longtable + booktabs) para os apêndices.
 
-Regras gerais (specs/relatorio_latex §3, validation V13): tabela aberta nas laterais, título acima,
+Regras gerais (specs/2026-09-25_relatorio_latex §3, validation V13): tabela aberta nas laterais, título acima,
 Fonte abaixo; números em pt-BR (1.234,5); coluna de ano/idade/código sem separador de milhar; percentual
 com 1 casa; linhas de total em negrito.
 

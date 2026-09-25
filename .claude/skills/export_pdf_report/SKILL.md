@@ -6,13 +6,13 @@ description: Build the final report PDF of the primeira-infancia analysis -- an 
 # Export the report (PDF, LaTeX) and the curation DOCX
 
 The final report is a **LaTeX document** (ABNT NBR 10719 technical report, class `abntex2`, compiled with
-`xelatex` via `latexmk`) in `relatorio/latex/`. Design, decisions and history: `specs/relatorio_latex/`
+`xelatex` via `latexmk`) in `relatorio/latex/`. Design, decisions and history: `specs/2026-09-25_relatorio_latex/`
 (read `specification.md` §8 for decisions D1-D6 and §5.1 for the print-figure rules before changing the look).
 Exclusions decided by the team (what is left out of the PDF/site and why): `specs/exclusoes.md`.
 
 **History (don't go back without a new decision):** until 2026-09-25 the PDF was an HTML page
 (`scripts/build_notebook_report.py`) printed by headless Edge — no cover/abstract/contents, grouping hardcoded
-in Python, 49 MB. Replaced by the LaTeX report (`specs/relatorio_latex`, D2); `build_notebook_report.py` and
+in Python, 49 MB. Replaced by the LaTeX report (`specs/2026-09-25_relatorio_latex`, D2); `build_notebook_report.py` and
 `regen_missing_pngs.py` (which re-drew some screen PNGs without a source line) were removed on 2026-09-25, after
 the LaTeX PDF passed validation (git history keeps them). Before that, an even older version converted
 the site's HTML to PDF — rejected by the user ("keep the visual style of the visualizations used in the
@@ -70,7 +70,7 @@ Run everything from the project root.
    figure is not in the report, `undefined` references and overfull boxes > 5 pt.
    `--publicar` replaces the file the site links to — only with the user's OK.
 
-4. **Verify** (`specs/relatorio_latex/validation.md` has the full list). At least: page count and size
+4. **Verify** (`specs/2026-09-25_relatorio_latex/validation.md` has the full list). At least: page count and size
    (budget < 20 MB), rasterize a sample with PyMuPDF and look at it (cover, contents, a chapter opener, a map
    page, an "indicador em desenvolvimento" box, an appendix table, Fontes, last page), and search the extracted
    text for internal notes that must not be published (`specs/`, team names, "baixar dados").
@@ -104,11 +104,11 @@ Run everything from the project root.
 ## Curated text (DOCX ↔ site, PDF, analise.py)
 
 Text lives in `relatorio/textos_curados.json`, keyed by figure file stem (`taxa_mortalidade_precoce_ano`),
-`introducao`, and — since `specs/relatorio_latex` Block 6 — the report-level blocks from
+`introducao`, and — since `specs/2026-09-25_relatorio_latex` Block 6 — the report-level blocks from
 `blocos_relatorio()` (`scripts/gera_estrutura_eixos.py`): `resumo`, `achados_<eixo>` (one finding per line),
 `sintese_<eixo>`, `consideracoes_finais` (`<eixo>` = `chave_eixo()`, e.g. `familia_e_cuidados`). Without curated
 text the PDF shows deterministic lorem ipsum identical to the site's for the same key (decision D4). The site
-does not read the new block keys yet (planned in `specs/website_graficos`); it still reads `conclusao-<sid>`,
+does not read the new block keys yet (planned in `specs/2026-09-25_website_graficos`); it still reads `conclusao-<sid>`,
 which the PDF also accepts as a fallback.
 
 6. **Build the DOCX curation export.**
@@ -151,4 +151,4 @@ which the PDF also accepts as a fallback.
   `estrutura_eixos.md` reaches the PDF and DOCX automatically but the site only by hand (see `build_website`).
 - `analise.py`'s final "Análise / Relatório" section is editorial scaffolding and is not published.
 - Citations in "Fonte:" lines print corporate authors in capitals (abnTeX2 behaviour); a `fontes.bib` adjustment
-  is listed for Block 7 of `specs/relatorio_latex`.
+  is listed for Block 7 of `specs/2026-09-25_relatorio_latex`.
