@@ -55,6 +55,12 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
    - **Realocar scripts das skills** que são pipeline do projeto e não da skill (ex.
      `.claude/skills/export_pdf_report/scripts/*.py`: geração/sincronização do DOCX, estrutura dos eixos) para
      junto do código do relatório; as skills passam a só chamá-los.
+   - **Limpar o ambiente e o `requirements.txt`** (pedido do usuário, 2026-09-25): tirar pacotes que o
+     projeto não usa (conferir por import real em `analise.py`, `website/build/`, `relatorio/latex/build/` e
+     scripts das skills), fixar versões do que fica, separar dependências só de desenvolvimento (Playwright,
+     `websocket-client`) e documentar o ambiente do CadÚnico (`psycopg` 3, env `analises_env`); apagar arquivos
+     soltos que não são entrada nem saída do pipeline (ex. `relatorio/latex/relatorio.aux/.fdb_latexmk/.fls/.log`
+     fora de `_build/`), sempre olhando cada um antes e registrando o que saiu.
    - Pré-requisito do item 2.
 
 2. **Empacotar scripts reutilizáveis para outros projetos** (depois do item 1) — transformar em pacotes
