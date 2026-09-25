@@ -140,6 +140,7 @@ def caminho_figura(nome, tipo):
 
 
 FALLBACK = []   # figuras ainda sem variante A4
+ROTULO_POR_ASSINATURA = {}   # conteúdo impresso da tabela -> \label da primeira ocorrência
 
 
 def legenda_fonte(info, tipo):
@@ -216,12 +217,20 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
                     tex.append(texto(Path(nome).stem))
             refs = []
             for nome in lista(c.get("tabela")):
-                if nome not in [t for t, _ in tabs_eixo]:
-                    tabs_eixo.append((nome, sub["titulo"]))
-                if tabelas.cabe_no_pdf(RAIZ / "tabelas_finais" / nome):
-                    refs.append(rf"Tabela~\ref{{tab:{rotulo_label(Path(nome).stem)}}}")
-                else:
+                caminho = RAIZ / "tabelas_finais" / nome
+                if not tabelas.cabe_no_pdf(caminho):
+                    if nome not in [t for t, _ in tabs_eixo]:
+                        tabs_eixo.append((nome, sub["titulo"]))
                     refs.append(r"\texttt{" + esc(nome) + "} (formato digital)")
+                    continue
+                # mesma tabela impressa (ex. série bairro×ano filtrada = tabela do mapa) sai uma vez só
+                sig = tabelas.assinatura(caminho)
+                if sig not in ROTULO_POR_ASSINATURA:
+                    ROTULO_POR_ASSINATURA[sig] = f"tab:{rotulo_label(Path(nome).stem)}"
+                    tabs_eixo.append((nome, sub["titulo"]))
+                ref = rf"Tabela~\ref{{{ROTULO_POR_ASSINATURA[sig]}}}"
+                if ref not in refs:
+                    refs.append(ref)
             if refs:
                 tex.append(r"\vertabelas{" + ", ".join(refs) + rf"; ver Apêndice~\ref{{ap:eixo-{i}}}}}")
         tex.append(r"\section{Síntese do eixo}")
