@@ -101,6 +101,42 @@ na largura do A4. Ver decisão D1 (§8).
 Independentemente de D1: o build gera um **cache de imagens reduzidas** (gitignorado) na resolução
 de impressão (300 dpi na largura final) para o PDF ficar abaixo de ~20 MB (hoje 49 MB).
 
+### 5.1 Desenho das figuras para impressão (pedido do usuário, 2026-09-25)
+
+> "Think about the figures visual design in a printed format and improve readability […] we need more
+> clear labels, as we don't have interactivity."
+
+Protótipo aprovado para discussão: `specs/relatorio_latex/prototipo/comparacao_antes_depois.pdf` (antes ×
+depois na mesma página A4 com legenda ABNT; scripts ao lado). Diagnóstico das 71 PNGs e 41 mapas atuais,
+lidos numa folha de contato:
+
+| Problema na versão de tela | Regra da variante de impressão |
+| :--- | :--- |
+| Texto encolhe para 50-65% (mapa: legenda ~5 pt, rodapé ~3 pt) | Figura desenhada **no tamanho final** (16 cm de largura; gráfico 5-7 cm de altura, mapa ~9 cm, pequenos múltiplos ~8,5 cm); texto 7-8 pt reais |
+| Título e fonte dentro da imagem, duplicando a legenda ABNT | Sem título nem fonte na imagem: título → `\caption` ("Gráfico N –"), fonte e notas → `\fonte{}` abaixo, a partir do manifesto |
+| Rótulo de eixo = nome de coluna (`taxa_mortalidade_precoce`, `Valores`, `Total`, `óbitos-gravidez`) | Rótulo por extenso **com unidade**, na horizontal acima do eixo ("Óbitos de 0 a 6 dias por mil nascidos vivos") — um dicionário central `ROTULOS_EIXO` nos helpers, com `ylabel` explícito prevalecendo |
+| Número em inglês (`140000`, `7.25`), idade como `0.0` | pt-BR em eixo e rótulo (`140.000`, `7,3`); ano e idade sempre inteiros |
+| Sem valores legíveis sem tooltip | **Rótulos diretos seletivos**: série única → primeiro, mínimo/máximo e último valor ("6,4 em 2025"); várias séries → nome + último valor na ponta de cada linha (a legenda continua, abaixo do gráfico); barras → valor (e %, quando parte de um todo) na ponta. Nunca um número em cada ponto |
+| Barras de uma só série pintadas com uma cor por categoria (arco-íris) | Uma série = **uma cor**; categorias com rótulo longo → barras horizontais |
+| Linhas de "total" misturadas às categorias (ex. linha `Total` de `cadunico_por_faixa_renda_2026.csv` desenhada como faixa) | Linhas de total/subtotal removidas antes de desenhar; o total vai para o texto ou a legenda |
+| Espaguete (8-11 séries: CAP, imunobiológicos, subgrupos) | **Pequenos múltiplos**: um painel por série, a série em cor, as demais em cinza ao fundo, mesma escala |
+| Eixo y cortado sem aviso, exagerando variações pequenas | Taxas e contagens começam em zero; exceção só com o corte declarado na legenda |
+| Paleta pastel pensada para tela (amarelo, verde-água e verde claros não passam em papel; azul acinzentado) | **Paleta de impressão** com o mesmo matiz e ordem do site/notebook, validada pelo validador da skill `dataviz` (luminância, croma, daltonismo, contraste ≥ 3:1 no branco): `#3f76b8 #dc7a45 #0f7d5c #b88a1e #b8527b #5c9a3c #6f64ae #b84f4e` — todos os checks passam |
+| Mapa de taxa dominado por bairros com denominador pequeno (1 óbito em 36 nascidos = 28‰) | Escala de cor limitada ao **percentil 95** com "≥ X" no topo — o mesmo recurso que o site já usa nos mapas de violência (`teto`); nota na Fonte. **Decisão D5** (§8): vale para todos os mapas de taxa por bairro? |
+| Mapa: fundo saturado (mar azul) gasta tinta e compete com o dado | Mesmo provedor de fundo (convenção da skill `generate_map`), com **véu branco de ~40%** por cima; menos margem de contexto; rosa dos ventos e escala menores, mantidos |
+| Fontes misturadas (Palatino nos títulos, DejaVu no resto) | IBM Plex Sans em toda a figura — a mesma do corpo do relatório |
+| PNG de gráfico (raster) | Gráficos em **PDF vetorial** (texto nítido, arquivo menor); mapas em PDF com o fundo rasterizado a 300 dpi |
+
+Grade e eixos: só linhas horizontais, finas (0,5 pt), cinza claro, contínuas; sem moldura; marcas de 1,6 pt.
+Cores de texto sempre em tons de tinta (nunca a cor da série). Marco temporal (ex. mudança da ficha do
+Sinan em 2017) = linha vertical fina + nota curta no próprio gráfico.
+
+Onde isso mora: a variante é gerada pelos **mesmos helpers** de `analise.py` (constituição §2), com um tema
+de impressão (`_TEMA_IMPRESSAO`: rcParams, paleta, tamanhos) e um parâmetro/variável global que ativa a
+saída extra em `visualizacoes/a4/*.pdf` e `mapas/a4/*.pdf` + manifesto. As versões de tela, o site e o DOCX
+não mudam. Casos que pedem forma diferente (pequenos múltiplos no lugar de espaguete) viram um helper novo
+(`pequenos_multiplos`) chamado na mesma célula, só para a variante A4 — a lista de casos vai em `tasks.md`.
+
 ## 6. Fonte única e atualização
 
 - **Estrutura**: `specs/estrutura_eixos.md`, lido **em tempo de build** com o `parse_estrutura_eixos()`
@@ -156,6 +192,12 @@ de execução, se D1 = B.
 - **D4 — Texto ainda não curado** (resumo, aberturas, sínteses, considerações finais, indicadores sem
   texto): caixa "Texto em curadoria" (recomendado), omitir, ou lorem ipsum como hoje.
   → **Decidido: lorem ipsum como hoje** (ver §6).
+- **D5 — Teto de cor nos mapas de taxa por bairro** (§5.1): aplicar o percentil 95 (precedente: mapas de
+  violência do site) a todos os mapas de taxa/percentual por bairro na variante de impressão, com nota na
+  Fonte; ou manter a escala até o máximo (fiel à tela). *Em aberto.*
+- **D6 — Achados do inventário** (Bloco 1, T1.5): o que fazer com os 10 arquivos do relatório gerados por
+  chamadas comentadas em `analise.py` e com os 13 gráficos regravados por `regen_missing_pngs.py` sem
+  fonte. *Em aberto.*
 
 ## 9. Fora do escopo
 
