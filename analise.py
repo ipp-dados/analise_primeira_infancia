@@ -1017,21 +1017,30 @@ def _a4_series(df, tempo, colunas, titulo, nome_arquivo, ylabel, fonte_dados, li
     # rótulos no fim das linhas (nome e último valor); quando as linhas terminam juntas, o rótulo é afastado
     # e ligado ao ponto por um fio fino (em vez de empilhar rótulos soltos)
     ys = _espaca_rotulos([f[3] for f in finais], separacao=topo * 0.075)
-    largura_rot = max((len(f'{f[0]}  {_num_a4(f[3], dec)}') for f in finais), default=10)
+    # nomes longos (ex. subgrupos CID-10) no fim da linha alargariam a figura além dos 16 cm e o texto encolheria
+    # ao caber na página: nesse caso o fim da linha leva só o valor, e o nome fica na legenda (uma entrada por linha)
+    nomes_longos = max((len(str(f[0])) for f in finais), default=0) > 18
+    rotulos_fim = [(_num_a4(f[3], dec) if nomes_longos else f'{f[0]}  {_num_a4(f[3], dec)}') for f in finais]
+    largura_rot = max((len(r) for r in rotulos_fim), default=10)
     _eixo_x_anos_a4(ax, x, rotulo_extra=min(0.04 + largura_rot * 0.012, 0.35))
     folga = (x.max() - x.min()) * 0.02
-    for (rotulo, cor, xf, yf), yr in zip(finais, ys):
+    for (rotulo, cor, xf, yf), yr, texto_fim in zip(finais, ys, rotulos_fim):
         ax.plot([xf], [yf], 'o', ms=3.6, color=cor, mec='white', mew=0.9, zorder=5)
         seta = dict(arrowstyle='-', color=_TINTA3, lw=0.4, shrinkA=0, shrinkB=2) if abs(yr - yf) > topo * 0.01 else None
-        ax.annotate(f'{rotulo}  {_num_a4(yf, dec)}', xy=(xf, yf), xytext=(xf + folga, yr), textcoords='data',
+        ax.annotate(texto_fim, xy=(xf, yf), xytext=(xf + folga, yr), textcoords='data',
                     ha='left', va='center', fontsize=7, color=_TINTA, fontweight='semibold',
                     annotation_clip=False, arrowprops=seta)
     ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0 if topo >= 10 else 1)))
     rotulo_y = _rotulo_a4(ylabel, nome_arquivo)
     _rotulo_y_a4(ax, rotulo_y)
     if len(itens) > 1:
-        ax.legend(loc='upper left', bbox_to_anchor=(0, -0.12), ncol=min(len(itens), 4), handlelength=1.6,
-                  columnspacing=1.4)
+        if nomes_longos:
+            alcas, rotulos_leg = ax.get_legend_handles_labels()
+            ax.legend(alcas, [_textwrap.fill(str(r), 70) for r in rotulos_leg], loc='upper left',
+                      bbox_to_anchor=(0, -0.12), ncol=1, handlelength=1.6)
+        else:
+            ax.legend(loc='upper left', bbox_to_anchor=(0, -0.12), ncol=min(len(itens), 4), handlelength=1.6,
+                      columnspacing=1.4)
     _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo_y)
 
 
@@ -1166,7 +1175,10 @@ def _a4_barras_agrupadas(df, categoria, valor, agrupador, titulo, nome_arquivo, 
         ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
         _rotulo_y_a4(ax, rotulo)
         ax.set_xlabel(_rotulo_a4(categoria))
-        ax.legend(loc='upper left', bbox_to_anchor=(0, -0.16), ncol=min(len(grupos), 4), handlelength=1.2)
+        longos = max((len(str(g)) for g in grupos), default=0) > 18   # nomes longos: uma entrada por linha
+        alcas, rotulos_leg = ax.get_legend_handles_labels()
+        ax.legend(alcas, [_textwrap.fill(str(r), 70) for r in rotulos_leg], loc='upper left',
+                  bbox_to_anchor=(0, -0.16), ncol=1 if longos else min(len(grupos), 4), handlelength=1.2)
     _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo)
 
 

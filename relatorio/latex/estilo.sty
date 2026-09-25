@@ -62,7 +62,8 @@
 % ------------------------------------------------------------------ títulos (abnTeX2)
 \renewcommand{\ABNTEXchapterfont}{\fraunces\bfseries\color{ippnavy}}
 \renewcommand{\ABNTEXchapterfontsize}{\LARGE}
-\renewcommand{\ABNTEXsectionfont}{\fraunces\bfseries\color{tinta}}
+% títulos de seção em bandeira (sem justificar): títulos longos em caixa alta quebram a linha em vez de invadir a margem
+\renewcommand{\ABNTEXsectionfont}{\fraunces\bfseries\color{tinta}\raggedright}
 \renewcommand{\ABNTEXsectionfontsize}{\Large}
 \renewcommand{\ABNTEXsubsectionfont}{\bfseries\color{tinta}}
 \renewcommand{\ABNTEXsubsectionfontsize}{\large}
@@ -112,6 +113,9 @@
 \counterwithout{mapa}{chapter}
 \renewcommand{\cftmapaname}{\mapaname\space}
 \renewcommand*{\cftmapaaftersnum}{\hfill--\hfill}
+% listas e sumário: páginas de 3 dígitos cabem na coluna do número, sem invadir a margem direita
+\setpnumwidth{2.2em}
+\setrmarg{3.2em}
 \setfloatlocations{mapa}{htbp}
 \counterwithout{table}{chapter}
 
@@ -144,7 +148,15 @@
   before upper={\caixa@cab{tinta3}{info}{Nota}}}
 
 % remissão à tabela do apêndice, logo após as figuras de uma seção
-\newcommand{\vertabelas}[1]{\par{\small\color{tinta3}\icone[0.95em]{file-text}\hspace{0.4em}Dados completos: #1.}\par}
+\newcommand{\vertabelas}[1]{\par{\raggedright\small\color{tinta3}\icone[0.95em]{file-text}\hspace{0.4em}Dados completos: #1.\par}}
+
+% texto justificado em IBM Plex Sans (letra larga): folga extra entre palavras antes de invadir a margem
+\setlength{\emergencystretch}{2em}
+
+% ------------------------------------------------------------------ autores institucionais (fontes.bib)
+% caixa normal na citação ("Rio de Janeiro (RJ). Secretaria...", NBR 10520:2023), caixa alta na lista Fontes (NBR 6023)
+\newif\ifembib
+\DeclareRobustCommand{\entidade}[1]{\ifembib\MakeUppercase{#1}\else #1\fi}
 
 % ------------------------------------------------------------------ tabelas (IBGE: abertas nas laterais)
 \newcolumntype{R}{>{\raggedleft\arraybackslash\numtab}r}
