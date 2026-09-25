@@ -124,6 +124,11 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 ## Educação e Violência
 - Import the data from CSVs
 - Create tables and visualizations
+- **Agregar amarela + indígena na frequência escolar por raça/cor** (decidido pelo usuário em 2026-09-25, para a
+  próxima rodada; `specs/exclusoes.md` E12) — na taxa de frequência escolar bruta por idade e raça/cor do Censo 2022
+  (`sidra_taxa_frequencia_0_6_raca_2022`), os dois grupos são pequenos e chegam a 100% em várias idades. Mesma
+  regra de E5: somar os absolutos (frequentam / população) e recalcular a taxa, nunca somar percentuais; aplicar no
+  gráfico do `analise.py` (versão de tela e de impressão), na tabela do PDF e no site.
 
 ## Matrículas
 - ✅ Update dados de matrículas escolares for years 2021-2025 — feito em `specs/populacao-referencia/matriculas`
@@ -205,11 +210,12 @@ tema (conteúdo herdado de `feature_roadmap.md`, agora fundido aqui).
 
 ## Other (need to break down later)
 - Replace HTML visualization with proper Streamlit panel
-- Setup LaTeX final report
+- ~~Setup LaTeX final report~~ — ✅ em andamento/feito em `specs/relatorio_latex` (2026-09-25): Blocos 0-6 feitos, falta
+  a validação final (Bloco 7) e publicar com `gera_latex.py --publicar`
 - Refactor architecture (after `specs/maps-and-ibge` is completed) — analise.py has grown a lot
   across `specs/mortalidade-ap` and `specs/maps-and-ibge`; revisit whether the single-script
   notebook structure still scales, or whether wrangling/visualization/analysis should split
   into separate modules
-- Convert the PDF export pipeline to LaTeX (after `specs/visual-identity` is completed) —
+- ~~Convert the PDF export pipeline to LaTeX~~ — feito junto com o item acima (`specs/relatorio_latex`). Registro original:
   requested once the current `export_pdf_report` skill's Chrome-headless HTML-to-PDF pipeline
   and the new unified visual identity (`specs/visual-identity`) are both in place

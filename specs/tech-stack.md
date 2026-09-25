@@ -101,6 +101,17 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 
 ## Exportação em PDF/DOCX
 
+- **Desde 2026-09-25 (`specs/relatorio_latex`)**: o relatório é **LaTeX** — classe **abnTeX2** (ABNT, modelo de
+  relatório técnico NBR 10719), **xelatex** via **latexmk** (MiKTeX no Windows), bibliografia **BibTeX** com
+  `abntex2cite` (`alf`) para a lista "Fontes", **fontspec** com Fraunces + IBM Plex Sans (OFL, versionadas em
+  `relatorio/latex/fontes/`), **TikZ** para os ícones (os SVG Lucide do site convertidos por
+  `gera_icones.py` com **svgelements**), **tcolorbox**, **longtable/booktabs/pdflscape** nas tabelas. O gerador
+  é Python (`relatorio/latex/build/gera_latex.py`). As figuras de impressão são PDF vetorial do matplotlib
+  (`pdf.fonttype 42`); mapas com fundo reduzido embutido sem reamostrar (`interpolation='none'`, ~0,4 MB/mapa).
+  Alternativas descartadas: continuar no HTML → Chrome/Edge headless (sem capa/sumário/listas ABNT, 49 MB, agrupamento
+  fixo em Python) e o modelo de dissertação do abnTeX2 (o pedido foi relatório/análise de política pública).
+- *Registro anterior (pipeline HTML → navegador, substituída; o script sai após a validação do LaTeX):*
+
 - Pipeline separada (mesma pasta de skill, script diferente:
   `build_notebook_report.py`) monta um HTML espelhando `analise.py` (por
   eixo da política municipal, `specs/ajuste_eixos/`) com os **PNGs reais do

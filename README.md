@@ -110,6 +110,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.23.0 | 2026-09-25 | Relatório final em LaTeX/ABNT (capa, resumo, sumário, capítulo por eixo, apêndice de tabelas, Fontes), gerado de `estrutura_eixos.md`; figuras em versão de impressão pelo `analise.py`; lista de exclusões (`specs/relatorio_latex`, `specs/exclusoes.md`). |
 | 0.22.0 | 2026-09-24 | Site reestruturado em `website/` (arquivos separados, abas por eixo, sumário lateral, novo visual, título "Diagnóstico da Primeira Infância Carioca") e 20,9 MB → 1,5 MB (`specs/website_refactor`). |
 | 0.21.0 | 2026-09-24 | População de referência: Ripsa/MS no município (taxas municipais novas) e Censo 2022 explícito abaixo dele; matrículas 0-5 refeitas dos microdados do INEP, com taxa de atendimento; auditoria de faixas etárias e correção do total dos Censos (`specs/populacao-referencia`). |
 | 0.20.0 | 2026-09-23 | CadÚnico: recortes por sexo, raça/cor e arranjo familiar × renda (eixo Inclusão), supressão de células < 20 e correções nas saídas existentes (`specs/recortes_cadunico`). |

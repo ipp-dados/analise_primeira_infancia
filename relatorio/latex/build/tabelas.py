@@ -486,15 +486,28 @@ def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo):
         if paisagem:
             return r"\begin{landscape}" + "\n" + tex + rf"\vspace{{-6pt}}\fonte{{{fonte}}}" + "\n" + r"\end{landscape}" + "\n"
     else:
-        largo = ncol > MAX_COLUNAS_RETRATO
+        # paisagem quando há muitas colunas OU quando a largura estimada (\small: ~0,19 cm por caractere, texto longo
+        # quebrado em 3,6 cm, cabeçalho longo em caixa de até 2,2 cm, 0,35 cm de espaço por coluna) passa de 15,6 cm
+        def _larg_col(nome, vals, al):
+            texto = max((len(str(v)) for v in vals), default=0) * 0.19
+            if al == "l" and max((len(str(v)) for v in vals), default=0) > 20:
+                texto = 3.6
+            cab_cm = min(len(str(nome)) * 0.19, 2.2)
+            return max(texto, cab_cm) + 0.35
+        largo = ncol > MAX_COLUNAS_RETRATO or sum(_larg_col(n, v, a) for n, v, a in zip(df.columns, colunas, specs)) > 15.6
         def cab_celula(c, al):
             txt = r"\textbf{" + esc(c) + "}"
             if al == "r" and len(str(c)) > 12:    # cabeçalho longo quebra numa caixa estreita, alinhada à direita
-                larg = "1.8cm" if largo else "2.2cm"
+                # caixa do cabeçalho proporcional ao número de colunas: a tabela não passa da largura útil
+                util = 24.0 if largo else 15.6
+                larg = f"{min(2.2, util / ncol - 0.35):.2f}cm"
                 return rf"\parbox[b]{{{larg}}}{{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 {txt}}}"
             return txt
         cab = " & ".join(cab_celula(c, al) for c, al in zip(df.columns, specs)) + r" \\"
         corpo = "\n".join(" & ".join(celulas(i)) + r" \\" for i in range(n))
+        # coluna de texto com valores longos vira coluna de largura fixa que quebra linha (senão estoura a margem)
+        specs = [(r">{\raggedright\arraybackslash}p{3.6cm}" if al == "l" and max((len(str(v)) for v in col), default=0) > 20
+                  else al) for al, col in zip(specs, colunas)]
         tex = _longtable("@{}" + "".join(specs) + "@{}", ncol, cab, corpo, titulo, rotulo,
                          r"\scriptsize" if largo else r"\small", "3pt" if largo else "5pt")
         if largo:
