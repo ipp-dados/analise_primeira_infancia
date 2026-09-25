@@ -17,7 +17,12 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
      "Total" do cartão neonatal, mesmos valores) — decidir qual fica (site e PDF);
    - unidade dos indicadores do IPS (violência territorial): rotulada "por 100 mil habitantes", convenção do IPS
      Rio, mas a planilha do Data.Rio não traz a unidade — confirmar;
-   - curadoria: os 2 textos que tiveram a unidade convertida (`controle_revisao.json`, `ajustes_manuais`, "revisar").
+   - curadoria: os 2 textos que tiveram a unidade convertida (`controle_revisao.json`, `ajustes_manuais`, "revisar");
+   - série "Não informada" na taxa de mortalidade infantil por raça/cor (`percentual_mortalidade_raca_ano`, site e
+     PDF): chega a 89‰ e achata as outras linhas, porque divide óbitos sem raça (SIM) por nascidos sem raça (SINASC),
+     o que não é uma taxa comparável. Proposta: tirar essa série do gráfico de taxa e mantê-la no de contagem;
+   - base zero nas taxas (decisão P1): variações pequenas, como o baixo peso ao nascer entre 9% e 11%, ficam mais
+     achatadas. Rever com a equipe se algum indicador deve ter o eixo cortado, com o corte visível no gráfico.
 
 2. **Curadoria de textos** (contínuo; DOCX `relatorio/curadoria_textos.docx`, controle em
    `relatorio/controle_revisao.json`). Última rodada: updates 3 e 4 (2026-09-25).
