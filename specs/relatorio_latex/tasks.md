@@ -84,7 +84,7 @@
 - [x] T6.5 Blocos de texto do relatório (`blocos_relatorio()`): `resumo`, `achados_<eixo>`, `sintese_<eixo>`,
   `consideracoes_finais` -- chave estável por nome do eixo; DOCX regenerado preservando os 58 textos curados (7 órfãos no
   apêndice do DOCX); ida e volta testada numa cópia (2 blocos editados detectados, 0 falso positivo)
-- [ ] T6.6 Nota na spec do site (`specs/website_graficos` §3b) para o site ler as mesmas chaves
+- [x] T6.6 Nota na spec do site (`specs/website_graficos` §3b) para o site ler as mesmas chaves
 
 ## Bloco 7 — Validação
 - [ ] T7.1 Rodar `validation.md` inteiro; PDF final
