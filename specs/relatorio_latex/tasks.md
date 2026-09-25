@@ -10,7 +10,7 @@
 - [x] T1.2 Cruzar com `estrutura_eixos.md` (`fonte:`, arquivos por subseção) e com o disco
 - [x] T1.3 `relatorio/inventario_fontes.md` + `.csv`: por fonte, por arquivo, alertas
 - [x] T1.4 `fontes.bib` (NBR 6023) com campo `variaveis`; alerta de fonte sem entrada
-- [ ] T1.5 Revisar alertas com o usuário (não corrigir `fonte:` sem aprovação). Achados de 2026-09-25:
+- [ ] T1.5 (= D6) Revisar alertas com o usuário (não corrigir `fonte:` sem aprovação). Achados de 2026-09-25:
   10 arquivos do relatório vêm de chamadas **comentadas** em `analise.py` (arquivos antigos no disco);
   13 gráficos são regravados por `regen_missing_pngs.py` sem `fonte_dados`; 2 (`censo_0_a_4_serie_*`) só
   existem via esse script; 10 campos `conferir` em `fontes.bib`
@@ -38,7 +38,13 @@
 - [ ] T4.3 Chave opcional `tabela_no_texto:` em `estrutura_eixos.md` (+ parser)
 
 ## Bloco 5 — Figuras A4 (D1 = B)
-- [ ] T5.1 Parâmetro nos helpers de `analise.py`: variante sem título/fonte, tamanho A4, em `visualizacoes/a4/`, `mapas/a4/`
+- [x] T5.0 Protótipo e regras de desenho para impressão (`specification.md` §5.1; `prototipo/`) — 2026-09-25
+- [ ] T5.1 Parâmetro nos helpers de `analise.py`: variante sem título/fonte, tamanho A4, em `visualizacoes/a4/`, `mapas/a4/` (PDF)
+- [ ] T5.1a `_TEMA_IMPRESSAO` (Plex Sans, paleta de impressão validada, grade/eixos) + formatação pt-BR
+- [ ] T5.1b `ROTULOS_EIXO` (coluna → rótulo com unidade) e rótulos diretos seletivos por tipo de helper
+- [ ] T5.1c Barras: uma cor por série, horizontais com rótulo longo, remoção de linhas de total
+- [ ] T5.1d Helper `pequenos_multiplos` para os casos de espaguete (CAP × ano, imunobiológicos, subgrupos CID)
+- [ ] T5.1e Mapas: tamanho final, legenda 7-7,5 pt, véu no fundo, teto P95 se D5 aprovar
 - [ ] T5.2 Manifesto (arquivo, título, fonte, função) gravado pelos helpers
 - [ ] T5.3 `regen_missing_pngs.py` acompanha
 - [ ] T5.4 Execução completa do notebook pelo usuário (`analises_env` + `.env`)
