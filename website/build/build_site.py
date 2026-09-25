@@ -85,7 +85,7 @@ _OUT_ARG = str(Path(sys.argv[1]).resolve()) if len(sys.argv) > 1 else None   # r
 os.chdir(ROOT)
 sys.path.insert(0, str(ROOT / ".claude" / "skills" / "export_pdf_report" / "scripts"))
 
-from gera_estrutura_eixos import avisa_itens_sem_arquivo
+from gera_estrutura_eixos import avisa_itens_sem_arquivo, chave_eixo
 # populacao-referencia D4: avisa (sem mudar a saída) itens do crosswalk que o relatório pularia em silêncio
 avisa_itens_sem_arquivo()
 
@@ -172,6 +172,59 @@ def h2(t):
     section_starts.append((len(parts), titulo, sid))
     _FONTES_SECAO[sid] = []
     parts.append(f'<h2>{titulo}</h2>')
+
+# ---- B6 (specs/2026-09-25_website_graficos): caixa "Fontes desta seção" com a referência ABNT (NBR 6023) de
+# relatorio/latex/fontes.bib -- a mesma lista "Fontes" do PDF. O texto curto de cada cartão (`fonte=`) é ligado à
+# entrada pelo campo `padroes`, com a mesma função do inventário de fontes (relatorio/latex/build/inventario_fontes.py).
+sys.path.insert(0, str(ROOT / "relatorio" / "latex" / "build"))
+from inventario_fontes import BIB as _CAMINHO_BIB, chaves_da_fonte as _chaves_da_fonte  # noqa: E402
+
+def _le_bib_completo():
+    import html as _html
+    texto = _CAMINHO_BIB.read_text(encoding="utf-8")
+    out = {}
+    for m in re.finditer(r"@\w+\{(\w+),(.*?)\n\}", texto, re.S):
+        campos = {k.lower(): v.strip() for k, v in re.findall(r"^\s*(\w+)\s*=\s*\{(.*)\},?\s*$", m.group(2), re.M)}
+        campos["padroes"] = [re.compile(x.strip(), re.I) for x in campos.get("padroes", "").split("||") if x.strip()]
+        # autor: \entidade{X} vai em caixa alta (NBR 6023); chaves do BibTeX saem
+        autor = re.sub(r"\\entidade\{([^{}]*)\}", lambda a: a.group(1).upper(), campos.get("author", ""))
+        campos["autor_txt"] = re.sub(r"[{}]", "", autor).strip()
+        out[m.group(1)] = campos
+    return out
+
+_BIB = _le_bib_completo()
+
+def _referencia_abnt(chave):
+    """AUTOR. **Título**: subtítulo. Nota. Local: Editora, ano. Disponível em: <url>. Acesso em: data."""
+    import html as _html
+    e = _BIB[chave]
+    titulo = e.get("title", "")
+    principal, _, sub = titulo.partition(":")
+    ref = f"{_html.escape(e['autor_txt'])}. <b>{_html.escape(principal.strip())}</b>" + (f": {_html.escape(sub.strip())}" if sub else "") + "."
+    if e.get("howpublished"):
+        ref += f" {_html.escape(e['howpublished'])}."
+    local, editora, ano = e.get("address"), e.get("publisher"), e.get("year")
+    if local or editora or ano:
+        ref += " " + (f"{_html.escape(local)}: " if local else "") + (f"{_html.escape(editora)}, " if editora else "") + (ano or "s.d.") + "."
+    if e.get("url"):
+        ref += f' Disponível em: <a href="{_esc(e["url"])}" target="_blank" rel="noopener">{_html.escape(e["url"])}</a>.'
+    if e.get("urlaccessdate"):
+        ref += f" Acesso em: {_html.escape(e['urlaccessdate'])}."
+    return ref
+
+_FONTES_SEM_BIB = set()
+
+def _referencias_da_secao(fontes):
+    """Chaves do .bib na ordem em que as fontes aparecem na seção, sem repetição; fonte sem entrada é avisada."""
+    chaves = []
+    for f in fontes:
+        achadas = _chaves_da_fonte(f, {k: {"padroes": v["padroes"]} for k, v in _BIB.items()})
+        if not achadas:
+            _FONTES_SEM_BIB.add(f)
+        for k in achadas:
+            if k not in chaves:
+                chaves.append(k)
+    return chaves
 
 def _registra_fonte(fonte):
     """Caixa "Fontes desta seção" (spec §4.5): coletada dos próprios cartões, não escrita à mão."""
@@ -1162,8 +1215,8 @@ option_card(_entries_mapas_censo_abs, 'mapa')
 h5('Crianças como % da população')
 option_card(_entries_mapas_censo_pct, 'mapa')
 
-h3('Evolução da população de 0 a 4 anos, por sexo (IBGE)', antigo='série-temporal')
-FONTE_IBGE_2974 = "IBGE/SIDRA, tabela 2974"
+h3('Evolução da população de 0 a 4 anos, por sexo (Censos 2000, 2010 e 2022)', antigo='série-temporal')
+FONTE_IBGE_2974 = "Censos Demográficos 2000, 2010 e 2022 (IBGE/Data.Rio, tabela 2974)"
 df_censo_serie = read("censo_0_a_4_anos_por_ano.csv")
 option_card([
     ("Total e por sexo", lambda: line_chart(df_censo_serie["ano"], [
@@ -1983,8 +2036,14 @@ for i, (start, titulo, sid) in enumerate(section_starts):
     rotulo, ic = _meta_eixo(sid, titulo)
     abas.append(f'<button type="button" role="tab" class="tab" id="tab-{sid}" aria-controls="{sid}" '
                 f'aria-selected="false" tabindex="-1">{icone(ic)}<span>{_esc(rotulo)}</span></button>')
+    # Bloco 6b: mesmas chaves do PDF/DOCX (blocos_relatorio em gera_estrutura_eixos) -- achados_<eixo> (uma frase
+    # por linha) e sintese_<eixo>; sem texto curado, o placeholder de antes
+    _k_eixo = chave_eixo(titulo)
+    _achados_cur = [l.strip() for l in (_TEXTOS_CURADOS.get(f"achados_{_k_eixo}") or "").split("\n") if l.strip()]
+    import html as _html_mod
+    _itens = [_html_mod.escape(l) for l in _achados_cur] or _lorem_bullets(sid)
     achados = callout("findings", "lightbulb", "Principais achados",
-                      "<ul>" + "".join(f"<li>{b}</li>" for b in _lorem_bullets(sid)) + "</ul>")
+                      "<ul>" + "".join(f"<li>{b}</li>" for b in _itens) + "</ul>")
     # Conclusões do eixo (pedido do usuário no Bloco 4): 100-200 palavras, lorem até haver texto
     # curado sob a seed "conclusao-<sid>" em relatorio/textos_curados.json (o DOCX de curadoria
     # ainda não tem bookmark para isso -- mesma lacuna conhecida das opções sem arquivo, relatorio/specs.md v7)
@@ -1992,10 +2051,13 @@ for i, (start, titulo, sid) in enumerate(section_starts):
     conclusao = (f'<h3 id="{id_conc}" class="h3-conclusao">Conclusões</h3>'
                  f'<div class="conclusao"><div class="conclusao-head">{icone("flag")}'
                  f'<span class="eyebrow">Síntese do eixo · {_esc(rotulo)}</span></div>'
-                 f'<p>{_texto_analise(f"conclusao-{sid}")}</p></div>')
+                 f'<p>{_texto_analise(f"sintese_{_k_eixo}") if _TEXTOS_CURADOS.get(f"sintese_{_k_eixo}") else _texto_analise(f"conclusao-{sid}")}</p></div>')
     fontes = _FONTES_SECAO.get(sid) or []
+    # B6: referência ABNT de fontes.bib; fonte sem entrada no .bib continua com o texto curto (e é avisada no fim)
+    _refs = [_referencia_abnt(k) for k in _referencias_da_secao(fontes)]
+    _refs += [_esc(f) for f in fontes if f in _FONTES_SEM_BIB]
     caixa_fontes = callout("sources", "book-open", "Fontes desta seção",
-                           "<ul>" + "".join(f"<li>{f}</li>" for f in fontes) + "</ul>") if fontes else ""
+                           "<ul>" + "".join(f"<li>{r}</li>" for r in _refs) + "</ul>") if _refs else ""
     paineis.append(
         f'<section class="tab-panel" id="{sid}" role="tabpanel" aria-labelledby="tab-{sid}"'
         + (f' data-alias="{" ".join(_ALIAS_PAINEL[sid])}"' if sid in _ALIAS_PAINEL else "") + ' hidden>'
@@ -2132,6 +2194,8 @@ for rel, conteudo in _gerados.items():
 (OUT_DIR / "assets" / "images").mkdir(parents=True, exist_ok=True)
 for nome, conteudo in _BASEMAP_FILES.items():
     (OUT_DIR / "assets" / "images" / nome).write_bytes(conteudo)
+for _f in sorted(_FONTES_SEM_BIB):
+    print(f"AVISO: fonte sem entrada em relatorio/latex/fontes.bib (caixa de fontes mostra o texto curto): {_f}", file=sys.stderr)
 print(f"wrote {OUT_DIR}: {len(scripts)} charts, {sum(1 for l,t,s in toc if l==2)} h2 / {sum(1 for l,t,s in toc if l==3)} h3 sections")
 
 # ---- relatório de tamanho + orçamento (specs/2026-09-24_website_refactor §4.9) -----------
