@@ -12,7 +12,7 @@ hoje para aquele bloco) e propaga o texto editado para:
   (b) `website/index.html` (site, specs/website_refactor), regenerado via subprocess
       (`build_html_report.py` lê o JSON no import, por isso subprocess, não
       import direto -- ver nota em `regenera_html`);
-  (c) a HTML-fonte do PDF, regenerada via subprocess (`build_notebook_report.py`,
+  (c) o relatório em LaTeX (`relatorio/latex/build/gera_latex.py`; antes a HTML-fonte do PDF antigo, `build_notebook_report.py`, removido em 2026-09-25 -- specs/relatorio_latex D2),
       mesma razão);
   (d) uma nota markdown nova/atualizada em `analise.py`, logo após a célula
       de código que produz o arquivo correspondente ao bloco -- a parte de
@@ -197,30 +197,6 @@ def regenera_relatorio_latex(raiz=_RAIZ):
     subprocess.run([sys.executable, "relatorio/latex/build/gera_latex.py"], cwd=raiz, check=True)
     return raiz / "relatorio/latex/_build/relatorio.pdf"
 
-
-def regenera_pdf_source(raiz=_RAIZ, destino_relativo=None):
-    """(Aposentado pelo relatório em LaTeX -- specs/relatorio_latex D2; mantido até a validação final.)"""
-    """Idem, para a HTML-fonte do PDF (`build_notebook_report.py`). Sem
-    `destino_relativo`, escreve num arquivo temporário FORA do repositório
-    -- este script não é responsável pelo passo de renderização para PDF
-    via browser headless (isso continua manual, `SKILL.md`), só precisa
-    confirmar que a fonte HTML do PDF também reflete o texto novo."""
-    if destino_relativo is None:
-        caminho_absoluto = Path(tempfile.gettempdir()) / "sincroniza_docx_pdf_source.html"
-        subprocess.run(
-            [sys.executable, str((raiz / ".claude/skills/export_pdf_report/scripts/build_notebook_report.py")),
-             str(caminho_absoluto)],
-            cwd=str(raiz), check=True, capture_output=True, text=True,
-        )
-        return caminho_absoluto
-    subprocess.run(
-        [sys.executable, ".claude/skills/export_pdf_report/scripts/build_notebook_report.py", destino_relativo],
-        cwd=str(raiz), check=True, capture_output=True, text=True,
-    )
-    return raiz / destino_relativo
-
-
-# ------------------------------------------- 4. nota markdown em analise.py -
 
 def _arquivo_real_para_seed(seed, raiz=_RAIZ):
     """Path do arquivo real (visualizacoes/mapas/tabelas_finais) cujo stem

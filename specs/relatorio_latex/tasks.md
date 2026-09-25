@@ -88,3 +88,11 @@
 
 ## Bloco 7 — Validação
 - [ ] T7.1 Rodar `validation.md` inteiro; PDF final
+
+## Encerramento (2026-09-25, decisões do usuário)
+- [x] Publicar: `gera_latex.py --publicar` -> `relatorio/analise_primeira_infancia.pdf`, commit **só neste branch**
+- [x] Aposentar `build_notebook_report.py` e `regen_missing_pngs.py` (removidos; `sincroniza_docx.regenera_pdf_source` também)
+- [x] Apagar os 10 arquivos antigos de E1 (`specs/exclusoes.md`)
+- [x] Tirar os ícones dos eixos da abertura de capítulo ("we will update later"; o código fica comentado em `estilo.sty`)
+- [ ] Próxima rodada: E12 (amarela + indígena na frequência escolar por raça/cor)
+

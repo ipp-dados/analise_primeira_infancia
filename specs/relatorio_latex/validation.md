@@ -33,7 +33,7 @@ Preencher ao fim de cada bloco (resultado + data). Nada é "validado" só porque
 ## Entregável
 - [x] V18 PDF < 20 MB; páginas-amostra rasterizadas e olhadas (capa, sumário, abertura de capítulo,
       página de mapa, pendente, apêndice, Fontes, última página)
-- [ ] V19 Link "Relatório final em PDF" do site continua válido (mesmo caminho)
+- [x] V19 Link "Relatório final em PDF" do site continua válido (mesmo caminho)
 - [x] V20 `inventario_fontes.md` sem alertas não resolvidos (ou todos com decisão do usuário registrada)
 
 ## Resultado (2026-09-25, PDF de `relatorio/latex/_build/relatorio.pdf`, 155 páginas, 14,2 MB)

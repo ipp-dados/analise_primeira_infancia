@@ -12,8 +12,9 @@ Exclusions decided by the team (what is left out of the PDF/site and why): `spec
 
 **History (don't go back without a new decision):** until 2026-09-25 the PDF was an HTML page
 (`scripts/build_notebook_report.py`) printed by headless Edge — no cover/abstract/contents, grouping hardcoded
-in Python, 49 MB. Replaced by the LaTeX report (`specs/relatorio_latex`, D2); `build_notebook_report.py` stays
-only until the LaTeX PDF is validated (Block 7), then is removed. Before that, an even older version converted
+in Python, 49 MB. Replaced by the LaTeX report (`specs/relatorio_latex`, D2); `build_notebook_report.py` and
+`regen_missing_pngs.py` (which re-drew some screen PNGs without a source line) were removed on 2026-09-25, after
+the LaTeX PDF passed validation (git history keeps them). Before that, an even older version converted
 the site's HTML to PDF — rejected by the user ("keep the visual style of the visualizations used in the
 notebook, not the html"). The PDF still uses **the notebook's own figures**, now in their print version.
 
@@ -46,7 +47,7 @@ Run everything from the project root.
    MPLBACKEND=Agg "<conda>/envs/analises_env/python.exe" -X utf8 analise.py
    ```
    Check the log for `[variante A4] … falhou` lines — a failed print figure falls back to the screen PNG and
-   `gera_latex.py` lists every fallback. `scripts/regen_missing_pngs.py` does **not** make print versions.
+   `gera_latex.py` lists every fallback. There is no shortcut script any more: figures come from the notebook.
    A full run also rewrites some tracked outputs (older PNGs/CSVs that are still versioned): check
    `git status` and ask the user before committing them.
 
