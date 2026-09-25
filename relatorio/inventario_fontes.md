@@ -10,8 +10,8 @@
 | | Gráficos | Mapas | Tabelas |
 | :--- | ---: | ---: | ---: |
 | No disco | 71 | 41 | 88 |
-| No relatório (estrutura_eixos.md) | 71 | 40 | 79 |
-| Com fonte ligada ao fontes.bib | 71 | 41 | 88 |
+| No relatório (estrutura_eixos.md) | 66 | 36 | 78 |
+| Com fonte ligada ao fontes.bib | 66 | 41 | 87 |
 
 ## 1. Por fonte
 
@@ -94,8 +94,6 @@ Cada entrada de `fontes.bib` (lista **Fontes** do relatório) e o que ela gera. 
 | gráfico | `obitos_causas_evitaveis_grupo_28_a_364_dias_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
 | gráfico | `obitos_causas_evitaveis_grupo_7_a_27_dias_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
 | gráfico | `obitos_causas_evitaveis_grupo_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
-| gráfico | `obitos_causas_evitaveis_raca_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis, por raça/cor |
-| gráfico | `obitos_causas_evitaveis_raca_sem_nao_informado_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis, por raça/cor |
 | gráfico | `obitos_causas_evitaveis_subgrupo_0_a_6_dias_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
 | gráfico | `obitos_causas_evitaveis_subgrupo_28_a_364_dias_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
 | gráfico | `obitos_causas_evitaveis_subgrupo_7_a_27_dias_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
@@ -114,8 +112,6 @@ Cada entrada de `fontes.bib` (lista **Fontes** do relatório) e o que ela gera. 
 | gráfico | `percentual_evitaveis_cap_1_a_4_anos_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
 | gráfico | `percentual_evitaveis_cap_menores_1_ano_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
 | gráfico | `percentual_evitaveis_cap_menores_5_anos_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
-| gráfico | `percentual_mortalidade_causas_evitaveis_raca_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis, por raça/cor |
-| gráfico | `percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis, por raça/cor |
 | gráfico | `percentual_mortalidade_raca_ano.png` | Prioridade › Mortalidade infantil por raça/cor (menores de 1 ano) |
 | gráfico | `taxa_mortalidade_evitaveis_menores_5_ano.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
 | gráfico | `taxa_mortalidade_infantil_ano.png` | Prioridade › Taxa de mortalidade na primeira infância (menores de 1, 1-4, 0-5 anos) |
@@ -128,11 +124,7 @@ Cada entrada de `fontes.bib` (lista **Fontes** do relatório) e o que ela gera. 
 | mapa | `mapa_obitos_evitaveis_1_a_4_anos_cap_2025.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
 | mapa | `mapa_obitos_evitaveis_menores_1_ano_cap_2025.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
 | mapa | `mapa_obitos_evitaveis_menores_5_anos_cap_2025.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
-| mapa | `mapa_obitos_gravidez_bairro_2025.png` | Prioridade › Razão de mortalidade materna (durante a gravidez) |
 | mapa | `mapa_obitos_neonatal_precoce_bairro_2025.png` | Prioridade › Taxa de mortalidade neonatal precoce (0 a 6 dias) |
-| mapa | `mapa_obitos_neonatal_tardia_bairro_2025.png` | Prioridade › Taxa de mortalidade neonatal tardia (7 a 27 dias) |
-| mapa | `mapa_obitos_pos_neonatal_bairro_2025.png` | Prioridade › Taxa de mortalidade na primeira infância (menores de 1, 1-4, 0-5 anos) |
-| mapa | `mapa_obitos_puerperio_bairro_2025.png` | Prioridade › Razão de mortalidade materna (durante puerpério) |
 | mapa | `mapa_obitos_raca_total_bairro_2025.png` | Prioridade › Mortalidade infantil por raça/cor (menores de 1 ano) |
 | mapa | `mapa_percentual_baixo_peso_bairro_2025.png` | Alimentação › Baixo peso ao nascer (percentual) |
 | mapa | `mapa_percentual_evitaveis_1_a_4_anos_cap_2025.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
@@ -147,7 +139,6 @@ Cada entrada de `fontes.bib` (lista **Fontes** do relatório) e o que ela gera. 
 | tabela | `mortalidade_causas_evitaveis_grupo_28_a_364_dias_ano.csv` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
 | tabela | `mortalidade_causas_evitaveis_grupo_7_a_27_dias_ano.csv` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
 | tabela | `mortalidade_causas_evitaveis_grupo_ano.csv` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
-| tabela | `mortalidade_causas_evitaveis_raca_municipio_ano.csv` | Prioridade › Mortalidade infantil por causas evitáveis, por raça/cor |
 | tabela | `mortalidade_causas_evitaveis_subgrupo_0_a_6_dias_ano.csv` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
 | tabela | `mortalidade_causas_evitaveis_subgrupo_28_a_364_dias_ano.csv` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
 | tabela | `mortalidade_causas_evitaveis_subgrupo_7_a_27_dias_ano.csv` | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) |
@@ -200,7 +191,6 @@ Cada entrada de `fontes.bib` (lista **Fontes** do relatório) e o que ela gera. 
 | mapa | `mapa_nascidos_baixo_peso_bairro_2025.png` | Alimentação › Baixo peso ao nascer (número) |
 | mapa | `mapa_nascidos_vivos_bairro_2025.png` | Prioridade › Nascidos vivos por bairro de residência da mãe (número) \| Nascidos vivos por bairro de residência da mãe (percentual) |
 | mapa | `mapa_obitos_neonatal_precoce_bairro_2025.png` | Prioridade › Taxa de mortalidade neonatal precoce (0 a 6 dias) |
-| mapa | `mapa_obitos_neonatal_tardia_bairro_2025.png` | Prioridade › Taxa de mortalidade neonatal tardia (7 a 27 dias) |
 | mapa | `mapa_obitos_raca_total_bairro_2025.png` | Prioridade › Mortalidade infantil por raça/cor (menores de 1 ano) |
 | mapa | `mapa_percentual_baixo_peso_bairro_2025.png` | Alimentação › Baixo peso ao nascer (percentual) |
 | mapa | `mapa_taxa_mortalidade_infantil_bairro_2025.png` | Prioridade › Taxa de mortalidade na primeira infância (menores de 1, 1-4, 0-5 anos) |
@@ -274,7 +264,6 @@ Cada entrada de `fontes.bib` (lista **Fontes** do relatório) e o que ela gera. 
 
 | Tipo | Arquivo | Eixo › subseção |
 | :--- | :--- | :--- |
-| gráfico | `cobertura_vacinal_epi_ano.png` | Família e Cuidados › Cobertura vacinal de rotina em crianças até 2 anos |
 | gráfico | `cobertura_vacinal_epi_comparativo_anos.png` | Família e Cuidados › Cobertura vacinal de rotina em crianças até 2 anos |
 | tabela | `cobertura_vacinal_epi_comparativo_anos.csv` | Família e Cuidados › Cobertura vacinal de rotina em crianças até 2 anos |
 | tabela | `cobertura_vacinal_epi_por_ano.csv` | Família e Cuidados › Cobertura vacinal de rotina em crianças até 2 anos |
@@ -365,11 +354,7 @@ Cada entrada de `fontes.bib` (lista **Fontes** do relatório) e o que ela gera. 
 | mapa | `mapa_obitos_evitaveis_1_a_4_anos_cap_2025.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
 | mapa | `mapa_obitos_evitaveis_menores_1_ano_cap_2025.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
 | mapa | `mapa_obitos_evitaveis_menores_5_anos_cap_2025.png` | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) |
-| mapa | `mapa_obitos_gravidez_bairro_2025.png` | Prioridade › Razão de mortalidade materna (durante a gravidez) |
 | mapa | `mapa_obitos_neonatal_precoce_bairro_2025.png` | Prioridade › Taxa de mortalidade neonatal precoce (0 a 6 dias) |
-| mapa | `mapa_obitos_neonatal_tardia_bairro_2025.png` | Prioridade › Taxa de mortalidade neonatal tardia (7 a 27 dias) |
-| mapa | `mapa_obitos_pos_neonatal_bairro_2025.png` | Prioridade › Taxa de mortalidade na primeira infância (menores de 1, 1-4, 0-5 anos) |
-| mapa | `mapa_obitos_puerperio_bairro_2025.png` | Prioridade › Razão de mortalidade materna (durante puerpério) |
 | mapa | `mapa_obitos_raca_total_bairro_2025.png` | Prioridade › Mortalidade infantil por raça/cor (menores de 1 ano) |
 | mapa | `mapa_percentual_baixo_peso_bairro_2025.png` | Alimentação › Baixo peso ao nascer (percentual) |
 | mapa | `mapa_percentual_cadunico_criancas_negras_bairro_2026.png` | Inclusão › Famílias no CadÚnico com crianças até 6 anos, por raça/cor |
@@ -417,7 +402,7 @@ Todos os gráficos, mapas e tabelas no disco. **Fonte (analise.py)** é o `fonte
 | `censo_0_a_4_serie_total_ano.png` | sim | Prioridade › Crianças até 4 anos (número) | — | Censo Demográfico 2022 (IBGE) | ipp_datario_censo | — | regravado por regen_missing_pngs.py (cópia sem fonte) |
 | `censo_sidra_populacao_0_6_raca_2022.png` | sim | Inclusão › Crianças até 6 anos, por raça/cor | Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606) | Censo Demográfico 2022 (IBGE SIDRA) | ibge_censo2022 | `grafico_barra_agrupado` l.1455 (chamada) |  |
 | `censo_sidra_populacao_0_6_sexo_2022.png` | sim | Inclusão › Crianças até 6 anos, por sexo | Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606) | Censo Demográfico 2022 (IBGE SIDRA) | ibge_censo2022 | `grafico_barra_agrupado` l.1464 (chamada) |  |
-| `cobertura_vacinal_epi_ano.png` | sim | Família e Cuidados › Cobertura vacinal de rotina em crianças até 2 anos | — | Epi Rio | sms_rio_epi_vacinal | — | chamada comentada em analise.py (arquivo antigo) |
+| `cobertura_vacinal_epi_ano.png` | não | — | — | — | — | — | chamada comentada em analise.py (arquivo antigo) |
 | `cobertura_vacinal_epi_comparativo_anos.png` | sim | Família e Cuidados › Cobertura vacinal de rotina em crianças até 2 anos | EPI/SVS-Rio, cobertura vacinal por imunobiológico | Epi Rio | sms_rio_epi_vacinal | `grafico_barra_agrupado` l.3517 (chamada) |  |
 | `matriculas_0_a_5_creche_pre_por_ano.png` | sim | Família e Cuidados › Matrículas na educação básica de crianças de 0 a 5 anos | Censo Escolar da Educação Básica (INEP), microdados | Censo Escolar da Educação Básica (INEP), microdados | inep_censo_escolar | `serie_temporal_multipla` l.3679 (chamada) |  |
 | `matriculas_0_a_5_por_ano.png` | sim | Família e Cuidados › Matrículas na educação básica de crianças de 0 a 5 anos | Censo Escolar da Educação Básica (INEP), microdados | Censo Escolar da Educação Básica (INEP), microdados | inep_censo_escolar | `serie_temporal` l.3675 (chamada) | regravado por regen_missing_pngs.py (cópia sem fonte) |
@@ -429,8 +414,8 @@ Todos os gráficos, mapas e tabelas no disco. **Fonte (analise.py)** é o `fonte
 | `obitos_causas_evitaveis_grupo_28_a_364_dias_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `serie_temporal_multipla` l.2739 (chamada) |  |
 | `obitos_causas_evitaveis_grupo_7_a_27_dias_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `serie_temporal_multipla` l.2690 (chamada) |  |
 | `obitos_causas_evitaveis_grupo_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `serie_temporal_multipla` l.2586 (chamada) |  |
-| `obitos_causas_evitaveis_raca_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por raça/cor | — | DataSUS (SIM) | sms_rio_sim | — | chamada comentada em analise.py (arquivo antigo) |
-| `obitos_causas_evitaveis_raca_sem_nao_informado_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por raça/cor | — | DataSUS (SIM) | sms_rio_sim | — | chamada comentada em analise.py (arquivo antigo) |
+| `obitos_causas_evitaveis_raca_ano.png` | não | — | — | — | — | — | chamada comentada em analise.py (arquivo antigo) |
+| `obitos_causas_evitaveis_raca_sem_nao_informado_ano.png` | não | — | — | — | — | — | chamada comentada em analise.py (arquivo antigo) |
 | `obitos_causas_evitaveis_subgrupo_0_a_6_dias_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `serie_temporal_multipla` l.2657 (chamada) |  |
 | `obitos_causas_evitaveis_subgrupo_28_a_364_dias_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `serie_temporal_multipla` l.2755 (chamada) |  |
 | `obitos_causas_evitaveis_subgrupo_7_a_27_dias_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `serie_temporal_multipla` l.2706 (chamada) |  |
@@ -449,8 +434,8 @@ Todos os gráficos, mapas e tabelas no disco. **Fonte (analise.py)** é o `fonte
 | `percentual_evitaveis_cap_1_a_4_anos_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, classificação de evitabilidade) | sms_rio_sim | `serie_temporal_multipla` l.2945 (chamada) |  |
 | `percentual_evitaveis_cap_menores_1_ano_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, classificação de evitabilidade) | sms_rio_sim | `serie_temporal_multipla` l.2945 (chamada) |  |
 | `percentual_evitaveis_cap_menores_5_anos_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, classificação de evitabilidade) | sms_rio_sim | `serie_temporal_multipla` l.2945 (chamada) |  |
-| `percentual_mortalidade_causas_evitaveis_raca_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por raça/cor | — | DataSUS (SIM) | sms_rio_sim | — | chamada comentada em analise.py (arquivo antigo) |
-| `percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por raça/cor | — | DataSUS (SIM) | sms_rio_sim | — | chamada comentada em analise.py (arquivo antigo) |
+| `percentual_mortalidade_causas_evitaveis_raca_ano.png` | não | — | — | — | — | — | chamada comentada em analise.py (arquivo antigo) |
+| `percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano.png` | não | — | — | — | — | — | chamada comentada em analise.py (arquivo antigo) |
 | `percentual_mortalidade_raca_ano.png` | sim | Prioridade › Mortalidade infantil por raça/cor (menores de 1 ano) | DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro | DataSUS/Tabnet (SIM) | sms_rio_sim, sms_rio_sinasc | `serie_temporal_multipla` l.2391 (chamada) |  |
 | `pnad_frequencia_escolar_por_idade.png` | sim | Família e Cuidados › Taxa bruta de frequência escolar da população até 6 anos | PNAD Contínua (IBGE) | PNAD Contínua | ibge_pnadc | `grafico_barra` l.3631 (chamada) | regravado por regen_missing_pngs.py (cópia sem fonte) |
 | `populacao_ripsa_0_a_6_percentual_por_ano.png` | sim | Prioridade › Crianças até 6 anos (número) | Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025) | Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025) | ms_ripsa_populacao | `serie_temporal` l.1667 (chamada) |  |
@@ -490,11 +475,11 @@ Todos os gráficos, mapas e tabelas no disco. **Fonte (analise.py)** é o `fonte
 | `mapa_obitos_evitaveis_1_a_4_anos_cap_2025.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, classificação de evitabilidade) | sms_rio_sim, ipp_limites_bairros | `mapa_coropletico_bairros` l.3038 (chamada) |  |
 | `mapa_obitos_evitaveis_menores_1_ano_cap_2025.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, classificação de evitabilidade) | sms_rio_sim, ipp_limites_bairros | `mapa_coropletico_bairros` l.3038 (chamada) |  |
 | `mapa_obitos_evitaveis_menores_5_anos_cap_2025.png` | sim | Prioridade › Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) | SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro | DataSUS (SIM, classificação de evitabilidade) | sms_rio_sim, ipp_limites_bairros | `mapa_coropletico_bairros` l.3038 (chamada) |  |
-| `mapa_obitos_gravidez_bairro_2025.png` | sim | Prioridade › Razão de mortalidade materna (durante a gravidez) | — | DataSUS/Tabnet (SIM) | sms_rio_sim, ipp_limites_bairros | — | chamada comentada em analise.py (arquivo antigo) |
+| `mapa_obitos_gravidez_bairro_2025.png` | não | — | — | — | ipp_limites_bairros | — | chamada comentada em analise.py (arquivo antigo) |
 | `mapa_obitos_neonatal_precoce_bairro_2025.png` | sim | Prioridade › Taxa de mortalidade neonatal precoce (0 a 6 dias) | DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro | DataSUS/Tabnet (SIM/SINASC) | sms_rio_sim, sms_rio_sinasc, ipp_limites_bairros | `mapa_coropletico_bairros` l.3247 (chamada) |  |
-| `mapa_obitos_neonatal_tardia_bairro_2025.png` | sim | Prioridade › Taxa de mortalidade neonatal tardia (7 a 27 dias) | — | DataSUS/Tabnet (SIM/SINASC) | sms_rio_sim, sms_rio_sinasc, ipp_limites_bairros | — | chamada comentada em analise.py (arquivo antigo) |
-| `mapa_obitos_pos_neonatal_bairro_2025.png` | sim | Prioridade › Taxa de mortalidade na primeira infância (menores de 1, 1-4, 0-5 anos) | — | DataSUS/Tabnet municipal | sms_rio_sim, ipp_limites_bairros | — | chamada comentada em analise.py (arquivo antigo) |
-| `mapa_obitos_puerperio_bairro_2025.png` | sim | Prioridade › Razão de mortalidade materna (durante puerpério) | — | DataSUS/Tabnet (SIM) | sms_rio_sim, ipp_limites_bairros | — | chamada comentada em analise.py (arquivo antigo) |
+| `mapa_obitos_neonatal_tardia_bairro_2025.png` | não | — | — | — | ipp_limites_bairros | — | chamada comentada em analise.py (arquivo antigo) |
+| `mapa_obitos_pos_neonatal_bairro_2025.png` | não | — | — | — | ipp_limites_bairros | — | chamada comentada em analise.py (arquivo antigo) |
+| `mapa_obitos_puerperio_bairro_2025.png` | não | — | — | — | ipp_limites_bairros | — | chamada comentada em analise.py (arquivo antigo) |
 | `mapa_obitos_raca_total_bairro_2025.png` | sim | Prioridade › Mortalidade infantil por raça/cor (menores de 1 ano) | DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro | DataSUS/Tabnet (SIM) | sms_rio_sim, sms_rio_sinasc, ipp_limites_bairros | `mapa_coropletico_bairros` l.2411 (chamada) |  |
 | `mapa_percentual_baixo_peso_bairro_2025.png` | sim | Alimentação › Baixo peso ao nascer (percentual) | DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro | DataSUS/Tabnet (`limpeza_tabnet_bairros`) | sms_rio_sim, sms_rio_sinasc, ipp_limites_bairros | `mapa_coropletico_bairros` l.2234 (chamada) |  |
 | `mapa_percentual_cadunico_0_a_4_sobre_censo_bairro_2026.png` | não | — | CadÚnico (extração CTPE, …/…). Bairro atribuído pelo CEP (Correios), pode divergir do bairro oficial; bairros com menos de 20 famílias suprimidos; população 0 a 4 anos: Censo 2022 (IBGE/Data.Rio) | — | ipp_datario_censo, mds_cadunico, ipp_limites_bairros | `mapa_coropletico_bairros` l.1942 (chamada) |  |
@@ -546,7 +531,7 @@ Todos os gráficos, mapas e tabelas no disco. **Fonte (analise.py)** é o `fonte
 | `mortalidade_causas_evitaveis_grupo_28_a_364_dias_ano.csv` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | — | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `to_csv` l.2733 (estrutura_eixos.md) |  |
 | `mortalidade_causas_evitaveis_grupo_7_a_27_dias_ano.csv` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | — | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `to_csv` l.2684 (estrutura_eixos.md) |  |
 | `mortalidade_causas_evitaveis_grupo_ano.csv` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | — | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `to_csv` l.2580 (estrutura_eixos.md) |  |
-| `mortalidade_causas_evitaveis_raca_municipio_ano.csv` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por raça/cor | — | DataSUS (SIM) | sms_rio_sim | — | chamada comentada em analise.py (arquivo antigo) |
+| `mortalidade_causas_evitaveis_raca_municipio_ano.csv` | não | — | — | — | — | — | chamada comentada em analise.py (arquivo antigo) |
 | `mortalidade_causas_evitaveis_subgrupo_0_a_6_dias_ano.csv` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | — | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `to_csv` l.2636 (estrutura_eixos.md) |  |
 | `mortalidade_causas_evitaveis_subgrupo_28_a_364_dias_ano.csv` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | — | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `to_csv` l.2734 (estrutura_eixos.md) |  |
 | `mortalidade_causas_evitaveis_subgrupo_7_a_27_dias_ano.csv` | sim | Prioridade › Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) | — | DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis) | sms_rio_sim | `to_csv` l.2685 (estrutura_eixos.md) |  |
@@ -639,13 +624,36 @@ Apontados, não corrigidos — cada item pede uma decisão da equipe.
 - visualizacoes/censo_0_a_4_serie_percentual_ano.png
 - visualizacoes/censo_0_a_4_serie_total_ano.png
 
-### Usado no relatório, mas a chamada que o gera está comentada em analise.py (arquivo antigo no disco) (10)
+### Arquivo no disco que nenhuma chamada ativa de analise.py gera e que o relatório não usa (candidato a limpeza) (10)
 
 - mapas/mapa_obitos_gravidez_bairro_2025.png
 - mapas/mapa_obitos_neonatal_tardia_bairro_2025.png
 - mapas/mapa_obitos_pos_neonatal_bairro_2025.png
 - mapas/mapa_obitos_puerperio_bairro_2025.png
 - tabelas_finais/mortalidade_causas_evitaveis_raca_municipio_ano.csv
+- visualizacoes/cobertura_vacinal_epi_ano.png
+- visualizacoes/obitos_causas_evitaveis_raca_ano.png
+- visualizacoes/obitos_causas_evitaveis_raca_sem_nao_informado_ano.png
+- visualizacoes/percentual_mortalidade_causas_evitaveis_raca_ano.png
+- visualizacoes/percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano.png
+
+### Arquivo no disco que nenhuma subseção de estrutura_eixos.md usa (20)
+
+- mapas/mapa_obitos_gravidez_bairro_2025.png
+- mapas/mapa_obitos_neonatal_tardia_bairro_2025.png
+- mapas/mapa_obitos_pos_neonatal_bairro_2025.png
+- mapas/mapa_obitos_puerperio_bairro_2025.png
+- mapas/mapa_percentual_cadunico_0_a_4_sobre_censo_bairro_2026.png
+- tabelas_finais/mortalidade_causas_evitaveis_raca_municipio_ano.csv
+- tabelas_finais/tabela_mapa_nascidos_baixo_peso_2025.csv
+- tabelas_finais/tabela_mapa_violencia_familiar_taxa_mae_2025.csv
+- tabelas_finais/tabela_mapa_violencia_familiar_taxa_outros_2021_2025.csv
+- tabelas_finais/tabela_mapa_violencia_familiar_taxa_pai_2025.csv
+- tabelas_finais/tabela_mapa_violencia_familiar_taxa_ra_mae_2025.csv
+- tabelas_finais/tabela_mapa_violencia_familiar_taxa_ra_outros_2021_2025.csv
+- tabelas_finais/tabela_mapa_violencia_familiar_taxa_ra_pai_2025.csv
+- tabelas_finais/violencia_familiar_por_ra.csv
+- tabelas_finais/violencia_territorial_por_ra_2024.csv
 - visualizacoes/cobertura_vacinal_epi_ano.png
 - visualizacoes/obitos_causas_evitaveis_raca_ano.png
 - visualizacoes/obitos_causas_evitaveis_raca_sem_nao_informado_ano.png
@@ -667,19 +675,6 @@ Apontados, não corrigidos — cada item pede uma decisão da equipe.
 - visualizacoes/percentual_mortalidade_raca_ano.png — .md: “DataSUS/Tabnet (SIM)”; analise.py: “DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro”
 - visualizacoes/taxa_mortalidade_infantil_ano.png — .md: “DataSUS/Tabnet municipal”; analise.py: “DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro”
 - visualizacoes/taxa_mortalidade_pos_neonatal_ano.png — .md: “DataSUS/Tabnet municipal”; analise.py: “DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro”
-
-### Arquivo no disco que nenhuma subseção de estrutura_eixos.md usa (10)
-
-- mapas/mapa_percentual_cadunico_0_a_4_sobre_censo_bairro_2026.png
-- tabelas_finais/tabela_mapa_nascidos_baixo_peso_2025.csv
-- tabelas_finais/tabela_mapa_violencia_familiar_taxa_mae_2025.csv
-- tabelas_finais/tabela_mapa_violencia_familiar_taxa_outros_2021_2025.csv
-- tabelas_finais/tabela_mapa_violencia_familiar_taxa_pai_2025.csv
-- tabelas_finais/tabela_mapa_violencia_familiar_taxa_ra_mae_2025.csv
-- tabelas_finais/tabela_mapa_violencia_familiar_taxa_ra_outros_2021_2025.csv
-- tabelas_finais/tabela_mapa_violencia_familiar_taxa_ra_pai_2025.csv
-- tabelas_finais/violencia_familiar_por_ra.csv
-- tabelas_finais/violencia_territorial_por_ra_2024.csv
 
 ## 4. Referências a confirmar (`conferir` em fontes.bib)
 
