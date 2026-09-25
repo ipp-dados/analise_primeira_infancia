@@ -80,9 +80,9 @@
   \renewcommand{\chapterheadstart}{%
     \ifcapeixo
       \vspace*{-1.2cm}\noindent\faixaespectro[3pt]{\textwidth}\par\vspace{1.1cm}%
-      \noindent\begin{tikzpicture}[baseline]
-        \node[fill=acentosuave, rounded corners=6pt, minimum size=1.35cm, text=ippnavy] {\icone[0.85cm]{\eixo@ico}};
-      \end{tikzpicture}\par\vspace{0.5cm}%
+      % ícone do eixo retirado a pedido do usuário (2026-09-25, "we will update later"): para voltar, reinserir
+      % \noindent\tikz[baseline]\node[fill=acentosuave, rounded corners=6pt, minimum size=1.35cm, text=ippnavy]
+      % {\icone[0.85cm]{\eixo@ico}};\par\vspace{0.5cm} -- o nome do ícone continua chegando em \eixo{n}{total}{ícone}
       \noindent{\ttfamily\footnotesize\color{acento}\addfontfeature{LetterSpace=8}EIXO~\eixo@num~DE~\eixo@tot}\par\vspace{0.15cm}%
     \else\vspace*{\beforechapskip}\fi}
   \renewcommand{\printchaptername}{}\renewcommand{\chapternamenum}{}
