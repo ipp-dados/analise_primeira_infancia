@@ -469,6 +469,24 @@ removido do git). Detalhes, medições e validação em `specs/2026-09-24_websit
   | Acento verde `#2E9678`, cinza `#949B99` (contraste 3,7:1 e 2,8:1) | v5.1 | Azul IPP `#0A5A99`, `#5B6773` (AA) |
   | Título "Análise Primeira Infância Carioca" | v5 | "Diagnóstico da Primeira Infância Carioca" |
 
+### v9 — exclusões, unidades e leitura dos gráficos (`specs/2026-09-25_website_graficos`)
+
+- Exclusões E2-E8 de `specs/exclusoes.md` aplicadas no gerador; E9 vira **alternância Taxa | Óbitos** num cartão só
+  (`option_card_alternancia`), mantendo a pill ao trocar. As pills passaram a trocar também o texto (até aqui o texto
+  ficava sempre no da 1ª opção).
+- **Paleta de dados**: `--c1…--c4` trocadas porque reprovavam no validador da skill `dataviz` (c1 `#6a95c8` croma baixa;
+  c4 `#deb254` com contraste 1,98:1; c2↔c3 ΔE 3,4 em protanopia). Agora `#3f7fc6 #d9773f #008c7c #b08a22`; c5-c11
+  iguais. Cor fixa por entidade para raça/cor e sexo (`_COR_ENTIDADE`).
+- **Unidades**: taxas por mil com `‰` (formato `pm1`; saíam com `%`), mortalidade por raça/cor por mil (era por 100),
+  título de unidade acima do eixo y (`unidade=`), base zero em toda série (decisão P1) com marcas redondas, rótulo
+  direto só até 4 séries, valor na ponta das barras agrupadas com até 12 barras.
+- **Pequenos múltiplos** automáticos a partir de 7 séries, com "Painéis | Linhas" (P2).
+- Teto P95 em todo mapa contínuo por bairro; `inf` (0 nascidos) vira "sem dado".
+- Caixa "Fontes desta seção" com a referência ABNT de `relatorio/latex/fontes.bib`; "Principais achados" e
+  "Conclusões" leem `achados_<eixo>`/`sintese_<eixo>` (mesmas chaves do PDF).
+- Títulos de seção descritivos (sem "Mapas"/"Série temporal"); o id antigo continua como âncora.
+- Botões CSV/outliers com faixa própria no topo do cartão (antes cobriam legenda/eixo em cartões sem subtítulo).
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |

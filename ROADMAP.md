@@ -11,23 +11,13 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 
 ## Em andamento
 
-1. **Site: exclusões + `improve charts`** — rodada `specs/2026-09-25_website_graficos` (branch
-   `spec/website-graficos`), validação escrita antes da implementação.
-   - aplicar ao site a lista `specs/exclusoes.md` (coluna "Site": E2-E9, com a alternância Taxa ↔ Óbitos de E9);
-   - site passa a ler as chaves novas de texto do relatório (`resumo`, `achados_<eixo>`, `sintese_<eixo>`,
-     `consideracoes_finais`) em `relatorio/textos_curados.json` — hoje só o PDF as lê;
-   - levar para o site as melhorias de leitura desenhadas para o PDF (`specs/2026-09-25_relatorio_latex` §5.1,
-     protótipo em `prototipo/`):
-     - rótulos de eixo por extenso, com unidade (reaproveitar `ROTULOS_EIXO`);
-     - teto de cor no percentil 95 em todos os mapas de taxa/percentual por bairro (decisão D5 do PDF; o tooltip
-       continua mostrando o valor real);
-     - rótulos diretos seletivos (último valor na ponta da linha, valor na ponta da barra);
-     - pequenos múltiplos como opção (pill) nos gráficos de 8-11 séries;
-     - paleta validada do PDF (`#3f76b8 #dc7a45 #0f7d5c #b88a1e #b8527b #5c9a3c #6f64ae #b84f4e`), rodando o
-       validador da skill `dataviz` contra as superfícies do site antes de trocar;
-     - caixas "Fontes desta seção" com a referência ABNT de `relatorio/latex/fontes.bib`;
-     - conferir se o site repete problemas achados no protótipo (ex. linha `Total` como categoria em
-       `cadunico_por_faixa_renda_2026.csv`).
+1. **Site: exclusões + `improve charts`** — implementado em 2026-09-25 (`specs/2026-09-25_website_graficos`, branch
+   `spec/website-graficos`); falta só o **deploy**, com OK do usuário. Decisões abertas levantadas na revisão:
+   - mapa de taxa de mortalidade infantil por bairro aparece **duas vezes** no eixo Prioridade (cartão de raça/cor e
+     "Total" do cartão neonatal, mesmos valores) — decidir qual fica (site e PDF);
+   - unidade dos indicadores do IPS (violência territorial): rotulada "por 100 mil habitantes", convenção do IPS
+     Rio, mas a planilha do Data.Rio não traz a unidade — confirmar;
+   - curadoria: os 2 textos que tiveram a unidade convertida (`controle_revisao.json`, `ajustes_manuais`, "revisar").
 
 2. **Curadoria de textos** (contínuo; DOCX `relatorio/curadoria_textos.docx`, controle em
    `relatorio/controle_revisao.json`). Última rodada: updates 3 e 4 (2026-09-25).
@@ -173,6 +163,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-09-25 | Site: exclusões E2-E9 (alternância Taxa ↔ Óbitos), paleta validada, teto P95, unidades nos eixos e taxas por mil com ‰, base zero, pequenos múltiplos, fontes ABNT, textos de achados/síntese; revisão de unidades também na origem (`analise.py`, PDF) | `specs/2026-09-25_website_graficos` |
 | 2026-09-25 | Relatório final em LaTeX/ABNT publicado (`relatorio/analise_primeira_infancia.pdf`), validação V1-V20; substitui o PDF por HTML/Edge headless | `specs/2026-09-25_relatorio_latex` |
 | 2026-09-25 | Lista de exclusões (E1-E12) aplicada ao PDF e ao `analise.py` | `specs/exclusoes.md` |
 | 2026-09-25 | Pastas de `specs/` prefixadas com a data de abertura; roadmaps fundidos neste arquivo | este arquivo, `CLAUDE.md` |

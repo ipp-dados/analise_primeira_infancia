@@ -69,7 +69,8 @@
 - tabela: `tabela_mapa_obitos_neonatal_tardia_2025.csv`
 
 - nota: `mapa_obitos_neonatal_tardia_bairro_2025.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
-### Razão de mortalidade materna (durante a gravidez)
+### Óbitos maternos durante a gravidez
+- nota: título ajustado em 2026-09-25 (revisão de unidades, specs/2026-09-25_website_graficos): o catálogo pede a razão de mortalidade materna (por 100 mil nascidos vivos), mas o dado publicado é a contagem de óbitos
 - fonte: DataSUS/Tabnet (SIM)
 - visualização: `obitos_gravidez_por_ano.png`
 - tabela: `obitos_gravidez_por_ano.csv`
@@ -77,7 +78,8 @@
 - tabela: `tabela_mapa_obitos_gravidez_2025.csv`
 
 - nota: `mapa_obitos_gravidez_bairro_2025.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
-### Razão de mortalidade materna (durante puerpério)
+### Óbitos maternos durante o puerpério
+- nota: título ajustado em 2026-09-25 (idem): contagem de óbitos, não razão
 - fonte: DataSUS/Tabnet (SIM)
 - visualização: `obitos_puerperio_por_ano.png`
 - tabela: `obitos_puerperio_por_ano.csv`
@@ -343,7 +345,7 @@
 - tabela: `tabela_mapa_notif_autoprovocada_2026.csv`
 - nota: parcial — só lesão autoprovocada (a violência interpessoal total e o recorte menor de 1 ano x 1 a 5 anos estão pendentes). 40 casos em 2018-2026, 33 deles em 2026 (ano parcial, usado como referência desta série); o salto pode refletir mudança de registro administrativo (hipótese, a confirmar com a fonte)
 
-### Taxa de notificações de violência (0 a 6 anos)
+### Taxa de notificações de violência familiar (0 a 5 anos)
 - fonte: Sinan NET/Tabnet (SMS-Rio); município: população 0 a 5 anos das estimativas Ripsa/Ministério da Saúde; bairro/RA/CAP: população 0 a 4 anos do Censo Demográfico 2022
 - visualização: `violencia_familiar_taxa_municipio_ano.png`
 - visualização: `violencia_familiar_taxa_top_bairros_2025.png`
