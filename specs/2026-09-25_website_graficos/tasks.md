@@ -52,4 +52,4 @@
 - [x] T8.6 Textos curados com a unidade antiga convertidos (2 textos; DOCX → JSON → site/`analise.py`/LaTeX),
       registrados em `relatorio/controle_revisao.json` (`ajustes_manuais`, "revisar")
 - [x] T8.7 Eixo y do baixo peso ao nascer ("9, 9, 10, 10" fora de posição) — marcas redondas
-- [ ] T8.8 Figuras impressas do PDF regeneradas pela execução completa de `analise.py`
+- [x] T8.8 Figuras impressas do PDF regeneradas pela execução completa de `analise.py` (PDF em `_build/`, 157 p., 14,2 MB; não publicado)
