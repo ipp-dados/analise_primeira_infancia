@@ -194,10 +194,23 @@ de execução, se D1 = B.
   → **Decidido: lorem ipsum como hoje** (ver §6).
 - **D5 — Teto de cor nos mapas de taxa por bairro** (§5.1): aplicar o percentil 95 (precedente: mapas de
   violência do site) a todos os mapas de taxa/percentual por bairro na variante de impressão, com nota na
-  Fonte; ou manter a escala até o máximo (fiel à tela). *Em aberto.*
+  Fonte; ou manter a escala até o máximo (fiel à tela).
+  → **Decidido (2026-09-25): sim**, teto no percentil 95 com "≥ X" e nota na Fonte, em todos os mapas de
+  taxa/percentual por bairro da variante de impressão. A versão de tela não muda.
 - **D6 — Achados do inventário** (Bloco 1, T1.5): o que fazer com os 10 arquivos do relatório gerados por
   chamadas comentadas em `analise.py` e com os 13 gráficos regravados por `regen_missing_pngs.py` sem
-  fonte. *Em aberto.*
+  fonte.
+  → **Decidido (2026-09-25): tirar do relatório.** Aplicado em `specs/estrutura_eixos.md`: os 10 arquivos
+  antigos saíram (cada subseção guarda uma `nota:` do porquê); "Mortalidade infantil por causas evitáveis,
+  por raça/cor" ficou sem arquivo e virou `status: pendente`. Consequências registradas: (a) 4 textos curados
+  ficam sem figura no PDF (`mapa_obitos_gravidez_bairro_2025`, `mapa_obitos_puerperio_bairro_2025`,
+  `mapa_obitos_neonatal_tardia_bairro_2025`, `cobertura_vacinal_epi_ano`); continuam no
+  `textos_curados.json` e o build os lista, e o DOCX regenerado os põe em "Textos órfãos"; (b) o **site não
+  muda**, porque desenha os próprios gráficos a partir dos CSVs (que estão atuais) e tem agrupamento fixo
+  no código. Interpretação: os 13 gráficos regravados por `regen_missing_pngs.py` **não** saem, porque
+  `analise.py` os gera de verdade e a variante de impressão virá do próprio notebook (Bloco 5), não do
+  script. Os 2 `censo_0_a_4_serie_*` (só existem via o script, têm texto curado) também ficam até o
+  Bloco 5 decidir de onde gerá-los.
 
 ## 9. Fora do escopo
 

@@ -63,28 +63,28 @@
 ### Taxa de mortalidade neonatal tardia (7 a 27 dias)
 - fonte: DataSUS/Tabnet (SIM/SINASC)
 - visualização: `taxa_obitos_tardios_ano.png`
-- mapa: `mapa_obitos_neonatal_tardia_bairro_2025.png`
 - mapa: `mapa_taxa_obitos_tardios_bairro_2025.png`
 - tabela: `mortalidade_neonatal_tardia_por_ano.csv`
 - tabela: `mortalidade_neonatal_tardia_bairro_ano.csv`
 - tabela: `tabela_mapa_obitos_neonatal_tardia_2025.csv`
 
+- nota: `mapa_obitos_neonatal_tardia_bairro_2025.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 ### Razão de mortalidade materna (durante a gravidez)
 - fonte: DataSUS/Tabnet (SIM)
 - visualização: `obitos_gravidez_por_ano.png`
-- mapa: `mapa_obitos_gravidez_bairro_2025.png`
 - tabela: `obitos_gravidez_por_ano.csv`
 - tabela: `obitos_gravidez_bairro_ano.csv`
 - tabela: `tabela_mapa_obitos_gravidez_2025.csv`
 
+- nota: `mapa_obitos_gravidez_bairro_2025.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 ### Razão de mortalidade materna (durante puerpério)
 - fonte: DataSUS/Tabnet (SIM)
 - visualização: `obitos_puerperio_por_ano.png`
-- mapa: `mapa_obitos_puerperio_bairro_2025.png`
 - tabela: `obitos_puerperio_por_ano.csv`
 - tabela: `obitos_puerperio_bairro_ano.csv`
 - tabela: `tabela_mapa_obitos_puerperio_2025.csv`
 
+- nota: `mapa_obitos_puerperio_bairro_2025.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 ### Mortalidade infantil por raça/cor (menores de 1 ano)
 - fonte: DataSUS/Tabnet (SIM)
 - visualização: `obitos_raca_ano.png`
@@ -121,12 +121,12 @@
 - visualização: `taxa_mortalidade_pos_neonatal_ano.png`
 - mapa: `mapa_mortalidade_infantil_bairro_2025.png`
 - mapa: `mapa_taxa_mortalidade_infantil_bairro_2025.png`
-- mapa: `mapa_obitos_pos_neonatal_bairro_2025.png`
 - mapa: `mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png`
 - tabela: `mortalidade_infantil_pos_neonatal_total_por_ano.csv`
 - tabela: `mortalidade_infantil_pos_neonatal_total_bairro_ano.csv`
 - tabela: `tabela_mapa_mortalidade_infantil_2025.csv`
 
+- nota: `mapa_obitos_pos_neonatal_bairro_2025.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 ### Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10)
 - fonte: DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis)
 - visualização: `obitos_causas_evitaveis_grupo_ano.png`
@@ -156,11 +156,8 @@
 
 ### Mortalidade infantil por causas evitáveis, por raça/cor
 - fonte: DataSUS (SIM)
-- visualização: `obitos_causas_evitaveis_raca_ano.png`
-- visualização: `obitos_causas_evitaveis_raca_sem_nao_informado_ano.png`
-- visualização: `percentual_mortalidade_causas_evitaveis_raca_ano.png`
-- visualização: `percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano.png`
-- tabela: `mortalidade_causas_evitaveis_raca_municipio_ano.csv`
+- status: pendente
+- nota: os 4 gráficos (`obitos_causas_evitaveis_raca_ano`, `…_sem_nao_informado_ano`, `percentual_mortalidade_causas_evitaveis_raca_ano`, `…_sem_nao_informado_ano`) e a tabela `mortalidade_causas_evitaveis_raca_municipio_ano.csv` foram removidos do relatório em 2026-09-25 (specs/relatorio_latex, D6): as chamadas que os geravam estão comentadas em analise.py, então os arquivos no disco são antigos. Ver também a nota de analise.py: o cruzamento por raça/cor desse arquivo não é filtrado só para causas evitáveis
 
 ### Mortalidade infantil por causas evitáveis, por sexo
 - fonte: DataSUS (SIM)
@@ -276,11 +273,11 @@
 
 ### Cobertura vacinal de rotina em crianças até 2 anos
 - fonte: Epi Rio
-- visualização: `cobertura_vacinal_epi_ano.png`
 - visualização: `cobertura_vacinal_epi_comparativo_anos.png`
 - tabela: `cobertura_vacinal_epi_por_ano.csv`
 - tabela: `cobertura_vacinal_epi_comparativo_anos.csv`
 
+- nota: `cobertura_vacinal_epi_ano.png` removido do relatório em 2026-09-25 (specs/relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 ### Crianças até 6 anos frequentando escola/creche (geral)
 - fonte: Censo Demográfico 2022 (IBGE SIDRA, tabela 10057)
 - visualização: `sidra_frequencia_escola_0_5_total_2022.png`

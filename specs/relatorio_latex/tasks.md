@@ -10,7 +10,7 @@
 - [x] T1.2 Cruzar com `estrutura_eixos.md` (`fonte:`, arquivos por subseção) e com o disco
 - [x] T1.3 `relatorio/inventario_fontes.md` + `.csv`: por fonte, por arquivo, alertas
 - [x] T1.4 `fontes.bib` (NBR 6023) com campo `variaveis`; alerta de fonte sem entrada
-- [ ] T1.5 (= D6) Revisar alertas com o usuário (não corrigir `fonte:` sem aprovação). Achados de 2026-09-25:
+- [x] T1.5 (= D6, 2026-09-25: arquivos antigos tirados do relatório) Revisar alertas com o usuário (não corrigir `fonte:` sem aprovação). Achados de 2026-09-25:
   10 arquivos do relatório vêm de chamadas **comentadas** em `analise.py` (arquivos antigos no disco);
   13 gráficos são regravados por `regen_missing_pngs.py` sem `fonte_dados`; 2 (`censo_0_a_4_serie_*`) só
   existem via esse script; 10 campos `conferir` em `fontes.bib`
