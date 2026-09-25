@@ -36,7 +36,7 @@ GERADO = LATEX / "gerado"
 CACHE = LATEX / "_build/img"
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(RAIZ / ".claude/skills/export_pdf_report/scripts"))
-from gera_estrutura_eixos import parse_estrutura_eixos, valida_estrutura  # noqa: E402
+from gera_estrutura_eixos import chave_eixo, parse_estrutura_eixos, valida_estrutura  # noqa: E402
 import inventario_fontes  # noqa: E402
 import tabelas  # noqa: E402
 
@@ -94,6 +94,15 @@ def esc(s):
     return s
 
 
+TEXTO_PENDENTE = ("Indicador previsto na Política Integrada da Primeira Infância, ainda sem dado disponível para "
+                  "o município nesta edição. Será incluído quando a fonte for incorporada.")
+
+
+def titulo_secao(s):
+    """Título de seção: escapado e com ponto de quebra depois de "/" ("escola/creche" não estoura a margem)."""
+    return esc(s).replace("/", r"/\allowbreak{}")
+
+
 def slug_site(titulo):
     """Mesmo slugify do site (id do painel = semente de conclusao-<sid>)."""
     t = re.sub(r"[^\w\s-]", "", titulo, flags=re.UNICODE).strip().lower()
@@ -149,6 +158,8 @@ def legenda_fonte(info, tipo):
     base = "Elaboração IPP com dados de " + "; ".join(partes) + "." if partes else "Elaboração IPP."
     if tipo == "mapa":
         base += r" Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000."
+    if info.get("nota"):   # ex.: teto de cor no percentil 95 (D5)
+        base += " Nota: " + esc(info["nota"][:1].upper() + info["nota"][1:]) + "."
     return base
 
 
@@ -160,10 +171,34 @@ def legenda_titulo(info, titulo_secao, nome):
     return esc(t[:1].upper() + t[1:])
 
 
+_MANIFESTO = None
+
+
+def manifesto_a4():
+    """visualizacoes/a4/_manifesto.csv (gravado pela variante de impressão do analise.py): título, fonte e
+    unidade exatos de cada figura -- inclusive os de chamadas em laço que a leitura estática não resolve."""
+    global _MANIFESTO
+    if _MANIFESTO is None:
+        import pandas as pd
+        arq = RAIZ / "visualizacoes/a4/_manifesto.csv"
+        _MANIFESTO = ({Path(r.arquivo).stem: r._asdict() for r in pd.read_csv(arq).fillna("").itertuples(index=False)}
+                      if arq.exists() else {})
+    return _MANIFESTO
+
+
 def bloco_figura(nome, tipo, info, titulo_secao):
     caminho, a4 = caminho_figura(nome, tipo)
     if not a4:
         FALLBACK.append(nome)
+    m = manifesto_a4().get(Path(nome).stem)
+    if a4 and m:     # título e fonte da execução real do notebook, no lugar da leitura estática
+        info = dict(info, titulo=m["titulo"])
+        chaves = inventario_fontes.chaves_da_fonte(m["fonte"], inventario_fontes.le_bib())
+        if chaves:
+            info["chaves_bib"] = ", ".join(chaves)
+        nota = re.search(r"Nota: (.*)$", str(m["fonte"]))
+        if nota:
+            info["nota"] = nota.group(1)
     rel = Path(caminho).resolve().relative_to(LATEX.resolve()) if LATEX.resolve() in Path(caminho).resolve().parents \
         else Path("../..") / Path(caminho).resolve().relative_to(RAIZ.resolve())
     rotulo = f"{'graf' if tipo == 'grafico' else 'mapa'}:{rotulo_label(Path(nome).stem)}"
@@ -199,15 +234,23 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
         tex.append(rf"\eixo{{{i}}}{{{len(estrutura)}}}{{{icone}}}")
         tex.append(rf"\chapter{{{esc(titulo)}}}\label{{cap:eixo-{i}}}")
         tex.append(r"\begin{achados}\begin{itemize}")
-        for k in range(5):     # mesmo placeholder do site (_lorem_bullets)
-            tex.append(r"\item " + esc(lorem(f"{sid}-kt-{k}", 8)))
+        achados = TEXTOS.get(f"achados_{chave_eixo(eixo['eixo'])}")   # uma frase por linha (DOCX de curadoria)
+        if achados:
+            for frase in (linha.strip(" •-–\t") for linha in achados.split("\n")):
+                if frase:
+                    tex.append(r"\item " + esc(frase))
+        else:
+            EM_LOREM.append(f"achados_{chave_eixo(eixo['eixo'])}")
+            for k in range(5):     # mesmo placeholder do site (_lorem_bullets)
+                tex.append(r"\item " + esc(lorem(f"{sid}-kt-{k}", 8)))
         tex.append(r"\end{itemize}\end{achados}")
         for sub in eixo["subsecoes"]:
             c = sub["campos"]
-            tex.append(rf"\section{{{esc(sub['titulo'])}}}")
+            tex.append(rf"\section{{{titulo_secao(sub['titulo'])}}}")
             if (c.get("status") or "").strip() == "pendente":
-                notas = lista(c.get("nota"))
-                tex.append(r"\begin{pendente}" + esc(" ".join(notas) or "Indicador catalogado, ainda sem dado disponível.")
+                # as `nota:` de estrutura_eixos.md são anotações internas da equipe ("baixar dados", nomes de
+                # arquivo, datas de decisão) -- o público lê só a frase fixa abaixo
+                tex.append(r"\begin{pendente}" + TEXTO_PENDENTE
                            + r"\end{pendente}")
                 continue
             for campo, tipo in (("visualização", "grafico"), ("mapa", "mapa")):
@@ -225,7 +268,8 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
                 if not tabelas.cabe_no_pdf(caminho):
                     if nome not in [t for t, _ in tabs_eixo]:
                         tabs_eixo.append((nome, sub["titulo"]))
-                    refs.append(r"\texttt{" + esc(nome) + "} (formato digital)")
+                    # nome de arquivo longo: pode quebrar depois de cada "_" (senão invade a margem)
+                    refs.append(r"\texttt{" + esc(nome).replace(r"\_", r"\_\allowbreak{}") + "} (formato digital)")
                     continue
                 # mesma tabela impressa (ex. série bairro×ano filtrada = tabela do mapa) sai uma vez só
                 sig = tabelas.assinatura(caminho)
@@ -238,7 +282,8 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
             if refs:
                 tex.append(r"\vertabelas{" + ", ".join(refs) + rf"; ver Apêndice~\ref{{ap:eixo-{i}}}}}")
         tex.append(r"\section{Síntese do eixo}")
-        tex.append(rf"\begin{{sintese}}{{{esc(titulo)}}}" + texto(f"conclusao-{sid}") + r"\end{sintese}")
+        tex.append(rf"\begin{{sintese}}{{{esc(titulo)}}}" + texto(f"sintese_{chave_eixo(eixo['eixo'])}" if TEXTOS.get(f"sintese_{chave_eixo(eixo['eixo'])}")
+                    or not TEXTOS.get(f"conclusao-{sid}") else f"conclusao-{sid}", lorem_seed=f"conclusao-{sid}") + r"\end{sintese}")
 
     tex.append(r"\chapter{Considerações finais}\label{cap:consideracoes}")
     tex.append(texto("consideracoes_finais", 300))
@@ -262,10 +307,11 @@ def apendices(tabelas_por_eixo, info_por_arquivo):
                                             legenda_fonte(info, "tabela"), f"tab:{rotulo_label(Path(nome).stem)}"))
         if digitais:   # T4.4: tabelas longas demais para o papel ficam só no formato digital
             tex.append(r"\section*{Tabelas disponíveis em formato digital}")
-            tex.append(rf"As tabelas abaixo têm mais de {tabelas.MAX_LINHAS_PDF} linhas e não são impressas; estão em "
-                       r"\texttt{tabelas\_finais/} no repositório do projeto.")
-            tex.append(r"\begin{itemize}" + "".join(
-                rf"\item \texttt{{{esc(n)}}} --- {esc(s)} ({tabelas.num(l, 0)} linhas)" for n, s, l in digitais)
+            tex.append(r"{\raggedright " + rf"As tabelas abaixo têm mais de {tabelas.MAX_LINHAS_PDF} linhas e não são "
+                       r"impressas; estão em \texttt{tabelas\_finais/} no repositório do projeto.\par}")
+            tex.append(r"\begin{itemize}\raggedright" + "".join(
+                rf"\item \texttt{{{esc(n).replace(chr(92) + '_', chr(92) + '_' + chr(92) + 'allowbreak{}')}}} --- "
+                rf"{esc(s)} ({tabelas.num(l, 0)} linhas)" for n, s, l in digitais)
                 + r"\end{itemize}")
     tex.append(r"\end{apendicesenv}")
     return "\n\n".join(tex) + "\n"

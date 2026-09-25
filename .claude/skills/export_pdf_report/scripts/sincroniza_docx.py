@@ -12,7 +12,7 @@ hoje para aquele bloco) e propaga o texto editado para:
   (b) `website/index.html` (site, specs/website_refactor), regenerado via subprocess
       (`build_html_report.py` lê o JSON no import, por isso subprocess, não
       import direto -- ver nota em `regenera_html`);
-  (c) a HTML-fonte do PDF, regenerada via subprocess (`build_notebook_report.py`,
+  (c) o relatório em LaTeX (`relatorio/latex/build/gera_latex.py`; antes a HTML-fonte do PDF antigo, `build_notebook_report.py`, removido em 2026-09-25 -- specs/relatorio_latex D2),
       mesma razão);
   (d) uma nota markdown nova/atualizada em `analise.py`, logo após a célula
       de código que produz o arquivo correspondente ao bloco -- a parte de
@@ -63,6 +63,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))  # same-folder imports, como os scripts irmãos
 from gera_docx_curadoria import _arquivos_de, _bookmark_name, _lorem, extrai_textos_por_bookmark
+from gera_estrutura_eixos import blocos_relatorio, placeholder_bloco
 from gera_estrutura_eixos import parse_estrutura_eixos
 
 # scripts/ -> export_pdf_report/ -> skills/ -> .claude/ -> raiz do projeto
@@ -87,6 +88,9 @@ def eh_lorem_ipsum(seed, texto):
     ORIGINAL (não o nome sanitizado do bookmark) -- ver `_mapa_bookmark_para_id`."""
     if seed == "introducao":  # bookmark fixo, lorem de 250 palavras (gera_docx_curadoria.py)
         return texto == _lorem("introducao-relatorio-docx", 250)
+    blocos = blocos_relatorio(parse_estrutura_eixos())   # resumo, achados/síntese por eixo, considerações finais
+    if seed in blocos:
+        return texto == placeholder_bloco(blocos[seed], _lorem)
     return texto == _lorem(seed)
 
 
@@ -98,6 +102,7 @@ def _ids_originais_conhecidos():
     viram só um parágrafo `[PENDENTE]` sem `bloco_texto()`)."""
     estrutura = parse_estrutura_eixos()
     ids = {"introducao"}  # bookmark fixo da Introdução (fora da estrutura)
+    ids |= set(blocos_relatorio(estrutura))   # textos do relatório fora das figuras (specs/relatorio_latex Bloco 6)
     for eixo in estrutura:
         for sub in eixo["subsecoes"]:
             campos = sub["campos"]
@@ -185,28 +190,13 @@ def regenera_html(raiz=_RAIZ):
     return raiz / destino
 
 
-def regenera_pdf_source(raiz=_RAIZ, destino_relativo=None):
-    """Idem, para a HTML-fonte do PDF (`build_notebook_report.py`). Sem
-    `destino_relativo`, escreve num arquivo temporário FORA do repositório
-    -- este script não é responsável pelo passo de renderização para PDF
-    via browser headless (isso continua manual, `SKILL.md`), só precisa
-    confirmar que a fonte HTML do PDF também reflete o texto novo."""
-    if destino_relativo is None:
-        caminho_absoluto = Path(tempfile.gettempdir()) / "sincroniza_docx_pdf_source.html"
-        subprocess.run(
-            [sys.executable, str((raiz / ".claude/skills/export_pdf_report/scripts/build_notebook_report.py")),
-             str(caminho_absoluto)],
-            cwd=str(raiz), check=True, capture_output=True, text=True,
-        )
-        return caminho_absoluto
-    subprocess.run(
-        [sys.executable, ".claude/skills/export_pdf_report/scripts/build_notebook_report.py", destino_relativo],
-        cwd=str(raiz), check=True, capture_output=True, text=True,
-    )
-    return raiz / destino_relativo
+def regenera_relatorio_latex(raiz=_RAIZ):
+    """Regera o relatório em LaTeX (relatorio/latex/build/gera_latex.py: capítulos a partir de
+    estrutura_eixos.md + textos_curados.json, e compila). Subprocess pelo mesmo motivo do site: o gerador lê o
+    JSON no import."""
+    subprocess.run([sys.executable, "relatorio/latex/build/gera_latex.py"], cwd=raiz, check=True)
+    return raiz / "relatorio/latex/_build/relatorio.pdf"
 
-
-# ------------------------------------------- 4. nota markdown em analise.py -
 
 def _arquivo_real_para_seed(seed, raiz=_RAIZ):
     """Path do arquivo real (visualizacoes/mapas/tabelas_finais) cujo stem
@@ -393,9 +383,10 @@ def sincroniza(caminho_docx, raiz=_RAIZ, pdf_source_out=None, aplica_analise=Tru
     regenera_html(raiz=raiz)
     resultado["html_ok"] = True
 
-    caminho_pdf_source = regenera_pdf_source(raiz=raiz, destino_relativo=pdf_source_out)
+    # PDF: desde specs/relatorio_latex (D2) o relatório é gerado em LaTeX; o PDF fica em relatorio/latex/_build/ e
+    # só vai para relatorio/analise_primeira_infancia.pdf com --publicar (decisão de quem publica, não da sincronização)
+    resultado["pdf_source_path"] = str(regenera_relatorio_latex(raiz=raiz))
     resultado["pdf_source_ok"] = True
-    resultado["pdf_source_path"] = str(caminho_pdf_source)
 
     if aplica_analise:
         resultado["analise"] = aplica_notas_em_analise(edicoes, raiz=raiz)
@@ -410,7 +401,7 @@ if __name__ == "__main__":
         pass
 
     if len(sys.argv) < 2:
-        print("uso: python sincroniza_docx.py <caminho_docx> [<pdf_source_out>]")
+        print("uso: python sincroniza_docx.py <caminho_docx>   (2º argumento antigo, <pdf_source_out>, é ignorado)")
         raise SystemExit(1)
 
     caminho_docx_arg = sys.argv[1]
@@ -430,7 +421,8 @@ if __name__ == "__main__":
 
     print(f"JSON atualizado: {res['json_atualizado']} ({_CAMINHO_JSON_RELATIVO})")
     print(f"HTML regenerado: {res['html_ok']} (website/index.html)")
-    print(f"HTML-fonte do PDF regenerada: {res['pdf_source_ok']} -> {res['pdf_source_path']}")
+    print(f"Relatório LaTeX regenerado: {res['pdf_source_ok']} -> {res['pdf_source_path']} "
+          "(publicar com: python relatorio/latex/build/gera_latex.py --publicar)")
 
     if res["analise"]:
         a = res["analise"]

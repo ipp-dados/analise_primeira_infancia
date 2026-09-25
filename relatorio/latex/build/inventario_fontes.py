@@ -249,7 +249,7 @@ def le_bib():
         campos = {k.lower(): v.strip() for k, v in re.findall(r"^\s*(\w+)\s*=\s*\{(.*)\},?\s*$", corpo, re.M)}
         padroes = [re.compile(p.strip(), re.I) for p in campos.get("padroes", "").split("||") if p.strip()]
         entradas[chave] = dict(titulo=campos.get("title", "").strip("{}"), padroes=padroes,
-                               conferir=campos.get("conferir"), autor=campos.get("author", "").strip("{}"))
+                               conferir=campos.get("conferir"), autor=re.sub(r"\\entidade\{([^}]*)\}", r"\1", campos.get("author", "")).strip("{}"))
     return entradas
 
 
