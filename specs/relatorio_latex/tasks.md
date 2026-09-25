@@ -58,15 +58,20 @@
 
 ## Bloco 5 — Figuras A4 (D1 = B)
 - [x] T5.0 Protótipo e regras de desenho para impressão (`specification.md` §5.1; `prototipo/`) — 2026-09-25
-- [ ] T5.1 Parâmetro nos helpers de `analise.py`: variante sem título/fonte, tamanho A4, em `visualizacoes/a4/`, `mapas/a4/` (PDF)
-- [ ] T5.1a `_TEMA_IMPRESSAO` (Plex Sans, paleta de impressão validada, grade/eixos) + formatação pt-BR
-- [ ] T5.1b `ROTULOS_EIXO` (coluna → rótulo com unidade) e rótulos diretos seletivos por tipo de helper
-- [ ] T5.1c Barras: uma cor por série, horizontais com rótulo longo, remoção de linhas de total
-- [ ] T5.1d Helper `pequenos_multiplos` para os casos de espaguete (CAP × ano, imunobiológicos, subgrupos CID)
-- [ ] T5.1e Mapas: tamanho final, legenda 7-7,5 pt, véu no fundo, teto P95 se D5 aprovar
-- [ ] T5.2 Manifesto (arquivo, título, fonte, função) gravado pelos helpers
-- [ ] T5.3 `regen_missing_pngs.py` acompanha
-- [ ] T5.4 Execução completa do notebook pelo usuário (`analises_env` + `.env`)
+- [x] T5.1 Parâmetro nos helpers de `analise.py`: variante sem título/fonte, tamanho A4, em `visualizacoes/a4/`, `mapas/a4/` (PDF)
+- [x] T5.1a `_rc_impressao()` (Plex Sans, paleta de impressão validada, grade/eixos) + formatação pt-BR
+- [x] T5.1b `ROTULOS_EIXO` (coluna → rótulo com unidade) e rótulos diretos seletivos por tipo de helper
+- [x] T5.1c Barras: uma cor por série, horizontais com rótulo longo, remoção de linhas de total
+- [x] T5.1d `_a4_pequenos_multiplos` (automático acima de `_LIMIAR_DESTAQUE_SERIES`) para os casos de espaguete (CAP × ano, imunobiológicos, subgrupos CID)
+- [x] T5.1e Mapas: tamanho final, legenda 7-7,5 pt, véu no fundo, teto P95 se D5 aprovar
+- [x] T5.2 Manifesto (arquivo, título, fonte, função) gravado pelos helpers
+- [x] T5.2a Os 2 gráficos do Censo 0-4 (desenhados à mão e nunca gravados) passam pelas funções da seção
+- [x] T5.2b Testado fora do repositório (11 figuras, todos os tipos: série única, poucas séries, pequenos múltiplos,
+  metas, marcos, barras com linha Total, barras agrupadas, mapa por classes, mapa de taxa com teto P95, mapa de CAP);
+  mapas ~0,4 MB (fundo reduzido e clareado, `interpolation='none'`); gerador do LaTeX lê o manifesto
+- [ ] T5.3 `regen_missing_pngs.py`: não gera a variante A4 (é cópia antiga das funções); a variante sai só do notebook
+- [ ] T5.4 Execução completa do notebook pelo usuário (`analises_env` + `.env`). Atenção: só 8 chamadas de mapa usam
+  `fundo='mapa_oceano_base'`; as demais usam o padrão `'mapa'`, cujo serviço responde HTTP 500 desde 2026-09
 
 ## Bloco 6 — Curadoria e integração
 - [ ] T6.1 Chaves novas no DOCX (`gera_docx_curadoria.py`, preservando o texto já curado)

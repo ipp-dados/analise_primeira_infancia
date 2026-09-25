@@ -149,6 +149,8 @@ def legenda_fonte(info, tipo):
     base = "Elaboração IPP com dados de " + "; ".join(partes) + "." if partes else "Elaboração IPP."
     if tipo == "mapa":
         base += r" Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000."
+    if info.get("nota"):   # ex.: teto de cor no percentil 95 (D5)
+        base += " Nota: " + esc(info["nota"][:1].upper() + info["nota"][1:]) + "."
     return base
 
 
@@ -160,10 +162,34 @@ def legenda_titulo(info, titulo_secao, nome):
     return esc(t[:1].upper() + t[1:])
 
 
+_MANIFESTO = None
+
+
+def manifesto_a4():
+    """visualizacoes/a4/_manifesto.csv (gravado pela variante de impressão do analise.py): título, fonte e
+    unidade exatos de cada figura -- inclusive os de chamadas em laço que a leitura estática não resolve."""
+    global _MANIFESTO
+    if _MANIFESTO is None:
+        import pandas as pd
+        arq = RAIZ / "visualizacoes/a4/_manifesto.csv"
+        _MANIFESTO = ({Path(r.arquivo).stem: r._asdict() for r in pd.read_csv(arq).fillna("").itertuples(index=False)}
+                      if arq.exists() else {})
+    return _MANIFESTO
+
+
 def bloco_figura(nome, tipo, info, titulo_secao):
     caminho, a4 = caminho_figura(nome, tipo)
     if not a4:
         FALLBACK.append(nome)
+    m = manifesto_a4().get(Path(nome).stem)
+    if a4 and m:     # título e fonte da execução real do notebook, no lugar da leitura estática
+        info = dict(info, titulo=m["titulo"])
+        chaves = inventario_fontes.chaves_da_fonte(m["fonte"], inventario_fontes.le_bib())
+        if chaves:
+            info["chaves_bib"] = ", ".join(chaves)
+        nota = re.search(r"Nota: (.*)$", str(m["fonte"]))
+        if nota:
+            info["nota"] = nota.group(1)
     rel = Path(caminho).resolve().relative_to(LATEX.resolve()) if LATEX.resolve() in Path(caminho).resolve().parents \
         else Path("../..") / Path(caminho).resolve().relative_to(RAIZ.resolve())
     rotulo = f"{'graf' if tipo == 'grafico' else 'mapa'}:{rotulo_label(Path(nome).stem)}"
