@@ -1,4 +1,4 @@
-# Plano — `specs/website_graficos`
+# Plano — `specs/2026-09-25_website_graficos`
 
 Proposta para a sessão de planejamento com o usuário (decisões P1-P5 em `specification.md` §3). Cada bloco fecha
 com os itens correspondentes de `validation.md` e um commit `SPEC-WebsiteGraficos: Bloco N -- ...`.

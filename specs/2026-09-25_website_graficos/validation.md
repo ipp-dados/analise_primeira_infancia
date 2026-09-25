@@ -1,4 +1,4 @@
-# Validação — `specs/website_graficos`
+# Validação — `specs/2026-09-25_website_graficos`
 
 Escrita **antes** da implementação (pedido do usuário, 2026-09-25). Cada item diz como se verifica; preencher
 resultado e data ao fim de cada bloco. Nada conta como validado só porque o gerador rodou sem erro.
