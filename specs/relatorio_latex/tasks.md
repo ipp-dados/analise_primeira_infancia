@@ -16,25 +16,28 @@
   existem via esse script; 10 campos `conferir` em `fontes.bib`
 
 ## Bloco 2 — Esqueleto e páginas-amostra
-- [ ] T2.1 `relatorio.tex` (abntex2, relatório técnico, A4, oneside, 12 pt, 1,5) + `estilo.sty`
-- [ ] T2.2 Floats `grafico` e `mapa` (newfloat) com listas próprias; legenda acima, Fonte abaixo
-- [ ] T2.3 Fraunces + IBM Plex Sans; cores `--ipp-navy` e `--c1…--c11`
-- [ ] T2.4 Ícones Lucide → PDF (svglib ou tradução para TikZ; fallback `fontawesome5`)
-- [ ] T2.5 Capa, folha de rosto, resumo, listas, siglas, sumário, Fontes
-- [ ] T2.6 Capítulo-amostra (Alimentação) + apêndice-amostra, montados à mão
-- [ ] T2.7 Páginas-amostra rasterizadas → revisão do usuário
+- [x] T2.1 `relatorio.tex` (abntex2, relatório técnico, A4, oneside, 12 pt, 1,5) + `estilo.sty`
+- [x] T2.2 Floats `grafico` e `mapa` (newfloat) com listas próprias; legenda acima, Fonte abaixo
+- [x] T2.3 Fraunces + IBM Plex Sans; cores `--ipp-navy` e `--c1…--c11`
+- [x] T2.4 Ícones Lucide → PDF (svglib ou tradução para TikZ; fallback `fontawesome5`)
+- [x] T2.5 Capa, folha de rosto, resumo, listas, siglas, sumário, Fontes
+- [x] T2.6 Capítulo-amostra: em vez de montar à mão, o gerador já saiu (Bloco 3 adiantado); `--eixo N` compila só um eixo
+- [ ] T2.7 Páginas-amostra rasterizadas → revisão do usuário. Primeiro build completo (2026-09-25): 1.156 páginas, das
+  quais ~1.040 são 9 tabelas bairro×ano em formato longo (2.400-4.800 linhas) → ver T4.4
 
 ## Bloco 3 — Gerador
-- [ ] T3.1 `gera_latex.py`: `parse_estrutura_eixos()` + `valida_estrutura()` → capítulos em `gerado/`
-- [ ] T3.2 Escape LaTeX + aspas tipográficas do texto curado (testar as 58 entradas)
+- [x] T3.1 `gera_latex.py`: `parse_estrutura_eixos()` + `valida_estrutura()` → capítulos em `gerado/`
+- [x] T3.2 Escape LaTeX + aspas tipográficas do texto curado (testar as 58 entradas)
 - [ ] T3.3 Legendas a partir do inventário/manifesto; remissões "ver Tabela X.n"
-- [ ] T3.4 Caixas: achados, pendente, síntese; texto ausente = lorem determinístico (`_lorem(seed)`) + lista de chaves em lorem no log
-- [ ] T3.5 Cache de imagens reduzidas em `_build/` (300 dpi na largura final)
+- [x] T3.4 Caixas: achados, pendente, síntese; texto ausente = lorem determinístico (`_lorem(seed)`) + lista de chaves em lorem no log
+- [x] T3.5 Cache de imagens reduzidas em `_build/` (300 dpi na largura final)
 - [ ] T3.6 `latexmk -xelatex` + cópia para `relatorio/analise_primeira_infancia.pdf`
 
 ## Bloco 4 — Apêndice de tabelas
 - [ ] T4.1 `tabelas.py`: portar seleção/formatação de `build_notebook_report.py`
 - [ ] T4.2 `longtable` + `booktabs`, pt-BR, `ano` sem separador, Fonte abaixo
+- [ ] T4.4 Proposta: tabela com mais de ~200 linhas não entra no PDF; quadro "Tabelas disponíveis em formato digital"
+  com o nome do arquivo; o apêndice fica com a tabela do mapa (último ano, 1 linha por bairro)
 - [ ] T4.3 Chave opcional `tabela_no_texto:` em `estrutura_eixos.md` (+ parser)
 
 ## Bloco 5 — Figuras A4 (D1 = B)

@@ -1,0 +1,69 @@
+% relatorio.tex -- mestre do relatório final (specs/relatorio_latex). Editado à mão.
+% O conteúdo por eixo vem de gerado/ (relatorio/latex/build/gera_latex.py, a partir de
+% specs/estrutura_eixos.md e relatorio/textos_curados.json) -- não editar gerado/ à mão.
+% Compilar:  python relatorio/latex/build/gera_latex.py   (ou, em relatorio/latex/: latexmk)
+\documentclass[
+  12pt, oneside, a4paper,
+  chapter=TITLE, section=TITLE,   % seções primária e secundária em caixa alta no sumário e no texto (NBR 6024)
+  brazil, english
+]{abntex2}
+
+\usepackage[alf]{abntex2cite}
+\usepackage{estilo}
+
+% ------------------------------------------------------------------ dados do documento
+\titulo{Diagnóstico da Primeira Infância Carioca}
+\autor{Leonardo Aucar \and Bianca Medina \and Caroline Lima \and Waleska Marques \and Maria Norbert}
+\local{Rio de Janeiro}
+\data{2026}
+\instituicao{Prefeitura da Cidade do Rio de Janeiro\par Instituto Pereira Passos\par
+  Coordenadoria de Pesquisa, Avaliação e Política Pública}
+\tipotrabalho{Relatório técnico}
+\preambulo{Relatório técnico de indicadores da primeira infância (0 a 6 anos) no município do Rio de
+  Janeiro, organizado pelos eixos da Política Integrada da Primeira Infância, elaborado pelo Instituto
+  Pereira Passos em parceria com a Casa Civil.}
+
+\makeatletter
+\hypersetup{pdftitle={\@title}, pdfauthor={Instituto Pereira Passos}, pdfsubject={\imprimirpreambulo},
+  pdfkeywords={primeira infância}{Rio de Janeiro}{indicadores sociais}{políticas públicas},
+  colorlinks=true, linkcolor=tinta, citecolor=tinta, urlcolor=acento, bookmarksdepth=4}
+\makeatother
+
+\addto\captionsbrazil{\renewcommand{\bibname}{Fontes}}   % "Referências" -> "Fontes" (pedido do usuário)
+\renewcommand{\listtablename}{Lista de tabelas}
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0.2cm}
+
+\makeindex
+\begin{document}
+\selectlanguage{brazil}
+\frenchspacing
+
+% ================================================================== PRÉ-TEXTUAIS (NBR 10719)
+\pretextual
+\input{pretextual/capa}
+\input{pretextual/folha_rosto}
+\input{gerado/resumo}
+
+\pdfbookmark[0]{\listofgraficosname}{lgf}
+\listofgraficos*\cleardoublepage
+\pdfbookmark[0]{\listofmapasname}{lmp}
+\listofmapas*\cleardoublepage
+\pdfbookmark[0]{\listtablename}{lot}
+\listoftables*\cleardoublepage
+\input{pretextual/siglas}
+\pdfbookmark[0]{\contentsname}{toc}
+\tableofcontents*\cleardoublepage
+
+% ================================================================== TEXTUAIS
+\textual
+\input{gerado/capitulos}
+
+% ================================================================== PÓS-TEXTUAIS
+\postextual
+\input{gerado/nocite}   % todas as entradas de fontes.bib (\nocite{*} traria as opções internas do abnTeX2)
+\bibliography{fontes}
+
+\input{gerado/apendices}
+
+\end{document}
