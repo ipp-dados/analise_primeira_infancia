@@ -48,11 +48,13 @@
   --outline-w:   280px;
   --nav-h:       64px;   /* reescrito por navigation.js com a altura real da barra de abas */
 
-  /* paleta de DADOS -- inalterada (relatorio/specs.md v3/v6.2) */
-  --c1: #6a95c8; --c1d:#87aad4;
-  --c2: #d28060; --c2d:#d19e8a;
-  --c3: #359c78; --c3d:#89d2b9;
-  --c4: #deb254; --c4d:#e0be7b;
+  /* paleta de DADOS (relatorio/specs.md v3/v6.2). specs/2026-09-25_website_graficos B5: c1-c4 trocadas porque
+     reprovavam no validador da skill dataviz (c1 croma baixa; c4 claro demais, 1,98:1; c2<->c3 ΔE 3,4 em protanopia).
+     Antes: #6a95c8 #d28060 #359c78 #deb254. Mesma ordem de matizes; c5-c11 inalteradas. */
+  --c1: #3f7fc6; --c1d:#87aad4;
+  --c2: #d9773f; --c2d:#d19e8a;
+  --c3: #008c7c; --c3d:#89d2b9;
+  --c4: #b08a22; --c4d:#e0be7b;
   --c5: #ca688d; --c5d:#cc8ea5;
   --c6: #4aa64a; --c6d:#7be07b;
   --c7: #8177bb; --c7d:#928ad1;
