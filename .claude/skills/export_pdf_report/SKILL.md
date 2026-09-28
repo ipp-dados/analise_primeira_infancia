@@ -95,6 +95,12 @@ Run everything from the project root.
 - **Figures**: sizes/labels/palette of the print versions are fixed in `analise.py` (`_rc_impressao`,
   `ROTULOS_EIXO`, `_PALETA_IMPRESSAO`, D5 = 95th-percentile colour cap on bairro rate maps). Change them there,
   never by editing PDFs. New unit labels go in `ROTULOS_EIXO`/`ROTULOS_A4_ARQUIVO`.
+- **"EM DESENVOLVIMENTO" watermark**: `relatorio/publicacao.json` (`em_desenvolvimento`, `marca_dagua_pdf`) —
+  the same switch as the site's yellow strip; the two leave together (`specs/2026-09-28_website_mobile`).
+  `gera_latex.py` writes `gerado/aviso.tex` (`\input` in the preamble of `relatorio.tex`): `draftwatermark` 3.3 with
+  a TikZ node for transparency — MiKTeX's draftwatermark has no `alpha` key and the `transparent` package is
+  pdfTeX-only. The `\AtBeginDocument` TikZ node with the same opacity is required: without it the cover (first page)
+  gets the watermark opaque (missing `ExtGState pgf@ca0.16`). Check every page with PyMuPDF warnings after changing it.
 - **Escaping**: curated text is escaped by `esc()` (`% $ & _ #`…); never rewrite a curated text to make it compile.
 - **LaTeX gotchas already hit**: abnTeX2 already defines `\fonte` and `\nota` (don't redefine); `\nocite{*}`
   pulls abnTeX2's internal option entries (use `gerado/nocite.tex`); BibTeX runs in `_build/`, so the generator

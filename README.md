@@ -52,7 +52,7 @@ compartilhado, acesso restrito — solicitar a leonardoaucar@prefeitura.rio.*
 *   `website/`: o site estático publicado no GitHub Pages (HTML/CSS/JS, sem build no deploy) —
     abas por eixo, sumário lateral, gráficos e mapas SVG interativos. `website/build/build_site.py`
     gera `index.html` e `data/`; CSS e JS são editados à mão. Detalhes em
-    [`website/README.md`](website/README.md), pendências (versão mobile) em
+    [`website/README.md`](website/README.md) (inclusive a versão mobile), pendências em
     [`ROADMAP.md`](ROADMAP.md).
 *   `relatorio/`: relatório em PDF (`analise_primeira_infancia.pdf`), DOCX de curadoria de textos
     e `textos_curados.json` (texto curado lido pelo site e pelo PDF). O antigo `relatorio/index.html`
@@ -111,6 +111,8 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.25.0 | 2026-09-28 | Site com versão mobile (`css/mobile.css`, gráficos redesenhados na largura real, "Nesta seção" recolhível, select para listas longas, legenda do mapa abaixo) sem mudar o desktop; marca d'água "EM DESENVOLVIMENTO" no PDF, ligada à faixa do site por `relatorio/publicacao.json` (`specs/2026-09-28_website_mobile`). |
+| 0.24.0 | 2026-09-28 | Rodada de gráficos do site (exclusões, Taxa ↔ Óbitos, unidades, paleta) e correções depois do rollback: cache de CSS/JS versionado, telas estreitas, textos curados ausentes; tabelas de conferência texto × figura (`specs/2026-09-25_website_graficos`, `specs/2026-09-28_website_bugfix`). |
 | 0.23.0 | 2026-09-25 | Relatório final em LaTeX/ABNT (capa, resumo, sumário, capítulo por eixo, apêndice de tabelas, Fontes), gerado de `estrutura_eixos.md`; figuras em versão de impressão pelo `analise.py`; lista de exclusões (`specs/2026-09-25_relatorio_latex`, `specs/exclusoes.md`). |
 | 0.22.0 | 2026-09-24 | Site reestruturado em `website/` (arquivos separados, abas por eixo, sumário lateral, novo visual, título "Diagnóstico da Primeira Infância Carioca") e 20,9 MB → 1,5 MB (`specs/2026-09-24_website_refactor`). |
 | 0.21.0 | 2026-09-24 | População de referência: Ripsa/MS no município (taxas municipais novas) e Censo 2022 explícito abaixo dele; matrículas 0-5 refeitas dos microdados do INEP, com taxa de atendimento; auditoria de faixas etárias e correção do total dos Censos (`specs/2026-09-24_populacao-referencia`). |

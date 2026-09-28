@@ -1,6 +1,6 @@
 # Roadmap
 
-Estado em 2026-09-28. Arquivo único do projeto: substitui `specs/roadmap.md` e `website/ROADMAP.md`
+Estado em 2026-09-28 (fim do dia). Arquivo único do projeto: substitui `specs/roadmap.md` e `website/ROADMAP.md`
 (fundidos aqui em 2026-09-25). As decisões e o *porquê* de cada item ficam na pasta da rodada em `specs/`
 (`specs/<AAAA-MM-DD>_<nome>/`); aqui fica só o que falta fazer e onde procurar.
 
@@ -14,8 +14,9 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 1. **Site: exclusões + `improve charts`** — implementado em 2026-09-25 (`specs/2026-09-25_website_graficos`, branch
    `spec/website-graficos`). O push para `staging_main` quebrou o site publicado e foi **revertido em 2026-09-28**
    (commit de rollback `883b4b1`); correções na rodada `specs/2026-09-28_website_bugfix` (mesmo branch: cache das
-   folhas de estilo/JS, telas estreitas, textos curados ausentes). Falta: reintegrar em `staging_main` (reverter o
-   commit de rollback antes do merge) e o **deploy**, com OK do usuário. Decisões abertas levantadas na revisão:
+   folhas de estilo/JS, telas estreitas, textos curados ausentes). Rollback revertido e branch corrigido integrado em
+   `staging_main` no mesmo dia (`21cc040`). Falta só o **deploy**, com OK do usuário. Decisões abertas levantadas na
+   revisão:
    - mapa de taxa de mortalidade infantil por bairro aparece **duas vezes** no eixo Prioridade (cartão de raça/cor e
      "Total" do cartão neonatal, mesmos valores) — decidir qual fica (site e PDF);
    - unidade dos indicadores do IPS (violência territorial): rotulada "por 100 mil habitantes", convenção do IPS
@@ -84,26 +85,11 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
    (frequentam / população) e recalcular a taxa, nunca somar percentuais; aplicar no gráfico de `analise.py`
    (tela e impressão), na tabela do PDF e no site.
 
-5. **Site: versão mobile (responsiva)** — **planejada em 2026-09-28** (`specs/2026-09-28_website_mobile`, decisões
-   M1-M4 do usuário; aguarda OK para abrir o branch `spec/website-mobile`). A lista abaixo é o levantamento original;
-   o plano a detalha e mede o ponto de partida. A rodada `website_refactor` foi só desktop (spec §4.8); o CSS usa
-   grid/flex e variáveis para que isto mexa em poucas regras. Por componente:
-   - **Barra de abas** (`.tabbar`): hoje rola na horizontal sem indicação. Rolagem com sombra nas bordas e aba
-     ativa trazida para a vista (`scrollIntoView` no `tabchange`), ou só ícones + rótulo da ativa, ou um menu
-     (`<select>`/gaveta). Decidir com o usuário.
-   - **Sumário lateral** (`.outline`): a coluna de 280 px não cabe; virar barra recolhível no topo do painel
-     ("Nesta seção ▾") ou gaveta; a barra de progresso pode virar uma linha fina sob as abas.
-   - **Grade** (`.page-grid`): 1 coluna abaixo de ~1100 px; `--gutter` 16 px abaixo de 520 px.
-   - **Banner**: reduzir o h1 com `clamp` (< ~420 px quebra em 3 linhas); links abaixo do título.
-   - **Cartões com pills** (`.option-card-grafico`): coluna de pills de 210 px vira fileira acima do gráfico
-     (conferir a regra `@media (max-width:720px)` existente).
-   - **Mapa + texto** (`.option-card-mapa`): texto abaixo do mapa, sem altura presa à do mapa.
-   - **Legenda do mapa**: para baixo do mapa em tela pequena.
-   - **Tooltips** dependem de `mousemove`: tratar toque (tap mostra, segundo tap ou toque fora esconde).
-   - **Botões dos cartões** (CSV, outliers) sobrepõem o título: linha própria abaixo do título.
-   - **Tabelas largas**: já rolam (`.table-scroll`); conferir `table.plain`.
-   - **Alvos de toque** de no mínimo 44×44 px; **fonte base** de 19,2 px no desktop, avaliar 17-18 px no celular.
-   - **Validação**: Chrome/Firefox/WebKit em 390×844 e 768×1024 (Playwright), mais um aparelho real.
+5. **Site: versão mobile — implementada em 2026-09-28** (`specs/2026-09-28_website_mobile`, branch
+   `spec/website-mobile`), validada no Playwright em 3 motores e 4 tamanhos; o desktop não mudou (conferido pixel a
+   pixel). Falta: **teste num iPhone e num Android** (roteiro em `validation.md` V7, com o usuário), merge em
+   `staging_main` e deploy. Fica para depois: tablet com alvos de toque de 44 px e texto dos gráficos de viewBox fixo
+   entre 9,5 e 11 px (a meta de 44 px / 11 px desta rodada era só do celular).
 
 6. **Atualizar a documentação do projeto** — alinhar `CLAUDE.md`, `README.md`, `CHANGELOG.md`,
    `specs/tech-stack.md`, `specs/constitution.md`, `relatorio/specs.md` e os `SKILL.md` ao estado real
@@ -145,8 +131,9 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 - **Página "Fale Conosco"** (pedido do usuário, 2026-09-24): rota por hash (`#fale-conosco`) como uma aba,
   acessível pela barra de navegação. Formulário exige backend, que o GitHub Pages não tem — `mailto:` + texto
   (estático) ou serviço externo (exige decisão sobre dados pessoais/LGPD).
-- **Tirar a faixa "EM DESENVOLVIMENTO / TEMPORÁRIO"** (`.dev-banner`, `website/build/build_site.py` e
-  `css/layout.css`) quando o site deixar de ser versão de teste — decisão do usuário.
+- **Tirar a faixa "EM DESENVOLVIMENTO / TEMPORÁRIO" do site e a marca d'água do PDF** quando deixarem de ser versão
+  de teste — decisão do usuário. Uma chave só: `relatorio/publicacao.json` → `"em_desenvolvimento": false`, depois
+  regerar o site e o PDF (`gera_latex.py --publicar`).
 - **Confirmar URLs/e-mail reais do rodapé** (Transparência Rio, LGPD, contato; hoje `ascom.ipp@prefeitura.rio`,
   placeholder) — `specs/2026-09-14_relatorio-interativo/tasks.md` T6.2.
 - **Logo**: confirmar autorização de uso do logo oficial da Prefeitura/IPP antes do deploy público (T0.4) e pedir
@@ -173,6 +160,8 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-09-28 | Site mobile (`css/mobile.css`: gráficos na largura real, "Nesta seção", select, legenda abaixo do mapa, toque) e marca d'água "EM DESENVOLVIMENTO" no PDF ligada à faixa do site (`relatorio/publicacao.json`) | `specs/2026-09-28_website_mobile` |
+| 2026-09-28 | Rollback de `staging_main` e correções do site (cache de CSS/JS, telas estreitas, textos curados ausentes); tabelas de conferência texto × figura | `specs/2026-09-28_website_bugfix` |
 | 2026-09-25 | Site: exclusões E2-E9 (alternância Taxa ↔ Óbitos), paleta validada, teto P95, unidades nos eixos e taxas por mil com ‰, base zero, pequenos múltiplos, fontes ABNT, textos de achados/síntese; revisão de unidades também na origem (`analise.py`, PDF) | `specs/2026-09-25_website_graficos` |
 | 2026-09-25 | Relatório final em LaTeX/ABNT publicado (`relatorio/analise_primeira_infancia.pdf`), validação V1-V20; substitui o PDF por HTML/Edge headless | `specs/2026-09-25_relatorio_latex` |
 | 2026-09-25 | Lista de exclusões (E1-E12) aplicada ao PDF e ao `analise.py` | `specs/exclusoes.md` |

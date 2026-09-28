@@ -382,3 +382,19 @@ atualizadas, as entradas acima mantêm os nomes antigos como registro histórico
 `website/ROADMAP.md` fundidos em `ROADMAP.md` na raiz, reorganizado (em andamento → próximos → backlog por tema →
 concluído), com dois itens novos: organização do projeto (pastas de dados/saídas, `analise.py` em módulos, scripts
 das skills) e empacotamento de scripts para outros projetos.
+
+## 2026-09-28 — rollback de `staging_main` e `specs/website_bugfix`
+
+O push da rodada `website_graficos` deixou o site publicado com bugs; `staging_main` voltou ao estado anterior num
+commit de rollback (sem reescrever o histórico) e as correções entraram no branch: URLs de CSS/JS/dados com
+`?v=<md5>` (a causa principal era o navegador misturar o HTML novo com CSS/JS antigos em cache), layout de telas
+estreitas, textos curados que não apareciam, cores repetidas e rótulos sobrepostos. Tabelas de conferência texto ×
+figura por `website/build/confere_textos.py`. Depois, o rollback foi revertido e o branch corrigido integrado.
+
+## 2026-09-28 — `specs/website_mobile` (versão mobile do site) e marca d'água do PDF
+
+Versão mobile em `website/css/mobile.css`, com três faixas (desktop, tablet, celular) e o desktop conferido pixel a
+pixel: abas com esmaecimento, faixa "Nesta seção" e linha de progresso, gráficos redesenhados na largura real,
+select nativo para listas de 6+ opções, legenda do mapa abaixo dele, tooltips por toque, alvos de 44 px, banner
+compacto. `relatorio/publicacao.json` passa a controlar juntos a faixa "EM DESENVOLVIMENTO" do site e a nova marca
+d'água do PDF.
