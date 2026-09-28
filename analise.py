@@ -822,7 +822,7 @@ ROTULOS_EIXO = {
 }
 # ... e por arquivo, quando o mesmo ylabel genérico serve a medidas diferentes
 ROTULOS_A4_ARQUIVO = {
-    'percentual_mortalidade_raca_ano': 'Óbitos de menores de 1 ano por 100 nascidos vivos',
+    'percentual_mortalidade_raca_ano': 'Óbitos de menores de 1 ano por mil nascidos vivos',
     'pnad_frequencia_escolar_por_idade': '% que frequenta escola ou creche',
     'cadunico_familias_arranjo_renda': '% das famílias do arranjo',
     'taxa_atendimento_0_a_5_por_ano': 'Matrículas por 100 crianças residentes',
@@ -2919,6 +2919,9 @@ df_mortalidade_raca_bairro['obitos_total'] = df_mortalidade_raca_bairro[colunas_
 df_mortalidade_raca_bairro['nascidos_total'] = df_mortalidade_raca_bairro[colunas_nascidos].sum(axis=1)
 percentual_total = (df_mortalidade_raca_bairro['obitos_total'] / df_mortalidade_raca_bairro['nascidos_total']) * 100
 df_mortalidade_raca_bairro['percentual_total'] = percentual_total.replace([float('inf'), -float('inf')], float('nan')).round(2)
+# revisão de unidades (specs/2026-09-25_website_graficos): mortalidade infantil se publica por MIL nascidos vivos,
+# como as demais taxas do relatório; `percentual_*` (por 100) fica no CSV só para quem já o lê
+df_mortalidade_raca_bairro['taxa_mortalidade_infantil_total'] = (df_mortalidade_raca_bairro['percentual_total'] * 10).round(2)
 
 df_mortalidade_raca_bairro = df_mortalidade_raca_bairro.sort_values(by=['ano','bairro']).reset_index(drop=True)
 df_mortalidade_raca_bairro.to_csv('dados_locais//tratados//mortalidade_raca_bairro_ano.csv', index=False)
@@ -2940,6 +2943,10 @@ for raca in racas:
     df_mortalidade_raca_municipio[f'percentual_{raca}'] = percentual.replace([float('inf'), -float('inf')], float('nan')).round(2)
 
 df_mortalidade_raca_municipio = agrupa_racas_raras(df_mortalidade_raca_municipio)   # E5, specs/exclusoes.md
+# taxa por mil nascidos vivos (revisão de unidades), recalculada dos absolutos -- inclusive amarela_indigena
+for raca in racas + ['amarela_indigena']:
+    taxa = df_mortalidade_raca_municipio[f'obitos_{raca}'] / df_mortalidade_raca_municipio[f'nascidos_{raca}'] * 1000
+    df_mortalidade_raca_municipio[f'taxa_mortalidade_{raca}'] = taxa.replace([float('inf'), -float('inf')], float('nan')).round(2)
 df_mortalidade_raca_municipio.to_csv('dados_locais//tratados//mortalidade_raca_municipio_ano.csv', index=False)
 df_mortalidade_raca_municipio.to_csv('tabelas_finais//mortalidade_raca_municipio_ano.csv', index=False)
 df_mortalidade_raca_municipio
@@ -2969,15 +2976,15 @@ df_percentual_raca_municipio = df_mortalidade_raca_municipio[df_mortalidade_raca
 serie_temporal_multipla(
     df_percentual_raca_municipio,
     tempo='ano',
-    colunas={rotulo: f'percentual_{raca}' for rotulo, raca in rotulos_raca.items()},
-    titulo='Percentual de óbitos (0-364 dias) em relação aos nascidos vivos por raça/cor - Rio de Janeiro (2011-2025)',
-    nome_arquivo='percentual_mortalidade_raca_ano',
-    ylabel='Percentual (%)', fonte_dados=fonte_datasus_bairro,
+    colunas={rotulo: f'taxa_mortalidade_{raca}' for rotulo, raca in rotulos_raca.items()},
+    titulo='Taxa de mortalidade infantil (0-364 dias) por raça/cor, por mil nascidos vivos - Rio de Janeiro (2011-2025)',
+    nome_arquivo='percentual_mortalidade_raca_ano',   # nome do arquivo mantido (chave do texto curado e do crosswalk)
+    ylabel='Óbitos por mil nascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
 
 # %% [markdown]
 # <!-- nota-curadoria:percentual_mortalidade_raca_ano -->
-# **Nota de curadoria:** A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, os percentuais de crianças brancas e pardas permaneceram próximos, variando de 1,76% a 1,13% e de 1,98% a 1,43%, respectivamente. Para crianças pretas, o percentual variou entre 0,50% e 1,43%, enquanto as categorias indígena e amarela apresentam oscilações maiores associadas ao pequeno número de registros. A categoria “não informada” também apresenta forte variação, relacionada à quantidade de nascidos classificados nessa categoria. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
+# **Nota de curadoria:** A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, as taxas de crianças brancas e pardas permaneceram próximas, variando de 17,6 a 11,3 e de 19,8 a 14,3 óbitos por mil nascidos vivos, respectivamente. Para crianças pretas, a taxa variou entre 5,0 e 14,3 por mil, enquanto a categoria amarela e indígena, agrupada por ter poucos registros, apresenta oscilações maiores associadas ao pequeno número de casos. A categoria “não informada” também apresenta forte variação, relacionada à quantidade de nascidos classificados nessa categoria. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
 
 # %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025) — total de óbitos, todas as raças
@@ -2993,15 +3000,15 @@ mapa_coropletico_bairros(
     bins=[2, 5, 10, 20], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 mapa_coropletico_bairros(
-    df_raca_mapa_2025, coluna_valor='percentual_total', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
+    df_raca_mapa_2025, coluna_valor='taxa_mortalidade_infantil_total', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_obitos_raca_total_bairro_2025', chave='codigo',
     cmap=_CORES_TEMA_MAPA['mortalidade'],
-    legenda_titulo='% s/ nascidos vivos', fonte_dados=fonte_datasus_bairro,
+    legenda_titulo='Óbitos por mil\nnascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_taxa_obitos_raca_total_bairro_2025 -->
-# **Nota de curadoria:** A taxa de mortalidade infantil permite comparar os bairros considerando a relação entre os óbitos e os nascidos vivos de cada território. Em 2025, Cidade Nova e Gericinó apresentaram a maior taxa registrada, de 7,14%, mas com números diferentes de óbitos e nascidos vivos: 3 óbitos entre 42 nascidos vivos em Cidade Nova e 1 entre 14 em Gericinó. Cidade Universitária apresentou 5,88%, com 1 óbito entre 17 nascidos vivos. A comparação entre taxa, número de óbitos e nascidos vivos permite qualificar a leitura das diferenças territoriais e serve de base para relacionar o indicador a outros recortes da mortalidade infantil.
+# **Nota de curadoria:** A taxa de mortalidade infantil permite comparar os bairros considerando a relação entre os óbitos e os nascidos vivos de cada território. Em 2025, Cidade Nova e Gericinó apresentaram a maior taxa registrada, de 71,4 óbitos por mil nascidos vivos, mas com números diferentes de óbitos e nascidos vivos: 3 óbitos entre 42 nascidos vivos em Cidade Nova e 1 entre 14 em Gericinó. Cidade Universitária apresentou 58,8 por mil, com 1 óbito entre 17 nascidos vivos. A comparação entre taxa, número de óbitos e nascidos vivos permite qualificar a leitura das diferenças territoriais e serve de base para relacionar o indicador a outros recortes da mortalidade infantil.
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_obitos_raca_total_bairro_2025 -->

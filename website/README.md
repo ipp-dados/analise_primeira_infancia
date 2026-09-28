@@ -40,6 +40,20 @@ versionada e o deploy só copia. Regerou → confira → commit → dispare o wo
 `*.png`/`*.svg` são ignorados globalmente no `.gitignore`; `!/website/assets/**` é a exceção que
 mantém os assets do site no git — não remover.
 
+## Convenções dos gráficos (`specs/2026-09-25_website_graficos`)
+
+- **Formato do valor** (`format` da série / `fmt` do mapa): `int` contagem; `pct1` percentual (`%`); `pm1` taxa por
+  mil (`‰` — mortalidade por mil nascidos vivos, notificações por mil crianças); `dec1` outra taxa (unidade no
+  título). Nunca `pct1` para taxa por mil. `pm1f`/`dec1f` = iguais, sem o botão de outliers.
+- **Unidade**: todo `line_chart`/`grouped_bar_chart` recebe `unidade=` (título curto acima do eixo y, por extenso,
+  com a unidade); barras horizontais levam a unidade no `titulo`.
+- **Nomes**: rótulos equivalentes são padronizados em `_ROTULO_PADRAO` (idade, sexo) e causas evitáveis pelo código
+  em `_NOME_CAUSA`; raça/cor e sexo têm cor fixa em `_COR_ENTIDADE`.
+- **Títulos de seção** descrevem o indicador (nunca "Mapas"/"Série temporal"); ao renomear um `h3`, passe
+  `antigo=` com o id anterior para links compartilhados continuarem funcionando.
+- **Fontes**: o texto `fonte=` de cada cartão precisa casar com um `padroes` de `relatorio/latex/fontes.bib`, senão o
+  gerador imprime `AVISO` e a caixa de fontes mostra só o texto curto.
+
 ## Testar localmente
 
 - Abrir `website/index.html` direto no navegador funciona (nenhum `fetch`; tudo por `<script src>`).

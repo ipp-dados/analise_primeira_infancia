@@ -698,6 +698,28 @@
    "historico": [
     "correcoes"
    ]
+  },
+  "percentual_mortalidade_raca_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "unidades_2026-09-25"
+   ],
+   "obs": "2026-09-25: conversão de unidade (por 100 -> por mil nascidos vivos), mesmos números; revisar"
+  },
+  "mapa_taxa_obitos_raca_total_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "unidades_2026-09-25"
+   ],
+   "obs": "2026-09-25: conversão de unidade (por 100 -> por mil nascidos vivos), mesmos números; revisar"
   }
  }
 }

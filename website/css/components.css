@@ -12,8 +12,11 @@
 .out-pair{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; margin:14px 0 8px;}
 .chart-subtitle{
   font-family:var(--font-body); font-weight:600; font-size:.74rem; color:var(--ink-2);
-  text-transform:uppercase; letter-spacing:.06em; margin:0 0 12px; padding-right:190px;
+  text-transform:uppercase; letter-spacing:.06em; margin:0 0 12px;
 }
+/* botões CSV/outliers (absolutos, canto superior direito) ficavam por cima da legenda/eixo quando o cartão não
+   tinha subtítulo (revisão de 2026-09-25): gráficos com CSV reservam a faixa do topo; mapas mantêm o título ao lado */
+.out[data-csv]:not(.map-svg-card){padding-top:54px;}
 .out-src{font-family:var(--font-mono); font-size:.66rem; color:var(--ink-3); margin-top:12px; padding-top:10px; border-top:1px solid var(--hairline-2);}
 
 /* legado: galeria de PNG (map_card) -- sem call site hoje, mantido junto do fallback do gerador */
@@ -30,6 +33,14 @@
 .chart-svg{width:100%; height:auto; display:block; overflow:visible;}
 .grid-line{stroke:var(--hairline); stroke-width:1;}
 .axis-label{font-family:var(--font-mono); font-size:10.8px; fill:var(--ink-3);}
+.axis-title{font-family:var(--font-body); font-size:11.5px; font-weight:600; fill:var(--ink-2);}
+.bar-top-label{font-family:var(--font-mono); font-size:10.5px; font-weight:600; fill:var(--ink);}
+.bar-unidade, .sm-unidade{font-size:.7rem; font-weight:600; color:var(--ink-2); margin:0 0 10px;}
+/* pequenos múltiplos (B4) */
+.sm-ctrl{margin:0 0 12px;}
+.sm-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px 18px;}
+.sm-cell{min-width:0;}
+.sm-title{font-size:.68rem; font-weight:600; color:var(--ink); margin:0 0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .end-label{font-family:var(--font-mono); font-size:12.6px; font-weight:600; dominant-baseline:middle;}
 .extreme-label{font-family:var(--font-mono); font-size:10.2px; font-weight:600;}
 .hover-line{stroke:var(--ink-3); stroke-width:1; stroke-dasharray:2 3;}
@@ -81,6 +92,18 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.76rem;}
 /* min-height:0 essencial: sem isso o tamanho mínimo automático do item de grid vence o stretch */
 .option-card-mapa .opt-panes, .option-card-mapa .opt-texts, .option-card-mapa .opt-pane{height:100%; min-height:0;}
 
+/* alternância Taxa | Óbitos (E9, specs/2026-09-25_website_graficos §2): controle segmentado acima das pills */
+.alterna{margin:14px 0 8px;}
+.alterna > .alterna-modo > .option-card{margin-top:10px;}
+.alterna-ctrl{display:inline-flex; padding:3px; gap:2px; background:var(--surface-3); border-radius:var(--radius-pill);}
+.alterna-btn{
+  border:none; background:transparent; color:var(--ink-2); border-radius:var(--radius-pill); cursor:pointer;
+  font-family:var(--font-body); font-size:.72rem; font-weight:600; padding:7px 18px;
+  transition:background .15s ease, color .15s ease;
+}
+.alterna-btn:hover{color:var(--accent-ink);}
+.alterna-btn[aria-pressed="true"]{background:var(--surface); color:var(--accent-ink); box-shadow:var(--shadow-1);}
+
 .table-with-text{display:grid; grid-template-columns:260px minmax(0,1fr); gap:20px; margin:14px 0 8px; align-items:start;}
 
 .pill-col{display:flex; flex-direction:column; gap:6px; max-height:460px; overflow-y:auto; padding:2px;}
@@ -124,6 +147,8 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.76rem;}
 
 /* ---------- mapas SVG ---------- */
 .map-title{font-family:var(--font-display); font-weight:600; font-size:1.05rem; color:var(--ink); margin:0 0 14px; padding-right:190px; text-wrap:balance;}
+/* com "Remover outliers" + CSV os dois botões ocupam ~215 px (revisão de 2026-09-25: título passava por baixo) */
+.outlier-card .map-title{padding-right:240px;}
 .map-svg-frame{position:relative; background:var(--surface-2); border-radius:var(--radius-sm); overflow:hidden;}
 .map-svg{display:block; width:100%; height:auto; background-size:100% 100%; background-repeat:no-repeat;}
 /* regiões: <use href="#gb12"> etc. (Bloco 3) */
