@@ -86,7 +86,11 @@
       return p && (p.dataset.alias || '').split(' ').includes(painelId);
     });
     if (direto) {
-      ativa(direto, {alvo: subId ? document.getElementById(subId) : null});
+      // specs/2026-09-28_nova_estrutura: um cartão pode ter mudado de aba (ex. #prioridade/mapas agora está na Visão
+      // geral) -- abre a aba em que o alvo está de fato
+      const alvo = subId ? document.getElementById(subId) : null;
+      const tabAlvo = alvo && alvo.closest('.tab-panel') && tabDoPainel(alvo.closest('.tab-panel'));
+      ativa(tabAlvo || direto, {alvo: alvo});
       return;
     }
     // link antigo: id de um elemento dentro de algum painel

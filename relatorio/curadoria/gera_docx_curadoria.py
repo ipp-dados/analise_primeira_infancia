@@ -52,7 +52,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
 
-from gera_estrutura_eixos import (_nomes_de_arquivo, blocos_relatorio, parse_estrutura_eixos, placeholder_bloco,
+from gera_estrutura_eixos import (_nomes_de_arquivo, blocos_relatorio, eh_panorama, parse_estrutura_eixos, placeholder_bloco,
                                   valida_estrutura)
 
 CAMINHO_SAIDA_PADRAO = "relatorio/curadoria_textos.docx"
@@ -468,11 +468,14 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
     n_imagens = 0
 
     for eixo in estrutura:
-        doc.add_heading(eixo["eixo"], level=1)
-        chave_achados = next(k for k, b in blocos.items() if k.startswith("achados_") and b.get("eixo") == eixo["eixo"])
-        bloco_relatorio(chave_achados, 2, eixo["eixo"])
-        chave_intro = next(k for k, b in blocos.items() if k.startswith("introducao_") and b.get("eixo") == eixo["eixo"])
-        bloco_relatorio(chave_intro, 2, eixo["eixo"])
+        # panorama (specs/2026-09-28_nova_estrutura): parte da Introdução, sem achados/abertura/síntese de eixo
+        panorama_ = eh_panorama(eixo)
+        doc.add_heading("Introdução — Panorama da primeira infância carioca" if panorama_ else eixo["eixo"], level=1)
+        if not panorama_:
+            chave_achados = next(k for k, b in blocos.items() if k.startswith("achados_") and b.get("eixo") == eixo["eixo"])
+            bloco_relatorio(chave_achados, 2, eixo["eixo"])
+            chave_intro = next(k for k, b in blocos.items() if k.startswith("introducao_") and b.get("eixo") == eixo["eixo"])
+            bloco_relatorio(chave_intro, 2, eixo["eixo"])
         for sub in eixo["subsecoes"]:
             titulo = sub["titulo"]
             campos = sub["campos"]
@@ -544,8 +547,9 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
                 run = p.add_run(f"Tabela de apoio: {nomes_fmt}")
                 run.italic = True
 
-        chave_sintese = next(k for k, b in blocos.items() if k.startswith("sintese_") and b.get("eixo") == eixo["eixo"])
-        bloco_relatorio(chave_sintese, 2, eixo["eixo"])
+        if not panorama_:
+            chave_sintese = next(k for k, b in blocos.items() if k.startswith("sintese_") and b.get("eixo") == eixo["eixo"])
+            bloco_relatorio(chave_sintese, 2, eixo["eixo"])
 
     bloco_relatorio("consideracoes_finais", 1)
 

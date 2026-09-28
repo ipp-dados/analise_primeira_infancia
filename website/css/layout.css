@@ -128,3 +128,8 @@ footer.doc-foot{background:var(--ipp-navy); color:#EAF2F8; padding:40px 0 26px;}
 .footer-credit{padding-top:14px; font-family:var(--font-mono); font-size:.66rem; color:#9CC0DA;}
 
 /* telas estreitas: css/mobile.css (specs/2026-09-28_website_mobile) */
+
+/* specs/2026-09-28_nova_estrutura: rótulo curto de 2 abas só abaixo de 1280 px (8 abas) */
+.tab-rotulo-curto{display:none;}
+@media (max-width:1279px){.tab-rotulo-longo{display:none;} .tab-rotulo-curto{display:inline;}}
+@media (min-width:1100px) and (max-width:1279px){.tabbar-inner{gap:4px;}}

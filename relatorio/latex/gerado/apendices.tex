@@ -3,7 +3,7 @@
 
 \partapendices
 
-\chapter{Tabelas do eixo Prioridade}\label{ap:eixo-1}
+\chapter{Tabelas da Introdução}\label{ap:introducao}
 
 {\small\setlength{\tabcolsep}{5pt}
 \begin{longtable}{@{}rrrrrr@{}}
@@ -153,6 +153,44 @@ Jardim Guanabara & 967 & 3,6 & 1.100 & 4,1 & Zumbi & 78 & 4,3 & 81 & 4,5 \\
 
 
 {\small\setlength{\tabcolsep}{5pt}
+\begin{longtable}{@{}lrrr@{}}
+\caption{População de 0 a 6 anos, por idade e sexo, Censo Demográfico 2022}\label{tab:censo-sidra-populacao-0-6-sexo-2022}\\
+\toprule \textbf{Idade} & \textbf{Homens} & \textbf{Mulheres} & \textbf{Total} \\ \midrule \endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Homens} & \textbf{Mulheres} & \textbf{Total} \\ \midrule \endhead
+\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\bottomrule \endlastfoot
+1 ano & 28.155 & 27.841 & 55.996 \\
+2 anos & 31.707 & 31.303 & 63.010 \\
+3 anos & 33.798 & 33.003 & 66.801 \\
+4 anos & 35.648 & 34.856 & 70.504 \\
+5 anos & 34.820 & 34.141 & 68.961 \\
+6 anos & 37.794 & 35.963 & 73.757 \\
+Menos de 1 ano & 27.633 & 26.704 & 54.337 \\
+\textbf{Total} & \textbf{2.882.579} & \textbf{3.328.644} & \textbf{6.211.223} \\
+\end{longtable}}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}
+
+
+{\small\setlength{\tabcolsep}{5pt}
+\begin{longtable}{@{}lrrrrrr@{}}
+\caption{População de 0 a 6 anos, por idade e cor ou raça, Censo Demográfico 2022}\label{tab:censo-sidra-populacao-0-6-raca-2022}\\
+\toprule \textbf{Idade} & \textbf{Amarela} & \textbf{Branca} & \textbf{Indígena} & \textbf{Parda} & \textbf{Preta} & \textbf{Total} \\ \midrule \endfirsthead
+\multicolumn{7}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Amarela} & \textbf{Branca} & \textbf{Indígena} & \textbf{Parda} & \textbf{Preta} & \textbf{Total} \\ \midrule \endhead
+\midrule \multicolumn{7}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\bottomrule \endlastfoot
+1 ano & 67 & 26.742 & 25 & 22.615 & 6.542 & 55.996 \\
+2 anos & 81 & 29.501 & 19 & 25.892 & 7.517 & 63.010 \\
+3 anos & 81 & 30.184 & 43 & 28.147 & 8.342 & 66.801 \\
+4 anos & 68 & 31.496 & 33 & 29.716 & 9.186 & 70.504 \\
+5 anos & 87 & 29.746 & 38 & 29.837 & 9.252 & 68.961 \\
+6 anos & 97 & 31.345 & 36 & 32.416 & 9.863 & 73.757 \\
+Menos de 1 ano & 66 & 26.909 & 23 & 21.576 & 5.762 & 54.337 \\
+\textbf{Total} & \textbf{10.514} & \textbf{2.821.619} & \textbf{6.531} & \textbf{2.403.895} & \textbf{968.428} & \textbf{6.211.223} \\
+\end{longtable}}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}
+
+
+{\small\setlength{\tabcolsep}{5pt}
 \begin{longtable}{@{}rr@{}}
 \caption{Nascidos vivos de mães residentes no município, 2006-2025}\label{tab:nascidos-vivos-por-ano}\\
 \toprule \textbf{Ano} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Nascidos vivos}} \\ \midrule \endfirsthead
@@ -281,6 +319,8 @@ Joá & 8 & 0 & 0 & 0 & 0 & 0,0 &  &  &  &  &  &  &  \\
 \vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}
 \end{landscape}
 
+
+\chapter{Tabelas do eixo Prioridade}\label{ap:eixo-1}
 
 {\small\setlength{\tabcolsep}{5pt}
 \begin{longtable}{@{}rrrr@{}}
@@ -674,90 +714,6 @@ Joá & 8 & 0 & 0 & 0 & 0 & 0,0 &  &  &  &  &  &  &  \\
 \end{landscape}
 
 
-\section*{Tabelas disponíveis em formato digital}
-
-{\raggedright As tabelas abaixo têm mais de 200 linhas e não são impressas; estão em \texttt{tabelas\_finais/} no repositório do projeto.\par}
-
-\begin{itemize}\raggedright\item \texttt{mortalidade\_\allowbreak{}evitaveis\_\allowbreak{}cap\_\allowbreak{}faixa\_\allowbreak{}ano.csv} --- Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) (4.200 linhas)\item \texttt{mortalidade\_\allowbreak{}evitaveis\_\allowbreak{}grupo\_\allowbreak{}cap\_\allowbreak{}faixa\_\allowbreak{}ano.csv} --- Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) (600 linhas)\end{itemize}
-
-\chapter{Tabelas do eixo Inclusão}\label{ap:eixo-2}
-
-{\small\setlength{\tabcolsep}{5pt}
-\begin{longtable}{@{}lrrr@{}}
-\caption{População de 0 a 6 anos, por idade e sexo, Censo Demográfico 2022}\label{tab:censo-sidra-populacao-0-6-sexo-2022}\\
-\toprule \textbf{Idade} & \textbf{Homens} & \textbf{Mulheres} & \textbf{Total} \\ \midrule \endfirsthead
-\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Homens} & \textbf{Mulheres} & \textbf{Total} \\ \midrule \endhead
-\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
-\bottomrule \endlastfoot
-1 ano & 28.155 & 27.841 & 55.996 \\
-2 anos & 31.707 & 31.303 & 63.010 \\
-3 anos & 33.798 & 33.003 & 66.801 \\
-4 anos & 35.648 & 34.856 & 70.504 \\
-5 anos & 34.820 & 34.141 & 68.961 \\
-6 anos & 37.794 & 35.963 & 73.757 \\
-Menos de 1 ano & 27.633 & 26.704 & 54.337 \\
-\textbf{Total} & \textbf{2.882.579} & \textbf{3.328.644} & \textbf{6.211.223} \\
-\end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}
-
-
-{\small\setlength{\tabcolsep}{5pt}
-\begin{longtable}{@{}lrrrrrr@{}}
-\caption{População de 0 a 6 anos, por idade e cor ou raça, Censo Demográfico 2022}\label{tab:censo-sidra-populacao-0-6-raca-2022}\\
-\toprule \textbf{Idade} & \textbf{Amarela} & \textbf{Branca} & \textbf{Indígena} & \textbf{Parda} & \textbf{Preta} & \textbf{Total} \\ \midrule \endfirsthead
-\multicolumn{7}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Amarela} & \textbf{Branca} & \textbf{Indígena} & \textbf{Parda} & \textbf{Preta} & \textbf{Total} \\ \midrule \endhead
-\midrule \multicolumn{7}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
-\bottomrule \endlastfoot
-1 ano & 67 & 26.742 & 25 & 22.615 & 6.542 & 55.996 \\
-2 anos & 81 & 29.501 & 19 & 25.892 & 7.517 & 63.010 \\
-3 anos & 81 & 30.184 & 43 & 28.147 & 8.342 & 66.801 \\
-4 anos & 68 & 31.496 & 33 & 29.716 & 9.186 & 70.504 \\
-5 anos & 87 & 29.746 & 38 & 29.837 & 9.252 & 68.961 \\
-6 anos & 97 & 31.345 & 36 & 32.416 & 9.863 & 73.757 \\
-Menos de 1 ano & 66 & 26.909 & 23 & 21.576 & 5.762 & 54.337 \\
-\textbf{Total} & \textbf{10.514} & \textbf{2.821.619} & \textbf{6.531} & \textbf{2.403.895} & \textbf{968.428} & \textbf{6.211.223} \\
-\end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}
-
-
-{\small\setlength{\tabcolsep}{5pt}
-\begin{longtable}{@{}lrrrrrr@{}}
-\caption{Taxa de frequência escolar bruta de 0 a 6 anos (\%), por idade e cor ou raça, Censo Demográfico 2022}\label{tab:sidra-taxa-frequencia-0-6-raca-2022}\\
-\toprule \textbf{Idade} & \textbf{Amarela} & \textbf{Branca} & \textbf{Indígena} & \textbf{Parda} & \textbf{Preta} & \textbf{Total} \\ \midrule \endfirsthead
-\multicolumn{7}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Amarela} & \textbf{Branca} & \textbf{Indígena} & \textbf{Parda} & \textbf{Preta} & \textbf{Total} \\ \midrule \endhead
-\midrule \multicolumn{7}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
-\bottomrule \endlastfoot
-0 ano & 0,0 & 6,7 & 0,0 & 8,9 & 11,3 & 8,0 \\
-1 ano & 0,0 & 29,4 & 100,0 & 29,9 & 33,8 & 30,3 \\
-2 anos & 48,8 & 57,4 & 100,0 & 51,7 & 59,3 & 55,2 \\
-3 anos & 100,0 & 74,3 & 33,4 & 69,5 & 72,0 & 72,0 \\
-4 anos & 100,0 & 84,0 & 100,0 & 82,5 & 80,8 & 82,9 \\
-5 anos & 100,0 & 90,7 & 77,8 & 90,8 & 89,2 & 90,6 \\
-6 anos & 100,0 & 97,2 & 100,0 & 96,9 & 96,8 & 97,0 \\
-\textbf{Total} & \textbf{20,9} & \textbf{24,4} & \textbf{20,1} & \textbf{26,8} & \textbf{24,5} & \textbf{25,3} \\
-\end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}
-
-
-{\small\setlength{\tabcolsep}{5pt}
-\begin{longtable}{@{}lrrr@{}}
-\caption{Taxa de frequência escolar bruta de 0 a 6 anos (\%), por idade e sexo, Censo Demográfico 2022}\label{tab:sidra-taxa-frequencia-0-6-sexo-2022}\\
-\toprule \textbf{Idade} & \textbf{Homens} & \textbf{Mulheres} & \textbf{Total} \\ \midrule \endfirsthead
-\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Homens} & \textbf{Mulheres} & \textbf{Total} \\ \midrule \endhead
-\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
-\bottomrule \endlastfoot
-0 ano & 8,5 & 7,6 & 8,0 \\
-1 ano & 31,1 & 29,5 & 30,3 \\
-2 anos & 56,1 & 54,3 & 55,2 \\
-3 anos & 72,5 & 71,5 & 72,0 \\
-4 anos & 82,5 & 83,3 & 82,9 \\
-5 anos & 91,6 & 89,5 & 90,6 \\
-6 anos & 97,1 & 97,0 & 97,0 \\
-\textbf{Total} & \textbf{26,8} & \textbf{24,1} & \textbf{25,3} \\
-\end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}
-
-
 {\small\setlength{\tabcolsep}{5pt}
 \begin{longtable}{@{}rrrr@{}}
 \caption{Crianças de 0 a 5 anos no CadÚnico em relação à população do município}\label{tab:cadunico-razao-populacao-0-a-5-2026}\\
@@ -770,24 +726,21 @@ Menos de 1 ano & 66 & 26.909 & 23 & 21.576 & 5.762 & 54.337 \\
 \vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ms_ripsa_populacao}; \citeonline{mds_cadunico}.}
 
 
-\begin{landscape}
-{\scriptsize\setlength{\tabcolsep}{3pt}
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{3.6cm}rrrrr@{}}
-\caption{Crianças de 0 a 5 anos e suas famílias no CadÚnico, por sexo}\label{tab:cadunico-por-sexo-2026}\\
-\toprule \textbf{Recorte} & \textbf{Categoria} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Famílias com ao menos uma}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das crianças}} & \textbf{Famílias} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das famílias}} \\ \midrule \endfirsthead
-\multicolumn{7}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Recorte} & \textbf{Categoria} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Famílias com ao menos uma}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das crianças}} & \textbf{Famílias} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das famílias}} \\ \midrule \endhead
-\midrule \multicolumn{7}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+{\small\setlength{\tabcolsep}{5pt}
+\begin{longtable}{@{}rrr@{}}
+\caption{Crianças de 0 a 5 anos e famílias no CadÚnico, por idade}\label{tab:cadunico-por-idade-2026}\\
+\toprule \textbf{Idade} & \textbf{Crianças} & \textbf{Famílias} \\ \midrule \endfirsthead
+\multicolumn{3}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Crianças} & \textbf{Famílias} \\ \midrule \endhead
+\midrule \multicolumn{3}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
 \bottomrule \endlastfoot
-Crianças por sexo & Feminino & 94.778 & 89.463 & 48,8 & -- & -- \\
-Crianças por sexo & Masculino & 99.360 & 93.769 & 51,2 & -- & -- \\
-Crianças por sexo & Total (famílias não somam) & 194.138 & 173.768 & 100,0 & -- & -- \\
-Famílias por sexo das crianças & Só meninas & 84.879 & -- & -- & 79.999 & 46,0 \\
-Famílias por sexo das crianças & Só meninos & 89.490 & -- & -- & 84.305 & 48,5 \\
-Famílias por sexo das crianças & Meninas e meninos & 19.769 & -- & -- & 9.464 & 5,4 \\
-Famílias por sexo das crianças & Total & 194.138 & -- & -- & 173.768 & 100,0 \\
+0 & 11.328 & 11.155 \\
+1 & 27.357 & 26.998 \\
+2 & 33.116 & 32.689 \\
+3 & 37.838 & 37.410 \\
+4 & 41.312 & 40.864 \\
+5 & 43.187 & 42.708 \\
 \end{longtable}}
 \vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}.}
-\end{landscape}
 
 
 \begin{landscape}
@@ -884,78 +837,6 @@ Jardim Sulacap & 206 & 50,0 & 53,4 & 186 & 76,3 &  &  &  &  &  &  \\
 }
 \vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}. Nota: -- indica célula suprimida (menos de 20 famílias ou crianças), conforme a regra de proteção de dados do Cadastro Único.}
 \end{landscape}
-
-
-{\small\setlength{\tabcolsep}{5pt}
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.6cm}rrr@{}}
-\caption{Crianças de 0 a 5 anos no CadÚnico, por raça/cor}\label{tab:cadunico-por-raca-cor-2026}\\
-\toprule \textbf{Raça/cor} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das crianças}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Famílias com ao menos uma}} \\ \midrule \endfirsthead
-\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Raça/cor} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das crianças}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Famílias com ao menos uma}} \\ \midrule \endhead
-\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
-\bottomrule \endlastfoot
-Parda & 103.991 & 53,6 & 96.016 \\
-Branca & 68.200 & 35,1 & 63.845 \\
-Preta & 20.670 & 10,6 & 19.452 \\
-Amarela & 1.208 & 0,6 & 1.193 \\
-Indígena & 69 & 0,0 & 64 \\
-Negra (preta + parda) & 124.661 & 64,2 & 113.754 \\
-\textbf{Total (famílias não somam)} & \textbf{194.138} & \textbf{100,0} & \textbf{173.768} \\
-\end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}.}
-
-
-{\small\setlength{\tabcolsep}{5pt}
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.6cm}rrr@{}}
-\caption{Famílias com crianças de 0 a 5 anos no CadÚnico, por arranjo familiar}\label{tab:cadunico-familias-por-arranjo-2026}\\
-\toprule \textbf{Arranjo familiar} & \textbf{Famílias} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das famílias}} \\ \midrule \endfirsthead
-\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Arranjo familiar} & \textbf{Famílias} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das famílias}} \\ \midrule \endhead
-\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
-\bottomrule \endlastfoot
-Uma adulta (mulher) & 141.051 & 158.437 & 81,2 \\
-Dois adultos (homem e mulher) & 18.168 & 20.042 & 10,5 \\
-Dois adultos (outra composição) & 6.377 & 6.932 & 3,7 \\
-Um adulto (homem) & 3.944 & 4.147 & 2,3 \\
-Três ou mais adultos & 3.515 & 3.834 & 2,0 \\
-Sem adulto (18+) & 713 & 746 & 0,4 \\
-\textbf{Total} & \textbf{173.768} & \textbf{194.138} & \textbf{100,0} \\
-\end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}.}
-
-
-{\small\setlength{\tabcolsep}{5pt}
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.6cm}rrr@{}}
-\caption{Famílias com crianças de 0 a 5 anos no CadÚnico, por arranjo familiar e renda per capita (\% das famílias do arranjo)}\label{tab:cadunico-familias-arranjo-renda-2026}\\
-\toprule \textbf{Arranjo familiar} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Extrema pobreza (até R\$ 218)}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Pobreza/baixa renda (R\$ 218 a 810)}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Acima de 1/2 SM (mais de R\$ 810)}} \\ \midrule \endfirsthead
-\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Arranjo familiar} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Extrema pobreza (até R\$ 218)}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Pobreza/baixa renda (R\$ 218 a 810)}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Acima de 1/2 SM (mais de R\$ 810)}} \\ \midrule \endhead
-\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
-\bottomrule \endlastfoot
-Uma adulta (mulher) & 79,7 & 15,4 & 5,0 \\
-Dois adultos (homem e mulher) & 54,1 & 30,5 & 15,4 \\
-Dois adultos (outra composição) & 66,8 & 26,9 & 6,2 \\
-Um adulto (homem) & 73,3 & 17,9 & 8,8 \\
-Três ou mais adultos & 50,1 & 37,3 & 12,6 \\
-Sem adulto (18+) & 96,2 & 2,8 & 0,0 \\
-\end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}. Nota: -- indica célula suprimida (menos de 20 famílias ou crianças), conforme a regra de proteção de dados do Cadastro Único.}
-
-
-\chapter{Tabelas do eixo Família e Cuidados}\label{ap:eixo-3}
-
-{\small\setlength{\tabcolsep}{5pt}
-\begin{longtable}{@{}rrr@{}}
-\caption{Crianças de 0 a 5 anos e famílias no CadÚnico, por idade}\label{tab:cadunico-por-idade-2026}\\
-\toprule \textbf{Idade} & \textbf{Crianças} & \textbf{Famílias} \\ \midrule \endfirsthead
-\multicolumn{3}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Crianças} & \textbf{Famílias} \\ \midrule \endhead
-\midrule \multicolumn{3}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
-\bottomrule \endlastfoot
-0 & 11.328 & 11.155 \\
-1 & 27.357 & 26.998 \\
-2 & 33.116 & 32.689 \\
-3 & 37.838 & 37.410 \\
-4 & 41.312 & 40.864 \\
-5 & 43.187 & 42.708 \\
-\end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}.}
 
 
 {\renewcommand{\arraystretch}{1.0}
@@ -1168,46 +1049,55 @@ Acima de 2 SM (mais de R\$ 3.242) & 161 & 154 \\
 \vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}.}
 
 
-{\small\setlength{\tabcolsep}{5pt}
-\begin{longtable}{@{}lrll@{}}
-\caption{Frequência escolar (\%) por idade, PNAD Contínua}\label{tab:frequencia-escolar-pnad-por-idade}\\
-\toprule \textbf{Idade} & \textbf{Total} & \textbf{Homens} & \textbf{Mulheres} \\ \midrule \endfirsthead
-\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Total} & \textbf{Homens} & \textbf{Mulheres} \\ \midrule \endhead
-\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
-\bottomrule \endlastfoot
-0 ano & 0,1 & 8,5 & 7,57 \\
-1 ano & 0,3 & 31,1 & 29,46 \\
-2 anos & 0,6 & 56,09 & 54,33 \\
-3 anos & 0,7 & 72,49 & 71,47 \\
-4 anos & 0,8 & 82,51 & 83,35 \\
-5 anos & 0,9 & 91,56 & 89,49 \\
-\end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_pnadc}.}
-
-
 \begin{landscape}
 {\scriptsize\setlength{\tabcolsep}{3pt}
-\begin{longtable}{@{}rrrrrrrrrrrr@{}}
-\caption{Cobertura vacinal (\%) por imunobiológico, 2016-2026}\label{tab:cobertura-vacinal-epi-por-ano}\\
-\toprule \textbf{Ano} & \textbf{BCG} & \textbf{DTP 1ºREF} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{FEBRE AMARELA}} & \textbf{HEPATITE A} & \textbf{MENINGO C} & \textbf{PNEUMO 10} & \textbf{POLIOMIELITE} & \textbf{ROTAVÍRUS} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{TRÍPLICE VIRAL D1}} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{TRÍPLICE VIRAL D2}} & \textbf{VARICELA} \\ \midrule \endfirsthead
-\multicolumn{12}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Ano} & \textbf{BCG} & \textbf{DTP 1ºREF} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{FEBRE AMARELA}} & \textbf{HEPATITE A} & \textbf{MENINGO C} & \textbf{PNEUMO 10} & \textbf{POLIOMIELITE} & \textbf{ROTAVÍRUS} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{TRÍPLICE VIRAL D1}} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{TRÍPLICE VIRAL D2}} & \textbf{VARICELA} \\ \midrule \endhead
-\midrule \multicolumn{12}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{3.6cm}rrrrr@{}}
+\caption{Crianças de 0 a 5 anos e suas famílias no CadÚnico, por sexo}\label{tab:cadunico-por-sexo-2026}\\
+\toprule \textbf{Recorte} & \textbf{Categoria} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Famílias com ao menos uma}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das crianças}} & \textbf{Famílias} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das famílias}} \\ \midrule \endfirsthead
+\multicolumn{7}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Recorte} & \textbf{Categoria} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Famílias com ao menos uma}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das crianças}} & \textbf{Famílias} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das famílias}} \\ \midrule \endhead
+\midrule \multicolumn{7}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
 \bottomrule \endlastfoot
-2016 & 110,3 & 79,5 & 0,0 & 73,3 & 103,0 & 119,8 & 101,2 & 99,2 & 105,5 & 79,4 & 79,4 \\
-2017 & 128,1 & 85,1 & 0,0 & 92,3 & 97,3 & 107,8 & 103,8 & 96,2 & 102,9 & 80,1 & 89,7 \\
-2018 & 114,2 & 61,5 & 52,5 & 91,2 & 97,3 & 101,3 & 98,7 & 99,4 & 105,6 & 76,1 & 79,1 \\
-2019 & 78,8 & 47,4 & 69,0 & 83,4 & 80,6 & 82,7 & 78,7 & 78,4 & 100,4 & 81,3 & 83,5 \\
-2020 & 81,0 & 77,4 & 60,1 & 75,0 & 76,3 & 80,0 & 76,4 & 76,9 & 81,5 & 54,0 & 93,8 \\
-2021 & 70,7 & 71,1 & 65,3 & 74,1 & 74,7 & 77,5 & 75,5 & 81,9 & 79,0 & 54,2 & 95,1 \\
-2022 & 103,4 & 59,9 & 54,6 & 69,1 & 67,2 & 68,6 & 66,8 & 65,8 & 79,0 & 70,7 & 76,5 \\
-2023 & 121,3 & 77,2 & 72,7 & 92,7 & 92,2 & 92,4 & 91,5 & 91,0 & 96,7 & 66,7 & 90,2 \\
-2024 & 101,4 & 88,4 & 76,9 & 93,7 & 94,7 & 95,7 & 95,3 & 93,8 & 94,8 & 80,4 & 81,5 \\
-2025 & 108,6 & 88,1 & 80,2 & 83,9 & 94,7 & 96,3 & 93,6 & 95,4 & 102,3 & 85,7 & 87,4 \\
-2026 & 99,5 & 73,7 & 74,6 & 77,8 & 84,8 & 86,2 & 84,8 & 85,7 & 89,1 & 74,7 & 78,6 \\
+Crianças por sexo & Feminino & 94.778 & 89.463 & 48,8 & -- & -- \\
+Crianças por sexo & Masculino & 99.360 & 93.769 & 51,2 & -- & -- \\
+Crianças por sexo & Total (famílias não somam) & 194.138 & 173.768 & 100,0 & -- & -- \\
+Famílias por sexo das crianças & Só meninas & 84.879 & -- & -- & 79.999 & 46,0 \\
+Famílias por sexo das crianças & Só meninos & 89.490 & -- & -- & 84.305 & 48,5 \\
+Famílias por sexo das crianças & Meninas e meninos & 19.769 & -- & -- & 9.464 & 5,4 \\
+Famílias por sexo das crianças & Total & 194.138 & -- & -- & 173.768 & 100,0 \\
 \end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{sms_rio_epi_vacinal}.}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}.}
 \end{landscape}
 
+
+{\small\setlength{\tabcolsep}{5pt}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.6cm}rrr@{}}
+\caption{Crianças de 0 a 5 anos no CadÚnico, por raça/cor}\label{tab:cadunico-por-raca-cor-2026}\\
+\toprule \textbf{Raça/cor} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das crianças}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Famílias com ao menos uma}} \\ \midrule \endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Raça/cor} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das crianças}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Famílias com ao menos uma}} \\ \midrule \endhead
+\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\bottomrule \endlastfoot
+Parda & 103.991 & 53,6 & 96.016 \\
+Branca & 68.200 & 35,1 & 63.845 \\
+Preta & 20.670 & 10,6 & 19.452 \\
+Amarela & 1.208 & 0,6 & 1.193 \\
+Indígena & 69 & 0,0 & 64 \\
+Negra (preta + parda) & 124.661 & 64,2 & 113.754 \\
+\textbf{Total (famílias não somam)} & \textbf{194.138} & \textbf{100,0} & \textbf{173.768} \\
+\end{longtable}}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}.}
+
+
+\section*{Tabelas disponíveis em formato digital}
+
+{\raggedright As tabelas abaixo têm mais de 200 linhas e não são impressas; estão em \texttt{tabelas\_finais/} no repositório do projeto.\par}
+
+\begin{itemize}\raggedright\item \texttt{mortalidade\_\allowbreak{}evitaveis\_\allowbreak{}cap\_\allowbreak{}faixa\_\allowbreak{}ano.csv} --- Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias) (4.200 linhas)\item \texttt{mortalidade\_\allowbreak{}evitaveis\_\allowbreak{}grupo\_\allowbreak{}cap\_\allowbreak{}faixa\_\allowbreak{}ano.csv} --- Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10) (600 linhas)\end{itemize}
+
+\chapter{Tabelas do eixo Inclusão}\label{ap:eixo-2}
+
+Este eixo não tem tabelas de dados nesta edição.
+
+\chapter{Tabelas do eixo Família e Cuidados}\label{ap:eixo-3}
 
 {\small\setlength{\tabcolsep}{5pt}
 \begin{longtable}{@{}lr@{}}
@@ -1224,6 +1114,61 @@ Acima de 2 SM (mais de R\$ 3.242) & 161 & 154 \\
 5 anos & 66.163 \\
 \end{longtable}}
 \vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}
+
+
+{\small\setlength{\tabcolsep}{5pt}
+\begin{longtable}{@{}lrrrrrr@{}}
+\caption{Taxa de frequência escolar bruta de 0 a 6 anos (\%), por idade e cor ou raça, Censo Demográfico 2022}\label{tab:sidra-taxa-frequencia-0-6-raca-2022}\\
+\toprule \textbf{Idade} & \textbf{Amarela} & \textbf{Branca} & \textbf{Indígena} & \textbf{Parda} & \textbf{Preta} & \textbf{Total} \\ \midrule \endfirsthead
+\multicolumn{7}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Amarela} & \textbf{Branca} & \textbf{Indígena} & \textbf{Parda} & \textbf{Preta} & \textbf{Total} \\ \midrule \endhead
+\midrule \multicolumn{7}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\bottomrule \endlastfoot
+0 ano & 0,0 & 6,7 & 0,0 & 8,9 & 11,3 & 8,0 \\
+1 ano & 0,0 & 29,4 & 100,0 & 29,9 & 33,8 & 30,3 \\
+2 anos & 48,8 & 57,4 & 100,0 & 51,7 & 59,3 & 55,2 \\
+3 anos & 100,0 & 74,3 & 33,4 & 69,5 & 72,0 & 72,0 \\
+4 anos & 100,0 & 84,0 & 100,0 & 82,5 & 80,8 & 82,9 \\
+5 anos & 100,0 & 90,7 & 77,8 & 90,8 & 89,2 & 90,6 \\
+6 anos & 100,0 & 97,2 & 100,0 & 96,9 & 96,8 & 97,0 \\
+\textbf{Total} & \textbf{20,9} & \textbf{24,4} & \textbf{20,1} & \textbf{26,8} & \textbf{24,5} & \textbf{25,3} \\
+\end{longtable}}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}
+
+
+{\small\setlength{\tabcolsep}{5pt}
+\begin{longtable}{@{}lrrr@{}}
+\caption{Taxa de frequência escolar bruta de 0 a 6 anos (\%), por idade e sexo, Censo Demográfico 2022}\label{tab:sidra-taxa-frequencia-0-6-sexo-2022}\\
+\toprule \textbf{Idade} & \textbf{Homens} & \textbf{Mulheres} & \textbf{Total} \\ \midrule \endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Homens} & \textbf{Mulheres} & \textbf{Total} \\ \midrule \endhead
+\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\bottomrule \endlastfoot
+0 ano & 8,5 & 7,6 & 8,0 \\
+1 ano & 31,1 & 29,5 & 30,3 \\
+2 anos & 56,1 & 54,3 & 55,2 \\
+3 anos & 72,5 & 71,5 & 72,0 \\
+4 anos & 82,5 & 83,3 & 82,9 \\
+5 anos & 91,6 & 89,5 & 90,6 \\
+6 anos & 97,1 & 97,0 & 97,0 \\
+\textbf{Total} & \textbf{26,8} & \textbf{24,1} & \textbf{25,3} \\
+\end{longtable}}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}
+
+
+{\small\setlength{\tabcolsep}{5pt}
+\begin{longtable}{@{}lrll@{}}
+\caption{Frequência escolar (\%) por idade, PNAD Contínua}\label{tab:frequencia-escolar-pnad-por-idade}\\
+\toprule \textbf{Idade} & \textbf{Total} & \textbf{Homens} & \textbf{Mulheres} \\ \midrule \endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Idade} & \textbf{Total} & \textbf{Homens} & \textbf{Mulheres} \\ \midrule \endhead
+\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\bottomrule \endlastfoot
+0 ano & 0,1 & 8,5 & 7,57 \\
+1 ano & 0,3 & 31,1 & 29,46 \\
+2 anos & 0,6 & 56,09 & 54,33 \\
+3 anos & 0,7 & 72,49 & 71,47 \\
+4 anos & 0,8 & 82,51 & 83,35 \\
+5 anos & 0,9 & 91,56 & 89,49 \\
+\end{longtable}}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ibge_pnadc}.}
 
 
 \begin{landscape}
@@ -1258,50 +1203,66 @@ Acima de 2 SM (mais de R\$ 3.242) & 161 & 154 \\
 \end{landscape}
 
 
-\chapter{Tabelas do eixo Proteção}\label{ap:eixo-4}
+\begin{landscape}
+{\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}rrrrrrrrrrrr@{}}
+\caption{Cobertura vacinal (\%) por imunobiológico, 2016-2026}\label{tab:cobertura-vacinal-epi-por-ano}\\
+\toprule \textbf{Ano} & \textbf{BCG} & \textbf{DTP 1ºREF} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{FEBRE AMARELA}} & \textbf{HEPATITE A} & \textbf{MENINGO C} & \textbf{PNEUMO 10} & \textbf{POLIOMIELITE} & \textbf{ROTAVÍRUS} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{TRÍPLICE VIRAL D1}} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{TRÍPLICE VIRAL D2}} & \textbf{VARICELA} \\ \midrule \endfirsthead
+\multicolumn{12}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Ano} & \textbf{BCG} & \textbf{DTP 1ºREF} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{FEBRE AMARELA}} & \textbf{HEPATITE A} & \textbf{MENINGO C} & \textbf{PNEUMO 10} & \textbf{POLIOMIELITE} & \textbf{ROTAVÍRUS} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{TRÍPLICE VIRAL D1}} & \parbox[b]{1.65cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{TRÍPLICE VIRAL D2}} & \textbf{VARICELA} \\ \midrule \endhead
+\midrule \multicolumn{12}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\bottomrule \endlastfoot
+2016 & 110,3 & 79,5 & 0,0 & 73,3 & 103,0 & 119,8 & 101,2 & 99,2 & 105,5 & 79,4 & 79,4 \\
+2017 & 128,1 & 85,1 & 0,0 & 92,3 & 97,3 & 107,8 & 103,8 & 96,2 & 102,9 & 80,1 & 89,7 \\
+2018 & 114,2 & 61,5 & 52,5 & 91,2 & 97,3 & 101,3 & 98,7 & 99,4 & 105,6 & 76,1 & 79,1 \\
+2019 & 78,8 & 47,4 & 69,0 & 83,4 & 80,6 & 82,7 & 78,7 & 78,4 & 100,4 & 81,3 & 83,5 \\
+2020 & 81,0 & 77,4 & 60,1 & 75,0 & 76,3 & 80,0 & 76,4 & 76,9 & 81,5 & 54,0 & 93,8 \\
+2021 & 70,7 & 71,1 & 65,3 & 74,1 & 74,7 & 77,5 & 75,5 & 81,9 & 79,0 & 54,2 & 95,1 \\
+2022 & 103,4 & 59,9 & 54,6 & 69,1 & 67,2 & 68,6 & 66,8 & 65,8 & 79,0 & 70,7 & 76,5 \\
+2023 & 121,3 & 77,2 & 72,7 & 92,7 & 92,2 & 92,4 & 91,5 & 91,0 & 96,7 & 66,7 & 90,2 \\
+2024 & 101,4 & 88,4 & 76,9 & 93,7 & 94,7 & 95,7 & 95,3 & 93,8 & 94,8 & 80,4 & 81,5 \\
+2025 & 108,6 & 88,1 & 80,2 & 83,9 & 94,7 & 96,3 & 93,6 & 95,4 & 102,3 & 85,7 & 87,4 \\
+2026 & 99,5 & 73,7 & 74,6 & 77,8 & 84,8 & 86,2 & 84,8 & 85,7 & 89,1 & 74,7 & 78,6 \\
+\end{longtable}}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{sms_rio_epi_vacinal}.}
+\end{landscape}
+
 
 {\small\setlength{\tabcolsep}{5pt}
-\begin{longtable}{@{}lrrr@{}}
-\caption{Indicadores de violência territorial por Região Administrativa, IPS 2024}\label{tab:tabela-mapa-violencia-territorial-ra-2024}\\
-\toprule \textbf{Região Administrativa} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Taxa de homicídios}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Homicídios por ação policial}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Homicídios de jovens negros}} \\ \midrule \endfirsthead
-\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Região Administrativa} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Taxa de homicídios}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Homicídios por ação policial}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Homicídios de jovens negros}} \\ \midrule \endhead
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.6cm}rrr@{}}
+\caption{Famílias com crianças de 0 a 5 anos no CadÚnico, por arranjo familiar}\label{tab:cadunico-familias-por-arranjo-2026}\\
+\toprule \textbf{Arranjo familiar} & \textbf{Famílias} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das famílias}} \\ \midrule \endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Arranjo familiar} & \textbf{Famílias} & \textbf{Crianças} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{\% das famílias}} \\ \midrule \endhead
 \midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
 \bottomrule \endlastfoot
-PORTUARIA & 19,0 & 8,4 & 4,2 \\
-CENTRO & 76,3 & 9,2 & 6,1 \\
-RIO COMPRIDO & 18,7 & 6,2 & 3,7 \\
-BOTAFOGO & 4,2 & 0,5 & 0,5 \\
-COPACABANA & 5,7 & 0,0 & 0,7 \\
-LAGOA & 4,7 & 1,3 & 0,7 \\
-SAO CRISTOVAO & 19,5 & 2,4 & 4,9 \\
-TIJUCA & 4,4 & 1,3 & 0,0 \\
-VILA ISABEL & 8,3 & 0,6 & 0,6 \\
-RAMOS & 16,7 & 7,6 & 3,0 \\
-PENHA & 27,8 & 15,0 & 5,7 \\
-INHAUMA & 23,4 & 4,8 & 4,0 \\
-MEIER & 12,2 & 9,0 & 3,1 \\
-IRAJA & 22,5 & 12,9 & 5,6 \\
-MADUREIRA & 33,5 & 11,5 & 9,2 \\
-JACAREPAGUA & 24,2 & 11,4 & 4,4 \\
-BANGU & 15,4 & 11,1 & 3,5 \\
-CAMPO GRANDE & 6,7 & 0,5 & 1,3 \\
-SANTA CRUZ & 17,9 & 0,7 & 2,4 \\
-ILHA DO GOVERNADOR & 11,4 & 1,1 & 3,2 \\
-ANCHIETA & 20,3 & 2,8 & 3,5 \\
-SANTA TEREZA & 5,5 & 0,0 & 0,0 \\
-BARRA DA TIJUCA & 20,5 & 5,6 & 5,8 \\
-PAVUNA & 29,5 & 10,2 & 6,8 \\
-GUARATIBA & 16,4 & 1,1 & 4,0 \\
-ROCINHA & 2,8 & 0,0 & 1,4 \\
-JACAREZINHO & 8,5 & 2,8 & 2,8 \\
-COMPLEXO DO ALEMÃO & 3,7 & 0,0 & 1,8 \\
-COMPLEXO DA MARE & 4,8 & 2,4 & 0,8 \\
-VIGARIO GERAL & 12,5 & 6,3 & 0,9 \\
-REALENGO & 23,4 & 7,5 & 5,3 \\
-CIDADE DE DEUS & 22,9 & 19,6 & 6,5 \\
+Uma adulta (mulher) & 141.051 & 158.437 & 81,2 \\
+Dois adultos (homem e mulher) & 18.168 & 20.042 & 10,5 \\
+Dois adultos (outra composição) & 6.377 & 6.932 & 3,7 \\
+Um adulto (homem) & 3.944 & 4.147 & 2,3 \\
+Três ou mais adultos & 3.515 & 3.834 & 2,0 \\
+Sem adulto (18+) & 713 & 746 & 0,4 \\
+\textbf{Total} & \textbf{173.768} & \textbf{194.138} & \textbf{100,0} \\
 \end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ipp_ips2024}.}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}.}
 
+
+{\small\setlength{\tabcolsep}{5pt}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{3.6cm}rrr@{}}
+\caption{Famílias com crianças de 0 a 5 anos no CadÚnico, por arranjo familiar e renda per capita (\% das famílias do arranjo)}\label{tab:cadunico-familias-arranjo-renda-2026}\\
+\toprule \textbf{Arranjo familiar} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Extrema pobreza (até R\$ 218)}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Pobreza/baixa renda (R\$ 218 a 810)}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Acima de 1/2 SM (mais de R\$ 810)}} \\ \midrule \endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Arranjo familiar} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Extrema pobreza (até R\$ 218)}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Pobreza/baixa renda (R\$ 218 a 810)}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Acima de 1/2 SM (mais de R\$ 810)}} \\ \midrule \endhead
+\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\bottomrule \endlastfoot
+Uma adulta (mulher) & 79,7 & 15,4 & 5,0 \\
+Dois adultos (homem e mulher) & 54,1 & 30,5 & 15,4 \\
+Dois adultos (outra composição) & 66,8 & 26,9 & 6,2 \\
+Um adulto (homem) & 73,3 & 17,9 & 8,8 \\
+Três ou mais adultos & 50,1 & 37,3 & 12,6 \\
+Sem adulto (18+) & 96,2 & 2,8 & 0,0 \\
+\end{longtable}}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{mds_cadunico}. Nota: -- indica célula suprimida (menos de 20 famílias ou crianças), conforme a regra de proteção de dados do Cadastro Único.}
+
+
+\chapter{Tabelas do eixo Proteção}\label{ap:eixo-4}
 
 \begin{landscape}
 {\scriptsize\setlength{\tabcolsep}{3pt}
@@ -1327,7 +1288,35 @@ CIDADE DE DEUS & 22,9 & 19,6 & 6,5 \\
 2024 & 1.515 & 1.105 & 63 & 27 & 0 & 0 & 0 & 90 \\
 2025 & 1.756 & 1.404 & 73 & 26 & 5 & 3 & 3 & 110 \\
 \end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{sms_rio_sinan}.}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ipp_datario_censo}; \citeonline{ms_ripsa_populacao}; \citeonline{sms_rio_sinan}.}
+\end{landscape}
+
+
+\begin{landscape}
+{\scriptsize\setlength{\tabcolsep}{3pt}
+\begin{longtable}{@{}rrrrrrrr@{}}
+\caption{Notificações de violência familiar por mil crianças de 0 a 5 anos, por vínculo, 2011-2025}\label{tab:violencia-familiar-taxa-municipio-ano}\\
+\toprule \textbf{Ano} & \textbf{Mãe} & \textbf{Pai} & \textbf{Outros} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{População 0-5 (Ripsa)}} & \textbf{Taxa mãe (‰)} & \textbf{Taxa pai (‰)} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Taxa outros (‰)}} \\ \midrule \endfirsthead
+\multicolumn{8}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Ano} & \textbf{Mãe} & \textbf{Pai} & \textbf{Outros} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{População 0-5 (Ripsa)}} & \textbf{Taxa mãe (‰)} & \textbf{Taxa pai (‰)} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Taxa outros (‰)}} \\ \midrule \endhead
+\midrule \multicolumn{8}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\bottomrule \endlastfoot
+2011 & 324 & 135 & 22 & 480.648 & 0,7 & 0,3 & 0,0 \\
+2012 & 464 & 188 & 26 & 480.542 & 1,0 & 0,4 & 0,1 \\
+2013 & 429 & 222 & 49 & 481.834 & 0,9 & 0,5 & 0,1 \\
+2014 & 564 & 246 & 32 & 485.451 & 1,2 & 0,5 & 0,1 \\
+2015 & 452 & 234 & 37 & 491.681 & 0,9 & 0,5 & 0,1 \\
+2016 & 600 & 371 & 48 & 495.313 & 1,2 & 0,7 & 0,1 \\
+2017 & 1.514 & 1.261 & 72 & 494.645 & 3,1 & 2,5 & 0,1 \\
+2018 & 1.265 & 954 & 114 & 491.868 & 2,6 & 1,9 & 0,2 \\
+2019 & 868 & 522 & 75 & 485.805 & 1,8 & 1,1 & 0,2 \\
+2020 & 734 & 464 & 52 & 474.322 & 1,5 & 1,0 & 0,1 \\
+2021 & 805 & 581 & 86 & 457.280 & 1,8 & 1,3 & 0,2 \\
+2022 & 1.359 & 1.003 & 80 & 439.907 & 3,1 & 2,3 & 0,2 \\
+2023 & 1.469 & 1.068 & 82 & 423.739 & 3,5 & 2,5 & 0,2 \\
+2024 & 1.515 & 1.105 & 90 & 407.537 & 3,7 & 2,7 & 0,2 \\
+2025 & 1.756 & 1.404 & 110 & 393.073 & 4,5 & 3,6 & 0,3 \\
+\end{longtable}}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ipp_datario_censo}; \citeonline{ms_ripsa_populacao}; \citeonline{sms_rio_sinan}.}
 \end{landscape}
 
 
@@ -1424,7 +1413,7 @@ Jardim Carioca & 2 & 1 & 2 & Vista Alegre & 7 & 6 & 2 \\
 Jardim Guanabara & 2 & 2 & 0 & Zumbi & 25 & 18 & 0 \\
 \end{longtable}}
 }
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ipp_datario_censo}; \citeonline{ms_ripsa_populacao}; \citeonline{sms_rio_sinan}.}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ipp_datario_censo}; \citeonline{sms_rio_sinan}.}
 
 
 {\renewcommand{\arraystretch}{1.0}
@@ -1523,35 +1512,52 @@ Jardim Guanabara & 0 & Zumbi & 1 \\
 \vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{sms_rio_sinan}.}
 
 
-\begin{landscape}
-{\scriptsize\setlength{\tabcolsep}{3pt}
-\begin{longtable}{@{}rrrrrrrr@{}}
-\caption{Notificações de violência familiar por mil crianças de 0 a 5 anos, por vínculo, 2011-2025}\label{tab:violencia-familiar-taxa-municipio-ano}\\
-\toprule \textbf{Ano} & \textbf{Mãe} & \textbf{Pai} & \textbf{Outros} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{População 0-5 (Ripsa)}} & \textbf{Taxa mãe (‰)} & \textbf{Taxa pai (‰)} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Taxa outros (‰)}} \\ \midrule \endfirsthead
-\multicolumn{8}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Ano} & \textbf{Mãe} & \textbf{Pai} & \textbf{Outros} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{População 0-5 (Ripsa)}} & \textbf{Taxa mãe (‰)} & \textbf{Taxa pai (‰)} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Taxa outros (‰)}} \\ \midrule \endhead
-\midrule \multicolumn{8}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
+\chapter{Tabelas do eixo Direito ao Brincar}\label{ap:eixo-5}
+
+{\small\setlength{\tabcolsep}{5pt}
+\begin{longtable}{@{}lrrr@{}}
+\caption{Indicadores de violência territorial por Região Administrativa, IPS 2024}\label{tab:tabela-mapa-violencia-territorial-ra-2024}\\
+\toprule \textbf{Região Administrativa} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Taxa de homicídios}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Homicídios por ação policial}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Homicídios de jovens negros}} \\ \midrule \endfirsthead
+\multicolumn{4}{@{}l}{\footnotesize\itshape (continuação)}\\ \toprule \textbf{Região Administrativa} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Taxa de homicídios}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Homicídios por ação policial}} & \parbox[b]{2.20cm}{\raggedleft\hyphenpenalty=10000\exhyphenpenalty=10000 \textbf{Homicídios de jovens negros}} \\ \midrule \endhead
+\midrule \multicolumn{4}{r@{}}{\footnotesize\itshape (continua)}\\ \endfoot
 \bottomrule \endlastfoot
-2011 & 324 & 135 & 22 & 480.648 & 0,7 & 0,3 & 0,0 \\
-2012 & 464 & 188 & 26 & 480.542 & 1,0 & 0,4 & 0,1 \\
-2013 & 429 & 222 & 49 & 481.834 & 0,9 & 0,5 & 0,1 \\
-2014 & 564 & 246 & 32 & 485.451 & 1,2 & 0,5 & 0,1 \\
-2015 & 452 & 234 & 37 & 491.681 & 0,9 & 0,5 & 0,1 \\
-2016 & 600 & 371 & 48 & 495.313 & 1,2 & 0,7 & 0,1 \\
-2017 & 1.514 & 1.261 & 72 & 494.645 & 3,1 & 2,5 & 0,1 \\
-2018 & 1.265 & 954 & 114 & 491.868 & 2,6 & 1,9 & 0,2 \\
-2019 & 868 & 522 & 75 & 485.805 & 1,8 & 1,1 & 0,2 \\
-2020 & 734 & 464 & 52 & 474.322 & 1,5 & 1,0 & 0,1 \\
-2021 & 805 & 581 & 86 & 457.280 & 1,8 & 1,3 & 0,2 \\
-2022 & 1.359 & 1.003 & 80 & 439.907 & 3,1 & 2,3 & 0,2 \\
-2023 & 1.469 & 1.068 & 82 & 423.739 & 3,5 & 2,5 & 0,2 \\
-2024 & 1.515 & 1.105 & 90 & 407.537 & 3,7 & 2,7 & 0,2 \\
-2025 & 1.756 & 1.404 & 110 & 393.073 & 4,5 & 3,6 & 0,3 \\
+PORTUARIA & 19,0 & 8,4 & 4,2 \\
+CENTRO & 76,3 & 9,2 & 6,1 \\
+RIO COMPRIDO & 18,7 & 6,2 & 3,7 \\
+BOTAFOGO & 4,2 & 0,5 & 0,5 \\
+COPACABANA & 5,7 & 0,0 & 0,7 \\
+LAGOA & 4,7 & 1,3 & 0,7 \\
+SAO CRISTOVAO & 19,5 & 2,4 & 4,9 \\
+TIJUCA & 4,4 & 1,3 & 0,0 \\
+VILA ISABEL & 8,3 & 0,6 & 0,6 \\
+RAMOS & 16,7 & 7,6 & 3,0 \\
+PENHA & 27,8 & 15,0 & 5,7 \\
+INHAUMA & 23,4 & 4,8 & 4,0 \\
+MEIER & 12,2 & 9,0 & 3,1 \\
+IRAJA & 22,5 & 12,9 & 5,6 \\
+MADUREIRA & 33,5 & 11,5 & 9,2 \\
+JACAREPAGUA & 24,2 & 11,4 & 4,4 \\
+BANGU & 15,4 & 11,1 & 3,5 \\
+CAMPO GRANDE & 6,7 & 0,5 & 1,3 \\
+SANTA CRUZ & 17,9 & 0,7 & 2,4 \\
+ILHA DO GOVERNADOR & 11,4 & 1,1 & 3,2 \\
+ANCHIETA & 20,3 & 2,8 & 3,5 \\
+SANTA TEREZA & 5,5 & 0,0 & 0,0 \\
+BARRA DA TIJUCA & 20,5 & 5,6 & 5,8 \\
+PAVUNA & 29,5 & 10,2 & 6,8 \\
+GUARATIBA & 16,4 & 1,1 & 4,0 \\
+ROCINHA & 2,8 & 0,0 & 1,4 \\
+JACAREZINHO & 8,5 & 2,8 & 2,8 \\
+COMPLEXO DO ALEMÃO & 3,7 & 0,0 & 1,8 \\
+COMPLEXO DA MARE & 4,8 & 2,4 & 0,8 \\
+VIGARIO GERAL & 12,5 & 6,3 & 0,9 \\
+REALENGO & 23,4 & 7,5 & 5,3 \\
+CIDADE DE DEUS & 22,9 & 19,6 & 6,5 \\
 \end{longtable}}
-\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ipp_datario_censo}; \citeonline{ms_ripsa_populacao}; \citeonline{sms_rio_sinan}.}
-\end{landscape}
+\vspace{-6pt}\fonte{Elaboração IPP com dados de \citeonline{ipp_ips2024}.}
 
 
-\chapter{Tabelas do eixo Alimentação}\label{ap:eixo-5}
+\chapter{Tabelas do eixo Alimentação}\label{ap:eixo-6}
 
 {\small\setlength{\tabcolsep}{5pt}
 \begin{longtable}{@{}rrr@{}}
@@ -1646,7 +1652,7 @@ Jardim Guanabara & 0 & Zumbi & 1 \\
 \end{landscape}
 
 
-\chapter{Tabelas do eixo Moradia}\label{ap:eixo-6}
+\chapter{Tabelas do eixo Moradia}\label{ap:eixo-7}
 
 Este eixo não tem tabelas de dados nesta edição.
 

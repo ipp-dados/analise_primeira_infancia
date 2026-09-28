@@ -510,6 +510,16 @@ removido do git). Detalhes, medições e validação em `specs/2026-09-24_websit
   mouse); alvos de 44 px; banner compacto com GitHub e PDF lado a lado (rótulo curto).
 - Faixa "EM DESENVOLVIMENTO" controlada por `relatorio/publicacao.json`, a mesma chave da marca d'água do PDF.
 
+### v11 — nova estrutura: panorama na Visão geral e 7º eixo (`specs/2026-09-28_nova_estrutura`)
+
+- Visão geral = Introdução + **Panorama da primeira infância carioca** (Censo 0-4, Ripsa 0-6, Censo 2022 por sexo e
+  raça/cor, e um cartão novo "Nascidos vivos" com a série e o mapa tirados dos cartões de mortalidade) + grade de 7 eixos.
+  O panorama é o `h2(..., panorama=True)`: não vira aba nem conta como eixo.
+- Aba nova **Direito ao Brincar** (violência territorial); Prioridade recebe o CadÚnico, Família e Cuidados recebe a
+  frequência escolar por raça/cor e sexo e o arranjo familiar; Inclusão fica com os 3 pendentes de deficiência.
+- Nenhum cartão, seed ou id removido (inventário antes × depois); links antigos cujo cartão mudou de aba abrem a aba
+  certa (`js/navigation.js`). 8 abas: abaixo de 1280 px, "Família" e "Brincar" como rótulo curto.
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |

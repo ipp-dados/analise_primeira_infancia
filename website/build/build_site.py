@@ -163,10 +163,17 @@ section_starts = []  # (index_in_parts, title, sid) -- 1 per h2, used to wrap se
 
 _FONTES_SECAO = {}   # sid do h2 -> fontes citadas pelos cartões da seção, em ordem, sem repetição
 
-def h2(t):
+_PANORAMA_SID = None   # sid da seção de panorama (specs/2026-09-28_nova_estrutura): vai para a Visão geral, não vira aba
+
+def h2(t, panorama=False):
     # specs/2026-09-24_website_refactor: cada h2 vira um painel de aba (id = sid, igual ao id antigo do h2,
     # para links já compartilhados continuarem valendo); o emoji do título sai (ícone SVG no lugar).
+    # panorama=True (specs/2026-09-28_nova_estrutura): a seção é a Introdução/panorama -- o ASSEMBLE a põe no painel
+    # Visão geral, fora da numeração dos eixos.
+    global _PANORAMA_SID
     sid = slugify(t)
+    if panorama:
+        _PANORAMA_SID = sid
     titulo = re.sub(r"^[^\w(]+", "", t).strip()
     toc.append((2, titulo, sid))
     section_starts.append((len(parts), titulo, sid))
@@ -254,12 +261,13 @@ def callout(tipo, icone_nome, rotulo, corpo_html, extra=""):
 
 def h3(t, antigo=None):
     """`antigo`: id de um título anterior (renomeado na revisão de 2026-09-25) -- vira uma âncora vazia antes do
-    h3, para links já compartilhados (#painel/<antigo> ou #<antigo>) continuarem chegando aqui."""
+    h3, para links já compartilhados (#painel/<antigo> ou #<antigo>) continuarem chegando aqui. Pode ser uma lista
+    (specs/2026-09-28_nova_estrutura: cartão renomeado de novo guarda os dois ids anteriores)."""
     sid = slugify(t)
     toc.append((3, t, sid))
-    if antigo:
-        _slugs.add(antigo)
-        parts.append(f'<span id="{antigo}" class="ancora-antiga"></span>')
+    for _ant in ([antigo] if isinstance(antigo, str) else antigo or []):
+        _slugs.add(_ant)
+        parts.append(f'<span id="{_ant}" class="ancora-antiga"></span>')
     parts.append(f'<h3 id="{sid}">{t}</h3>')
 
 def h4(t): parts.append(f"<h4>{t}</h4>")
@@ -1192,11 +1200,11 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
 # specs/2026-09-22_ajuste_eixos §7), que vai para o painel Visão geral.
 INTRO_HTML = _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 150)
 
-# ============================================================== PRIORIDADE ==
+# ============================================================== INTRODUÇÃO ==
 
-# título sem o "(sem secundário)" (pedido do usuário, 2026-09-24): id do painel vira "prioridade";
-# o id antigo continua abrindo a aba via data-alias (links já compartilhados)
-h2('🎯 Prioridade')
+# specs/2026-09-28_nova_estrutura: panorama da primeira infância carioca (população e nascimentos). Não é eixo:
+# h2(..., panorama=True) não vira aba -- o corpo vai para o painel Visão geral no ASSEMBLE.
+h2('🧭 Panorama da primeira infância carioca', panorama=True)
 
 h3('Bairros com mais crianças de 0 a 4 anos (Censo 2022)', antigo='por-bairro')
 df_censo_bairro = read("censo_por_bairro.csv")
@@ -1285,6 +1293,22 @@ option_card([
         opts={'height': 200, 'maxXLabels': 8, 'table': True}, fonte=FONTE_RIPSA, unidade="% da população do município"), "populacao_ripsa_0_a_6_percentual_por_ano"),
 ], 'grafico')
 
+h3('Crianças de 0 a 6 anos por idade, raça/cor e sexo (Censo 2022)', antigo='população-0-6-por-idaderaçasexo-ibge-sidra-2022')
+FONTE_SIDRA_CENSO = "Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)"
+_ORDEM_IDADE_SIDRA_0_6 = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
+
+def _ordenar_idade(df, ordem):
+    return df[df["idade"].isin(ordem)].set_index("idade").reindex(ordem).reset_index()
+
+df_censo_raca = _ordenar_idade(read("censo_sidra_populacao_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
+raca_cols = [c for c in df_censo_raca.columns if c not in ("idade", "Total")]
+df_censo_sexo = _ordenar_idade(read("censo_sidra_populacao_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
+sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
+option_card([
+    ("Por raça", lambda: grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO, unidade="Crianças"), "censo_sidra_populacao_0_6_raca_2022"),
+    ("Por sexo", lambda: grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO, unidade="Crianças"), "censo_sidra_populacao_0_6_sexo_2022"),
+], 'grafico')
+
 FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro"
 
 # E5 (specs/exclusoes.md): amarela e indígena (0 a 2 óbitos por ano cada) viram uma série só, com a taxa recalculada
@@ -1311,45 +1335,24 @@ df_nv = read("nascidos_vivos_por_ano.csv")
 df_bp = read("nascidos_abaixo_peso_por_ano.csv")
 df_raca = _taxas_raca_por_mil(read("mortalidade_raca_municipio_ano.csv"))
 
-h3('Nascidos vivos e mortalidade infantil por raça/cor')
+# nova_estrutura S1: série e mapa de nascidos vivos saem dos dois cartões de mortalidade (Prioridade)
+h3('Nascidos vivos')
 option_card([
-    ("Nascidos vivos", lambda: line_chart(df_nv["ano"], [{'label': 'Nascidos vivos', 'values': df_nv['nascidos vivos']}], opts={'height': 220, 'table': True},
+    ("Série anual", lambda: line_chart(df_nv["ano"], [{'label': 'Nascidos vivos', 'values': df_nv['nascidos vivos']}], opts={'height': 220, 'table': True},
         fonte=FONTE_DATASUS, unidade="Nascidos vivos por ano"), "nascidos_vivos_por_ano"),
-    ("Óbitos por raça/cor", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}),
-        opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS, unidade="Óbitos de menores de 1 ano por ano"), "obitos_raca_ano"),
-    ("Taxa por raça/cor", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"taxa_{r}" for r in RACAS], {f"taxa_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pm1'),
-        opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS, unidade=UN_TAXA_INFANTIL), "percentual_mortalidade_raca_ano"),
 ], 'grafico')
-
-h3('Nascidos vivos e mortalidade infantil por bairro', antigo='mapas-2')
 df_map_nv = read("tabela_mapa_nascidos_vivos_2025.csv")
-_raca_bairro = read("mortalidade_raca_bairro_ano.csv")
-df_map_raca_2025 = _raca_bairro[_raca_bairro["ano"] == 2025].copy()
-df_map_raca_2025["taxa_total"] = _taxa_por_mil(df_map_raca_2025["obitos_total"], df_map_raca_2025["nascidos_total"])
 option_card([
     ("Nascidos vivos", lambda: mapa_svg(df_map_nv, "codigo", "nascidos vivos", "natalidade",
         "Nascidos vivos por bairro (2025)", "Nascidos vivos", FONTE_DATASUS, bins=[200, 400, 800, 1500],
         col_extra="percentual_do_municipio", rotulo_extra="do município"), "mapa_nascidos_vivos_bairro_2025"),
 ], 'mapa')
-# E9: taxa e contagem de óbitos 0-364 dias no mesmo cartão (antes 2 pills do cartão acima)
-option_card_alternancia([
-    ("Taxa", [("Mortalidade infantil (0-364 dias)", lambda: mapa_svg(df_map_raca_2025, "codigo", "taxa_total", "mortalidade",
-        "Taxa de mortalidade infantil (0 a 364 dias) por bairro (2025)", "Óbitos por mil nascidos vivos", FONTE_DATASUS, fmt="pm1"), "mapa_taxa_obitos_raca_total_bairro_2025")]),
-    ("Óbitos", [("Mortalidade infantil (0-364 dias)", lambda: mapa_svg(df_map_raca_2025, "codigo", "obitos_total", "mortalidade",
-        "Óbitos de 0 a 364 dias por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "mapa_obitos_raca_total_bairro_2025")]),
-])
 
-h3('Óbitos maternos na gravidez e no puerpério', antigo='gravidez-e-puerpério')
-df_grav = read("obitos_gravidez_por_ano.csv")
-df_puerp = read("obitos_puerperio_por_ano.csv")
-option_card([
-    ("Gravidez", lambda: line_chart(df_grav["ano"], [{'label': 'Óbitos na gravidez', 'values': df_grav['óbitos-gravidez']}], opts={'height': 200, 'table': True},
-        fonte=FONTE_DATASUS, unidade="Óbitos maternos durante a gravidez, por ano"), "obitos_gravidez_por_ano"),
-    ("Puerpério", lambda: line_chart(df_puerp["ano"], [{'label': 'Óbitos no puerpério', 'values': df_puerp['óbitos-puerpério']}], opts={'height': 200, 'table': True},
-        fonte=FONTE_DATASUS, unidade="Óbitos maternos durante o puerpério, por ano"), "obitos_puerperio_por_ano"),
-], 'grafico')
-# E4 (specs/exclusoes.md): mapas de óbitos na gravidez/puerpério por bairro retirados -- 0 a 3 óbitos por bairro,
-# sem padrão territorial. Para voltar: option_card com mapa_svg de obitos_{gravidez,puerperio}_bairro_ano.csv (2025).
+# ============================================================== PRIORIDADE ==
+
+# título sem o "(sem secundário)" (pedido do usuário, 2026-09-24): id do painel vira "prioridade";
+# o id antigo continua abrindo a aba via data-alias (links já compartilhados)
+h2('🎯 Prioridade')
 
 h3('Mortalidade neonatal e infantil, por idade ao óbito', antigo='mortalidade-neonatal')
 df_prec = read("mortalidade_neonatal_precoce_por_ano.csv")
@@ -1395,8 +1398,45 @@ _mapas_neo_taxa = [
 ]
 option_card_alternancia([("Taxa", _mapas_neo_taxa), ("Óbitos", _mapas_neo_obitos)])
 
+h3('Óbitos maternos na gravidez e no puerpério', antigo='gravidez-e-puerpério')
+df_grav = read("obitos_gravidez_por_ano.csv")
+df_puerp = read("obitos_puerperio_por_ano.csv")
+option_card([
+    ("Gravidez", lambda: line_chart(df_grav["ano"], [{'label': 'Óbitos na gravidez', 'values': df_grav['óbitos-gravidez']}], opts={'height': 200, 'table': True},
+        fonte=FONTE_DATASUS, unidade="Óbitos maternos durante a gravidez, por ano"), "obitos_gravidez_por_ano"),
+    ("Puerpério", lambda: line_chart(df_puerp["ano"], [{'label': 'Óbitos no puerpério', 'values': df_puerp['óbitos-puerpério']}], opts={'height': 200, 'table': True},
+        fonte=FONTE_DATASUS, unidade="Óbitos maternos durante o puerpério, por ano"), "obitos_puerperio_por_ano"),
+], 'grafico')
+# E4 (specs/exclusoes.md): mapas de óbitos na gravidez/puerpério por bairro retirados -- 0 a 3 óbitos por bairro,
+# sem padrão territorial. Para voltar: option_card com mapa_svg de obitos_{gravidez,puerperio}_bairro_ano.csv (2025).
+
+h3('Mortalidade infantil por raça/cor', antigo=['nascidos-vivos-e-mortalidade-infantil-por-raçacor'])
+option_card([
+    ("Óbitos por raça/cor", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}),
+        opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS, unidade="Óbitos de menores de 1 ano por ano"), "obitos_raca_ano"),
+    ("Taxa por raça/cor", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"taxa_{r}" for r in RACAS], {f"taxa_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pm1'),
+        opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS, unidade=UN_TAXA_INFANTIL), "percentual_mortalidade_raca_ano"),
+], 'grafico')
+
+h3('Mortalidade infantil por bairro', antigo=['mapas-2', 'nascidos-vivos-e-mortalidade-infantil-por-bairro'])
+_raca_bairro = read("mortalidade_raca_bairro_ano.csv")
+df_map_raca_2025 = _raca_bairro[_raca_bairro["ano"] == 2025].copy()
+df_map_raca_2025["taxa_total"] = _taxa_por_mil(df_map_raca_2025["obitos_total"], df_map_raca_2025["nascidos_total"])
+# E9: taxa e contagem de óbitos 0-364 dias no mesmo cartão (antes 2 pills do cartão acima)
+option_card_alternancia([
+    ("Taxa", [("Mortalidade infantil (0-364 dias)", lambda: mapa_svg(df_map_raca_2025, "codigo", "taxa_total", "mortalidade",
+        "Taxa de mortalidade infantil (0 a 364 dias) por bairro (2025)", "Óbitos por mil nascidos vivos", FONTE_DATASUS, fmt="pm1"), "mapa_taxa_obitos_raca_total_bairro_2025")]),
+    ("Óbitos", [("Mortalidade infantil (0-364 dias)", lambda: mapa_svg(df_map_raca_2025, "codigo", "obitos_total", "mortalidade",
+        "Óbitos de 0 a 364 dias por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "mapa_obitos_raca_total_bairro_2025")]),
+])
+
 h3('Óbitos por causas evitáveis')
 FONTE_EVITAVEIS = "SIM/SVS-Rio (TabWin), óbitos de residentes no município do Rio de Janeiro"
+
+def _fonte_evitaveis_faixa(faixa):
+    """Nota das figuras de menores de 5 anos por CAP (observação da curadoria, specs/2026-09-28_nova_estrutura §6) --
+    a mesma que analise.py põe no fonte_dados das PNGs/PDF."""
+    return FONTE_EVITAVEIS + (". Nota: agrega os recortes de menores de 1 ano e de 1 a 4 anos" if "menores de 5" in faixa else "")
 
 h4('Por grupo/subgrupo de causa (CID-10)')
 _entries_cid10 = []
@@ -1479,7 +1519,7 @@ for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 an
         _label = f"{faixa_lbl} · {subgrupo_lbl}"
         _entries_cap_faixa.append((
             _label,
-            lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS, unidade=UN_OBITOS_ANO),
+            lambda anos=anos, series=series, f=_fonte_evitaveis_faixa(faixa): line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=f, unidade=UN_OBITOS_ANO),
             _label,
         ))
 option_card(_entries_cap_faixa, 'grafico')
@@ -1509,9 +1549,9 @@ for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 an
         series_pct.append({'label': f"CAP {cap}", 'values': [d['percentual_evitaveis'].get(a) for a in anos], 'format': 'pct1'})
     _entries_grupo_cap.append((
         faixa_lbl,
-        lambda anos=anos, series_abs=series_abs, series_pct=series_pct: out_pair(
-            lambda: line_chart(anos, series_abs, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS, titulo="Óbitos por causas evitáveis", unidade=UN_OBITOS_ANO),
-            lambda: line_chart(anos, series_pct, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS, titulo="Evitáveis, % do total de óbitos", unidade="% dos óbitos da faixa etária"),
+        lambda anos=anos, series_abs=series_abs, series_pct=series_pct, f=_fonte_evitaveis_faixa(faixa): out_pair(
+            lambda: line_chart(anos, series_abs, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=f, titulo="Óbitos por causas evitáveis", unidade=UN_OBITOS_ANO),
+            lambda: line_chart(anos, series_pct, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=f, titulo="Evitáveis, % do total de óbitos", unidade="% dos óbitos da faixa etária"),
         ),
         _SEED_GRUPO_CAP_FAIXA[faixa],
     ))
@@ -1567,54 +1607,18 @@ for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
     _entries_mapas_cap_faixa.append((_l1, lambda df=df_faixa_2025, info=info: mapa_svg(
         df, "cod_ap_sms", "evitaveis", "mortalidade",
         f"Óbitos por causas evitáveis, {info['rotulo']}, por CAP (2025)", "Óbitos",
-        FONTE_EVITAVEIS, bins=info['bins_absoluto'], nivel="cap"), f"mapa_obitos_evitaveis_{sufixo}_cap_2025"))
+        _fonte_evitaveis_faixa(info['rotulo']), bins=info['bins_absoluto'], nivel="cap"), f"mapa_obitos_evitaveis_{sufixo}_cap_2025"))
     _l2 = f"{info['rotulo'].capitalize()} · % evitáveis"
     _entries_mapas_cap_faixa.append((_l2, lambda df=df_faixa_2025, info=info: mapa_svg(
         df, "cod_ap_sms", "percentual_evitaveis", "mortalidade",
         f"Óbitos por causas evitáveis, {info['rotulo']}, % do total de óbitos, por CAP (2025)", "% dos óbitos da faixa",
-        FONTE_EVITAVEIS, fmt="pct1", nivel="cap"), f"mapa_percentual_evitaveis_{sufixo}_cap_2025"))
+        _fonte_evitaveis_faixa(info['rotulo']), fmt="pct1", nivel="cap"), f"mapa_percentual_evitaveis_{sufixo}_cap_2025"))
 # mapas de gestação/parto por CAP removidos: merge-waleska-changes descontinuou a
 # curadoria desses subgrupos em analise.py (tabela_mapa_obitos_evitaveis_*_menores_1_ano_cap_2025.csv
 # não é mais gerada) -- ver specs/2026-09-22_merge-waleska-changes/specs.md
 option_card(_entries_mapas_cap_faixa, 'mapa')
 
 emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo", "recorte por sexo ainda não extraído do SIM")
-
-# ================================================================ INCLUSAO ==
-
-h2('🤝 Inclusão')
-
-h3('Crianças de 0 a 6 anos por idade, raça/cor e sexo (Censo 2022)', antigo='população-0-6-por-idaderaçasexo-ibge-sidra-2022')
-FONTE_SIDRA_CENSO = "Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)"
-_ORDEM_IDADE_SIDRA_0_6 = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
-
-def _ordenar_idade(df, ordem):
-    return df[df["idade"].isin(ordem)].set_index("idade").reindex(ordem).reset_index()
-
-df_censo_raca = _ordenar_idade(read("censo_sidra_populacao_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
-raca_cols = [c for c in df_censo_raca.columns if c not in ("idade", "Total")]
-df_censo_sexo = _ordenar_idade(read("censo_sidra_populacao_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
-sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
-option_card([
-    ("Por raça", lambda: grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO, unidade="Crianças"), "censo_sidra_populacao_0_6_raca_2022"),
-    ("Por sexo", lambda: grouped_bar_chart(df_censo_sexo["idade"], series_from_cols(df_censo_sexo, sexo_cols), fonte=FONTE_SIDRA_CENSO, unidade="Crianças"), "censo_sidra_populacao_0_6_sexo_2022"),
-], 'grafico')
-
-# E8 (specs/exclusoes.md): frequência em números absolutos por raça/cor e por sexo retirada -- a taxa por idade é o
-# dado comparável; o total absoluto continua (Família e Cuidados). Título do h3 sem "Frequência e".
-h3('Taxa de frequência a escola ou creche por idade, raça/cor e sexo (Censo 2022)', antigo='frequência-e-taxa-de-frequência-escolar-por-raçasexo')
-FONTE_SIDRA_EDU = "Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)"
-_ORDEM_IDADE_SIDRA_0_5 = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
-_ORDEM_IDADE_SIDRA_0_6_EDU = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
-
-df_taxa_raca = _ordenar_idade(read("sidra_taxa_frequencia_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
-tr_cols = [c for c in df_taxa_raca.columns if c not in ("idade", "Total")]
-df_taxa_sexo = _ordenar_idade(read("sidra_taxa_frequencia_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
-ts_cols = [c for c in df_taxa_sexo.columns if c not in ("idade", "Total")]
-option_card([
-    ("Por raça/cor", lambda: grouped_bar_chart(df_taxa_raca["idade"], series_from_cols(df_taxa_raca, tr_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU, unidade="% das crianças da idade que frequentam escola ou creche"), "sidra_taxa_frequencia_0_6_raca_2022"),
-    ("Por sexo", lambda: grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU, unidade="% das crianças da idade que frequentam escola ou creche"), "sidra_taxa_frequencia_0_6_sexo_2022"),
-], 'grafico')
 
 # ---- CadÚnico: recortes por sexo, raça/cor, arranjo familiar e renda (specs/2026-09-23_recortes_cadunico) ----
 FONTE_CADUNICO = "CadÚnico (extração CTPE, jun/2026)"
@@ -1646,6 +1650,41 @@ _tab_razao_cad = pd.DataFrame({
 })
 tabela_com_texto(lambda: plain_table(_tab_razao_cad, fonte=FONTE_CADUNICO + "; população: estimativas Ripsa/Ministério da Saúde (2025)"),
                  "cadunico_razao_populacao_0_a_5_2026")
+
+h3('Crianças e famílias no CadÚnico, por renda e idade', antigo='cadúnico')
+
+df_renda = read("cadunico_por_faixa_renda_2026.csv")
+df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"].copy()
+# recortes_cadunico A7: rótulo descritivo da faixa de renda per capita (coluna gerada por analise.py)
+df_renda_sem_total["faixa de renda"] = df_renda_sem_total["faixa de renda (descrição)"]
+df_idade = read("cadunico_por_idade_2026.csv")
+df_idade["idade_lbl"] = df_idade["idade"].astype(int).map(lambda i: f"{i} ano" if i == 1 else f"{i} anos")
+# seed: cada opcao mostra um out_pair (Criancas + Familias lado a lado) sob 1 bloco de texto --
+# seed em tupla (Criancas, Familias): _texto_seed junta os textos curados dos dois arquivos
+# (antes so o lado "Criancas" tinha seed e o texto das Familias nao chegava ao site).
+option_card([
+    ("Por faixa de renda", lambda: out_pair(
+        lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Crianças"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
+        lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Famílias"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
+    ), ("cadunico_criancas_por_faixa_renda", "cadunico_familias_por_faixa_renda")),
+    ("Por idade", lambda: out_pair(
+        lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Crianças"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
+        lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Famílias"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
+    ), ("cadunico_criancas_por_idade", "cadunico_familias_por_idade")),
+], 'grafico')
+
+h4('Crianças no CadÚnico por bairro')
+df_map_cadunico_criancas = read("tabela_mapa_cadunico_criancas_2026.csv")
+df_map_cadunico_0_4 = read("tabela_mapa_cadunico_criancas_0_a_4_2026.csv")
+option_card([
+    ("Crianças 0-5", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
+        "Crianças (0 a 5 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[250, 750, 1500, 3000],
+        col_suprimido="suprimido"), "mapa_cadunico_criancas_bairro_2026"),
+    ("Crianças 0-4", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
+        "Crianças (0 a 4 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[200, 500, 1000, 2000],
+        col_suprimido="suprimido"), "mapa_cadunico_criancas_0_a_4_bairro_2026"),
+    # recortes_cadunico D6: mapa "% s/ Censo" retirado do relatório (até 510% por viés CEP -> bairro; fica só no notebook)
+], 'mapa')
 
 h3("Famílias no CadÚnico com crianças até 6 anos, por sexo")
 nota_metodologica(
@@ -1683,30 +1722,9 @@ option_card([
      "mapa_percentual_cadunico_criancas_negras_bairro_2026"),
 ], 'mapa')
 
-h3("Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar")
-nota_metodologica(
-    "Arranjo familiar aproximado pela composição do cadastro: número e sexo das pessoas de 18 anos ou mais na família. "
-    "\"Uma adulta\" NÃO é o conceito oficial de família monoparental (que depende do parentesco, ausente nesta extração) — "
-    "um companheiro que não está no cadastro não aparece. Renda per capita da família; acima de meio salário mínimo "
-    "(R$ 810) as faixas estão agrupadas. Células com menos de 20 famílias são suprimidas."
-)
-_arr = df_cad_arranjo[df_cad_arranjo["arranjo familiar"] != "Total"]
-_ordem_arr = _arr["arranjo familiar"].tolist()
-_faixas_renda = list(dict.fromkeys(df_cad_arranjo_renda["faixa de renda per capita"]))
-_serie_renda = []
-for _fx in _faixas_renda:
-    _d = df_cad_arranjo_renda[df_cad_arranjo_renda["faixa de renda per capita"] == _fx].set_index("arranjo")["% no arranjo"]
-    _serie_renda.append({'label': _fx, 'values': [None if pd.isna(_d.get(a)) else float(_d.get(a)) for a in _ordem_arr], 'format': 'pct1'})
-option_card([
-    ("Por arranjo", lambda: bar_chart([{'label': r["arranjo familiar"], 'value': r["Famílias"]} for _, r in _arr.iterrows()],
-                                      fonte=FONTE_CADUNICO, titulo="Famílias, por arranjo familiar"), "cadunico_familias_por_arranjo"),
-    ("Arranjo × renda", lambda: grouped_bar_chart(_ordem_arr, _serie_renda, fonte=FONTE_CADUNICO,
-                                                  titulo="% das famílias de cada arranjo, por renda per capita", unidade="% das famílias do arranjo"), "cadunico_familias_arranjo_renda"),
-], 'grafico')
-option_card([
-    ("% uma adulta", lambda: _mapa_cadunico_pct("% famílias com uma adulta", "Famílias com crianças de 0 a 5 anos no CadÚnico: % com uma só adulta, por bairro", "% uma adulta"),
-     "mapa_percentual_cadunico_familias_uma_adulta_bairro_2026"),
-], 'mapa')
+# ================================================================ INCLUSAO ==
+
+h2('🤝 Inclusão')
 
 emite_bloco_pendente("Crianças no CadÚnico com alguma deficiência", "baixar dados — Léo")
 emite_bloco_pendente("Famílias no CadÚnico com criança com deficiência", "baixar dados — Léo")
@@ -1716,49 +1734,26 @@ emite_bloco_pendente("Crianças no CadÚnico por tipo de deficiência", "baixar 
 
 h2('👨‍👩‍👧 Família e Cuidados')
 
-h3('Crianças e famílias no CadÚnico, por renda e idade', antigo='cadúnico')
+# E8 (specs/exclusoes.md): frequência em números absolutos por raça/cor e por sexo retirada -- a taxa por idade é o
+# dado comparável; o total absoluto continua (Família e Cuidados). Título do h3 sem "Frequência e".
+FONTE_SIDRA_EDU = "Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)"
+_ORDEM_IDADE_SIDRA_0_5 = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
+_ORDEM_IDADE_SIDRA_0_6_EDU = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
 
-df_renda = read("cadunico_por_faixa_renda_2026.csv")
-df_renda_sem_total = df_renda[df_renda["faixa de renda"] != "Total"].copy()
-# recortes_cadunico A7: rótulo descritivo da faixa de renda per capita (coluna gerada por analise.py)
-df_renda_sem_total["faixa de renda"] = df_renda_sem_total["faixa de renda (descrição)"]
-df_idade = read("cadunico_por_idade_2026.csv")
-df_idade["idade_lbl"] = df_idade["idade"].astype(int).map(lambda i: f"{i} ano" if i == 1 else f"{i} anos")
-# seed: cada opcao mostra um out_pair (Criancas + Familias lado a lado) sob 1 bloco de texto --
-# seed em tupla (Criancas, Familias): _texto_seed junta os textos curados dos dois arquivos
-# (antes so o lado "Criancas" tinha seed e o texto das Familias nao chegava ao site).
-option_card([
-    ("Por faixa de renda", lambda: out_pair(
-        lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Crianças"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
-        lambda: bar_chart([{'label': r["faixa de renda"], 'value': r["Famílias"]} for _, r in df_renda_sem_total.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
-    ), ("cadunico_criancas_por_faixa_renda", "cadunico_familias_por_faixa_renda")),
-    ("Por idade", lambda: out_pair(
-        lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Crianças"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Crianças"),
-        lambda: bar_chart([{'label': r["idade_lbl"], 'value': r["Famílias"]} for _, r in df_idade.iterrows()], fonte=FONTE_CADUNICO, titulo="Famílias"),
-    ), ("cadunico_criancas_por_idade", "cadunico_familias_por_idade")),
-], 'grafico')
+# populacao-referencia D3: total por idade da SIDRA 10057 (item "frequentando escola/creche (geral)")
+h3('Crianças de 0 a 5 anos que frequentam escola/creche (Censo 2022)')
+df_freq_total = _ordenar_idade(read("sidra_frequencia_escola_0_5_total_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
+option_card([("Por idade", lambda: bar_chart([{'label': r["idade"], 'value': r["Crianças"]} for _, r in df_freq_total.iterrows()],
+    fonte=FONTE_SIDRA_EDU, unidade="Crianças que frequentam escola ou creche"), "sidra_frequencia_escola_0_5_total_2022")], 'grafico')
 
-h4('Crianças no CadÚnico por bairro')
-df_map_cadunico_criancas = read("tabela_mapa_cadunico_criancas_2026.csv")
-df_map_cadunico_0_4 = read("tabela_mapa_cadunico_criancas_0_a_4_2026.csv")
+h3('Taxa de frequência a escola ou creche por idade, raça/cor e sexo (Censo 2022)', antigo='frequência-e-taxa-de-frequência-escolar-por-raçasexo')
+df_taxa_raca = _ordenar_idade(read("sidra_taxa_frequencia_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
+tr_cols = [c for c in df_taxa_raca.columns if c not in ("idade", "Total")]
+df_taxa_sexo = _ordenar_idade(read("sidra_taxa_frequencia_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
+ts_cols = [c for c in df_taxa_sexo.columns if c not in ("idade", "Total")]
 option_card([
-    ("Crianças 0-5", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
-        "Crianças (0 a 5 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[250, 750, 1500, 3000],
-        col_suprimido="suprimido"), "mapa_cadunico_criancas_bairro_2026"),
-    ("Crianças 0-4", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
-        "Crianças (0 a 4 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[200, 500, 1000, 2000],
-        col_suprimido="suprimido"), "mapa_cadunico_criancas_0_a_4_bairro_2026"),
-    # recortes_cadunico D6: mapa "% s/ Censo" retirado do relatório (até 510% por viés CEP -> bairro; fica só no notebook)
-], 'mapa')
-
-h3('Cobertura vacinal por imunobiológico (EPI)', antigo='cobertura-vacinal-epi')
-FONTE_EPI = "EPI/SVS-Rio, cobertura vacinal por imunobiológico"
-df_vac = read("cobertura_vacinal_epi_por_ano.csv")
-vac_cols = [c for c in df_vac.columns if c != "ano"]
-# E7 (specs/exclusoes.md): "Comparativo por ano" (cobertura_vacinal_epi_comparativo_anos.csv) retirado -- repete 4 anos da série
-option_card([
-    ("Série temporal por imunobiológico", lambda: line_chart(df_vac["ano"], series_from_cols(df_vac, vac_cols, fmt='pct1'), opts={'height': 280, 'maxXLabels': 8, 'table': True},
-        fonte=FONTE_EPI, unidade="Cobertura vacinal (%)"), "cobertura_vacinal_epi_ano"),
+    ("Por raça/cor", lambda: grouped_bar_chart(df_taxa_raca["idade"], series_from_cols(df_taxa_raca, tr_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU, unidade="% das crianças da idade que frequentam escola ou creche"), "sidra_taxa_frequencia_0_6_raca_2022"),
+    ("Por sexo", lambda: grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU, unidade="% das crianças da idade que frequentam escola ou creche"), "sidra_taxa_frequencia_0_6_sexo_2022"),
 ], 'grafico')
 
 h3('Frequência a escola ou creche por idade (PNAD Contínua)', antigo='frequência-escolar-por-idade-pnad-contínua')
@@ -1767,12 +1762,6 @@ df_pnad = read("frequencia_escolar_pnad_por_idade.csv")
 # nao um corte do mesmo dado (specification.md §9, mesmo criterio ja usado
 # para nao forcar pills na "Comparação entre faixas etárias" de evitáveis)
 option_card([("Frequência por idade", lambda: bar_chart([{'label': r["Idade"], 'value': r["Total"] * 100} for _, r in df_pnad.iterrows()], fonte="PNAD Contínua (IBGE)", fmt='pct1', unidade="% das crianças da idade que frequentam escola ou creche"), "pnad_frequencia_escolar_por_idade")], 'grafico')
-
-# populacao-referencia D3: total por idade da SIDRA 10057 (item "frequentando escola/creche (geral)")
-h3('Crianças de 0 a 5 anos que frequentam escola/creche (Censo 2022)')
-df_freq_total = _ordenar_idade(read("sidra_frequencia_escola_0_5_total_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
-option_card([("Por idade", lambda: bar_chart([{'label': r["idade"], 'value': r["Crianças"]} for _, r in df_freq_total.iterrows()],
-    fonte=FONTE_SIDRA_EDU, unidade="Crianças que frequentam escola ou creche"), "sidra_frequencia_escola_0_5_total_2022")], 'grafico')
 
 # populacao-referencia Parte E (matriculas/): série 2007-2025 refeita dos microdados do INEP
 h3('Matrículas de crianças de 0 a 5 anos (Censo Escolar/INEP)')
@@ -1807,6 +1796,41 @@ option_card([("Por faixa de idade", lambda: line_chart(df_mat["ano"], [
           'refLines': [{'value': 50, 'label': 'Meta PNE creche: 50%'}, {'value': 100, 'label': 'Meta PNE pré-escola: 100%'}]},
     fonte="Censo Escolar (INEP), microdados; população: estimativas Ripsa/Ministério da Saúde", unidade="Matrículas por 100 crianças residentes (%)"), "taxa_atendimento_0_a_5_por_ano")], 'grafico')
 
+h3('Cobertura vacinal por imunobiológico (EPI)', antigo='cobertura-vacinal-epi')
+FONTE_EPI = "EPI/SVS-Rio, cobertura vacinal por imunobiológico"
+df_vac = read("cobertura_vacinal_epi_por_ano.csv")
+vac_cols = [c for c in df_vac.columns if c != "ano"]
+# E7 (specs/exclusoes.md): "Comparativo por ano" (cobertura_vacinal_epi_comparativo_anos.csv) retirado -- repete 4 anos da série
+option_card([
+    ("Série temporal por imunobiológico", lambda: line_chart(df_vac["ano"], series_from_cols(df_vac, vac_cols, fmt='pct1'), opts={'height': 280, 'maxXLabels': 8, 'table': True},
+        fonte=FONTE_EPI, unidade="Cobertura vacinal (%)"), "cobertura_vacinal_epi_ano"),
+], 'grafico')
+
+h3("Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar")
+nota_metodologica(
+    "Arranjo familiar aproximado pela composição do cadastro: número e sexo das pessoas de 18 anos ou mais na família. "
+    "\"Uma adulta\" NÃO é o conceito oficial de família monoparental (que depende do parentesco, ausente nesta extração) — "
+    "um companheiro que não está no cadastro não aparece. Renda per capita da família; acima de meio salário mínimo "
+    "(R$ 810) as faixas estão agrupadas. Células com menos de 20 famílias são suprimidas."
+)
+_arr = df_cad_arranjo[df_cad_arranjo["arranjo familiar"] != "Total"]
+_ordem_arr = _arr["arranjo familiar"].tolist()
+_faixas_renda = list(dict.fromkeys(df_cad_arranjo_renda["faixa de renda per capita"]))
+_serie_renda = []
+for _fx in _faixas_renda:
+    _d = df_cad_arranjo_renda[df_cad_arranjo_renda["faixa de renda per capita"] == _fx].set_index("arranjo")["% no arranjo"]
+    _serie_renda.append({'label': _fx, 'values': [None if pd.isna(_d.get(a)) else float(_d.get(a)) for a in _ordem_arr], 'format': 'pct1'})
+option_card([
+    ("Por arranjo", lambda: bar_chart([{'label': r["arranjo familiar"], 'value': r["Famílias"]} for _, r in _arr.iterrows()],
+                                      fonte=FONTE_CADUNICO, titulo="Famílias, por arranjo familiar"), "cadunico_familias_por_arranjo"),
+    ("Arranjo × renda", lambda: grouped_bar_chart(_ordem_arr, _serie_renda, fonte=FONTE_CADUNICO,
+                                                  titulo="% das famílias de cada arranjo, por renda per capita", unidade="% das famílias do arranjo"), "cadunico_familias_arranjo_renda"),
+], 'grafico')
+option_card([
+    ("% uma adulta", lambda: _mapa_cadunico_pct("% famílias com uma adulta", "Famílias com crianças de 0 a 5 anos no CadÚnico: % com uma só adulta, por bairro", "% uma adulta"),
+     "mapa_percentual_cadunico_familias_uma_adulta_bairro_2026"),
+], 'mapa')
+
 # ======================================================== PROTECAO ========
 
 h2('🛡️ Proteção')
@@ -1814,26 +1838,6 @@ h2('🛡️ Proteção')
 FONTE_SINAN = "Sinan NET/Tabnet (SMS-Rio), notificações de residentes no município do Rio de Janeiro, 0 a 5 anos"
 FONTE_SINAN_CENSO = "Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 4 anos: Censo Demográfico 2022 (IBGE/Data.Rio)"
 FONTE_IPS = "Data.Rio / Índice de Progresso Social (IPS), 2024, por Região Administrativa (todas as idades)"
-
-# ---- Violência territorial (Data.Rio/IPS) ---------------------------------
-h3('Violência territorial (Data.Rio/IPS, 2024)')
-nota_metodologica(
-    "ATENÇÃO: são dados gerais da população, de todas as idades — NÃO são específicos de crianças (0 a 6 anos) nem de jovens; "
-    "o indicador \"homicídios de jovens negros\" também se refere à população geral. Um único ano (2024), sem série. "
-    "Nível Região Administrativa; a RA XXI Paquetá não tem dado no IPS."
-)
-df_terr_mapa = read("tabela_mapa_violencia_territorial_ra_2024.csv")
-_INDICADORES_TERR = [
-    ("taxa_homicidios", "Taxa de homicídios", "violencia_territorial_homicidios_ra_2024", "mapa_violencia_territorial_homicidios_ra_2024"),
-    ("homicidios_acao_policial", "Homicídios por ação policial", "violencia_territorial_homicidios_acao_policial_ra_2024", "mapa_violencia_territorial_homicidios_acao_policial_ra_2024"),
-    ("homicidios_jovens_negros", "Homicídios de jovens negros", "violencia_territorial_homicidios_jovens_negros_ra_2024", "mapa_violencia_territorial_homicidios_jovens_negros_ra_2024"),
-]
-
-option_card([
-    (rot, lambda c=col, r=rot: mapa_svg(df_terr_mapa, "codra", c, "protecao", f"{r} por 100 mil habitantes, por Região Administrativa (2024) — população geral, todas as idades",
-                                         "Por 100 mil habitantes (todas as idades)", FONTE_IPS, fmt="dec1", nivel="ra"), seed_m)
-    for col, rot, _, seed_m in _INDICADORES_TERR
-], 'mapa')
 
 # ---- Violência familiar (Sinan) --------------------------------------------
 h3('Violência familiar (0 a 5 anos, Sinan)')
@@ -1857,6 +1861,40 @@ option_card([
         opts={'height': 260, 'maxXLabels': 8, 'table': True}, fonte=FONTE_SINAN, unidade="Notificações por ano"), "violencia_familiar_outros_serie"),
 ], 'grafico')
 
+# ---- Taxa de notificações ---------------------------------------------------
+h3('Taxa de notificações de violência familiar (por mil crianças)', antigo='taxa-de-notificações-de-violência-por-1000-crianças')
+nota_metodologica(
+    "Ressalva de denominador: numerador com crianças de 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022) — a taxa superestima ~20%, "
+    "de forma uniforme, então o ranking entre territórios se preserva. \"Outros\" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: "
+    "por isso o mapa de taxa é por Região Administrativa, e a lista de bairros abaixo considera só bairros com 100 crianças ou mais. "
+    "O denominador por bairro/RA/CAP é a população do Censo 2022, fixa: o Censo subconta crianças pequenas (o que puxa a taxa para cima) e é de 2022, enquanto as notificações são de 2025 (o que puxa para baixo). Por isso as taxas por território servem para comparar territórios entre si, e não com a taxa do município, que usa a estimativa populacional Ripsa/MS do mesmo ano. "
+)
+# populacao-referencia A3: taxa municipal com população Ripsa de 0 a 5 anos (mesma faixa e ano do numerador)
+h5('Município: notificações por mil crianças de 0 a 5 anos (2011-2025)')
+df_vf_taxa_mun = read("violencia_familiar_taxa_municipio_ano.csv")
+option_card([("Mãe, pai e outros", lambda: line_chart(df_vf_taxa_mun["ano"], [
+    {'label': 'Mãe', 'values': df_vf_taxa_mun['taxa_por_mil_mae'], 'format': 'pm1'},
+    {'label': 'Pai', 'values': df_vf_taxa_mun['taxa_por_mil_pai'], 'format': 'pm1'},
+    {'label': 'Outros vínculos', 'values': df_vf_taxa_mun['taxa_por_mil_outros'], 'format': 'pm1'}],
+    opts={'height': 260, 'maxXLabels': 8, 'table': True, 'yDecimals': 1},
+    fonte="Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 5 anos: estimativas Ripsa/Ministério da Saúde",
+    unidade="Notificações por mil crianças de 0 a 5 anos"),
+    "violencia_familiar_taxa_municipio_ano")], 'grafico')
+
+# E6 (specs/exclusoes.md): mapas de taxa por bairro retirados (bairros com poucas crianças: Joá 500‰); a taxa fica
+# por RA e a contagem por bairro continua acima. Para voltar: mapa_svg de tabela_mapa_violencia_familiar_taxa_<nome>.csv
+# com teto=taxa_escala_mapa.max().
+h5('Por Região Administrativa')
+_mapas_taxa = []
+for _nome, _rot, _per in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
+    _dfr = read(f"tabela_mapa_violencia_familiar_taxa_ra_{_nome}.csv")
+    _mapas_taxa.append((f"{_rot.capitalize()} ({_per})", lambda d=_dfr, n=_nome, r=_rot, p=_per: mapa_svg(
+        d, "codra", f"taxa_por_mil_{n}", "protecao", f"Notificações de violência familiar ({r}) por mil crianças de 0 a 4 anos, por Região Administrativa ({p})",
+        "Por mil crianças de 0 a 4 anos (Censo 2022)", FONTE_SINAN_CENSO, fmt="pm1", nivel="ra"),
+        f"mapa_violencia_familiar_{_nome.split('_')[0]}_taxa_ra_{_nome.split('_', 1)[1]}"))
+option_card(_mapas_taxa, 'mapa')
+# nova_estrutura: territórios (bairro e CAP) reunidos -- dez maiores em número e em taxa, mapa e CAP
+h3('Violência familiar por bairro e CAP (2025)')
 h5('Dez bairros com mais notificações (2025)')
 df_top_b = read("violencia_familiar_top_bairros_2025.csv")
 _bairros_top = list(dict.fromkeys(df_top_b["bairro"]))
@@ -1865,6 +1903,16 @@ option_card([("Mãe e pai (2025)", lambda: grouped_bar_chart(
     _bairros_top, [{'label': 'Mãe', 'values': _pt['Mãe'].tolist()}, {'label': 'Pai', 'values': _pt['Pai'].tolist()}],
     fonte=FONTE_SINAN, titulo="Dez bairros com mais notificações de violência familiar (2025) — mãe e pai lado a lado, sem soma", unidade="Notificações em 2025"),
     "violencia_familiar_top_bairros_2025")], 'grafico')
+
+h5('Bairros com as dez maiores taxas (2025; só bairros com 100 ou mais crianças de 0 a 4 anos)')
+df_top_t = read("violencia_familiar_taxa_top_bairros_2025.csv")
+_bairros_t = list(dict.fromkeys(df_top_t["bairro"]))
+_ptt = df_top_t.pivot(index="bairro", columns="vinculo", values="taxa por 1.000").reindex(_bairros_t)
+option_card([("Mãe e pai (2025)", lambda: grouped_bar_chart(
+    _bairros_t, [{'label': 'Mãe', 'values': _ptt['Mãe'].tolist(), 'format': 'pm1f'}, {'label': 'Pai', 'values': _ptt['Pai'].tolist(), 'format': 'pm1f'}],
+    fonte=FONTE_SINAN_CENSO, titulo="Dez maiores taxas de notificação por mil crianças de 0 a 4 anos (2025; população: Censo 2022)",
+    unidade="Notificações por mil crianças de 0 a 4 anos"),
+    "violencia_familiar_taxa_top_bairros_2025")], 'grafico')
 
 h5('Notificações por bairro, em mapa')
 df_m_mae = read("tabela_mapa_violencia_familiar_mae_2025.csv")
@@ -1906,49 +1954,32 @@ option_card([("Bairro (2026)", lambda: mapa_svg(df_m_auto, "codbairro", "casos",
     "Lesão autoprovocada notificada por bairro (2026, ano parcial)", "Notificações (2026)",
     "Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos", bins=[1, 3], zero_branco=True), "mapa_notif_autoprovocada_bairro_2026")], 'mapa')
 
-# ---- Taxa de notificações ---------------------------------------------------
-h3('Taxa de notificações de violência familiar (por mil crianças)', antigo='taxa-de-notificações-de-violência-por-1000-crianças')
-nota_metodologica(
-    "Ressalva de denominador: numerador com crianças de 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022) — a taxa superestima ~20%, "
-    "de forma uniforme, então o ranking entre territórios se preserva. \"Outros\" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: "
-    "por isso o mapa de taxa é por Região Administrativa, e a lista de bairros abaixo considera só bairros com 100 crianças ou mais. "
-    "O denominador por bairro/RA/CAP é a população do Censo 2022, fixa: o Censo subconta crianças pequenas (o que puxa a taxa para cima) e é de 2022, enquanto as notificações são de 2025 (o que puxa para baixo). Por isso as taxas por território servem para comparar territórios entre si, e não com a taxa do município, que usa a estimativa populacional Ripsa/MS do mesmo ano. "
-)
-# populacao-referencia A3: taxa municipal com população Ripsa de 0 a 5 anos (mesma faixa e ano do numerador)
-h5('Município: notificações por mil crianças de 0 a 5 anos (2011-2025)')
-df_vf_taxa_mun = read("violencia_familiar_taxa_municipio_ano.csv")
-option_card([("Mãe, pai e outros", lambda: line_chart(df_vf_taxa_mun["ano"], [
-    {'label': 'Mãe', 'values': df_vf_taxa_mun['taxa_por_mil_mae'], 'format': 'pm1'},
-    {'label': 'Pai', 'values': df_vf_taxa_mun['taxa_por_mil_pai'], 'format': 'pm1'},
-    {'label': 'Outros vínculos', 'values': df_vf_taxa_mun['taxa_por_mil_outros'], 'format': 'pm1'}],
-    opts={'height': 260, 'maxXLabels': 8, 'table': True, 'yDecimals': 1},
-    fonte="Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 5 anos: estimativas Ripsa/Ministério da Saúde",
-    unidade="Notificações por mil crianças de 0 a 5 anos"),
-    "violencia_familiar_taxa_municipio_ano")], 'grafico')
-
-# E6 (specs/exclusoes.md): mapas de taxa por bairro retirados (bairros com poucas crianças: Joá 500‰); a taxa fica
-# por RA e a contagem por bairro continua acima. Para voltar: mapa_svg de tabela_mapa_violencia_familiar_taxa_<nome>.csv
-# com teto=taxa_escala_mapa.max().
-h5('Por Região Administrativa')
-_mapas_taxa = []
-for _nome, _rot, _per in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
-    _dfr = read(f"tabela_mapa_violencia_familiar_taxa_ra_{_nome}.csv")
-    _mapas_taxa.append((f"{_rot.capitalize()} ({_per})", lambda d=_dfr, n=_nome, r=_rot, p=_per: mapa_svg(
-        d, "codra", f"taxa_por_mil_{n}", "protecao", f"Notificações de violência familiar ({r}) por mil crianças de 0 a 4 anos, por Região Administrativa ({p})",
-        "Por mil crianças de 0 a 4 anos (Censo 2022)", FONTE_SINAN_CENSO, fmt="pm1", nivel="ra"),
-        f"mapa_violencia_familiar_{_nome.split('_')[0]}_taxa_ra_{_nome.split('_', 1)[1]}"))
-option_card(_mapas_taxa, 'mapa')
-h5('Bairros com as dez maiores taxas (2025; só bairros com 100 ou mais crianças de 0 a 4 anos)')
-df_top_t = read("violencia_familiar_taxa_top_bairros_2025.csv")
-_bairros_t = list(dict.fromkeys(df_top_t["bairro"]))
-_ptt = df_top_t.pivot(index="bairro", columns="vinculo", values="taxa por 1.000").reindex(_bairros_t)
-option_card([("Mãe e pai (2025)", lambda: grouped_bar_chart(
-    _bairros_t, [{'label': 'Mãe', 'values': _ptt['Mãe'].tolist(), 'format': 'pm1f'}, {'label': 'Pai', 'values': _ptt['Pai'].tolist(), 'format': 'pm1f'}],
-    fonte=FONTE_SINAN_CENSO, titulo="Dez maiores taxas de notificação por mil crianças de 0 a 4 anos (2025; população: Censo 2022)",
-    unidade="Notificações por mil crianças de 0 a 4 anos"),
-    "violencia_familiar_taxa_top_bairros_2025")], 'grafico')
-
+emite_bloco_pendente("Taxa de notificações de violência (todas as naturezas)", "as taxas de violência familiar estão acima; a de violência em geral (não só familiar) ainda não foi extraída do Sinan")
 emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e idade)", "dado ainda não extraído do Tabnet municipal")
+
+# ================================================================ DIREITO AO BRINCAR ==
+
+h2('🧸 Direito ao Brincar')
+
+# ---- Violência territorial (Data.Rio/IPS) ---------------------------------
+h3('Violência territorial (Data.Rio/IPS, 2024)')
+nota_metodologica(
+    "ATENÇÃO: são dados gerais da população, de todas as idades — NÃO são específicos de crianças (0 a 6 anos) nem de jovens; "
+    "o indicador \"homicídios de jovens negros\" também se refere à população geral. Um único ano (2024), sem série. "
+    "Nível Região Administrativa; a RA XXI Paquetá não tem dado no IPS."
+)
+df_terr_mapa = read("tabela_mapa_violencia_territorial_ra_2024.csv")
+_INDICADORES_TERR = [
+    ("taxa_homicidios", "Taxa de homicídios", "violencia_territorial_homicidios_ra_2024", "mapa_violencia_territorial_homicidios_ra_2024"),
+    ("homicidios_acao_policial", "Homicídios por ação policial", "violencia_territorial_homicidios_acao_policial_ra_2024", "mapa_violencia_territorial_homicidios_acao_policial_ra_2024"),
+    ("homicidios_jovens_negros", "Homicídios de jovens negros", "violencia_territorial_homicidios_jovens_negros_ra_2024", "mapa_violencia_territorial_homicidios_jovens_negros_ra_2024"),
+]
+
+option_card([
+    (rot, lambda c=col, r=rot: mapa_svg(df_terr_mapa, "codra", c, "protecao", f"{r} por 100 mil habitantes, por Região Administrativa (2024) — população geral, todas as idades",
+                                         "Por 100 mil habitantes (todas as idades)", FONTE_IPS, fmt="dec1", nivel="ra"), seed_m)
+    for col, rot, _, seed_m in _INDICADORES_TERR
+], 'mapa')
 
 # ====================================================== ALIMENTACAO =======
 
@@ -2045,9 +2076,20 @@ _EIXO_META = [  # (prefixo do sid, rótulo curto, ícone)
     ("inclus", "Inclusão", "handshake"),
     ("fam", "Família e Cuidados", "users"),
     ("prote", "Proteção", "shield-check"),
+    ("direito", "Direito ao Brincar", "toy-brick"),   # specs/2026-09-28_nova_estrutura (7º eixo)
     ("aliment", "Alimentação", "apple"),
     ("moradia", "Moradia", "house"),
 ]
+# rótulo curto na barra de abas abaixo de 1280 px (specs/2026-09-28_nova_estrutura: com 8 abas, os rótulos completos
+# não cabem entre 1100 e ~1250 px); acima disso, o rótulo completo de sempre
+_ROTULO_CURTO_ABA = {"Família e Cuidados": "Família", "Direito ao Brincar": "Brincar"}
+def _rotulo_aba(rotulo):
+    curto = _ROTULO_CURTO_ABA.get(rotulo)
+    if not curto:
+        return f"<span>{_esc(rotulo)}</span>"
+    return (f'<span class="tab-rotulo-longo">{_esc(rotulo)}</span>'
+            f'<span class="tab-rotulo-curto">{_esc(curto)}</span>')
+
 def _meta_eixo(sid, titulo):
     for prefixo, rotulo, ic in _EIXO_META:
         if sid.startswith(prefixo):
@@ -2064,18 +2106,30 @@ for _nivel, _titulo, _sid in toc:
         _h3_por_secao[_atual].append((_titulo, _sid))
 
 _ALIAS_PAINEL = {"prioridade": ["prioridade-sem-secundário"]}   # id antigo -> continua abrindo a aba
-n_secoes = len(section_starts)
 _fim_conteudo = len(parts)
+# fim de cada seção no parts (todas, inclusive o panorama); os eixos são as seções que não são o panorama
+_FIM_SECAO = {sid: (section_starts[k + 1][0] if k + 1 < len(section_starts) else _fim_conteudo)
+              for k, (_, _, sid) in enumerate(section_starts)}
+_SECOES_EIXO = [s for s in section_starts if s[2] != _PANORAMA_SID]
+n_secoes = len(_SECOES_EIXO)
 paineis, navs_outline, abas = [], [], []
+
+def _caixa_fontes(sid):
+    fontes = _FONTES_SECAO.get(sid) or []
+    # B6: referência ABNT de fontes.bib; fonte sem entrada no .bib continua com o texto curto (e é avisada no fim)
+    _refs = [_referencia_abnt(k) for k in _referencias_da_secao(fontes)]
+    _refs += [_esc(f) for f in fontes if f in _FONTES_SEM_BIB]
+    return callout("sources", "book-open", "Fontes desta seção",
+                   "<ul>" + "".join(f"<li>{r}</li>" for r in _refs) + "</ul>") if _refs else ""
 
 abas.append(f'<button type="button" role="tab" class="tab" id="tab-visao-geral" aria-controls="visao-geral" '
             f'aria-selected="false" tabindex="-1">{icone("layout-dashboard")}<span>Visão geral</span></button>')
-for i, (start, titulo, sid) in enumerate(section_starts):
-    fim = section_starts[i + 1][0] if i + 1 < n_secoes else _fim_conteudo
+for i, (start, titulo, sid) in enumerate(_SECOES_EIXO):
+    fim = _FIM_SECAO[sid]
     corpo = "".join(parts[start + 1:fim])   # parts[start] é o <h2>, que vai para o cabeçalho do painel
     rotulo, ic = _meta_eixo(sid, titulo)
     abas.append(f'<button type="button" role="tab" class="tab" id="tab-{sid}" aria-controls="{sid}" '
-                f'aria-selected="false" tabindex="-1">{icone(ic)}<span>{_esc(rotulo)}</span></button>')
+                f'aria-selected="false" tabindex="-1">{icone(ic)}{_rotulo_aba(rotulo)}</button>')
     # Bloco 6b: mesmas chaves do PDF/DOCX (blocos_relatorio em gera_estrutura_eixos) -- achados_<eixo> (uma frase
     # por linha) e sintese_<eixo>; sem texto curado, o placeholder de antes
     _k_eixo = chave_eixo(titulo)
@@ -2096,12 +2150,7 @@ for i, (start, titulo, sid) in enumerate(section_starts):
                  f'<div class="conclusao"><div class="conclusao-head">{icone("flag")}'
                  f'<span class="eyebrow">Síntese do eixo · {_esc(rotulo)}</span></div>'
                  f'<p>{_texto_analise(f"sintese_{_k_eixo}") if _TEXTOS_CURADOS.get(f"sintese_{_k_eixo}") else _texto_analise(f"conclusao-{sid}")}</p></div>')
-    fontes = _FONTES_SECAO.get(sid) or []
-    # B6: referência ABNT de fontes.bib; fonte sem entrada no .bib continua com o texto curto (e é avisada no fim)
-    _refs = [_referencia_abnt(k) for k in _referencias_da_secao(fontes)]
-    _refs += [_esc(f) for f in fontes if f in _FONTES_SEM_BIB]
-    caixa_fontes = callout("sources", "book-open", "Fontes desta seção",
-                           "<ul>" + "".join(f"<li>{r}</li>" for r in _refs) + "</ul>") if _refs else ""
+    caixa_fontes = _caixa_fontes(sid)
     paineis.append(
         f'<section class="tab-panel" id="{sid}" role="tabpanel" aria-labelledby="tab-{sid}"'
         + (f' data-alias="{" ".join(_ALIAS_PAINEL[sid])}"' if sid in _ALIAS_PAINEL else "") + ' hidden>'
@@ -2113,9 +2162,10 @@ for i, (start, titulo, sid) in enumerate(section_starts):
     navs_outline.append(f'<nav class="outline-nav" data-panel="{sid}" aria-label="{_esc(rotulo)}" hidden>' + "".join(
         f'<a href="#{sid}/{h3id}" data-alvo="{h3id}">{_esc(h3t)}</a>' for h3t, h3id in itens) + '</nav>')
 
-# painel Visão geral: Introdução + cartões dos eixos (contagens do próprio gerador, sem texto novo)
+# painel Visão geral: Introdução + panorama (specs/2026-09-28_nova_estrutura) + cartões dos eixos (contagens do
+# próprio gerador, sem texto novo)
 _cartoes = []
-for i, (start, titulo, sid) in enumerate(section_starts):
+for i, (start, titulo, sid) in enumerate(_SECOES_EIXO):
     rotulo, ic = _meta_eixo(sid, titulo)
     n_h3 = len(_h3_por_secao.get(sid, []))
     n_pend = _PENDENTES_SECAO.get(sid, 0)
@@ -2123,16 +2173,27 @@ for i, (start, titulo, sid) in enumerate(section_starts):
     _cartoes.append(f'<a class="eixo-card" href="#{sid}"><span class="panel-icon">{icone(ic)}</span>'
                     f'<span class="eyebrow eixo-card-num">Eixo {i + 1}</span><span class="eixo-card-title">{titulo}</span>'
                     f'<span class="eixo-card-meta">{meta}</span></a>')
+# panorama: corpo da seção h2(..., panorama=True), com a sua caixa de fontes; o <h2> original sai (título abaixo)
+_PANORAMA_HTML = ""
+if _PANORAMA_SID:
+    _ini = next(st for st, _, sd in section_starts if sd == _PANORAMA_SID)
+    _tit_pan = next(t for _, t, sd in section_starts if sd == _PANORAMA_SID)
+    _PANORAMA_HTML = (f'<div class="overview-panorama" id="{_PANORAMA_SID}"><div class="eyebrow panel-eyebrow">Introdução</div>'
+                      f'<h2>{_tit_pan}</h2>' + "".join(parts[_ini + 1:_FIM_SECAO[_PANORAMA_SID]])
+                      + _caixa_fontes(_PANORAMA_SID) + '</div>')
 paineis.insert(0,
     '<section class="tab-panel" id="visao-geral" role="tabpanel" aria-labelledby="tab-visao-geral" hidden>'
     f'<div class="overview-intro" id="introducao"><div class="eyebrow panel-eyebrow">Apresentação</div><h2>Introdução</h2>'
     f'<p class="lede">{INTRO_HTML}</p></div>'
-    '<div class="eyebrow eixo-grid-label">Eixos da política municipal de primeira infância</div>'
+    + _PANORAMA_HTML +
+    '<div class="eyebrow eixo-grid-label" id="eixos">Eixos da política municipal de primeira infância</div>'
     f'<div class="eixo-grid">{"".join(_cartoes)}</div></section>'
 )
-navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-label="Eixos" hidden>'
+navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-label="Visão geral" hidden>'
                     '<a href="#visao-geral/introducao" data-alvo="introducao">Introdução</a>'
-                    + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in section_starts) + '</nav>')
+                    + "".join(f'<a href="#visao-geral/{h3id}" data-alvo="{h3id}">{_esc(h3t)}</a>'
+                              for h3t, h3id in _h3_por_secao.get(_PANORAMA_SID, []))
+                    + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in _SECOES_EIXO) + '</nav>')
 
 # faixa de aviso: controlada por relatorio/publicacao.json (em_desenvolvimento), a mesma chave da marca d'água do PDF
 # (relatorio/latex/build/gera_latex.py) -- as duas saem juntas na versão final (specs/2026-09-28_website_mobile)

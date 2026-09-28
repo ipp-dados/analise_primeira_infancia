@@ -162,6 +162,23 @@ def chave_eixo(bruto):
     return re.sub(r"[^a-z0-9]+", "_", t).strip("_")
 
 
+def eh_panorama(eixo):
+    """O `##` "Introdução" de estrutura_eixos.md não é eixo: é o panorama (população e nascimentos) que abre o site
+    (aba Visão geral) e o PDF (capítulo Introdução) -- specs/2026-09-28_nova_estrutura §3.1. `eixo` = item de
+    parse_estrutura_eixos() ou o título bruto do `##`."""
+    return chave_eixo(eixo["eixo"] if isinstance(eixo, dict) else eixo) == "introducao"
+
+
+def eixos_politica(estrutura):
+    """Só os eixos da política (sem o panorama), na ordem do arquivo."""
+    return [e for e in estrutura if not eh_panorama(e)]
+
+
+def panorama(estrutura):
+    """O item do panorama (ou None se o arquivo não tiver a Introdução)."""
+    return next((e for e in estrutura if eh_panorama(e)), None)
+
+
 def blocos_relatorio(estrutura):
     """Textos do relatório que não pertencem a uma figura (specs/2026-09-25_relatorio_latex, Bloco 6): resumo, principais
     achados e síntese de cada eixo, considerações finais. {chave: bloco}, onde a chave é ao mesmo tempo o nome do
@@ -169,7 +186,7 @@ def blocos_relatorio(estrutura):
     placeholder (ver `placeholder_bloco`), que a sincronização compara para saber se o texto foi editado."""
     # lorem ≤ 150 palavras (specs/2026-09-28_melhorias_site U3; antes resumo 250, considerações 300)
     blocos = {"resumo": dict(rotulo="Resumo", seed="resumo-docx", palavras=150, linhas=1)}
-    for eixo in estrutura:
+    for eixo in eixos_politica(estrutura):   # o panorama não tem achados/abertura/síntese (nova_estrutura §3.1)
         k, t = chave_eixo(eixo["eixo"]), titulo_eixo(eixo["eixo"])
         blocos[f"achados_{k}"] = dict(rotulo=f"Principais achados — {t}", seed=f"achados-{k}-docx", palavras=12,
                                       linhas=5, eixo=eixo["eixo"])
@@ -221,7 +238,10 @@ if __name__ == "__main__":
         if sub["campos"].get("status") == "pendente"
     )
 
-    print(f"Eixos: {len(estrutura)}")
+    pan = panorama(estrutura)
+    if pan:
+        print(f"Introdução (panorama): {len(pan['subsecoes'])} itens")
+    print(f"Eixos: {len(eixos_politica(estrutura))}")
     for eixo in estrutura:
         print(f"  - {eixo['eixo']}: {len(eixo['subsecoes'])} subseções")
     print(f"Total de subseções (indicadores ativos): {total_subsecoes}")
