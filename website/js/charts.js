@@ -272,17 +272,15 @@
   }
 
   // ================= pequenos múltiplos (B4) =================
-  // um painel por série, todos na mesma escala, demais séries em cinza; controle "Painéis | Linhas" troca para o
-  // gráfico original (P2: alternância no mesmo cartão, abre em Painéis)
+  // um painel por série, todos na mesma escala, demais séries em cinza. Até 2026-09-28 havia um controle
+  // "Painéis | Linhas" com a vista de linhas ao lado; ficou só Painéis (specs/2026-09-28_melhorias_site U4)
   function pequenosMultiplos(container, cfg, ctx){
     const mob = !!(ctx && ctx.mob);
     const series = cfg.series, opts = cfg.opts || {};
     coresPadrao(series);
     let vMax = -Infinity;
     series.forEach(s=>s.values.forEach(v=>{ if (v!=null && v>vMax) vMax = v; }));
-    const ctrl = document.createElement('div'); ctrl.className = 'alterna-ctrl sm-ctrl'; ctrl.setAttribute('role','group'); ctrl.setAttribute('aria-label','Visualização');
-    const vistas = [document.createElement('div'), document.createElement('div')];
-    vistas[0].className = 'sm-grid';
+    const grade = document.createElement('div'); grade.className = 'sm-grid';
     if (opts.yLabel){ const t = document.createElement('div'); t.className = 'sm-unidade'; t.textContent = opts.yLabel; container.appendChild(t); }
     // largura real: a célula é medida depois de a grade entrar no DOM; oculta (largura 0), estima pela regra do CSS
     // (1 coluna < 480 px, 2 colunas até 719 px) -- o redesenho ao aparecer corrige
@@ -291,7 +289,7 @@
       const cel = document.createElement('div'); cel.className = 'sm-cell';
       const tit = document.createElement('div'); tit.className = 'sm-title'; tit.textContent = s.label;
       const alvo = document.createElement('div');
-      cel.appendChild(tit); cel.appendChild(alvo); vistas[0].appendChild(cel);
+      cel.appendChild(tit); cel.appendChild(alvo); grade.appendChild(cel);
       alvos.push(alvo);
     });
     // células de ~210 px: no desktop continuam no desenho fixo (300 de viewBox); em tela estreita, largura real sempre
@@ -307,19 +305,7 @@
         opts:{painel:true, width:300, height:170, padR: mob ? null : 44, maxXLabels:3, area:false, extremeLabels:false, yMax:vMax, yDecimals:opts.yDecimals, zeroBase:opts.zeroBase}}, pctx);
     });
     if (!reais) desenhaPaineis();
-    desenhaLinha(vistas[1], {x:cfg.x, series:series, yFormat:cfg.yFormat, opts:Object.assign({}, opts, {multiplos:false, table:false})}, ctx);
-    vistas[1].hidden = true;
-    ['Painéis','Linhas'].forEach((rot,i)=>{
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'alterna-btn'; b.textContent = rot;
-      b.setAttribute('aria-pressed', i===0 ? 'true' : 'false');
-      b.addEventListener('click', ()=>{
-        container._vista = i;   // mantido no redesenho (girar a tela)
-        vistas.forEach((v,j)=>{ v.hidden = (j!==i); });
-        ctrl.querySelectorAll('.alterna-btn').forEach((o,j)=>o.setAttribute('aria-pressed', j===i ? 'true' : 'false'));
-      });
-      ctrl.appendChild(b);
-    });
-    container.appendChild(ctrl); container.appendChild(vistas[0]); container.appendChild(vistas[1]);
+    container.appendChild(grade);
     if (reais) desenhaPaineis();
     if (opts.table){
       const tmp = document.createElement('div');
@@ -542,6 +528,27 @@
     });
   }
 
+  // regiões dos mapas a partir de window.MAPAS (data/charts.js; specs/2026-09-28_melhorias_site U5): o HTML traz o <svg>
+  // vazio; aqui entram os <use> (mesmos atributos e ordem que o gerador escrevia antes), a rosa dos ventos e a escala
+  // (window.MAPAS_OVERLAYS, uma variante por projeção) e o CSV do cartão (mesmo texto que ia no atributo data-csv)
+  function montaMapas(){
+    const M = window.MAPAS || {}, IDS = window.GEO_IDS || {}, NOMES = window.GEO_NOMES || {}, NS = 'http://www.w3.org/2000/svg';
+    Object.keys(M).forEach(id=>{
+      const svg = document.getElementById(id), m = M[id], ids = IDS[m.n];
+      if (!svg || !ids) return;
+      const frag = document.createDocumentFragment();
+      ids.forEach((gid, k)=>{
+        const u = document.createElementNS(NS, 'use');
+        u.setAttribute('href', '#' + gid); u.setAttribute('fill', m.c[m.i[k]]); u.setAttribute('data-v', m.v[k]);
+        frag.appendChild(u);
+      });
+      svg.appendChild(frag);
+      svg.insertAdjacentHTML('beforeend', (window.MAPAS_OVERLAYS || [])[m.o] || '');   // rosa dos ventos + escala
+      const card = svg.closest('.map-svg-card'), x = m.x || m.v;
+      if (card) card.dataset.csv = [m.h.join(';')].concat(ids.map((gid, k)=>String(NOMES[gid]).replace(/;/g, ',') + ';' + x[k])).join('\n');
+    });
+  }
+
   function initMapTooltips(){
     document.querySelectorAll('.map-svg-card').forEach(card=>{
       const svg = card.querySelector('.map-svg');
@@ -603,7 +610,6 @@
     reg.fn(c, reg.cfg, mob ? {mob: true, w: med.w} : null);
     c._reais = mob || !!c.querySelector('.chart-svg--real');
     if (tabelaAberta){ const d = c.querySelector('details.data-table'); if (d) d.open = true; }
-    if (c._vista){ const b = c.querySelectorAll('.sm-ctrl .alterna-btn')[c._vista]; if (b) b.click(); }
   }
   const pendentes = new Set(); let timer = null;
   function agendaRedesenho(c){
@@ -649,7 +655,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    initPills(); initAlternancia(); initOutliers(); initDownloads(); initMapTooltips(); initEscalaMapas(); initToqueFora();
+    montaMapas(); initPills(); initAlternancia(); initOutliers(); initDownloads(); initMapTooltips(); initEscalaMapas(); initToqueFora();
   });
 
   window.byId = byId; window.lineChart = lineChart; window.barChart = barChart; window.groupedBarChart = groupedBarChart;

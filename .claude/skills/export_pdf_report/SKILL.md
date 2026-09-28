@@ -112,10 +112,18 @@ Run everything from the project root.
 Text lives in `relatorio/textos_curados.json`, keyed by figure file stem (`taxa_mortalidade_precoce_ano`),
 `introducao`, and — since `specs/2026-09-25_relatorio_latex` Block 6 — the report-level blocks from
 `blocos_relatorio()` (`scripts/gera_estrutura_eixos.py`): `resumo`, `achados_<eixo>` (one finding per line),
-`sintese_<eixo>`, `consideracoes_finais` (`<eixo>` = `chave_eixo()`, e.g. `familia_e_cuidados`). Without curated
-text the PDF shows deterministic lorem ipsum identical to the site's for the same key (decision D4). The site
-does not read the new block keys yet (planned in `specs/2026-09-25_website_graficos`); it still reads `conclusao-<sid>`,
-which the PDF also accepts as a fallback.
+`introducao_<eixo>` (the eixo's opening text, ≤ 100 words, right below the findings — `specs/2026-09-28_melhorias_site`
+U2), `sintese_<eixo>`, `consideracoes_finais` (`<eixo>` = `chave_eixo()`, e.g. `familia_e_cuidados`). Without
+curated text the PDF shows deterministic lorem ipsum identical to the site's for the same key (decision D4). The site
+reads `achados_`, `introducao_` and `sintese_` (falling back to `conclusao-<sid>`); `resumo` and `consideracoes_finais`
+are PDF-only.
+
+**Lorem is capped at 150 words** (range 100-150; `resumo`/Introdução/Considerações finais placeholders 150; eixo
+opening 90) in the three generators — site `_lorem`, LaTeX `lorem`, DOCX `_lorem` — since
+`specs/2026-09-28_melhorias_site` U3. Changing a placeholder means the old one in the DOCX no longer matches exactly:
+`gera_docx` drops the previous DOCX's lorem (`_eh_lorem`) instead of carrying it forward, and
+`sincroniza_docx.eh_lorem_ipsum` treats any lorem-like text as placeholder, so an old placeholder never leaks into
+`textos_curados.json`. After such a change, regenerate the DOCX and check that the sync changes no key.
 
 6. **Build the DOCX curation export.**
    ```

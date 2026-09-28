@@ -31,14 +31,26 @@ versionada e o deploy só copia. Regerou → confira → commit → dispare o wo
 | `data/geo.js` (geometria dos mapas, 1 `<path>` por região) | **gerado** |
 | `assets/images/basemap-*.jpg`, `assets/images/ipp-logo-<altura>.png` | **gerados** (a partir do tile Esri e de `ipp-logo.png`) |
 | `css/main.css`, `css/layout.css`, `css/components.css`, `css/mobile.css` | à mão (tokens em `main.css`; `mobile.css` = telas < 1100 px, carregado por último) |
-| `js/charts.js` (motor de gráficos, pills, outliers, CSV, tooltip de mapa) | à mão |
+| `js/charts.js` (motor de gráficos, pills, outliers, CSV, montagem e tooltip de mapa) | à mão |
 | `js/navigation.js` (abas, URL), `js/sidebar.js` (sumário lateral) | à mão |
 | `assets/icons/*.svg` (Lucide, licença ISC), `assets/images/ipp-logo.png` | à mão (fonte) |
-| `404.html`, `.nojekyll`, `assets/images/favicon.svg` | à mão |
+| `404.html`, `.nojekyll` | à mão |
+| `assets/images/favicon.svg`, `favicon.ico`, `assets/images/apple-touch-icon.png` | **gerados** por `build/gera_favicon.py` a partir da opção escolhida em `build/favicon_opcoes/` (specs/2026-09-28_melhorias_site U1) |
 | `build/` (gerador) | à mão — **não publicado** |
 
 `*.png`/`*.svg` são ignorados globalmente no `.gitignore`; `!/website/assets/**` é a exceção que
-mantém os assets do site no git — não remover.
+mantém os assets do site no git — não remover (e `!/website/build/favicon_opcoes/**`, as opções de favicon).
+
+## Tamanho do HTML (`specs/2026-09-28_melhorias_site` U5)
+
+`index.html` caiu de 785 KB para 343 KB sem mudar o que se vê (capturas pixel a pixel):
+- **Mapas**: o `<svg>` de cada mapa sai do gerador vazio; as regiões (`<use>` com cor e
+  tooltip), a rosa dos ventos e a escala (`window.MAPAS_OVERLAYS`, 2 variantes) e o CSV do cartão ficam em
+  `window.MAPAS` (`data/charts.js`) e `js/charts.js` (`montaMapas`)
+  os insere no carregamento, na ordem de `window.GEO_IDS` (`data/geo.js`) — mesmo markup de antes.
+- **Ícones**: um sprite de `<symbol>` no início do `<body>`; cada ícone é um `<svg>` com um `<use>`.
+- **Números** de `data/charts.js`: `2000.0` → `2000` (mesmo número em JS). Arredondar floats longos foi testado e
+  descartado (mudava o antialiasing de algumas linhas).
 
 ## Convenções dos gráficos (`specs/2026-09-25_website_graficos`)
 

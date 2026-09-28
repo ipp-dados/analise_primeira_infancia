@@ -167,15 +167,19 @@ def blocos_relatorio(estrutura):
     achados e síntese de cada eixo, considerações finais. {chave: bloco}, onde a chave é ao mesmo tempo o nome do
     bookmark no DOCX de curadoria e a chave em relatorio/textos_curados.json. `seed`/`palavras`/`linhas` definem o
     placeholder (ver `placeholder_bloco`), que a sincronização compara para saber se o texto foi editado."""
-    blocos = {"resumo": dict(rotulo="Resumo", seed="resumo-docx", palavras=250, linhas=1)}
+    # lorem ≤ 150 palavras (specs/2026-09-28_melhorias_site U3; antes resumo 250, considerações 300)
+    blocos = {"resumo": dict(rotulo="Resumo", seed="resumo-docx", palavras=150, linhas=1)}
     for eixo in estrutura:
         k, t = chave_eixo(eixo["eixo"]), titulo_eixo(eixo["eixo"])
         blocos[f"achados_{k}"] = dict(rotulo=f"Principais achados — {t}", seed=f"achados-{k}-docx", palavras=12,
                                       linhas=5, eixo=eixo["eixo"])
+        # texto de abertura do eixo, logo abaixo dos achados (specs/2026-09-28_melhorias_site U2): até 100 palavras
+        blocos[f"introducao_{k}"] = dict(rotulo=f"Introdução do eixo — {t}", seed=f"introducao-{k}-docx", palavras=90,
+                                         linhas=1, eixo=eixo["eixo"])
         blocos[f"sintese_{k}"] = dict(rotulo=f"Síntese do eixo — {t}", seed=f"sintese-{k}-docx", palavras=None,
                                       linhas=1, eixo=eixo["eixo"])
     blocos["consideracoes_finais"] = dict(rotulo="Considerações finais", seed="consideracoes-finais-docx",
-                                          palavras=300, linhas=1)
+                                          palavras=150, linhas=1)
     return blocos
 
 

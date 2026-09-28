@@ -233,13 +233,20 @@ def _registra_fonte(fonte):
         if fonte not in lista:
             lista.append(fonte)
 
+_ICONES = {}   # nome -> conteúdo do <symbol> (sprite no início do <body>, ver SPRITE_ICONES)
+
 def icone(nome, classe="icon"):
-    """SVG de website/assets/icons/ embutido inline (herda currentColor); comentário de licença removido."""
-    svg = Path(f"website/assets/icons/{nome}.svg").read_text(encoding="utf-8")
-    svg = re.sub(r"<!--.*?-->", "", svg, flags=re.S).strip()
-    svg = re.sub(r'\s*class="[^"]*"', "", svg)
-    svg = re.sub(r"\s+", " ", svg).replace("> <", "><")
-    return svg.replace("<svg ", f'<svg class="{classe}" aria-hidden="true" focusable="false" ', 1)
+    """Ícone de website/assets/icons/ (Lucide; herda currentColor). specs/2026-09-28_melhorias_site U5: o desenho vai
+    uma vez só para um <symbol id="i-<nome>"> do sprite e cada uso é um <svg> com os mesmos atributos de antes e um
+    <use> -- antes o SVG inteiro era repetido em cada uso (58 cópias)."""
+    if nome not in _ICONES:
+        svg = Path(f"website/assets/icons/{nome}.svg").read_text(encoding="utf-8")
+        svg = re.sub(r"<!--.*?-->", "", svg, flags=re.S).strip()
+        svg = re.sub(r"\s+", " ", svg).replace("> <", "><")
+        _ICONES[nome] = re.search(r"<svg[^>]*>(.*)</svg>", svg, flags=re.S).group(1).strip()
+    return (f'<svg class="{classe}" aria-hidden="true" focusable="false" width="24" height="24" viewBox="0 0 24 24" '
+            f'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+            f'<use href="#i-{nome}"></use></svg>')
 
 def callout(tipo, icone_nome, rotulo, corpo_html, extra=""):
     return (f'<div class="callout callout-{tipo}"{extra}><span class="callout-icon">{icone(icone_nome)}</span>'
@@ -487,11 +494,11 @@ _LOREM_WORDS = (
 def _lorem(seed, palavras=None):
     rng = random.Random(seed)
     if palavras is None:
-        # specs/2026-09-22_ajuste_eixos/specs.md §7: faixa 100-200 palavras por bloco de
-        # analise (era um valor fixo de 150 ate a rodada ajuste_eixos) --
+        # specs/2026-09-22_ajuste_eixos/specs.md §7: faixa 100-150 palavras por bloco de
+        # analise (era um valor fixo de 150 ate a rodada ajuste_eixos; 100-200 ate specs/2026-09-28_melhorias_site U3) --
         # RNG proprio (nao consome do `rng` de escolha de palavras acima) e
         # deterministico por seed, pra nao mudar a cada regeracao do relatorio.
-        palavras = random.Random(f"{seed}-palavras").randint(100, 200)
+        palavras = random.Random(f"{seed}-palavras").randint(100, 150)
     corpo = " ".join(rng.choice(_LOREM_WORDS) for _ in range(palavras))
     return corpo[:1].upper() + corpo[1:] + "."
 
@@ -558,15 +565,18 @@ def remove_outliers_tukey(valores):
     lo, hi = q1 - 1.5 * iqr, q3 + 1.5 * iqr
     return [v if (v is None or (lo <= v <= hi)) else None for v in valores]
 
+def _celula_csv(v):
+    """Célula do CSV de download (pt-BR: ; como separador, , decimal)."""
+    if v is None:
+        return ""
+    if isinstance(v, float):
+        return _fmt_ptbr(v, 2 if v != int(v) else 0)
+    return str(v).replace(';', ',')
+
 def _csv_data_attr(headers, rows):
     """Monta um CSV (pt-BR: ; como separador, , decimal) e devolve como atributo
     HTML data-csv já escapado -- o botao de download so precisa ler o atributo."""
-    def cell(v):
-        if v is None:
-            return ""
-        if isinstance(v, float):
-            return _fmt_ptbr(v, 2 if v != int(v) else 0)
-        return str(v).replace(';', ',')
+    cell = _celula_csv
     lines = [";".join(cell(h) for h in headers)]
     for r in rows:
         lines.append(";".join(cell(c) for c in r))
@@ -1031,6 +1041,14 @@ def _svg_rosa_dos_ventos(x=None, y=30):
         '</g>'
     )
 
+# specs/2026-09-28_melhorias_site U5: os <use> de cada mapa e o CSV do cartão saem do HTML para window.MAPAS
+# (data/charts.js) e js/charts.js (montaMapas) os insere no carregamento -- mesmo markup, mesma ordem. Por mapa (id do
+# <svg>): n = nível geográfico (ordem das regiões = window.GEO_IDS[n]), c = cores únicas, i = índice da cor por região,
+# v = texto do tooltip por região, h = cabeçalho do CSV, x = célula de valor do CSV por região (omitida quando igual a v),
+# o = índice da rosa dos ventos + barra de escala em _OVERLAYS_MAPA (poucas variantes: uma por projeção).
+_MAPAS = {}
+_OVERLAYS_MAPA = []
+
 def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro", teto=None, zero_branco=False,
              col_suprimido=None, rotulo_suprimido="suprimido (< 20)", col_extra=None, rotulo_extra=""):
     """`col_extra` (populacao-referencia D1): coluna percentual opcional de `df` mostrada no tooltip ao lado do
@@ -1081,7 +1099,8 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
         acima_do_teto = teto_ef is not None and vmax > teto_ef
         if teto_ef is not None:
             vmax = min(vmax, teto_ef)
-        paths, rows = [], []
+        rows = []
+        cores, idx_cor, tooltips = [], [], []
         for _, row in gdf.iterrows():
             chave = row["_chave"]
             v = valor_por_regiao.get(chave)
@@ -1103,7 +1122,10 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 val_txt = rotulo_suprimido
             # geometria em data/geo.js (<path id>), nome da região em window.GEO_NOMES;
             # stroke/fill-opacity no CSS (`.map-svg use`) -- aqui só o que muda por mapa
-            paths.append(f'<use href="#{defs[chave][0]}" fill="{fill}" data-v="{_esc(val_txt)}"></use>')
+            if fill not in cores:
+                cores.append(fill)
+            idx_cor.append(cores.index(fill))
+            tooltips.append(val_txt)
             rows.append((label, v))
         legend_bits = []
         if bins is not None:
@@ -1128,10 +1150,17 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
         bg_class = _basemap_css_class(project)
         overlay = _svg_rosa_dos_ventos() + _svg_barra_escala(project)
         svg = (
-            f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg {bg_class}" id="{elem_id}">'
-            + "".join(paths) + overlay + "</svg>"
+            f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg {bg_class}" id="{elem_id}"></svg>'
         )
-        csv = _csv_data_attr([_NIVEL_LABEL.get(nivel, "Bairro"), legenda_titulo or valor_col], rows)
+        if overlay not in _OVERLAYS_MAPA:
+            _OVERLAYS_MAPA.append(overlay)
+        # mesmas células de _csv_data_attr (sem o escape HTML: o CSV já não passa por atributo)
+        cab = [_celula_csv(_NIVEL_LABEL.get(nivel, "Bairro")), _celula_csv(legenda_titulo or valor_col)]
+        celulas = [_celula_csv(v) for _, v in rows]
+        assert [_celula_csv(l) for l, _ in rows] == [_celula_csv(r[1]) for r in _GEO_USADOS[nivel]], "ordem das regiões"
+        _MAPAS[elem_id] = {"n": nivel, "c": cores, "i": idx_cor, "v": tooltips, "h": cab, "o": _OVERLAYS_MAPA.index(overlay)}
+        if celulas != tooltips:
+            _MAPAS[elem_id]["x"] = celulas
         # estilo cartografico (specification.md §7): fundo real (Esri Ocean Basemap,
         # igual ao PNG) -- azul fica reservado ao mar/basemap, o choropleth dos DADOS
         # (censo etc.) nunca usa azul (Greys/BuGn/RdPu/YlOrBr). Rosa dos ventos + barra
@@ -1139,7 +1168,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
         # sistema de referencia (convencao do PNG).
         ref_txt = "Sistema de referência: SIRGAS 2000, UTM - Fuso 23S"
         parts.append(
-            f'<div class="out map-svg-card" data-csv="{csv}" data-filename="{_esc(titulo)}.csv">'
+            f'<div class="out map-svg-card" data-filename="{_esc(titulo)}.csv">'
             '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>'
             f'<div class="map-title">{_esc(titulo)}</div>'
             '<div class="map-svg-frame">'
@@ -1161,7 +1190,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
 # sumário lateral são montados no fim (ASSEMBLE), quando todos os h2/h3 já existem. Aqui só o
 # texto da Introdução (curado sob o bookmark "introducao" do DOCX, senão lorem de 250 palavras --
 # specs/2026-09-22_ajuste_eixos §7), que vai para o painel Visão geral.
-INTRO_HTML = _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 250)
+INTRO_HTML = _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 150)
 
 # ============================================================== PRIORIDADE ==
 
@@ -2055,6 +2084,10 @@ for i, (start, titulo, sid) in enumerate(section_starts):
     _itens = [_html_mod.escape(l) for l in _achados_cur] or _lorem_bullets(sid)
     achados = callout("findings", "lightbulb", "Principais achados",
                       "<ul>" + "".join(f"<li>{b}</li>" for b in _itens) + "</ul>")
+    # texto de abertura do eixo, logo abaixo dos achados (specs/2026-09-28_melhorias_site U2): chave
+    # introducao_<eixo> de blocos_relatorio (a mesma do PDF e do DOCX); sem texto curado, lorem de 90 palavras com a
+    # mesma semente do PDF
+    achados += f'<p class="eixo-intro">{_texto_analise(f"introducao_{_k_eixo}") if _TEXTOS_CURADOS.get(f"introducao_{_k_eixo}") else _lorem(f"introducao-{sid}", 90)}</p>'
     # Conclusões do eixo (pedido do usuário no Bloco 4): 100-200 palavras, lorem até haver texto
     # curado sob a seed "conclusao-<sid>" em relatorio/textos_curados.json (o DOCX de curadoria
     # ainda não tem bookmark para isso -- mesma lacuna conhecida das opções sem arquivo, relatorio/specs.md v7)
@@ -2142,17 +2175,31 @@ outline = ('<aside class="outline" aria-label="Nesta seção"><div class="outlin
            '<div class="outline-progress" aria-hidden="true"><span></span></div>'
            + "".join(navs_outline) + '</div></aside>')
 
-body = (banner + "\n" + tabbar + "\n"
+SPRITE_ICONES = ('<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">'
+                 + "".join(f'<symbol id="i-{n}" viewBox="0 0 24 24">{c}</symbol>' for n, c in sorted(_ICONES.items()))
+                 + "</svg>")
+body = (SPRITE_ICONES + "\n" + banner + "\n" + tabbar + "\n"
         '<div class="container page-grid">\n<main class="panels">\n' + "\n".join(paineis) + '\n</main>\n'
         + outline + '\n</div>\n' + footer)
 
 # CSS e motor JS são arquivos estáticos editados à mão (specs/2026-09-24_website_refactor Bloco 2):
 # website/css/{main,layout,components}.css e website/js/{charts,navigation,sidebar}.js.
 
+def _compacta_numeros_js(js):
+    """specs/2026-09-28_melhorias_site U5: fora de strings (aspas duplas), "2000.0" vira "2000" em data/charts.js -- o
+    mesmo número em JS, ~7 mil ocorrências. Arredondar os floats longos foi testado e descartado: mudava o antialiasing
+    de algumas linhas (subpixel) por ~3 KB."""
+    partes = re.split(r'("(?:[^"\\\n]|\\.)*")', js)
+    return "".join(p if i % 2 else re.sub(r"(?<![\w.])(\d+)\.0(?![\w.\d])", r"\1", p) for i, p in enumerate(partes))
+
 # Bloco 2: as chamadas de render (dados embutidos) saem do HTML para data/charts.js,
 # carregado depois de js/charts.js (mesma ordem de execução de antes: ENGINE, depois RENDER_CALLS).
 RENDER_CALLS_JS = ("// GERADO por website/build/build_site.py -- não editar à mão.\n"
-                   "(function(){\n\"use strict\";\n" + "\n".join(scripts) + "\n})();\n")
+                   "(function(){\n\"use strict\";\n"
+                   + "window.MAPAS = " + json.dumps(_MAPAS, ensure_ascii=False, separators=(",", ":")) + ";\n"
+                   + "window.MAPAS_OVERLAYS = " + json.dumps(_OVERLAYS_MAPA, ensure_ascii=False, separators=(",", ":")) + ";\n"
+                   + "\n".join(scripts) + "\n})();\n")
+RENDER_CALLS_JS = _compacta_numeros_js(RENDER_CALLS_JS)
 
 # regras de fundo cartografico dos mapas, coletadas durante a geracao (1 por
 # bbox unico -- bairro/AP/RP compartilham a mesma classe, ja que dissolvem da
@@ -2168,12 +2215,14 @@ var D = __DADOS__;
 var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), defs = document.createElementNS(NS, 'defs'), nomes = {};
 svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true');
 svg.style.position = 'absolute';
-Object.keys(D).forEach(function(n){ D[n].forEach(function(r){
+var ids = {};
+Object.keys(D).forEach(function(n){ ids[n] = []; D[n].forEach(function(r){
   var p = document.createElementNS(NS, 'path'); p.setAttribute('id', r[0]); p.setAttribute('d', r[2]);
-  defs.appendChild(p); nomes[r[0]] = r[1];
+  defs.appendChild(p); nomes[r[0]] = r[1]; ids[n].push(r[0]);
 }); });
 svg.appendChild(defs); document.body.insertBefore(svg, document.body.firstChild);
 window.GEO_NOMES = nomes;
+window.GEO_IDS = ids;   // ordem das regiões por nível (window.MAPAS, specs/2026-09-28_melhorias_site U5)
 })();
 """.replace("__DADOS__", json.dumps(_GEO_USADOS, ensure_ascii=False, separators=(",", ":")))
 
@@ -2193,7 +2242,9 @@ doc = f"""<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{TITULO_SITE}</title>
 <meta name="description" content="Indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro, por eixo da política municipal.">
-<link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="{_v('favicon.ico')}" sizes="32x32">
+<link rel="icon" href="{_v('assets/images/favicon.svg')}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{_v('assets/images/apple-touch-icon.png')}">
 <link rel="stylesheet" href="{_v('css/main.css')}">
 <link rel="stylesheet" href="{_v('css/layout.css')}">
 <link rel="stylesheet" href="{_v('css/components.css')}">
@@ -2240,7 +2291,7 @@ print(f"wrote {OUT_DIR}: {len(scripts)} charts, {sum(1 for l,t,s in toc if l==2)
 import gzip
 ORCAMENTO_INDEX = 1_000_000
 ORCAMENTO_SITE = 2_000_000
-_PUBLICADOS = ["index.html", "404.html", ".nojekyll", "css", "js", "data", "assets"]   # = lista do workflow de deploy
+_PUBLICADOS = ["index.html", "404.html", ".nojekyll", "favicon.ico", "css", "js", "data", "assets"]   # = lista do workflow de deploy
 _tamanhos = []
 for nome in _PUBLICADOS:
     alvo = OUT_DIR / nome

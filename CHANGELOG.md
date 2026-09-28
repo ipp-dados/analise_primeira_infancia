@@ -412,3 +412,14 @@ na tabela SIDRA 10056). Updates antigos movidos para `relatorio/textos_updates_a
 `export_pdf_report`: `compara_updates.py` (o que o curador mudou em relação ao update-base) e
 `valida_textos_publicados.py` (cada texto curado, frase a frase, no site e no PDF). PDF publicado (157 páginas,
 14,2 MB).
+
+## 2026-09-28 — `specs/melhorias_site` (Rodada A: favicon, abertura dos eixos, lorem, Painéis, HTML menor)
+
+Favicon novo (adulto e criança, azul IPP e ciano), com `favicon.ico` e `apple-touch-icon` gerados por
+`website/build/gera_favicon.py`; as outras opções ficam em `website/build/favicon_opcoes/`. Cada eixo ganha um texto
+de abertura logo abaixo de "Principais achados" (`introducao_<eixo>`, bloco do relatório compartilhado por site, PDF e
+DOCX; lorem de 90 palavras até ser curado). Todo lorem passa a ter no máximo 150 palavras nos três geradores; o DOCX
+foi regenerado sem carregar o lorem antigo e a sincronização passou a ignorar qualquer placeholder, sem mudar nenhum
+texto curado. Pequenos múltiplos só com a vista de painéis (sai o botão "Linhas"). `website/index.html` de 785 KB
+para 343 KB sem mudança visual: regiões dos mapas, CSV dos mapas e rosa dos ventos/escala em `window.MAPAS`
+(`data/charts.js`), montados por `js/charts.js`; ícones num sprite; `2000.0` → `2000` nos dados dos gráficos.
