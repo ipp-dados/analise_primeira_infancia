@@ -67,8 +67,9 @@ what round 4 had actually addressed (clearance from the top edge).
 
 ## The reusable piece: `mapa_coropletico_bairros`
 
-Defined in `analise.py`, in **Pacotes e Funções Auxiliares → 📈 Funções de
-visualização**. Signature:
+Defined in `primeira_infancia/mapas.py` (until `specs/2026-09-28_organizacao`, in `analise.py`, **Pacotes e
+Funções Auxiliares → 📈 Funções de visualização**); its style constants (`_PROVEDORES_FUNDO`, `_FONTE_TITULO`,
+`_CORES_TEMA_MAPA`) are in `primeira_infancia/estilo.py` and the print variant in `primeira_infancia/impressao.py`. Signature:
 
 ```python
 mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None, nivel='bairro',

@@ -40,7 +40,7 @@ python website/build/build_site.py
   does NOT read that file — relocate the h2/h3 block in `build_site.py` by hand (see the
   `export_pdf_report` skill's caveat, same rule for both generators).
 - Text curated in the DOCX reaches the site through
-  `.claude/skills/export_pdf_report/scripts/sincroniza_docx.py`, which also reruns this generator.
+  `relatorio/curadoria/sincroniza_docx.py`, which also reruns this generator.
 
 ## Edit
 
@@ -80,8 +80,7 @@ python website/build/build_site.py
 3. Static-site rules (`website/README.md`): only html/css/js/svg/png/jpg; relative lowercase paths
    that match on-disk case exactly; hash-only routes; no `fetch`.
 4. Browser check: Chrome via DevTools Protocol (`websocket-client` is installed) or Playwright
-   (Chromium via `channel="chrome"`, Firefox, WebKit — dev environment only, not in
-   `requirements.txt`). Cover tab switch + hash, old anchors, sticky bar, outline, pills, outliers,
+   (Chromium via `channel="chrome"`, Firefox, WebKit — dev environment only: `requirements-dev.txt`). Cover tab switch + hash, old anchors, sticky bar, outline, pills, outliers,
    CSV download and a map tooltip at each level (bairro, AP, RP, RA, CAP).
 
 ## Publish

@@ -8,7 +8,7 @@
 > `dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx`), lista
 > `- chave: valor` = campos da subseção. Sem YAML/front matter, de propósito
 > (edição manual sem quebrar o parser — ver `parse_estrutura_eixos()` em
-> `.claude/skills/export_pdf_report/scripts/gera_estrutura_eixos.py`).
+> `relatorio/curadoria/gera_estrutura_eixos.py`).
 >
 > **Convenção de chave repetida**: quando um indicador do catálogo tem mais
 > de um corte real em `analise.py` (ex. causas evitáveis por grupo/subgrupo/
