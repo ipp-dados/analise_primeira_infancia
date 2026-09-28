@@ -30,7 +30,7 @@ versionada e o deploy só copia. Regerou → confira → commit → dispare o wo
 | `data/charts.js` (dados + chamadas dos gráficos) | **gerado** |
 | `data/geo.js` (geometria dos mapas, 1 `<path>` por região) | **gerado** |
 | `assets/images/basemap-*.jpg`, `assets/images/ipp-logo-<altura>.png` | **gerados** (a partir do tile Esri e de `ipp-logo.png`) |
-| `css/main.css`, `css/layout.css`, `css/components.css` | à mão (tokens em `main.css`) |
+| `css/main.css`, `css/layout.css`, `css/components.css`, `css/mobile.css` | à mão (tokens em `main.css`; `mobile.css` = telas < 1100 px, carregado por último) |
 | `js/charts.js` (motor de gráficos, pills, outliers, CSV, tooltip de mapa) | à mão |
 | `js/navigation.js` (abas, URL), `js/sidebar.js` (sumário lateral) | à mão |
 | `assets/icons/*.svg` (Lucide, licença ISC), `assets/images/ipp-logo.png` | à mão (fonte) |
@@ -69,11 +69,31 @@ figura exibida, chave, texto do DOCX / do JSON / do site, status OK · PENDENTE 
 Também gera `textos_para_revisao.csv` (uma linha por chave, faltantes primeiro, blocos do relatório incluídos,
 colunas em branco "Conferido"/"Comentário" para a revisão manual). Os blocos de texto levam `data-seed` = chave em `relatorio/textos_curados.json`.
 
-## Telas estreitas
+## Mobile (`specs/2026-09-28_website_mobile`)
 
-Ainda não é a versão mobile (ROADMAP), mas não quebra: abaixo de 1100 px o sumário lateral (com a barra de
-progresso) some e o conteúdo usa a largura toda; abaixo de 900 px mapa/gráfico e texto empilham; abaixo de 760 px
-o banner empilha.
+Toda regra de tela estreita fica em **`css/mobile.css`** (carregado por último); `main.css`, `layout.css` e
+`components.css` são só desktop. Faixas: **desktop ≥ 1100 px** (nenhuma regra de `mobile.css`), **tablet 720-1099 px**,
+**celular < 720 px**; abaixo de 900 px mapa/gráfico e texto empilham. Regra da rodada: o desktop não muda — conferido
+por captura pixel a pixel a 1400 e 1280 px antes de cada commit.
+
+| Componente | Tablet e celular | Só celular |
+|---|---|---|
+| Abas | fileira rola na horizontal, esmaecimento no lado com mais abas, aba ativa centralizada (`js/navigation.js`) | 44 px de altura |
+| Sumário | vira a faixa **"Nesta seção ▾"** dentro da barra fixa + linha de progresso de 3 px (`js/sidebar.js`; marcação `.outline-mobile`/`.nav-progress` gerada, oculta no desktop) | |
+| Gráficos | contêiner < 640 px → **desenho na largura real** (`js/charts.js`: viewBox = px, fontes ≥ 11 px, menos rótulos, paddings medidos); redesenha ao aparecer (pill, aba, Taxa\|Óbitos) e ao girar a tela | pequenos múltiplos em 1-2 colunas |
+| Pills | | cartões com **6+ opções** mostram um `<select>` nativo (`.pill-select`, gerado), sincronizado com as pills |
+| Mapas | | legenda **abaixo** do mapa; escala e rosa legíveis (`--map-esc`); tooltip por toque, preso ao cartão |
+| Banner | | compacto; GitHub e PDF lado a lado com rótulo curto (`.rotulo-curto`) |
+| Alvos de toque | | ≥ 44 px (abas, pills, select, botões, `summary`) |
+
+Tooltips: o mouse continua abrindo por hover e fechando ao sair (`pointerleave` com `pointerType === 'mouse'`); o
+toque abre ao tocar e fecha ao tocar fora (o `mouseleave` de compatibilidade do navegador fechava o tooltip na hora).
+Testar em 390×844, 360×740, 768×1024 e 1024×768 (Chromium, Firefox, WebKit) e num aparelho real.
+
+## Faixa "EM DESENVOLVIMENTO"
+
+A faixa amarela do topo sai de `relatorio/publicacao.json` (`em_desenvolvimento`), a mesma chave da marca d'água do
+PDF (`relatorio/latex/build/gera_latex.py`). Na versão final: `false` e regerar o site e o PDF — as duas saem juntas.
 
 ## Testar localmente
 

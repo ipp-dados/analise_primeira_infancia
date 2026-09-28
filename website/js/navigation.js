@@ -19,6 +19,27 @@
   function navH(){ return bar.getBoundingClientRect().height; }
   function atualizaNavH(){ document.documentElement.style.setProperty('--nav-h', Math.round(navH()) + 'px'); }
 
+  // abas em telas estreitas (specs/2026-09-28_website_mobile M1): a fileira rola na horizontal; esmaecimento só do
+  // lado em que ainda há abas (classes lidas por css/mobile.css) e aba ativa centralizada. Se as abas cabem (desktop),
+  // nenhuma classe entra e nada rola.
+  const fileira = bar.querySelector('.tabbar-inner');
+  function atualizaBordas(){
+    if (!fileira) return;
+    const max = fileira.scrollWidth - fileira.clientWidth;
+    fileira.classList.toggle('tem-mais-esq', max > 1 && fileira.scrollLeft > 1);
+    fileira.classList.toggle('tem-mais-dir', max > 1 && fileira.scrollLeft < max - 1);
+  }
+  function centraAba(tab, suave){
+    if (!fileira || fileira.scrollWidth <= fileira.clientWidth) return;
+    const fr = fileira.getBoundingClientRect(), tr = tab.getBoundingClientRect();
+    const esq = fileira.scrollLeft + (tr.left - fr.left) - (fr.width - tr.width) / 2;
+    fileira.scrollTo({left: Math.max(0, esq), behavior: (suave && !reduzMovimento) ? 'smooth' : 'auto'});
+  }
+  if (fileira) {
+    let agendado = false;
+    fileira.addEventListener('scroll', ()=>{ if (!agendado) { agendado = true; requestAnimationFrame(()=>{ agendado = false; atualizaBordas(); }); } }, {passive: true});
+  }
+
   function rolaPara(y){ window.scrollTo({top: Math.max(0, y), behavior: reduzMovimento ? 'auto' : 'smooth'}); }
 
   // Topo do painel logo abaixo da barra. Só sobe (se o leitor está no banner, não desce à força).
@@ -42,6 +63,7 @@
     });
     const panel = panelOf(tab);
     const mudou = ativo !== tab;
+    centraAba(tab, ativo !== null);
     ativo = tab;
     if (mudou) document.dispatchEvent(new CustomEvent('tabchange', {detail: {id: panel.id, panel: panel}}));
     if (opts.alvo) {
@@ -104,7 +126,9 @@
   bar.parentNode.insertBefore(sentinela, bar);
   new IntersectionObserver(([e])=> bar.classList.toggle('is-stuck', !e.isIntersecting)).observe(sentinela);
 
-  window.addEventListener('resize', atualizaNavH);
-  document.addEventListener('DOMContentLoaded', ()=>{ atualizaNavH(); rota(); });
+  window.addEventListener('resize', ()=>{ atualizaNavH(); atualizaBordas(); if (ativo) centraAba(ativo, false); });
+  document.addEventListener('DOMContentLoaded', ()=>{ atualizaNavH(); rota(); atualizaBordas(); });
+  // fontes da web mudam a largura das abas depois do DOMContentLoaded
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ atualizaNavH(); atualizaBordas(); if (ativo) centraAba(ativo, false); });
   window.navegacao = {ativa: id => { const t = tabs.find(x => x.getAttribute('aria-controls') === id); if (t) t.click(); }, rolaAte: rolaAte};
 })();

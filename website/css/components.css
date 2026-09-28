@@ -232,30 +232,4 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.76rem;}
 .eixo-card-title{font-family:var(--font-display); font-weight:600; font-size:1.12rem; line-height:1.2;}
 .eixo-card-meta{font-family:var(--font-mono); font-size:.66rem; color:var(--ink-3); margin-top:auto;}
 
-/* mapa + texto lado a lado precisa de ~720 px de conteúdo; abaixo disso o texto desce para baixo do mapa
-   (specs/2026-09-28_website_bugfix: antes só a 720 px de tela, e o texto -- filho absoluto -- ficava com altura 0) */
-@media (max-width:1100px){ .eixo-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
-@media (max-width:900px){
-  .option-card-mapa{grid-template-columns:minmax(0,1fr); grid-template-areas:"pills" "map" "text";}
-  .option-card-mapa.option-card-single{grid-template-columns:minmax(0,1fr); grid-template-areas:"map" "text";}
-  .option-card-mapa .opt-panes .out{border-radius:var(--radius-md) var(--radius-md) 0 0;}
-  .option-card-mapa .opt-text{height:auto; border-left:none; border-top:1px solid var(--hairline-2); border-radius:0 0 var(--radius-md) var(--radius-md);}
-  .option-card-mapa .opt-text .opt-text-inner{position:static; padding:18px 20px;}
-  .table-with-text{grid-template-columns:minmax(0,1fr);}
-  /* gráfico: a coluna de 210 px de pills deixava o gráfico com ~480 px e o texto dos eixos ilegível */
-  .option-card-grafico{grid-template-columns:minmax(0,1fr); grid-template-areas:"pills" "chart" "text";}
-  .option-card-grafico.option-card-single{grid-template-columns:minmax(0,1fr); grid-template-areas:"chart" "text";}
-  .pill-col{flex-direction:row; flex-wrap:wrap; max-height:none;}
-}
-@media (max-width:720px){
-  .map-legend-overlay{max-width:60%; padding:8px 10px;}
-  .out{padding:18px 16px 14px;}
-  /* botões CSV/outliers ficam numa faixa acima do título, em vez de exigir 190-240 px livres à direita dele */
-  .map-title, .outlier-card .map-title{padding-right:0; padding-top:34px;}
-  .eixo-grid{grid-template-columns:minmax(0,1fr);}
-  .overview-intro{padding:24px 20px;}
-  .conclusao{padding:24px 20px 26px;}
-}
-@media (max-width:520px){
-  .bar-row{grid-template-columns:70px 1fr auto;}
-}
+/* telas estreitas (empilhamento, pills, legenda, botões): css/mobile.css (specs/2026-09-28_website_mobile) */
