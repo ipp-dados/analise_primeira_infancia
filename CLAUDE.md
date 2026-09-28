@@ -153,7 +153,9 @@ Key conventions enforced throughout, worth checking before adding a new call sit
   new instruction. Before a risky change or incorporating outside work (e.g. merging another
   branch), open a new `specs/<AAAA-MM-DD>_<name>/` round and summarize the plan before executing.
   Round folders are prefixed with the date the round was opened (first commit of its files), so
-  `ls specs/` lists them in chronological order; git branches keep the bare name (`spec/<name>`).
+  `ls specs/` lists them in chronological order; git branches keep the bare name (`spec/<name>`). After the round is
+  merged into `staging_main`, its branch may be deleted (user's OK) once its tip is kept as an annotated tag
+  `rodada/<name>` (`git tag -l 'rodada/*'`; done for 15 branches on 2026-09-28) — see `specs/constitution.md` §7.
 - `.claude/skills/` — see Commands above.
 
 ### Working with `dados_locais/geo/`

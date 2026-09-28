@@ -160,6 +160,23 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 - **Camada própria de água/costa** nos mapas: hoje o mar vem só do tile (Esri Ocean); necessária apenas se um
   dia for preciso colorir o mar por conta própria (`relatorio/specs.md` v6.4-v6.6).
 
+### Repositório (git)
+
+Decididos em 2026-09-28 para depois (a limpeza de branches mescladas foi feita no mesmo dia, ver Concluído):
+
+- **Tamanho do histórico** — o pack tem ~178 MB, quase tudo binário com muitas versões: o PDF (19 versões, 644 MB
+  sem compactar), o antigo `relatorio/index.html` (308 MB) e o DOCX de curadoria (87 MB). **Não reescrever o histórico
+  por ora**: mudaria o identificador de todos os commits (clones e a branch da Waleska refeitos; hashes citados no
+  `CHANGELOG.md` e nas `specs/`, como o rollback `883b4b1`, deixariam de existir). Primeiro conter o crescimento:
+  publicar o PDF como anexo de Release do GitHub em vez de versioná-lo a cada build, ou pôr PDF/DOCX no Git LFS. Se
+  o clone um dia atrapalhar, uma limpeza única combinada com a equipe (tag antes, `git filter-repo`, todos reclonam).
+- **Papel da `main`** — está 204 commits atrás de `staging_main` (a branch padrão) e nunca recebeu as rodadas.
+  Proposta: usá-la como branch de versão e mesclar `staging_main` nela quando `relatorio/publicacao.json` passar para
+  a versão final; alternativa: aposentá-la.
+- **`waleska-analise-primeira-infancia`** — tem 2 commits de conteúdo que não estão em `staging_main` ("Ajusta análise
+  dos resultados da primeira infância", "Ajusta curadoria da primeira infancia", 2026-09-22); confirmar com a autora se
+  ainda são necessários antes de mesclar ou apagar.
+
 ### Ideias (sem decisão)
 - Substituir a visualização HTML por um painel Streamlit.
 
@@ -171,6 +188,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-09-28 | Git: 15 branches já mescladas apagadas (13 `spec/*`, `ajuste_eixos`, `inclusao_dados_protecao`), cada ponto final preservado numa tag `rodada/<nome>`; ficam `main`, `planning`, `staging_main` e a branch da Waleska | `specs/constitution.md` §7 |
 | 2026-09-28 | Documentação alinhada ao estado real e especificação funcional/técnica do projeto (`docs/especificacao_projeto.md`); `.env.example` | `specs/2026-09-28_documentacao` |
 | 2026-09-28 | Organização do projeto, fases 1a e 1b: pacote `primeira_infancia/`, scripts em `relatorio/curadoria/`, requisitos diretos fixados, 431/431 saídas idênticas | `specs/2026-09-28_organizacao` |
 | 2026-09-28 | Rodada A de melhorias: favicon (SVG + `.ico` + apple-touch), abertura de cada eixo, lorem ≤ 150 palavras, só Painéis nos pequenos múltiplos, `index.html` 785 → 343 KB (mapas montados em JS, sprite de ícones) | `specs/2026-09-28_melhorias_site` |

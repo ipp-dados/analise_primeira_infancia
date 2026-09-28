@@ -150,6 +150,11 @@ família nunca são gravados em disco.
 - Branch de integração: `staging_main`. Branches de trabalho seguem
   `spec/<nome-curto>` (ex.: `spec/relatorio-interativo`) para rodadas de
   spec, ou um nome descritivo curto para trabalho pontual (ex.: `planning`).
+- Depois do merge em `staging_main`, a branch da rodada pode ser apagada (com
+  confirmação do usuário) desde que o ponto final fique numa tag anotada
+  `rodada/<nome-curto>` (ex.: `rodada/website-mobile`) — assim o nome continua
+  apontando para o estado final da rodada. Feito pela primeira vez em
+  2026-09-28 (15 branches). Nunca apagar branch de outra pessoa sem perguntar.
 - Mensagens de commit em rodadas de spec seguem o padrão
   `SPEC-<Nome>: Bloco N -- descrição curta` (visto no histórico); fora
   desse contexto, uma mensagem direta em português descrevendo o *porquê*
