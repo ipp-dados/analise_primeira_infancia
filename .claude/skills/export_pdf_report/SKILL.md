@@ -32,6 +32,7 @@ notebook, not the html"). The PDF still uses **the notebook's own figures**, now
 | `relatorio/latex/build/tabelas.py` | CSV → ABNT table; per-table rules (`AJUSTES`), merges (`SUBSTITUI_NO_PDF`), size rules | code |
 | `relatorio/latex/build/inventario_fontes.py` | sources inventory (`relatorio/inventario_fontes.md/.csv`) | code |
 | `relatorio/latex/build/gera_icones.py` | site's Lucide icons → TikZ macros | code |
+| `relatorio/curadoria/` | structure of the eixos (`gera_estrutura_eixos.py`, also imported by the site and LaTeX generators), DOCX curation export/sync/updates, published-text validation — moved out of this skill's `scripts/` in `specs/2026-09-28_organizacao`; the skill only calls them | code |
 | `relatorio/latex/gerado/` | generator output (committed, diffable) | **never by hand** |
 | `relatorio/latex/_build/` | latexmk aux, image cache, `relatorio.pdf` | gitignored |
 | `visualizacoes/a4/`, `mapas/a4/`, `visualizacoes/a4/_manifesto.csv` | print figures + their title/source/unit, written by `analise.py` | gitignored, generated |
@@ -53,7 +54,7 @@ Run everything from the project root.
 
 2. **Validate the structure.**
    ```
-   python .claude/skills/export_pdf_report/scripts/gera_estrutura_eixos.py
+   python relatorio/curadoria/gera_estrutura_eixos.py
    ```
    Fails loudly if any file referenced in `specs/estrutura_eixos.md` is missing. Fix before continuing.
 
@@ -111,7 +112,7 @@ Run everything from the project root.
 
 Text lives in `relatorio/textos_curados.json`, keyed by figure file stem (`taxa_mortalidade_precoce_ano`),
 `introducao`, and — since `specs/2026-09-25_relatorio_latex` Block 6 — the report-level blocks from
-`blocos_relatorio()` (`scripts/gera_estrutura_eixos.py`): `resumo`, `achados_<eixo>` (one finding per line),
+`blocos_relatorio()` (`relatorio/curadoria/gera_estrutura_eixos.py`): `resumo`, `achados_<eixo>` (one finding per line),
 `introducao_<eixo>` (the eixo's opening text, ≤ 100 words, right below the findings — `specs/2026-09-28_melhorias_site`
 U2), `sintese_<eixo>`, `consideracoes_finais` (`<eixo>` = `chave_eixo()`, e.g. `familia_e_cuidados`). Without
 curated text the PDF shows deterministic lorem ipsum identical to the site's for the same key (decision D4). The site
@@ -127,7 +128,7 @@ opening 90) in the three generators — site `_lorem`, LaTeX `lorem`, DOCX `_lor
 
 6. **Build the DOCX curation export.**
    ```
-   python .claude/skills/export_pdf_report/scripts/gera_docx_curadoria.py relatorio/curadoria_textos.docx
+   python relatorio/curadoria/gera_docx_curadoria.py relatorio/curadoria_textos.docx
    ```
    One heading per eixo/subsection, the (screen) images, one bookmarked text block per image, plus the report
    blocks (Resumo after the Introduction; Principais achados and Síntese at the start/end of each eixo;
@@ -139,7 +140,7 @@ opening 90) in the three generators — site `_lorem`, LaTeX `lorem`, DOCX `_lor
 
 7. **Sync hand-curated DOCX text back.**
    ```
-   python .claude/skills/export_pdf_report/scripts/sincroniza_docx.py relatorio/curadoria_textos.docx
+   python relatorio/curadoria/sincroniza_docx.py relatorio/curadoria_textos.docx
    ```
    Detects genuinely edited blocks (exact comparison with the placeholder each bookmark would get — for the report
    blocks, `placeholder_bloco()`), merges them into `textos_curados.json`, regenerates the site
@@ -152,16 +153,16 @@ opening 90) in the three generators — site `_lorem`, LaTeX `lorem`, DOCX `_lor
    (`curadoria_textos_update_<N>.docx`, N = round number, 1-5 so far). `A=relatorio/textos_updates_antigos`:
    ```
    # 1. what did the curator really change? (diff against the update it was based on -- usually the previous one)
-   python .claude/skills/export_pdf_report/scripts/compara_updates.py $A/curadoria_textos_update_<N-1>.docx relatorio/curadoria_textos_update.docx
+   python relatorio/curadoria/compara_updates.py $A/curadoria_textos_update_<N-1>.docx relatorio/curadoria_textos_update.docx
    # 2. review status across ALL rounds (copy the new file to <scratchpad>/curadoria_textos_update_<N>.docx first,
    #    so the round id in controle_revisao.json is the archived name)
-   python .claude/skills/export_pdf_report/scripts/incorpora_update_docx.py $A/curadoria_textos_update_1.docx … <scratchpad>/curadoria_textos_update_<N>.docx --saida <scratchpad>/casamento_todos.json --controle relatorio/controle_revisao.json --datas 2026-09-23,…
+   python relatorio/curadoria/incorpora_update_docx.py $A/curadoria_textos_update_1.docx … <scratchpad>/curadoria_textos_update_<N>.docx --saida <scratchpad>/casamento_todos.json --controle relatorio/controle_revisao.json --datas 2026-09-23,…
    # 3. revised matching (only the texts from step 1) -> DOCX -> JSON/site/PDF/analise.py
-   python .claude/skills/export_pdf_report/scripts/gera_docx_curadoria.py relatorio/curadoria_textos.docx --textos <scratchpad>/casamento_rev.json
-   python .claude/skills/export_pdf_report/scripts/sincroniza_docx.py relatorio/curadoria_textos.docx
+   python relatorio/curadoria/gera_docx_curadoria.py relatorio/curadoria_textos.docx --textos <scratchpad>/casamento_rev.json
+   python relatorio/curadoria/sincroniza_docx.py relatorio/curadoria_textos.docx
    python relatorio/latex/build/gera_latex.py --publicar
    # 4. every curated text on the site and in the PDF (exit 1 if one is missing)
-   python .claude/skills/export_pdf_report/scripts/valida_textos_publicados.py
+   python relatorio/curadoria/valida_textos_publicados.py
    # 5. archive: relatorio/curadoria_textos_update.docx -> $A/curadoria_textos_update_<N>.docx
    ```
    Google Docs drops bookmarks; the matcher pairs texts by H3 title (with known renames in `RENOMES`), untitled

@@ -15,10 +15,9 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
    branch `spec/melhorias-site`): favicon novo (monograma "PI", escolhido pelo usuário; alternativas em `website/build/favicon_opcoes/`,
    trocar com `gera_favicon.py`), texto de abertura de cada eixo (`introducao_<eixo>`, lorem até ser curado), lorem ≤ 150
    palavras, pequenos múltiplos só com Painéis, `index.html` 785 → 343 KB sem mudança visual. Mesclada em
-   `staging_main` em 2026-09-28; falta o deploy. Na sequência do mesmo pedido: **Rodada B** = Próximos,
-   item 1 (organização do projeto, fases 1a e 1b; 1c — pastas de dados — fica para depois) e **Rodada C** =
-   Próximos, item 6 (documentação + documento de especificação funcional/técnica em `docs/especificacao_projeto.md`),
-   nessa ordem, uma branch por rodada.
+   `staging_main` em 2026-09-28; falta o deploy. **Rodada B concluída** no mesmo dia (item 1 de Próximos, fases 1a e
+   1b, `specs/2026-09-28_organizacao`). Falta a **Rodada C** do mesmo pedido: Próximos, item 6
+   (documentação + documento de especificação funcional/técnica em `docs/especificacao_projeto.md`).
 
 1. **Site: exclusões + `improve charts`** — implementado em 2026-09-25 (`specs/2026-09-25_website_graficos`, branch
    `spec/website-graficos`). O push para `staging_main` quebrou o site publicado e foi **revertido em 2026-09-28**
@@ -60,25 +59,19 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 
 ## Próximos
 
-1. **Organização do projeto (feat)** — abrir uma rodada própria (`specs/<data>_organizacao`) com plano e
-   validação antes de mover qualquer arquivo; é refatoração, então a regra é "mesmas saídas antes e depois".
+1. **Organização do projeto (feat)** — fases **1a e 1b concluídas em 2026-09-28** (`specs/2026-09-28_organizacao`,
+   branch `spec/organizacao`; mesmas 431 saídas antes e depois): funções do notebook no pacote `primeira_infancia/`
+   (um módulo por tema, `analise.py` de 4.786 para 2.938 linhas), scripts de pipeline da skill do PDF em
+   `relatorio/curadoria/`, `requirements.txt` só com as dependências diretas fixadas (+ `requirements-dev.txt`),
+   restos de compilação LaTeX removidos. Falta a **fase 1c**, numa rodada própria, com a mesma regra
+   ("mesmas saídas antes e depois"):
    - **Pastas de dados e saídas**: reorganizar `dados_locais/`, `tabelas_finais/`, `visualizacoes/` e `mapas/`
-     (estrutura por fonte/eixo, nomes, o legado `mapas/tabelas_bairros/`, as variantes `a4/`); atualizar os
-     leitores (`website/build/build_site.py`, `relatorio/latex/build/`, `specs/estrutura_eixos.md`, skills).
-   - **Quebrar `analise.py` em módulos menores** para facilitar a manutenção: funções auxiliares (conexão,
-     limpeza, carga por fonte, gráficos, mapas, variante de impressão) num pacote importável; as seções de
-     análise ficam como notebook/script fino que só chama funções. Manter a ordem de dependência de dados
-     (hoje documentada em `CLAUDE.md`) e o Jupytext. Revisitar a decisão de `specs/2026-09-22_ajuste_eixos`
-     §9.1 (não reordenar fisicamente) à luz da quebra em módulos.
-   - **Realocar scripts das skills** que são pipeline do projeto e não da skill (ex.
-     `.claude/skills/export_pdf_report/scripts/*.py`: geração/sincronização do DOCX, estrutura dos eixos) para
-     junto do código do relatório; as skills passam a só chamá-los.
-   - **Limpar o ambiente e o `requirements.txt`** (pedido do usuário, 2026-09-25): tirar pacotes que o
-     projeto não usa (conferir por import real em `analise.py`, `website/build/`, `relatorio/latex/build/` e
-     scripts das skills), fixar versões do que fica, separar dependências só de desenvolvimento (Playwright,
-     `websocket-client`) e documentar o ambiente do CadÚnico (`psycopg` 3, env `analises_env`); apagar arquivos
-     soltos que não são entrada nem saída do pipeline (ex. `relatorio/latex/relatorio.aux/.fdb_latexmk/.fls/.log`
-     fora de `_build/`), sempre olhando cada um antes e registrando o que saiu.
+     (estrutura por fonte/eixo, nomes, o legado `mapas/tabelas_bairros/` — cujos 3 `.xlsx` versionados são
+     regravados a cada execução só com metadados novos —, as variantes `a4/`); atualizar os leitores
+     (`website/build/build_site.py`, `relatorio/latex/build/`, `relatorio/curadoria/`, `specs/estrutura_eixos.md`,
+     skills, `primeira_infancia/`).
+   - Revisitar a decisão de `specs/2026-09-22_ajuste_eixos` §9.1 (não reordenar fisicamente as seções) agora que as
+     funções saíram do arquivo — a ordem continua sendo de dependência de dados.
    - Pré-requisito do item 2.
 
 2. **Empacotar scripts reutilizáveis para outros projetos** (depois do item 1) — transformar em pacotes
@@ -179,6 +172,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-09-28 | Organização do projeto, fases 1a e 1b: pacote `primeira_infancia/`, scripts em `relatorio/curadoria/`, requisitos diretos fixados, 431/431 saídas idênticas | `specs/2026-09-28_organizacao` |
 | 2026-09-28 | Rodada A de melhorias: favicon (SVG + `.ico` + apple-touch), abertura de cada eixo, lorem ≤ 150 palavras, só Painéis nos pequenos múltiplos, `index.html` 785 → 343 KB (mapas montados em JS, sprite de ícones) | `specs/2026-09-28_melhorias_site` |
 | 2026-09-28 | Curadoria: update 5 incorporado (7 textos novos no site e no PDF, 2 órfãos; controle de revisão recalculado sobre as 5 rodadas; updates antigos em `relatorio/textos_updates_antigos/`; scripts `compara_updates.py` e `valida_textos_publicados.py`) | `relatorio/controle_revisao.json`, skill `export_pdf_report` |
 | 2026-09-28 | Site mobile (`css/mobile.css`: gráficos na largura real, "Nesta seção", select, legenda abaixo do mapa, toque) e marca d'água "EM DESENVOLVIMENTO" no PDF ligada à faixa do site (`relatorio/publicacao.json`) | `specs/2026-09-28_website_mobile` |

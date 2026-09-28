@@ -41,8 +41,9 @@ para impressão/download, com os gráficos originais do matplotlib.
 compartilhado, acesso restrito — solicitar a leonardoaucar@prefeitura.rio.*
 
 ## Estrutura do Projeto
-*   `analise.py`: Script principal (sincronizável com Jupytext) que contém extração, limpeza, análise e geração de visualizações; organizado como notebook (células e markdown). Todas as funções de limpeza/wrangling e de visualização ficam centralizadas na seção **Pacotes e Funções Auxiliares**, no topo do notebook.
-*   `requirements.txt`: Lista de dependências Python do projeto.
+*   `analise.py`: Script principal (sincronizável com Jupytext) que contém extração, limpeza, análise e geração de visualizações; organizado como notebook (células e markdown). Todas as funções de limpeza/wrangling e de visualização ficam no pacote `primeira_infancia/` (um módulo por tema: conexão, limpeza, estilo, gráficos, mapas, variante de impressão, Proteção, CadÚnico, população, educação), importado no topo do notebook.
+*   `primeira_infancia/`: funções reutilizáveis do notebook, um módulo por tema (`specs/2026-09-28_organizacao`).
+*   `requirements.txt`: dependências diretas, com versões fixadas; `requirements-dev.txt`: só desenvolvimento (Playwright).
 *   `dados_locais/`: Diretório para os dados brutos. Uma pasta por fonte/tema (`censo/`, `mortalidade/`, `sisvan/`, `ibge_sidra/`, `vacinacao/`, `nascidos_vivos/`, `educacao/`, `geo/`).
 *   `dados_locais/geo/`: Camadas geográficas de referência, versionadas no git: `limite_bairros_rio.geojson` (limites de bairro do Rio, Data.Rio/IPP, camada `Cartografia/Limites_administrativos`, geometria simplificada, com as colunas de Área/Região de Planejamento usadas nos mapas agregados), `limite_uf_brasil.geojson` (limites dos estados/UF do Brasil, IBGE), `limite_municipios_rj.geojson` (limites e nomes dos 92 municípios do estado do Rio, IBGE, usados para rotular os municípios vizinhos nos mapas com basemap) e `limite_ap_saude_rio.geojson` (as 10 Coordenadorias de Área Programática de Saúde da SMS-Rio, Data.Rio -- não são as 5 Áreas de Planejamento do IPP acima; coluna `cod_ap_sms`).
 *   `dados_locais/tratados/`: Saída intermediária de datasets limpos.
@@ -72,7 +73,7 @@ Pastas de dados/saída (`dados_locais/`, `tabelas_finais/`, `mapas/`, `visualiza
 
 ## Fluxo de Análise (`analise.py`)
 O script `analise.py` realiza as seguintes operações, em ordem prática:
-1.  **Pacotes e Funções Auxiliares** (topo do notebook): carregamento de pacotes, leitura de configurações (.env) e definição de todas as funções reutilizáveis de limpeza/wrangling (`limpeza_tabnet_bairros`, `carrega_raca_bairro`, `carrega_causas_evitaveis_*`, etc.) e de visualização (`serie_temporal`, `grafico_barra*`, `serie_temporal_multipla`). As seções de análise abaixo só chamam essas funções.
+1.  **Pacotes e Funções Auxiliares** (topo do notebook): carregamento de pacotes e `from primeira_infancia import *`, que traz todas as funções reutilizáveis de limpeza/wrangling (`limpeza_tabnet_bairros`, `carrega_raca_bairro`, `carrega_causas_evitaveis_*`, etc.) e de visualização (`serie_temporal`, `grafico_barra*`, `serie_temporal_multipla`). As seções de análise abaixo só chamam essas funções.
 2.  Limpeza SISVAN: processamento de arquivos SISVAN (sobrepeso, desnutrição) e salvamento de saídas intermediárias em `dados_locais/tratados/` e finais em `tabelas_finais/`.
 3.  Censo: leitura dos microdados do Censo (2022 e outros anos), cálculo de totais e percentuais por bairro/idade e export para `tabelas_finais/censo_por_bairro.csv`.
 4.  CadÚnico: extração via CTPE, análise por faixa de renda, idade e bairro, com export em `tabelas_finais/` (ex.: `cadunico_por_faixa_renda_2026.csv`).
@@ -96,7 +97,7 @@ O script `analise.py` realiza as seguintes operações, em ordem prática:
     ```bash
     pip install -r requirements.txt
     ```
-4.  **Configure as variáveis de ambiente**: Crie um arquivo `.env` na raiz do projeto com as credenciais do banco de dados, seguindo o exemplo de `connect_db_ctpe` em `analise.py`. A seção CadÚnico usa o driver `psycopg` 3 (`requirements.txt`) — o kernel precisa ter esse pacote (no ambiente de desenvolvimento, o conda env `analises_env`; o Python base do Anaconda só tem `psycopg2`).
+4.  **Configure as variáveis de ambiente**: Crie um arquivo `.env` na raiz do projeto com as credenciais do banco de dados, seguindo o exemplo de `connect_db_ctpe` em `primeira_infancia/conexao.py`. A seção CadÚnico usa o driver `psycopg` 3 (`requirements.txt`) — o kernel precisa ter esse pacote (no ambiente de desenvolvimento, o conda env `analises_env`; o Python base do Anaconda só tem `psycopg2`).
 5.  **Adicione os dados**: Baixe os arquivos de dados do Google Drive e coloque-os na pasta `dados_locais/`.
 6.  **Execute a análise**: Utilize o Jupytext para abrir o `analise.py` como um notebook em seu ambiente Jupyter.
 
@@ -113,6 +114,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.27.0 | 2026-09-28 | Funções do notebook no pacote `primeira_infancia/` (um módulo por tema), scripts de curadoria em `relatorio/curadoria/`, requisitos diretos fixados + `requirements-dev.txt`; mesmas saídas antes e depois (`specs/2026-09-28_organizacao`). |
 | 0.26.0 | 2026-09-28 | Favicon novo; texto de abertura em cada eixo (site, PDF, DOCX); lorem ≤ 150 palavras; pequenos múltiplos só com Painéis; `index.html` 785 → 343 KB sem mudança visual (`specs/2026-09-28_melhorias_site`). |
 | 0.25.1 | 2026-09-28 | Curadoria: update 5 incorporado (7 textos novos no site e no PDF, 2 de figuras fora do relatório guardados como órfãos), controle de revisão recalculado, updates antigos em `relatorio/textos_updates_antigos/` e validação dos textos publicados (`valida_textos_publicados.py`). |
 | 0.25.0 | 2026-09-28 | Site com versão mobile (`css/mobile.css`, gráficos redesenhados na largura real, "Nesta seção" recolhível, select para listas longas, legenda do mapa abaixo) sem mudar o desktop; marca d'água "EM DESENVOLVIMENTO" no PDF, ligada à faixa do site por `relatorio/publicacao.json` (`specs/2026-09-28_website_mobile`). |

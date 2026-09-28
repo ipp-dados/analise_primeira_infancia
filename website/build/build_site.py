@@ -79,11 +79,11 @@ from pathlib import Path
 # specs/2026-09-24_website_refactor Bloco 1: o gerador saiu de .claude/skills/export_pdf_report/scripts/
 # (era build_html_report.py). Os caminhos abaixo continuam relativos ao root do projeto
 # (tabelas_finais/, dados_locais/geo/, relatorio/textos_curados.json), por isso o chdir;
-# gera_estrutura_eixos continua morando na skill do PDF/DOCX e é só importado daqui.
+# gera_estrutura_eixos mora em relatorio/curadoria/ (antes na skill do PDF/DOCX; specs/2026-09-28_organizacao).
 ROOT = Path(__file__).resolve().parents[2]
 _OUT_ARG = str(Path(sys.argv[1]).resolve()) if len(sys.argv) > 1 else None   # relativo ao cwd de quem chamou
 os.chdir(ROOT)
-sys.path.insert(0, str(ROOT / ".claude" / "skills" / "export_pdf_report" / "scripts"))
+sys.path.insert(0, str(ROOT / "relatorio" / "curadoria"))
 
 from gera_estrutura_eixos import avisa_itens_sem_arquivo, chave_eixo
 # populacao-referencia D4: avisa (sem mudar a saída) itens do crosswalk que o relatório pularia em silêncio

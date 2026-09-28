@@ -16,7 +16,8 @@ Portuguese and English. Match the existing language when editing.
 ## Commands
 
 ```bash
-pip install -r requirements.txt          # deps (geopandas/contextily stack, jupytext, etc.)
+pip install -r requirements.txt          # direct deps, pinned (geopandas/contextily stack, jupytext, etc.)
+pip install -r requirements-dev.txt      # dev only: Playwright (screenshot/text checks, favicon)
 
 jupytext --to notebook analise.py        # (re)generate analise.ipynb from the .py source
 jupytext --sync analise.py               # sync analise.ipynb <-> analise.py after editing the notebook
@@ -39,7 +40,7 @@ gitignored.
 
 Three project skills wrap multi-step regeneration pipelines — prefer them over
 reimplementing this logic:
-- `generate_map` — produces a choropleth PNG via `mapa_coropletico_bairros` (defined in `analise.py`).
+- `generate_map` — produces a choropleth PNG via `mapa_coropletico_bairros` (in `primeira_infancia/mapas.py`).
 - `build_website` — regenerates/checks the static site in `website/` (`website/build/build_site.py`) and describes its manual GitHub Pages deploy.
 - `export_pdf_report` — builds the final report: an ABNT technical report in LaTeX (`relatorio/latex/`, abnTeX2 + xelatex; `specs/2026-09-25_relatorio_latex`) whose chapters are generated from `specs/estrutura_eixos.md` + `relatorio/textos_curados.json` at build time, with print versions of `analise.py`'s own figures (`visualizacoes/a4/`, `mapas/a4/`) and `tabelas_finais/` tables in the appendix; also the DOCX curation export and the DOCX → site/PDF/`analise.py` text sync. Distinct from and NOT related to the `website/` static site's SVG charts — see below.
 
@@ -47,15 +48,18 @@ reimplementing this logic:
 
 ### `analise.py` structure (Jupytext `py:percent`, sections marked `# %% [markdown]`)
 
-1. **📦 Pacotes e Funções Auxiliares** (top of file) — imports, DB connection
-   (`connect_db_ctpe`, reads `.env`), and **every** reusable
-   cleaning/wrangling function (`limpeza_tabnet_bairros`, `carrega_raca_bairro`,
-   `carrega_causas_evitaveis_*`, `agrega_grupo_cid`, `carrega_sidra_longo`,
-   `junta_codbairro_por_bairro`, `agrega_bairros_por_nivel`, ...) and
-   visualization function (`serie_temporal`, `grafico_barra`,
-   `grafico_barra_agrupado`, `serie_temporal_multipla`,
-   `mapa_coropletico_bairros`). **All new reusable logic goes here, not inline
-   in an analysis section below** — sections only call these functions.
+1. **📦 Pacotes e Funções Auxiliares** (top of file) — imports and `from primeira_infancia import *`.
+   **Every** reusable function lives in the package `primeira_infancia/` (one module per theme, since
+   `specs/2026-09-28_organizacao`; before, lines 1-1897 of this file): `conexao` (`connect_db_ctpe`, reads `.env`),
+   `limpeza` (`limpeza_tabnet_bairros`, `carrega_raca_bairro`, `carrega_causas_evitaveis_*`, `agrega_grupo_cid`,
+   `carrega_sidra_longo`, `junta_codbairro_por_bairro`, ...), `estilo` (palettes, title font, basemap providers —
+   the layer that keeps `graficos`/`mapas`/`impressao` free of import cycles), `graficos` (`serie_temporal`,
+   `grafico_barra`, `grafico_barra_agrupado`, `serie_temporal_multipla`), `mapas` (`mapa_coropletico_bairros`,
+   `agrega_bairros_por_nivel`), `impressao` (A4 print variant, `GERA_VARIANTE_A4`), `protecao`, `cadunico`
+   (`suprime_celulas_pequenas`), `populacao` (Ripsa), `educacao` (INEP). `__all__` exports every name, underscored
+   ones included, because the sections use some of them. **All new reusable logic goes into the module of its theme,
+   not inline in an analysis section** — sections only call these functions. A new module-level name used by a
+   sibling module is imported explicitly (`from .estilo import ...`); keep the graph acyclic (`estilo` at the base).
 2. Analysis sections in source order: Censo 2022, CadÚnico, DataSUS/Tabnet
    (nascidos vivos, baixo peso, mortalidade neonatal, óbitos gravidez/puerpério,
    óbitos por causas evitáveis by CID-10 group/subgroup and by CAP), SISVAN,

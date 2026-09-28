@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / ".claude" / "skills" / "export_pdf_report" / "scripts"))
+sys.path.insert(0, str(ROOT / "relatorio" / "curadoria"))
 
 SAIDA = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "specs" / "2026-09-28_website_bugfix" / "conferencia_textos_site.csv"
 
