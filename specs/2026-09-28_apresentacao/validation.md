@@ -25,3 +25,18 @@ Implementação em 2026-09-28, branch `spec/apresentacao` (a partir de `spec/nov
 - Saiu o slide "O que precisamos das secretarias" (com os próximos passos). Entrou, como slide 3, "Um produto vivo,
   construído com as secretarias": o projeto é feito **com** elas (vivo, com o conhecimento de quem está na ponta,
   aberto a sugestões e a dados compartilhados). Continua com 30 slides; a variante de exemplo recebeu a mesma troca.
+
+## Revisão do usuário 2 (2026-09-28)
+
+- **Mapas sem outliers**: todo `fig:` de mapa usa agora a versão de impressão (`mapas/a4/<nome>.pdf`, rasterizada),
+  que tem o teto de cor no percentil 95 nos mapas contínuos por bairro (mesmo tratamento do site e do PDF, D5) e não
+  tem título embutido. A fonte e a nota do teto saem do manifesto A4 para o rodapé do slide (fonte repetida aparece
+  uma vez). Os mapas de contagem (classes discretas) não têm teto, como no site. Exemplo do efeito: a mortalidade
+  infantil por bairro (slide 18) deixa de ficar quase toda clara por causa de poucos bairros extremos.
+- **Slides novos** (eixo Família e Cuidados): matrículas por rede, pública × privada (slide 23), e arranjo familiar
+  no CadÚnico, adultos por família (slide 24, gráfico + mapa de % com uma só adulta).
+- **Continua com 30 slides**: "Na cidade, estimativa do ano; no bairro, o Censo" virou a nota do slide "Quantas
+  crianças?" (sai o gráfico da série Ripsa); "Há menos crianças pequenas a cada Censo" virou a legenda do "469 mil"
+  (sai o gráfico dos Censos). Os dois gráficos seguem no site e no relatório.
+- Observação: no mapa de % de famílias com uma só adulta quase todos os bairros ficam na cor mais escura; não é
+  outlier, é o dado: a proporção é alta (cerca de 80%) em toda a cidade.

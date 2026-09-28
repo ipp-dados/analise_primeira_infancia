@@ -211,7 +211,75 @@ def pct_cadunico_extrema_pobreza():
     return fmt_pct(d.iloc[0]["Crianças"] / d["Crianças"].sum() * 100, 0)
 
 
+def _arranjo(nome):
+    d = _csv("cadunico_familias_por_arranjo_2026.csv").set_index("arranjo familiar")
+    return d.loc[nome]
+
+
+@numero
+def pct_familias_uma_adulta():
+    return fmt_pct(_arranjo("Uma adulta (mulher)")["% das famílias"])
+
+
+@numero
+def familias_uma_adulta():
+    return fmt_int(_arranjo("Uma adulta (mulher)")["Famílias"])
+
+
+@numero
+def pct_familias_dois_adultos():
+    return fmt_pct(_arranjo("Dois adultos (homem e mulher)")["% das famílias"])
+
+
+@numero
+def pct_uma_adulta_extrema_pobreza():
+    d = _csv("cadunico_familias_arranjo_renda_2026.csv")
+    r = d[(d["arranjo"] == "Uma adulta (mulher)") & (d["faixa de renda per capita"].str.startswith("Extrema"))]
+    return fmt_pct(r["% no arranjo"].iloc[0], 0)
+
+
 # ---------------------------------------------------------------- educação
+def _mat_serie():
+    return _csv("matriculas_0_a_5_por_ano.csv").sort_values("ano")
+
+
+@numero
+def mat_publica_2025():
+    return fmt_int(_mat()["matriculas_publica"])
+
+
+@numero
+def mat_privada_2025():
+    return fmt_int(_mat()["matriculas_privada"])
+
+
+@numero
+def mat_publica_pico():
+    return fmt_int(_mat_serie()["matriculas_publica"].max())
+
+
+@numero
+def mat_publica_pico_ano():
+    d = _mat_serie()
+    return str(int(d.loc[d["matriculas_publica"].idxmax(), "ano"]))
+
+
+@numero
+def queda_publica_desde_pico():
+    d = _mat_serie()
+    return fmt_pct((1 - _mat()["matriculas_publica"] / d["matriculas_publica"].max()) * 100, 0)
+
+
+@numero
+def mat_privada_2021():
+    d = _mat_serie()
+    return fmt_int(d[d["ano"] == 2021]["matriculas_privada"].iloc[0])
+
+
+@numero
+def pct_publica_2025():
+    return fmt_pct(_mat()["matriculas_publica"] / _mat()["matriculas"] * 100, 0)
+
 def _mat():
     return _ultimo(_csv("matriculas_0_a_5_por_ano.csv"))
 
