@@ -26,8 +26,9 @@ descartadas nas `SKILL.md` e nas specs por rodada).
   acessado via **SQLAlchemy** + **psycopg** (`connect_db_ctpe` em `primeira_infancia/conexao.py`).
   Credenciais em `.env` (`python-dotenv`), nunca commitadas — ver `.env.example`.
 - Demais fontes (Tabnet/DataSUS, Censo/IBGE, SISVAN, IBGE SIDRA, planilha
-  TabWin de óbitos por causas evitáveis) são arquivos estáticos em
-  `dados_locais/`, sem conexão de rede em tempo de análise.
+  TabWin de óbitos por causas evitáveis, SINAN, IPS) são arquivos estáticos em
+  `dados_locais/`. Exceções com rede, só quando falta o extrato versionado: a população Ripsa (Tabnet,
+  `carrega_populacao_ripsa`) e os microdados do Censo Escolar (ZIPs do INEP, `carrega_censo_escolar_matriculas`).
 - **pandas** para toda a manipulação tabular; **openpyxl** para ler/escrever
   Excel (`.xlsx`); saídas finais em CSV e Excel em `tabelas_finais/`.
 
@@ -39,7 +40,7 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 
 - `dados_locais/`: uma pasta por fonte, tema, snake_case sem espaço/acento
   maiúsculo (`censo/`, `mortalidade/`, `sisvan/`, `ibge_sidra/`,
-  `vacinacao/`, `nascidos_vivos/`, `geo/`). Um dado nunca mora em duas
+  `vacinacao/`, `nascidos_vivos/`, `educacao/`, `populacao/`, `protecao/`, `geo/`). Um dado nunca mora em duas
   pastas — se duas seções de análise usam o mesmo arquivo, as duas leem da
   mesma pasta.
 - `tabelas_finais/`/`visualizacoes/`/`mapas/`: `{tema}_{indicador}[_{corte}]_{granularidade_ou_ano}.{ext}`.
