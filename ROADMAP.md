@@ -1,6 +1,6 @@
 # Roadmap
 
-Estado em 2026-09-28 (fim do dia). Arquivo único do projeto: substitui `specs/roadmap.md` e `website/ROADMAP.md`
+Estado em 2026-09-28 (fim do dia; curadoria: update 5). Arquivo único do projeto: substitui `specs/roadmap.md` e `website/ROADMAP.md`
 (fundidos aqui em 2026-09-25). As decisões e o *porquê* de cada item ficam na pasta da rodada em `specs/`
 (`specs/<AAAA-MM-DD>_<nome>/`); aqui fica só o que falta fazer e onde procurar.
 
@@ -29,13 +29,23 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
      achatadas. Rever com a equipe se algum indicador deve ter o eixo cortado, com o corte visível no gráfico.
 
 2. **Curadoria de textos** (contínuo; DOCX `relatorio/curadoria_textos.docx`, controle em
-   `relatorio/controle_revisao.json`). Última rodada: updates 3 e 4 (2026-09-25).
-   - ainda em lorem ipsum: resumo, principais achados e síntese de cada eixo, e ~50 textos de figura (a lista sai
-     no build: `gera_latex.py` imprime "textos em lorem");
+   `relatorio/controle_revisao.json`; updates antigos em `relatorio/textos_updates_antigos/`). Última rodada:
+   update 5 (2026-09-28) — 7 textos novos no relatório (causas evitáveis por faixa e por subgrupo em < 1, 1-4 e
+   < 5 anos; Censo 0-6 por raça/cor; taxa de frequência escolar por raça/cor e por sexo) e 2 de figuras fora do
+   relatório (frequência escolar absoluta, E8), guardados como órfãos.
+   - ainda em lorem ipsum: resumo, principais achados e síntese de cada eixo, e textos de figura (46 chaves ao todo no
+     total; a lista sai no build: `gera_latex.py` imprime "textos em lorem");
    - alertas abertos para a equipe decidir (não corrigidos no texto): mapa de taxa de mortalidade infantil cita os
      números da taxa pós-neonatal; frase das Considerações finais possivelmente sem "não" ("deve atuar de forma
-     isolada"); texto da cobertura vacinal anual pronto, mas a figura está fora do relatório (E1);
+     isolada"); texto da cobertura vacinal anual pronto, mas a figura está fora do relatório (E1); **novos no
+     update 5**: subgrupos < 5 anos cita 198 óbitos por atenção ao recém-nascido em 2006 (a tabela tem 204); taxa de
+     frequência escolar por raça/cor e por sexo lê a linha "Total" da tabela SIDRA 10056 como "conjunto de 0 a 6
+     anos" (é o total de todas as idades: ~25%, com taxas de 8% a 97% por idade);
+   - 2 textos com a unidade convertida depois da base do update 5 (`percentual_mortalidade_raca_ano`,
+     `mapa_taxa_obitos_raca_total_bairro_2025`: percentual → por mil) continuam em `ajustes_manuais`, a revisar;
    - nota editorial em aberto no subgrupo 28-364 dias: "opção de texto que junte tudo por conta da repetição".
+   - próximo update: baixar a partir do `relatorio/curadoria_textos.docx` atual (o update 5 partiu do update 4 e
+     por isso ainda trazia textos já corrigidos depois).
 
 ---
 
@@ -160,6 +170,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-09-28 | Curadoria: update 5 incorporado (7 textos novos no site e no PDF, 2 órfãos; controle de revisão recalculado sobre as 5 rodadas; updates antigos em `relatorio/textos_updates_antigos/`; scripts `compara_updates.py` e `valida_textos_publicados.py`) | `relatorio/controle_revisao.json`, skill `export_pdf_report` |
 | 2026-09-28 | Site mobile (`css/mobile.css`: gráficos na largura real, "Nesta seção", select, legenda abaixo do mapa, toque) e marca d'água "EM DESENVOLVIMENTO" no PDF ligada à faixa do site (`relatorio/publicacao.json`) | `specs/2026-09-28_website_mobile` |
 | 2026-09-28 | Rollback de `staging_main` e correções do site (cache de CSS/JS, telas estreitas, textos curados ausentes); tabelas de conferência texto × figura | `specs/2026-09-28_website_bugfix` |
 | 2026-09-25 | Site: exclusões E2-E9 (alternância Taxa ↔ Óbitos), paleta validada, teto P95, unidades nos eixos e taxas por mil com ‰, base zero, pequenos múltiplos, fontes ABNT, textos de achados/síntese; revisão de unidades também na origem (`analise.py`, PDF) | `specs/2026-09-25_website_graficos` |

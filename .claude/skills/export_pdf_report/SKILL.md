@@ -139,16 +139,38 @@ which the PDF also accepts as a fallback.
    `--publicar`), and updates the curator notes in `analise.py` next to the matching figure (never touches code
    cells). The old second argument (`<pdf_source_out>`) is ignored.
 
-8. **Incorporate an "update" DOCX edited outside Word (Google Docs), with review tracking.** Unchanged:
+8. **Incorporate an "update" DOCX edited outside Word (Google Docs), with review tracking.** The new file arrives
+   as `relatorio/curadoria_textos_update.docx`; past updates live in `relatorio/textos_updates_antigos/`
+   (`curadoria_textos_update_<N>.docx`, N = round number, 1-5 so far). `A=relatorio/textos_updates_antigos`:
    ```
-   python .claude/skills/export_pdf_report/scripts/incorpora_update_docx.py relatorio/curadoria_textos_update_1.docx relatorio/curadoria_textos_update_2.docx --saida <scratchpad>/casamento.json --controle relatorio/controle_revisao.json --datas 2026-09-23,2026-09-24
-   python .claude/skills/export_pdf_report/scripts/gera_docx_curadoria.py relatorio/curadoria_textos.docx --textos <scratchpad>/casamento.json
+   # 1. what did the curator really change? (diff against the update it was based on -- usually the previous one)
+   python .claude/skills/export_pdf_report/scripts/compara_updates.py $A/curadoria_textos_update_<N-1>.docx relatorio/curadoria_textos_update.docx
+   # 2. review status across ALL rounds (copy the new file to <scratchpad>/curadoria_textos_update_<N>.docx first,
+   #    so the round id in controle_revisao.json is the archived name)
+   python .claude/skills/export_pdf_report/scripts/incorpora_update_docx.py $A/curadoria_textos_update_1.docx … <scratchpad>/curadoria_textos_update_<N>.docx --saida <scratchpad>/casamento_todos.json --controle relatorio/controle_revisao.json --datas 2026-09-23,…
+   # 3. revised matching (only the texts from step 1) -> DOCX -> JSON/site/PDF/analise.py
+   python .claude/skills/export_pdf_report/scripts/gera_docx_curadoria.py relatorio/curadoria_textos.docx --textos <scratchpad>/casamento_rev.json
    python .claude/skills/export_pdf_report/scripts/sincroniza_docx.py relatorio/curadoria_textos.docx
+   python relatorio/latex/build/gera_latex.py --publicar
+   # 4. every curated text on the site and in the PDF (exit 1 if one is missing)
+   python .claude/skills/export_pdf_report/scripts/valida_textos_publicados.py
+   # 5. archive: relatorio/curadoria_textos_update.docx -> $A/curadoria_textos_update_<N>.docx
    ```
    Google Docs drops bookmarks; the matcher pairs texts by H3 title (with known renames in `RENOMES`), untitled
    images by position, H2-level text by subsection; anything unmatched is reported, never dropped. `alertas` and
    `realocar[].sugestao` in `controle_revisao.json` are hand-edited and preserved. Never edit the user's curated
    text to fix an alert — flag it and let them decide.
+   **Don't feed the matcher's `casamento_todos.json` straight into the DOCX** (it re-applies everything already
+   decided): it concatenates the text of a figure that left the report (count map, E8 absolute counts) into the
+   bookmark of its neighbour (rate map/chart at the same image position), keeps Google Docs duplicated paragraphs
+   and brings back texts corrected after the update's base was downloaded. Build `casamento_rev.json`
+   (`{"textos": {bookmark: {"texto": …}}}`, bookmark = `_bookmark_name(stem)`) with only the texts
+   `compara_updates.py` reports as `NOVO`/`DIFERENTE_DO_JSON`; a text of a figure outside the report goes under its
+   own stem and lands in "Textos órfãos". The recomputed `controle_revisao.json` drops the `correcoes` round from
+   `rodadas` (re-insert it by hand) and `ajustes_manuais` entries whose corrected text the new update already
+   carries should be removed (the computed status then applies). Leftover placeholder words pasted along with the
+   text (e.g. a trailing lorem `sunt.`) are not the curator's text: remove them and record it in
+   `alertas_resolvidos`.
 
 ## Known limitations
 

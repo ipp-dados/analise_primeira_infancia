@@ -54,8 +54,10 @@ compartilhado, acesso restrito — solicitar a leonardoaucar@prefeitura.rio.*
     gera `index.html` e `data/`; CSS e JS são editados à mão. Detalhes em
     [`website/README.md`](website/README.md) (inclusive a versão mobile), pendências em
     [`ROADMAP.md`](ROADMAP.md).
-*   `relatorio/`: relatório em PDF (`analise_primeira_infancia.pdf`), DOCX de curadoria de textos
-    e `textos_curados.json` (texto curado lido pelo site e pelo PDF). O antigo `relatorio/index.html`
+*   `relatorio/`: relatório em PDF (`analise_primeira_infancia.pdf`), DOCX de curadoria de textos,
+    `controle_revisao.json` (status de revisão de cada texto), `textos_updates_antigos/` (rodadas de
+    curadoria devolvidas pelo Google Docs, `curadoria_textos_update_<N>.docx`) e `textos_curados.json`
+    (texto curado lido pelo site e pelo PDF). O antigo `relatorio/index.html`
     foi substituído por `website/` (`specs/2026-09-24_website_refactor`).
 *   `ROADMAP.md`: o que está em andamento, a fila priorizada, o backlog por tema e o histórico resumido.
 *   `specs/`: Constituição do projeto (`constitution.md`), stack técnica (`tech-stack.md`),
@@ -111,6 +113,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.25.1 | 2026-09-28 | Curadoria: update 5 incorporado (7 textos novos no site e no PDF, 2 de figuras fora do relatório guardados como órfãos), controle de revisão recalculado, updates antigos em `relatorio/textos_updates_antigos/` e validação dos textos publicados (`valida_textos_publicados.py`). |
 | 0.25.0 | 2026-09-28 | Site com versão mobile (`css/mobile.css`, gráficos redesenhados na largura real, "Nesta seção" recolhível, select para listas longas, legenda do mapa abaixo) sem mudar o desktop; marca d'água "EM DESENVOLVIMENTO" no PDF, ligada à faixa do site por `relatorio/publicacao.json` (`specs/2026-09-28_website_mobile`). |
 | 0.24.0 | 2026-09-28 | Rodada de gráficos do site (exclusões, Taxa ↔ Óbitos, unidades, paleta) e correções depois do rollback: cache de CSS/JS versionado, telas estreitas, textos curados ausentes; tabelas de conferência texto × figura (`specs/2026-09-25_website_graficos`, `specs/2026-09-28_website_bugfix`). |
 | 0.23.0 | 2026-09-25 | Relatório final em LaTeX/ABNT (capa, resumo, sumário, capítulo por eixo, apêndice de tabelas, Fontes), gerado de `estrutura_eixos.md`; figuras em versão de impressão pelo `analise.py`; lista de exclusões (`specs/2026-09-25_relatorio_latex`, `specs/exclusoes.md`). |
