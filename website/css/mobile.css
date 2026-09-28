@@ -1,0 +1,180 @@
+/* mobile.css -- versão mobile do site (specs/2026-09-28_website_mobile). Carregado por último.
+   Três faixas de largura (media queries não aceitam variáveis; os valores se repetem, sempre estes):
+     desktop  >= 1100 px  -> nenhuma regra deste arquivo se aplica (salvo o display:none do bloco abaixo)
+     tablet   720-1099 px -> @media (max-width:1099.98px)
+     celular  < 720 px    -> @media (max-width:719.98px)
+   Faixa intermediária de conteúdo: < 900 px empilha mapa/gráfico e texto (antes em components.css, website_bugfix).
+   Desktop intocado: validado por captura pixel a pixel a 1280/1400 px (validation.md V0.3). */
+
+/* elementos só de telas estreitas: ocultos no desktop */
+.nav-progress, .outline-mobile, .pill-select, .rotulo-curto{display:none;}
+
+/* gráficos desenhados na largura real (js/charts.js, M3 -- classe só existe em telas estreitas): 1 unidade do
+   viewBox = 1 px, então estes tamanhos são os que aparecem na tela (>= 11 px, validation.md V3.1) */
+.chart-svg--real .axis-label{font-size:11.5px;}
+.chart-svg--real .axis-title{font-size:12.5px;}
+.chart-svg--real .end-label{font-size:13px;}
+.chart-svg--real .extreme-label{font-size:11px;}
+.chart-svg--real .bar-top-label{font-size:11px;}
+/* região do mapa tocada (toque não tem hover) */
+.map-svg use.toque{filter:brightness(1.08); stroke-width:1.6;}
+
+/* ======================= tablet e celular (< 1100 px) ======================= */
+@media (max-width:1099.98px){
+  :root{--gutter:24px;}
+  .page-grid{grid-template-columns:minmax(0,1fr);}
+  .outline{display:none;}
+  .eixo-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+
+  /* abas (M1): esmaecimento só no lado em que ainda há abas (classes postas por navigation.js) */
+  .tabbar-inner{scroll-snap-type:x proximity; scroll-padding-inline:var(--gutter);}
+  .tab{scroll-snap-align:center;}
+  .tabbar-inner.tem-mais-dir{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);}
+  .tabbar-inner.tem-mais-esq{-webkit-mask-image:linear-gradient(to left,#000 calc(100% - 40px),transparent); mask-image:linear-gradient(to left,#000 calc(100% - 40px),transparent);}
+  .tabbar-inner.tem-mais-esq.tem-mais-dir{
+    -webkit-mask-image:linear-gradient(to right,transparent,#000 40px,#000 calc(100% - 40px),transparent);
+    mask-image:linear-gradient(to right,transparent,#000 40px,#000 calc(100% - 40px),transparent);
+  }
+
+  /* progresso (M2): linha fina na borda de baixo da barra fixa */
+  .nav-progress{display:block; height:3px; background:var(--surface-3);}
+  .nav-progress span{display:block; height:100%; width:0; background:var(--accent); transition:width .12s linear;}
+
+  /* "Nesta seção ▾" (M2): faixa recolhível sob as abas; a lista abre por cima do conteúdo (não muda a altura da barra) */
+  .outline-mobile{display:block; position:relative;}
+  .outline-mobile-btn{
+    display:flex; align-items:center; gap:10px; width:100%; min-height:44px; padding:0; margin:0;
+    background:none; border:none; cursor:pointer; text-align:left; color:var(--ink);
+    font-family:var(--font-body); font-size:.74rem; font-weight:600;
+  }
+  .outline-mobile-rotulo{color:var(--ink-3); flex:none;}
+  .outline-mobile-atual{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .outline-mobile-seta{flex:none; color:var(--accent); transition:transform .15s ease;}
+  .outline-mobile-btn[aria-expanded="true"] .outline-mobile-seta{transform:rotate(180deg);}
+  .outline-mobile-lista{
+    position:absolute; left:0; right:0; top:100%; z-index:31;
+    background:var(--surface); box-shadow:var(--shadow-2); border-top:1px solid var(--hairline);
+    max-height:60vh; overflow-y:auto; overscroll-behavior:contain; padding:8px var(--gutter) 12px;
+  }
+  .outline-mobile-lista[hidden]{display:none;}
+  .outline-mobile-lista .outline-nav a{display:flex; align-items:center; min-height:44px; padding-top:4px; padding-bottom:4px;}
+}
+
+/* ======================= mapa/gráfico e texto empilhados (< 900 px) ======================= */
+@media (max-width:899.98px){
+  .option-card-mapa{grid-template-columns:minmax(0,1fr); grid-template-areas:"pills" "map" "text";}
+  .option-card-mapa.option-card-single{grid-template-columns:minmax(0,1fr); grid-template-areas:"map" "text";}
+  .option-card-mapa .opt-panes .out{border-radius:var(--radius-md) var(--radius-md) 0 0;}
+  .option-card-mapa .opt-text{height:auto; border-left:none; border-top:1px solid var(--hairline-2); border-radius:0 0 var(--radius-md) var(--radius-md);}
+  .option-card-mapa .opt-text .opt-text-inner{position:static; padding:18px 20px;}
+  .table-with-text{grid-template-columns:minmax(0,1fr);}
+  /* gráfico: a coluna de 210 px de pills deixava o gráfico com ~480 px e o texto dos eixos ilegível */
+  .option-card-grafico{grid-template-columns:minmax(0,1fr); grid-template-areas:"pills" "chart" "text";}
+  .option-card-grafico.option-card-single{grid-template-columns:minmax(0,1fr); grid-template-areas:"chart" "text";}
+  .pill-col{flex-direction:row; flex-wrap:wrap; max-height:none;}
+  .opt-text{max-height:none;}
+}
+
+/* ======================= celular (< 720 px) ======================= */
+@media (max-width:719.98px){
+  :root{--gutter:16px;}
+  html, body{font-size:17px;}
+  h3{font-size:clamp(1.2rem,5.4vw,1.4rem); margin:40px 0 12px;}
+  h4{margin:28px 0 10px;}
+  .eixo-grid{grid-template-columns:minmax(0,1fr);}
+
+  /* faixa de aviso + banner compactos (meta: <= 320 px a 390 px) */
+  .dev-banner{font-size:.66rem; padding:6px 12px; line-height:1.35;}
+  .banner-inner{grid-template-columns:minmax(0,1fr); gap:10px; padding-top:12px; padding-bottom:12px;}
+  .banner-logo{padding:5px 9px; margin-bottom:8px;}
+  .banner-logo .ipp-logo{height:22px;}
+  .banner-eyebrow{font-size:.54rem; margin-bottom:2px;}
+  .site-banner h1{font-size:clamp(1.3rem,6.4vw,2rem);}
+  /* GitHub e PDF lado a lado, com rótulo curto (pedido do usuário); a data na linha de baixo */
+  .banner-links{display:grid; grid-template-columns:repeat(2, max-content); gap:6px 8px; align-items:center;}
+  .banner-links .banner-date{grid-column:1 / -1;}
+  .banner-links a{min-height:44px; padding:0 14px; font-size:.7rem; gap:7px;}
+  .rotulo-longo{display:none;}
+  .rotulo-curto{display:inline;}
+  .banner-links .icon{width:15px; height:15px;}
+  .banner-date{width:100%; padding:0 2px; font-size:.58rem;}
+
+  /* abas e barra fixa */
+  .tabbar-inner{padding-top:4px; padding-bottom:4px; gap:4px;}
+  .tab{min-height:44px; padding:0 14px; font-size:.74rem;}
+  .tab .icon{width:17px; height:17px;}
+
+  .page-grid{padding-top:20px; padding-bottom:64px;}
+  .panel-head{gap:14px; margin-bottom:20px;}
+  .panel-icon{width:44px; height:44px;}
+  .panel-icon .icon{width:22px; height:22px;}
+
+  /* alvos de toque de 44 px */
+  .pill{min-height:44px; padding:8px 14px;}
+  .alterna-btn{min-height:44px; padding:0 18px;}
+  .outlier-btn, .dl-btn{min-height:44px; min-width:44px; padding:0 12px; justify-content:center;}
+  details.data-table summary{display:flex; align-items:center; min-height:44px;}
+  .eixo-card{min-height:44px;}
+
+  /* cartões: botões CSV/outliers numa faixa própria acima do título (antes, absolutos por cima dele) */
+  .out{padding:14px 14px 12px;}
+  .dl-btn{top:12px; right:12px;}
+  .outlier-toolbar{top:12px; right:96px;}
+  .out[data-csv]:not(.map-svg-card){padding-top:68px;}
+  .map-title, .outlier-card .map-title{padding-right:0; padding-top:52px; font-size:1rem;}
+  .chart-subtitle{padding-right:0;}
+
+  /* pills longas (M4): select nativo no lugar das pills quando o cartão tem 6+ opções */
+  .pill-col.tem-select > .pill{display:none;}
+  .pill-col.tem-select{display:block;}
+  .pill-select{
+    display:block; width:100%; min-height:44px; padding:0 40px 0 14px;
+    border:1px solid var(--hairline); border-radius:var(--radius-sm); background:var(--surface) no-repeat right 14px center;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%230A5A99' stroke-width='2'/%3E%3C/svg%3E");
+    -webkit-appearance:none; appearance:none;
+    font-family:var(--font-body); font-size:.8rem; font-weight:600; color:var(--ink);
+  }
+
+  /* mapas: legenda abaixo do mapa, em 2 colunas; escala e rosa com texto legível (--map-esc posto por charts.js) */
+  .map-legend-overlay{
+    position:static; max-width:none; margin:0; box-shadow:none; border-radius:0; background:var(--surface-2);
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:12px; padding:10px 12px 6px;
+    border-top:1px solid var(--hairline-2);
+  }
+  .map-legend-title{grid-column:1 / -1; margin-bottom:4px;}
+  .map-legend-row{margin:3px 0;}
+  .map-scalebar-label{font-size:calc(10.5px * var(--map-esc, 1.9));}
+  .map-compass-label{font-size:calc(11px * var(--map-esc, 1.9));}
+  .map-ref{font-size:.6rem;}
+
+  /* barras horizontais: rótulo em até 2 linhas */
+  .bar-row{grid-template-columns:minmax(90px,40%) minmax(0,1fr) auto; gap:8px;}
+  .bar-label{white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
+
+  /* pequenos múltiplos: 1 coluna até 480 px, 2 até 719 px */
+  .sm-grid{grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;}
+
+  .chart-tooltip{max-width:min(240px, 70vw);}
+  .tt-row{white-space:normal;}
+
+  /* textos e tabelas */
+  .opt-text{padding:12px 2px 0;}
+  details.data-table th:first-child, details.data-table td:first-child,
+  table.plain th:first-child, table.plain td:first-child{position:sticky; left:0; background:var(--surface); z-index:1;}
+
+  /* callouts, conclusões, Visão geral, rodapé */
+  .callout{padding:16px; column-gap:12px; margin-bottom:28px;}
+  .callout-icon{width:30px; height:30px; border-radius:8px;}
+  .callout-icon .icon{width:16px; height:16px;}
+  .callout-sources{margin-top:48px;}
+  .conclusao{padding:22px 18px 24px;}
+  .overview-intro{padding:22px 18px;}
+  .footer-cols{flex-direction:column; gap:24px;}
+  .footer-col a{display:inline-flex; align-items:center; min-height:44px;}
+}
+@media (max-width:479.98px){
+  .sm-grid{grid-template-columns:minmax(0,1fr);}
+}
+@media (prefers-reduced-motion:reduce){
+  .nav-progress span, .outline-mobile-seta{transition:none;}
+}

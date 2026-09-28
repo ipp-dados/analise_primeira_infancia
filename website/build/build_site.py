@@ -622,9 +622,16 @@ def option_card(entries, padrao='grafico'):
         texts.append(f'<div class="opt-text"{_attr_seed(seed)}{" hidden" if i else ""}><div class="opt-text-inner">{_texto_seed(seed)}</div></div>')
         active = ' data-active="true" aria-pressed="true"' if i == 0 else ' aria-pressed="false"'
         pills.append(f'<button type="button" class="pill"{active}>{_esc(label)}</button>')
+    # mobile (specs/2026-09-28_website_mobile M4): 6+ opções ganham também um <select> nativo, que substitui as pills
+    # no celular (css/mobile.css); js/charts.js mantém select e pills sincronizados
+    col_cls, select = "pill-col", ""
+    if len(entries) >= 6:
+        col_cls += " tem-select"
+        select = ('<select class="pill-select" aria-label="Escolher a opção exibida">'
+                  + "".join(f'<option value="{i}">{_esc(lbl)}</option>' for i, (lbl, _f, _s) in enumerate(entries)) + '</select>')
     parts.append(
         f'<div class="option-card option-card-{padrao}">'
-        '<div class="pill-col">' + "".join(pills) + '</div>'
+        f'<div class="{col_cls}">' + select + "".join(pills) + '</div>'
         '<div class="opt-panes">' + "".join(panes) + '</div>'
         '<div class="opt-texts">' + "".join(texts) + '</div>'
         '</div>'
@@ -2094,27 +2101,42 @@ navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-l
                     '<a href="#visao-geral/introducao" data-alvo="introducao">Introdução</a>'
                     + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in section_starts) + '</nav>')
 
+# faixa de aviso: controlada por relatorio/publicacao.json (em_desenvolvimento), a mesma chave da marca d'água do PDF
+# (relatorio/latex/build/gera_latex.py) -- as duas saem juntas na versão final (specs/2026-09-28_website_mobile)
+_EM_DESENVOLVIMENTO = json.loads(Path("relatorio/publicacao.json").read_text(encoding="utf-8")).get("em_desenvolvimento", False)
 banner = (
-    # faixa de aviso: remover quando publicar_teste_pages for encerrado (ROADMAP.md, backlog do site)
-    '<div class="dev-banner" role="alert">'
-    '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
-    'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
-    '</div>'
+    ('<div class="dev-banner" role="alert">'
+     '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
+     'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
+     '</div>' if _EM_DESENVOLVIMENTO else '') +
     '<header class="site-banner"><div class="container banner-inner">'
     f'<div>{logo_link("banner", "banner-logo")}'
     '<div class="eyebrow banner-eyebrow">Relatório interativo · Instituto Pereira Passos</div>'
     f'<h1>{TITULO_H1}</h1></div>'
     '<ul class="banner-links">'
-    f'<li><a href="{URL_GITHUB}" target="_blank" rel="noopener">{icone("github")}<span>Código e dados no GitHub</span></a></li>'
-    f'<li><a href="{URL_PDF}" target="_blank" rel="noopener">{icone("file-text")}<span>Relatório final em PDF</span></a></li>'
+    # rótulo curto no celular (pedido do usuário, specs/2026-09-28_website_mobile): os 2 botões na mesma linha;
+    # o texto completo fica no aria-label/title
+    f'<li><a href="{URL_GITHUB}" target="_blank" rel="noopener" title="Código e dados no GitHub" aria-label="Código e dados no GitHub">{icone("github")}'
+    '<span class="rotulo-longo">Código e dados no GitHub</span><span class="rotulo-curto">GitHub</span></a></li>'
+    f'<li><a href="{URL_PDF}" target="_blank" rel="noopener" title="Relatório final em PDF" aria-label="Relatório final em PDF">{icone("file-text")}'
+    '<span class="rotulo-longo">Relatório final em PDF</span><span class="rotulo-curto">Relatório PDF</span></a></li>'
     f'<li class="banner-date">{icone("calendar")}<span>Atualizado em {gen_date}</span></li>'
     '</ul>'
     '</div>'
     '<div class="spectrum-bar" aria-hidden="true">' + "".join(f'<span style="background:var(--c{i})"></span>' for i in range(1, 12)) + '</div>'
     '</header>'
 )
+# mobile (specs/2026-09-28_website_mobile M2): linha de progresso e faixa "Nesta seção ▾" dentro da barra fixa, com as
+# mesmas listas do sumário lateral; as duas ficam com display:none no desktop (css/mobile.css), barra inalterada
+outline_mobile = ('<div class="nav-progress" aria-hidden="true"><span></span></div>'
+                  '<div class="outline-mobile"><div class="container">'
+                  '<button type="button" class="outline-mobile-btn" aria-expanded="false" aria-controls="outline-mobile-lista">'
+                  '<span class="eyebrow outline-mobile-rotulo">Nesta seção</span><span class="outline-mobile-atual"></span>'
+                  '<span class="outline-mobile-seta" aria-hidden="true">▾</span></button>'
+                  '<div class="outline-mobile-lista" id="outline-mobile-lista" hidden>' + "".join(navs_outline) + '</div>'
+                  '</div></div>')
 tabbar = ('<nav class="tabbar" aria-label="Seções do relatório"><div class="container tabbar-inner" role="tablist">'
-          + "".join(abas) + '</div></nav>')
+          + "".join(abas) + '</div>' + outline_mobile + '</nav>')
 outline = ('<aside class="outline" aria-label="Nesta seção"><div class="outline-card">'
            '<div class="outline-head"><span class="eyebrow outline-label">Nesta seção</span><span class="outline-pct">0%</span></div>'
            '<div class="outline-progress" aria-hidden="true"><span></span></div>'
@@ -2175,6 +2197,7 @@ doc = f"""<!doctype html>
 <link rel="stylesheet" href="{_v('css/main.css')}">
 <link rel="stylesheet" href="{_v('css/layout.css')}">
 <link rel="stylesheet" href="{_v('css/components.css')}">
+<link rel="stylesheet" href="{_v('css/mobile.css')}">
 {BASEMAP_CSS}
 </head>
 <body>
