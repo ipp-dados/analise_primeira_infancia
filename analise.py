@@ -1679,6 +1679,11 @@ df_grupo_cap_faixa_wide.to_csv('tabelas_finais//mortalidade_evitaveis_grupo_cap_
 df_grupo_cap_faixa_wide.head()
 
 # %%
+# nota de legenda das figuras de menores de 5 anos (observação da curadoria, specs/2026-09-28_nova_estrutura §6): o
+# recorte soma os de menores de 1 ano e de 1 a 4 anos
+def fonte_evitaveis_faixa(sufixo):
+    return fonte_evitaveis + ('. Nota: agrega os recortes de menores de 1 ano e de 1 a 4 anos' if sufixo == 'menores_5_anos' else '')
+
 for sufixo, info in faixas_primeira_infancia.items():
     df_faixa_grupo = df_grupo_cap_faixa_wide[df_grupo_cap_faixa_wide['faixa_etaria'] == info['rotulo']]
 
@@ -1691,7 +1696,7 @@ for sufixo, info in faixas_primeira_infancia.items():
         nome_arquivo=f'obitos_evitaveis_cap_{sufixo}_ano',
         ylabel='Óbitos',
         legend_title='CAP',
-        figsize=(14,7), fonte_dados=fonte_evitaveis,
+        figsize=(14,7), fonte_dados=fonte_evitaveis_faixa(sufixo),
     )
 
     df_percentual_evitaveis_wide = df_faixa_grupo.pivot(index='ano', columns='cod_ap_sms', values='percentual_evitaveis').reset_index()
@@ -1703,7 +1708,7 @@ for sufixo, info in faixas_primeira_infancia.items():
         nome_arquivo=f'percentual_evitaveis_cap_{sufixo}_ano',
         ylabel='Percentual (%)',
         legend_title='CAP',
-        figsize=(14,7), fonte_dados=fonte_evitaveis,
+        figsize=(14,7), fonte_dados=fonte_evitaveis_faixa(sufixo),
     )
 
 # %%
@@ -1796,7 +1801,7 @@ for sufixo, info in faixas_primeira_infancia.items():
         bins=info['bins_absoluto'],
         legenda_titulo='Óbitos',
         caminho_geojson=_CAMINHO_GEO_CAP,
-        fonte_dados=fonte_evitaveis,
+        fonte_dados=fonte_evitaveis_faixa(sufixo),
     )
     mapa_coropletico_bairros(
         df_faixa_2025, coluna_valor='percentual_evitaveis', nivel='cap',
@@ -1805,7 +1810,7 @@ for sufixo, info in faixas_primeira_infancia.items():
         cmap=_CORES_TEMA_MAPA['mortalidade'],
         legenda_titulo='% dos óbitos',
         caminho_geojson=_CAMINHO_GEO_CAP,
-        fonte_dados=fonte_evitaveis,
+        fonte_dados=fonte_evitaveis_faixa(sufixo),
     )
 
 # %% [markdown]

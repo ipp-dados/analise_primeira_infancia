@@ -70,7 +70,7 @@ reimplementing this logic:
    deliberately left unchanged** — see the note below.
 3. A closing "Análise / Relatório" section (markdown notes only, no code
    output) — deliberately omitted from both the HTML and PDF reports. Its
-   subtitles are the 6 active policy axes (`specs/estrutura_eixos.md`), not
+   subtitles are the policy axes (6 when written; 7 since `specs/2026-09-28_nova_estrutura`), not
    the source-order sections above.
 
 **Presentation order vs. build order** (`specs/2026-09-22_ajuste_eixos/`): the sections
@@ -80,7 +80,9 @@ nascidos vivos/baixo peso/óbitos already computed above) — this order is not
 reorganized when the *published* structure changes. The `website/` site,
 the PDF, and the DOCX curation export are instead grouped by **eixo da
 política municipal de primeira infância** (Prioridade, Inclusão, Família e
-Cuidados, Proteção, Alimentação, Moradia), read from `specs/estrutura_eixos.md`
+Cuidados, Proteção, Direito ao Brincar, Alimentação, Moradia), preceded by an **Introdução/panorama**
+(population and births: site tab *Visão geral*, PDF chapter *Introdução*; the first `##` of the crosswalk, recognized
+by `eh_panorama()`, not counted as an axis — `specs/2026-09-28_nova_estrutura`), read from `specs/estrutura_eixos.md`
 — a hand-editable crosswalk from the indicator catalog
 (`dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx`) to the real
 visualization/map/table files. To change the published grouping, edit that

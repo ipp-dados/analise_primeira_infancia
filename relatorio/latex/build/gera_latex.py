@@ -14,7 +14,7 @@ relatorio/analise_primeira_infancia.pdf -- specs/2026-09-25_relatorio_latex D2: 
 
 Uso (da raiz do projeto):  python relatorio/latex/build/gera_latex.py [--sem-pdf] [--eixo N] [--publicar]
   --sem-pdf   só gera os .tex (sem compilar)
-  --eixo N    só o eixo N (1-6) no corpo -- para iterar no visual sem compilar o documento inteiro
+  --eixo N    só o eixo N (1-7) no corpo -- para iterar no visual sem compilar o documento inteiro; 0 = só a Introdução
   --publicar  copia o PDF para relatorio/analise_primeira_infancia.pdf (padrão: fica em relatorio/latex/_build/)
 """
 import argparse
@@ -36,7 +36,8 @@ GERADO = LATEX / "gerado"
 CACHE = LATEX / "_build/img"
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(RAIZ / "relatorio/curadoria"))
-from gera_estrutura_eixos import chave_eixo, parse_estrutura_eixos, valida_estrutura  # noqa: E402
+from gera_estrutura_eixos import (chave_eixo, eixos_politica, panorama, parse_estrutura_eixos,  # noqa: E402
+                                  valida_estrutura)
 import inventario_fontes  # noqa: E402
 import tabelas  # noqa: E402
 
@@ -44,7 +45,7 @@ TEXTOS = json.loads((RAIZ / "relatorio/textos_curados.json").read_text(encoding=
 
 # rótulo curto e ícone por eixo -- os mesmos do site (website/build/build_site.py, _EIXO_META)
 EIXO_META = [("prioridade", "target"), ("inclus", "handshake"), ("fam", "users"),
-             ("prote", "shield-check"), ("aliment", "apple"), ("moradia", "house")]
+             ("prote", "shield-check"), ("direito", "toy-brick"), ("aliment", "apple"), ("moradia", "house")]
 PALAVRAS_CHAVE = "Primeira infância. Indicadores sociais. Políticas públicas. Rio de Janeiro (RJ)."
 
 
@@ -207,31 +208,84 @@ def bloco_figura(nome, tipo, info, titulo_secao):
 
 
 # ------------------------------------------------------------------ montagem
-def capitulos(estrutura, info_por_arquivo, so_eixo=None):
+def secoes_indicadores(subsecoes, info_por_arquivo, tabs, rotulo_ap, cmd="section"):
+    """Uma seção (`cmd`) por indicador: figuras + textos, ou o quadro de pendente; tabelas vão para `tabs` (apêndice
+    `rotulo_ap`). Extraída de capitulos() em specs/2026-09-28_nova_estrutura (a Introdução usa a mesma montagem)."""
     tex = []
-    tex.append(r"\chapter{Introdução}\label{cap:introducao}")
-    intro = TEXTOS.get("introducao")
-    tex.append(texto("introducao", 150, lorem_seed="introducao-relatorio") if intro else esc(lorem("introducao-relatorio", 150)))
-    tex.append(r"\input{textual/como_ler}")
-    tex.append(r"\section{Os eixos da política}")
-    tex.append(r"\begin{itemize}")
-    for i, eixo in enumerate(estrutura, 1):
-        n_sub = len(eixo["subsecoes"])
-        n_pend = sum(1 for s in eixo["subsecoes"] if (s["campos"].get("status") or "").strip() == "pendente")
-        tex.append(rf"\item \textbf{{Eixo {i} --- {esc(titulo_eixo(eixo['eixo']))}}} (Capítulo~\ref{{cap:eixo-{i}}}): "
-                   rf"{n_sub} indicadores" + (f", {n_pend} em desenvolvimento" if n_pend else "") + ".")
-    tex.append(r"\end{itemize}")
+    for sub in subsecoes:
+        c = sub["campos"]
+        tex.append(rf"\{cmd}{{{titulo_secao(sub['titulo'])}}}")
+        if (c.get("status") or "").strip() == "pendente":
+            # as `nota:` de estrutura_eixos.md são anotações internas da equipe ("baixar dados", nomes de
+            # arquivo, datas de decisão) -- o público lê só a frase fixa abaixo
+            tex.append(r"\begin{pendente}" + TEXTO_PENDENTE
+                       + r"\end{pendente}")
+            continue
+        for campo, tipo in (("visualização", "grafico"), ("mapa", "mapa")):
+            for nome in lista(c.get(campo)):
+                info = info_por_arquivo.get(("visualizacoes" if tipo == "grafico" else "mapas") + "/" + nome, {})
+                tex.append(bloco_figura(nome, tipo, info, sub["titulo"]))
+                tex.append(texto(Path(nome).stem))
+        refs = []
+        for nome in lista(c.get("tabela")):
+            if nome in tabelas.SUBSTITUI_NO_PDF:          # tabela repetida: remete à que a cobre, ou sai
+                nome = tabelas.SUBSTITUI_NO_PDF[nome]
+                if nome is None:
+                    continue
+            caminho = RAIZ / "tabelas_finais" / nome
+            if not tabelas.cabe_no_pdf(caminho):
+                if nome not in [t for t, _ in tabs]:
+                    tabs.append((nome, sub["titulo"]))
+                # nome de arquivo longo: pode quebrar depois de cada "_" (senão invade a margem)
+                refs.append(r"\texttt{" + esc(nome).replace(r"\_", r"\_\allowbreak{}") + "} (formato digital)")
+                continue
+            # mesma tabela impressa (ex. série bairro×ano filtrada = tabela do mapa) sai uma vez só
+            sig = tabelas.assinatura(caminho)
+            if sig not in ROTULO_POR_ASSINATURA:
+                ROTULO_POR_ASSINATURA[sig] = f"tab:{rotulo_label(Path(nome).stem)}"
+                tabs.append((nome, sub["titulo"]))
+            ref = rf"Tabela~\ref{{{ROTULO_POR_ASSINATURA[sig]}}}"
+            if ref not in refs:
+                refs.append(ref)
+        if refs:
+            tex.append(r"\vertabelas{" + ", ".join(refs) + rf"; ver Apêndice~\ref{{{rotulo_ap}}}}}")
+    return tex
 
-    tabelas_por_eixo = []
-    for i, eixo in enumerate(estrutura, 1):
+
+def capitulos(estrutura, info_por_arquivo, so_eixo=None):
+    """so_eixo: None = tudo; 0 = só a Introdução (com o panorama); N = só o eixo N (1-7) no corpo.
+    Devolve (tex, apêndices), apêndices = [(título do capítulo de apêndice, rótulo, tabelas)]."""
+    tex = []
+    pan = panorama(estrutura)
+    eixos = eixos_politica(estrutura)
+    tabs_intro = []
+    apends = [("Tabelas da Introdução", "ap:introducao", tabs_intro)] if pan else []
+    if so_eixo in (None, 0):
+        tex.append(r"\chapter{Introdução}\label{cap:introducao}")
+        intro = TEXTOS.get("introducao")
+        tex.append(texto("introducao", 150, lorem_seed="introducao-relatorio") if intro else esc(lorem("introducao-relatorio", 150)))
+        tex.append(r"\input{textual/como_ler}")
+        if pan:   # specs/2026-09-28_nova_estrutura: panorama (população e nascimentos) antes dos eixos
+            tex.append(r"\section{Panorama da primeira infância carioca}\label{sec:panorama}")
+            tex += secoes_indicadores(pan["subsecoes"], info_por_arquivo, tabs_intro, "ap:introducao", cmd="subsection")
+        tex.append(r"\section{Os eixos da política}")
+        tex.append(r"\begin{itemize}")
+        for i, eixo in enumerate(eixos, 1):
+            n_sub = len(eixo["subsecoes"])
+            n_pend = sum(1 for s in eixo["subsecoes"] if (s["campos"].get("status") or "").strip() == "pendente")
+            tex.append(rf"\item \textbf{{Eixo {i} --- {esc(titulo_eixo(eixo['eixo']))}}} (Capítulo~\ref{{cap:eixo-{i}}}): "
+                       rf"{n_sub} indicador{'es' if n_sub != 1 else ''}" + (f", {n_pend} em desenvolvimento" if n_pend else "") + ".")
+        tex.append(r"\end{itemize}")
+
+    for i, eixo in enumerate(eixos, 1):
         titulo = titulo_eixo(eixo["eixo"])
         sid = slug_site(titulo)
         icone = next((ic for pre, ic in EIXO_META if sid.startswith(pre)), "layout-dashboard")
         tabs_eixo = []
-        tabelas_por_eixo.append((titulo, tabs_eixo))
-        if so_eixo and i != so_eixo:
+        apends.append((f"Tabelas do eixo {titulo}", f"ap:eixo-{i}", tabs_eixo))
+        if so_eixo is not None and i != so_eixo:
             continue
-        tex.append(rf"\eixo{{{i}}}{{{len(estrutura)}}}{{{icone}}}")
+        tex.append(rf"\eixo{{{i}}}{{{len(eixos)}}}{{{icone}}}")
         tex.append(rf"\chapter{{{esc(titulo)}}}\label{{cap:eixo-{i}}}")
         tex.append(r"\begin{achados}\begin{itemize}")
         achados = TEXTOS.get(f"achados_{chave_eixo(eixo['eixo'])}")   # uma frase por linha (DOCX de curadoria)
@@ -246,58 +300,24 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
         tex.append(r"\end{itemize}\end{achados}")
         # texto de abertura do eixo (specs/2026-09-28_melhorias_site U2): mesma chave e mesmo lorem do site
         tex.append(texto(f"introducao_{chave_eixo(eixo['eixo'])}", 90, lorem_seed=f"introducao-{sid}"))
-        for sub in eixo["subsecoes"]:
-            c = sub["campos"]
-            tex.append(rf"\section{{{titulo_secao(sub['titulo'])}}}")
-            if (c.get("status") or "").strip() == "pendente":
-                # as `nota:` de estrutura_eixos.md são anotações internas da equipe ("baixar dados", nomes de
-                # arquivo, datas de decisão) -- o público lê só a frase fixa abaixo
-                tex.append(r"\begin{pendente}" + TEXTO_PENDENTE
-                           + r"\end{pendente}")
-                continue
-            for campo, tipo in (("visualização", "grafico"), ("mapa", "mapa")):
-                for nome in lista(c.get(campo)):
-                    info = info_por_arquivo.get(("visualizacoes" if tipo == "grafico" else "mapas") + "/" + nome, {})
-                    tex.append(bloco_figura(nome, tipo, info, sub["titulo"]))
-                    tex.append(texto(Path(nome).stem))
-            refs = []
-            for nome in lista(c.get("tabela")):
-                if nome in tabelas.SUBSTITUI_NO_PDF:          # tabela repetida: remete à que a cobre, ou sai
-                    nome = tabelas.SUBSTITUI_NO_PDF[nome]
-                    if nome is None:
-                        continue
-                caminho = RAIZ / "tabelas_finais" / nome
-                if not tabelas.cabe_no_pdf(caminho):
-                    if nome not in [t for t, _ in tabs_eixo]:
-                        tabs_eixo.append((nome, sub["titulo"]))
-                    # nome de arquivo longo: pode quebrar depois de cada "_" (senão invade a margem)
-                    refs.append(r"\texttt{" + esc(nome).replace(r"\_", r"\_\allowbreak{}") + "} (formato digital)")
-                    continue
-                # mesma tabela impressa (ex. série bairro×ano filtrada = tabela do mapa) sai uma vez só
-                sig = tabelas.assinatura(caminho)
-                if sig not in ROTULO_POR_ASSINATURA:
-                    ROTULO_POR_ASSINATURA[sig] = f"tab:{rotulo_label(Path(nome).stem)}"
-                    tabs_eixo.append((nome, sub["titulo"]))
-                ref = rf"Tabela~\ref{{{ROTULO_POR_ASSINATURA[sig]}}}"
-                if ref not in refs:
-                    refs.append(ref)
-            if refs:
-                tex.append(r"\vertabelas{" + ", ".join(refs) + rf"; ver Apêndice~\ref{{ap:eixo-{i}}}}}")
+        tex += secoes_indicadores(eixo["subsecoes"], info_por_arquivo, tabs_eixo, f"ap:eixo-{i}")
         tex.append(r"\section{Síntese do eixo}")
         tex.append(rf"\begin{{sintese}}{{{esc(titulo)}}}" + texto(f"sintese_{chave_eixo(eixo['eixo'])}" if TEXTOS.get(f"sintese_{chave_eixo(eixo['eixo'])}")
                     or not TEXTOS.get(f"conclusao-{sid}") else f"conclusao-{sid}", lorem_seed=f"conclusao-{sid}") + r"\end{sintese}")
 
-    tex.append(r"\chapter{Considerações finais}\label{cap:consideracoes}")
-    tex.append(texto("consideracoes_finais", 150))
-    return "\n\n".join(tex) + "\n", tabelas_por_eixo
+    if so_eixo is None:
+        tex.append(r"\chapter{Considerações finais}\label{cap:consideracoes}")
+        tex.append(texto("consideracoes_finais", 150))
+    return "\n\n".join(tex) + "\n", apends
 
 
-def apendices(tabelas_por_eixo, info_por_arquivo):
+def apendices(apends, info_por_arquivo):
     tex = [r"\begin{apendicesenv}", r"\partapendices"]
-    for i, (titulo, tabs) in enumerate(tabelas_por_eixo, 1):
-        tex.append(rf"\chapter{{Tabelas do eixo {esc(titulo)}}}\label{{ap:eixo-{i}}}")
+    for titulo_ap, rotulo, tabs in apends:
+        tex.append(rf"\chapter{{{esc(titulo_ap)}}}\label{{{rotulo}}}")
         if not tabs:
-            tex.append("Este eixo não tem tabelas de dados nesta edição.")
+            tex.append("Esta parte não tem tabelas de dados nesta edição." if rotulo == "ap:introducao"
+                       else "Este eixo não tem tabelas de dados nesta edição.")
         digitais = []
         for nome, titulo_secao in tabs:
             caminho = RAIZ / "tabelas_finais" / nome
@@ -382,18 +402,19 @@ def main():
 
     GERADO.mkdir(exist_ok=True)
     subprocess.run([sys.executable, str(AQUI / "gera_icones.py")], check=True, cwd=RAIZ, capture_output=True)
-    corpo, tabs = capitulos(estrutura, info, args.eixo)
+    corpo, apends = capitulos(estrutura, info, args.eixo)
     (GERADO / "capitulos.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n" + corpo, encoding="utf-8")
-    (GERADO / "apendices.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n"
-                                           + apendices(tabs if not args.eixo else [t if k == args.eixo - 1 else (t[0], [])
-                                                                                    for k, t in enumerate(tabs)], info),
+    if args.eixo is not None:   # só os apêndices da parte gerada (0 = Introdução, N = eixo N)
+        alvo = "ap:introducao" if args.eixo == 0 else f"ap:eixo-{args.eixo}"
+        apends = [a if a[1] == alvo else (a[0], a[1], []) for a in apends]
+    (GERADO / "apendices.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n" + apendices(apends, info),
                                            encoding="utf-8")
     chaves = re.findall(r"^@\w+\{(\w+),", (LATEX / "fontes.bib").read_text(encoding="utf-8"), re.M)
     (GERADO / "nocite.tex").write_text("% Gerado por gera_latex.py.\n\\nocite{" + ",".join(chaves) + "}\n",
                                        encoding="utf-8")
     (GERADO / "resumo.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n" + resumo(), encoding="utf-8")
     (GERADO / "aviso.tex").write_text(aviso_em_desenvolvimento(), encoding="utf-8")
-    print(f"{len(estrutura)} eixos; {len(FALLBACK)} figuras ainda sem variante A4 (usando a PNG de tela); "
+    print(f"Introdução + {len(eixos_politica(estrutura))} eixos; {len(FALLBACK)} figuras ainda sem variante A4 (usando a PNG de tela); "
           f"{len(EM_LOREM)} textos em lorem: {', '.join(EM_LOREM[:8])}{' …' if len(EM_LOREM) > 8 else ''}")
     usados = {Path(n).stem for e in estrutura for s in e["subsecoes"] for f in ("visualização", "mapa")
               for n in lista(s["campos"].get(f))}
@@ -401,7 +422,7 @@ def main():
     if sem_figura:
         print(f"Textos curados sem figura no relatório ({len(sem_figura)}): {', '.join(sem_figura)}")
     if not args.sem_pdf:
-        compila(publicar=args.publicar and not args.eixo)
+        compila(publicar=args.publicar and args.eixo is None)
 
 
 if __name__ == "__main__":
