@@ -25,7 +25,7 @@ Pedidas pelo usuário:
 
 | # | Tema | Decisão |
 |---|---|---|
-| U1 | Favicon | melhorar; opções geradas nesta rodada para escolha, com as variantes de compatibilidade |
+| U1 | Favicon | melhorar; opções geradas nesta rodada para escolha, com as variantes de compatibilidade. **Escolhida: C, monograma "PI"** (2026-09-28) |
 | U2 | Abertura | texto de até **100 palavras** no início de cada **eixo** (as 6 abas do site / capítulos do PDF), **abaixo de "Principais achados"**; lorem até ser curado |
 | U3 | Lorem | todo bloco lorem com **no máximo 150 palavras**; texto curado não muda |
 | U4 | Pequenos múltiplos | ficar **só com Painéis**: sai o botão "Linhas" e a vista de linhas |
