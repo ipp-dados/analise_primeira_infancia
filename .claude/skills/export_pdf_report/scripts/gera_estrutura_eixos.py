@@ -1,9 +1,9 @@
 """Parser e validador de `specs/estrutura_eixos.md` (Bloco 1 de
-`specs/ajuste_eixos/plan.md`).
+`specs/2026-09-22_ajuste_eixos/plan.md`).
 
 `specs/estrutura_eixos.md` e' a fonte unica e editavel a mao da organizacao
 de `relatorio/index.html`/PDF/DOCX por eixo de politica municipal de
-primeira infancia (ver `specs/ajuste_eixos/specs.md` SS5.1 para o formato e
+primeira infancia (ver `specs/2026-09-22_ajuste_eixos/specs.md` SS5.1 para o formato e
 a decisao de projeto). Este modulo faz so duas coisas:
 
 1. `parse_estrutura_eixos()` -- le o `.md` (heading `##` = eixo, `###` =
@@ -23,6 +23,8 @@ reabriria um caminho de regeneracao automatica que a spec explicitamente nao
 quer (specs.md SS5.2, plan.md Bloco 1).
 """
 
+import re
+import unicodedata
 from pathlib import Path
 
 # Diretorios (relativos a raiz do projeto) onde cada tipo de referencia deve
@@ -138,6 +140,61 @@ def valida_estrutura(estrutura, base_dir="."):
     return True
 
 
+def itens_sem_arquivo(estrutura):
+    """Subseções sem nenhuma `visualização`/`mapa`/`tabela` e sem `status` -- o HTML e o PDF as pulam
+    em silêncio (foi assim que o item "percentual de nascidos vivos por bairro" sumiu do relatório;
+    `specs/2026-09-24_populacao-referencia` D4). Devolve `[(eixo, título)]`."""
+    return [(eixo["eixo"], sub["titulo"])
+            for eixo in estrutura for sub in eixo["subsecoes"]
+            if not any(c in sub["campos"] for c in _DIRS_POR_CAMPO) and "status" not in sub["campos"]]
+
+
+def titulo_eixo(bruto):
+    """'🎯 Prioridade (sem secundário)' -> 'Prioridade' (o mesmo h2 do site e título de capítulo do PDF)."""
+    t = re.sub(r"^[^\wÀ-ÿ]+", "", bruto).strip()
+    return re.sub(r"\s*\(sem secundário\)$", "", t)
+
+
+def chave_eixo(bruto):
+    """Parte ASCII estável de chave por eixo: 'Família e Cuidados' -> 'familia_e_cuidados'. Vale como nome de
+    bookmark do DOCX (só [A-Za-z0-9_]) e não depende da posição do eixo no arquivo."""
+    t = unicodedata.normalize("NFKD", titulo_eixo(bruto)).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", "_", t).strip("_")
+
+
+def blocos_relatorio(estrutura):
+    """Textos do relatório que não pertencem a uma figura (specs/2026-09-25_relatorio_latex, Bloco 6): resumo, principais
+    achados e síntese de cada eixo, considerações finais. {chave: bloco}, onde a chave é ao mesmo tempo o nome do
+    bookmark no DOCX de curadoria e a chave em relatorio/textos_curados.json. `seed`/`palavras`/`linhas` definem o
+    placeholder (ver `placeholder_bloco`), que a sincronização compara para saber se o texto foi editado."""
+    blocos = {"resumo": dict(rotulo="Resumo", seed="resumo-docx", palavras=250, linhas=1)}
+    for eixo in estrutura:
+        k, t = chave_eixo(eixo["eixo"]), titulo_eixo(eixo["eixo"])
+        blocos[f"achados_{k}"] = dict(rotulo=f"Principais achados — {t}", seed=f"achados-{k}-docx", palavras=12,
+                                      linhas=5, eixo=eixo["eixo"])
+        blocos[f"sintese_{k}"] = dict(rotulo=f"Síntese do eixo — {t}", seed=f"sintese-{k}-docx", palavras=None,
+                                      linhas=1, eixo=eixo["eixo"])
+    blocos["consideracoes_finais"] = dict(rotulo="Considerações finais", seed="consideracoes-finais-docx",
+                                          palavras=300, linhas=1)
+    return blocos
+
+
+def placeholder_bloco(bloco, lorem):
+    """Placeholder determinístico de um bloco (achados: uma frase por linha). `lorem` é a função de lorem ipsum
+    do artefato que chama (o DOCX usa uma lista de palavras própria, diferente da do site/LaTeX)."""
+    if bloco["linhas"] == 1:
+        return lorem(bloco["seed"], bloco["palavras"])
+    return "\n".join(lorem(f"{bloco['seed']}-{k}", bloco["palavras"]) for k in range(bloco["linhas"]))
+
+
+def avisa_itens_sem_arquivo(caminho="specs/estrutura_eixos.md"):
+    """Só um aviso no console (não muda nenhuma saída): lista os itens de `itens_sem_arquivo`."""
+    itens = itens_sem_arquivo(parse_estrutura_eixos(caminho))
+    for eixo, titulo in itens:
+        print(f"AVISO: item sem arquivo e sem status (não aparece no relatório): {eixo} > {titulo}")
+    return itens
+
+
 if __name__ == "__main__":
     import sys
 
@@ -165,6 +222,10 @@ if __name__ == "__main__":
         print(f"  - {eixo['eixo']}: {len(eixo['subsecoes'])} subseções")
     print(f"Total de subseções (indicadores ativos): {total_subsecoes}")
     print(f"Pendentes (status: pendente): {total_pendentes}")
+    sem_arquivo = itens_sem_arquivo(estrutura)
+    for eixo_sem, titulo_sem in sem_arquivo:
+        print(f"AVISO: item sem arquivo e sem status (não aparece no relatório): {eixo_sem} > {titulo_sem}")
+    print(f"Itens sem arquivo e sem status: {len(sem_arquivo)}")
 
     try:
         valida_estrutura(estrutura)

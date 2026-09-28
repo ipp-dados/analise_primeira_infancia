@@ -3,7 +3,7 @@ name: generate_map
 description: Generate a choropleth (coroplético) PNG map of Rio de Janeiro -- by bairro, Área de Planejamento, or Região de Planejamento -- from any bairro-level table in this project (Censo, DataSUS/Tabnet, CadÚnico, etc.), using geopandas, a drawn-style basemap (contextily), surrounding state/UF and neighboring-municipality context, a north arrow, scale bar, and a cartographic footnote (spatial reference + data source). Discrete classes for absolute counts, continuous colorbar for percentages/rates -- a fixed project convention. Use when the user asks for a map, mapa coroplético, or "mapa por bairro/AP/RP" of some indicator, or to refresh/regenerate an existing one in mapas/.
 ---
 
-**Note (v6, `specs/relatorio-interativo`):** this skill's PNG pipeline is still
+**Note (v6, `specs/2026-09-14_relatorio-interativo`):** this skill's PNG pipeline is still
 the source for the notebook, the PDF export, and the geometry itself, but
 `relatorio/index.html` (the interactive HTML report) no longer embeds these
 PNGs for most indicators — `.claude/skills/export_pdf_report/scripts/build_html_report.py`
@@ -47,7 +47,10 @@ detailed sections below explain the *why* behind each row.
 | 6 | Removed the border (`edgecolor`) from that round-5 background panel, on the continuous-colorbar (percentage) maps only — kept the white fill | Direct ask to remove "the outer box" from the top-left legend on percent-scale maps; the discrete legend's own bordered box (absolute-count maps) wasn't part of the request and is untouched |
 | 7 | Removed the round-5 background panel's `facecolor` too (the whole rectangle is gone now) — legibility moved from a backing box to a white `path_effects.withStroke` halo on each text element instead, the same technique the neighbor-municipality labels already used | Follow-up ask ("remove the fill for the percentage map") — no box left at all behind the continuous colorbar |
 | 8 | Footnote's spatial-reference line now says "SIRGAS 2000, UTM - Fuso 23S", copied verbatim from `mapa_referencia.jpeg`'s own citation, instead of a generic "SIRGAS 2000 (EPSG:4326)" | Direct ask to match the reference map's exact wording — a citation choice, not a change to which CRS the code actually plots in (still `EPSG:4326`/`EPSG:3857`, never `EPSG:31983`) |
-| 9 (current) | Footnote's `x` anchor nudged left, `0.62 → 0.55` | Round 8's longer citation text pushed the footnote's right edge into the scale bar again — a direct consequence of round 8, not an unrelated request |
+| 9 | Footnote's `x` anchor nudged left, `0.62 → 0.55` | Round 8's longer citation text pushed the footnote's right edge into the scale bar again — a direct consequence of round 8, not an unrelated request |
+| 10 (current) | Default `fundo` changed from `'mapa'` (`Esri.OceanBasemap`) to `'mapa_oceano_base'` (`Ocean/World_Ocean_Base`) | The old service has answered HTTP 500 since 2026-09 (tile requests still failing on 2026-09-25); the successor has the same style. User approved after a side-by-side comparison of the same map (`specs/2026-09-25_relatorio_latex`). Only 8 call sites passed the new key explicitly before, so a full notebook run failed on every other map |
+
+**Print variant (2026-09-25, `specs/2026-09-25_relatorio_latex` Bloco 5):** `mapa_coropletico_bairros` also saves `mapas/a4/<nome>.pdf` via `_a4_mapa` — final A4 size (16 cm), no title/footnote (they go to the ABNT caption), smaller legend/arrow/scale, background downscaled and lightened (38% white) and embedded with `interpolation='none'` (~0.4 MB per map instead of 1.25 MB), and a 95th-percentile colour cap on continuous bairro maps (decision D5). The screen PNG conventions in this file are unchanged.
 
 The throughline: **background style, aggregation level, citation
 requirements, and even a prior round's own "fix" all changed after
@@ -671,3 +674,9 @@ DataSUS table is loaded. `mapas/` is gitignored, so regenerating these PNGs
 never shows up as a diff to review — only `analise.py` changes (new call
 sites) and any changes to `dados_locais/geo/` or `tabelas_finais/` schemas
 (e.g. adding a `codbairro` export column, as done for Censo) are.
+
+## Nível `ra` (Região Administrativa)
+
+`nivel='ra'`, `chave='codra'` (inteiro): une os bairros por `codra` (33 RAs, não existe a 32) — mesma rota de AP/RP, sem geojson extra.
+Junte sempre pelo `codra` numérico (o IPS traz numeral romano + nome; converta com `numeral_romano_para_int`). Se o basemap padrão
+(`Ocean_Basemap`) devolver HTTP 500, use `fundo='mapa_oceano_base'`.

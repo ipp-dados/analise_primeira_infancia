@@ -23,10 +23,13 @@ from shapely.geometry import box
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
+from matplotlib.lines import Line2D
 import contextily as ctx
+import xyzservices
 import geopandas as gpd
 import pandas as pd
 import math
+import numpy as np
 import os
 
 # %% [markdown]
@@ -150,9 +153,13 @@ def combina_faixas_causa(padrao, arquivos_por_faixa):
     return df_total.groupby(['causa','ano'], as_index=False)['obitos'].sum()
 
 def total_e_percentual_ano(df):
-    """Agrega um Censo (Tabela 2974/IBGE) por bairro em total e percentual de 0 a 4 anos."""
-    df['0 a 4 anos'] = df['Sexo feminino, 0 a 4 anos'] + df['Sexo masculino, 0 a 4 anos']
+    """Agrega um Censo (Tabela 2974/IBGE) por bairro em total e percentual de 0 a 4 anos.
+
+    O `Total` é somado ANTES de criar a coluna '0 a 4 anos' -- na ordem inversa, a faixa de 0 a 4 anos
+    entrava duas vezes no total (populacao-referencia, auditoria de faixas §2; com a correção, os totais
+    de 2000 e 2010 batem com o IBGE: 5.857.904 e 6.320.446)."""
     df['Total'] = df.iloc[:,9:].sum(axis=1)
+    df['0 a 4 anos'] = df['Sexo feminino, 0 a 4 anos'] + df['Sexo masculino, 0 a 4 anos']
     df['Percentual 0 a 4 anos'] = (df['0 a 4 anos']/df['Total'])
     return df[['bairro','0 a 4 anos','Total','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']]
 
@@ -166,7 +173,7 @@ def carrega_cobertura_vacinal(caminho):
     return df[['ano','IMUNO','cobertura']].rename(columns={'IMUNO':'imunobiologico'})
 
 # a planilha TabWin de causas evitáveis por CAP só traz os 8 subgrupos CID (nunca o nível
-# 'grupo' como linha própria, e nunca um terceiro nível 'causa' -- ver specs/mortalidade-ap/
+# 'grupo' como linha própria, e nunca um terceiro nível 'causa' -- ver specs/2026-09-08_mortalidade-ap/
 # specification.md §2.4); o rótulo bruto de 3 das 8 categorias ('1.2.*') traz um trecho 'ad '
 # redundante que não aparece no texto de subgrupo canônico -- este dicionário normaliza os 8
 # rótulos possíveis para esse texto canônico, usado em toda tabela derivada desta planilha
@@ -271,6 +278,33 @@ def agrega_grupo_cid(df, colunas_chave):
     df['grupo'] = df['subgrupo'].str[0].map(_GRUPOS_CID)
     return df.groupby(colunas_chave + ['grupo'], as_index=False)['obitos'].sum()
 
+def subgrupo_excluido(subgrupo, faixa=None):
+    """Subgrupos de causa evitável que ficam fora dos gráficos por decisão da equipe (specs/exclusoes.md):
+    E3 -- 1.1 (reduzível por imunização), em todas as faixas: 0 a 2 óbitos por ano;
+    E2 -- 1.2.x (gestação, parto, recém-nascido) em '1 a 4 anos': causa perinatal nessa idade é quase
+    sempre erro de registro/codificação (22, 6 e 4 óbitos em 20 anos). Os CSVs continuam completos;
+    só o que é desenhado muda."""
+    s = str(subgrupo).strip()
+    if s.startswith('1.1'):
+        return True
+    return faixa is not None and '1 a 4' in str(faixa) and s.startswith('1.2')
+
+def filtra_colunas_subgrupo(colunas, faixa=None):
+    """{rótulo: coluna} de `serie_temporal_multipla` sem os subgrupos de `subgrupo_excluido`."""
+    return {rotulo: col for rotulo, col in colunas.items() if not subgrupo_excluido(rotulo, faixa)}
+
+def agrupa_racas_raras(df):
+    """E5 (specs/exclusoes.md): amarela e indígena somam 0 a 2 óbitos de menores de 1 ano por ano cada e geram
+    picos sem significado no percentual -- viram 'amarela_indigena', com o percentual recalculado a partir dos
+    absolutos somados (nunca somando percentuais, constituição §3). Acrescenta colunas, não remove nenhuma."""
+    df = df.copy()
+    df['obitos_amarela_indigena'] = df['obitos_amarela'] + df['obitos_indigena']
+    if {'nascidos_amarela', 'nascidos_indigena'} <= set(df.columns):
+        df['nascidos_amarela_indigena'] = df['nascidos_amarela'] + df['nascidos_indigena']
+        pct = df['obitos_amarela_indigena'] / df['nascidos_amarela_indigena'] * 100
+        df['percentual_amarela_indigena'] = pct.replace([float('inf'), -float('inf')], float('nan')).round(2)
+    return df
+
 def junta_codbairro_por_bairro(df, df_referencia):
     """Junta `codbairro` a uma tabela cuja única chave de bairro é o nome (string) -- caso do
     CadÚnico, a única fonte do projeto sem `codigo`/`codbairro` nativo. Usa `df_referencia`
@@ -307,7 +341,7 @@ def carrega_sidra_longo(caminho, coluna_corte=None):
 
 # %%
 # Identidade visual compartilhada por todas as funções de visualização desta seção --
-# mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver specs/visual-identity).
+# mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver specs/2026-09-09_visual-identity).
 
 # paleta categórica de 11 cores -- mesmos hex do motor JS de relatorio/index.html (--c1..--c11),
 # para a mesma série ter a mesma cor no notebook, no PDF e no HTML.
@@ -321,6 +355,7 @@ _CORES_TEMA_MAPA = {
     'mortalidade': 'RdPu',   # óbitos (neonatal, gravidez, puerpério, raça, evitáveis/CAP)
     'cadunico': 'YlOrBr',    # CadÚnico
     'censo': 'Blues',        # Censo/população
+    'protecao': 'OrRd',      # violência/notificações (eixo Proteção)
 }
 
 _LIMIAR_DESTAQUE_SERIES = 6  # acima disso, serie_temporal_multipla destaca só as mais relevantes
@@ -347,6 +382,7 @@ def serie_temporal(df,tempo,valor,titulo,nome_arquivo=None, formato='png', fonte
     _rodape_fonte(fonte_dados)
     plt.tight_layout()
     plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_serie_unica(df, tempo, valor, titulo, nome_arquivo=nome_arquivo, fonte_dados=fonte_dados)
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
@@ -360,6 +396,7 @@ def grafico_barra(df,categoria,valor,titulo,nome_arquivo=None, formato='png', fo
     _rodape_fonte(fonte_dados)
     plt.tight_layout()
     plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_barras(df, categoria, valor, titulo, nome_arquivo=nome_arquivo, fonte_dados=fonte_dados)
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
@@ -374,10 +411,14 @@ def grafico_barra_agrupado(df,categoria,valor,agrupador,titulo,nome_arquivo,ylab
     _rodape_fonte(fonte_dados)
     plt.tight_layout()
     plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_barras_agrupadas(df, categoria, valor, agrupador, titulo, nome_arquivo=nome_arquivo, ylabel=ylabel,
+                         ordem_categoria=ordem_categoria, ordem_agrupador=ordem_agrupador, fonte_dados=fonte_dados)
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
-def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',legend_title='Cor/Raça',figsize=(12,6),formato='png', fonte_dados=None, destaques=None):
+def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',legend_title='Cor/Raça',figsize=(12,6),formato='png', fonte_dados=None, destaques=None, linhas_referencia=None):
+    """`linhas_referencia`: lista opcional de `(valor, rótulo)` desenhada como linha horizontal tracejada
+    cinza, com o rótulo à direita (ex.: metas do PNE). `None` (padrão) não desenha nada."""
     plt.figure(figsize=figsize)
     itens = list(colunas.items())
     if len(itens) > _LIMIAR_DESTAQUE_SERIES:
@@ -402,6 +443,10 @@ def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',
         for i,(rotulo,coluna) in enumerate(itens):
             sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None,
                          color=_PALETA_CATEGORICA[i % len(_PALETA_CATEGORICA)])
+    for valor, rotulo_ref in (linhas_referencia or []):
+        plt.axhline(valor, color='#6b6b6b', linestyle='--', linewidth=1.1, zorder=0)
+        plt.annotate(rotulo_ref, xy=(1, valor), xycoords=('axes fraction', 'data'), xytext=(-4, 3),
+                     textcoords='offset points', ha='right', va='bottom', fontsize=9, color='#3a3a3a', style='italic')
     plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
     plt.xlabel(tempo,fontsize=12)
     plt.ylabel(ylabel,fontsize=12)
@@ -411,6 +456,8 @@ def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',
     _rodape_fonte(fonte_dados)
     plt.tight_layout()
     plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_series(df, tempo, colunas, titulo, nome_arquivo=nome_arquivo, ylabel=ylabel, fonte_dados=fonte_dados,
+               linhas_referencia=linhas_referencia)
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 
@@ -424,6 +471,18 @@ _PROVEDORES_FUNDO = {
     'mapa': ctx.providers.Esri.OceanBasemap,
 }
 
+# o serviço 'Ocean_Basemap' da Esri (provedor de 'mapa') passou a responder HTTP 500 em 2026-09; o sucessor
+# 'Ocean/World_Ocean_Base' tem o mesmo estilo (relevo suave, mar azul, sem rótulos) e serve os tiles.
+# Chave nova (não altera 'mapa'): use fundo='mapa_oceano_base' enquanto o serviço antigo estiver fora do ar.
+# 2026-09-25 (specs/2026-09-25_relatorio_latex, aprovado pelo usuário após comparação lado a lado): 'mapa_oceano_base' passou a
+# ser o padrão de mapa_coropletico_bairros -- mesmo estilo; 'mapa' continua disponível se o serviço antigo voltar.
+_PROVEDORES_FUNDO['mapa_oceano_base'] = xyzservices.TileProvider(
+    name='Esri.WorldOceanBase',
+    url='https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution='Tiles © Esri — Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri',
+    max_zoom=13,
+)
+
 # nível de agregação geográfica: coluna do geojson de bairros usada no dissolve/join, e o tipo para
 # comparação (Área de Planejamento e codbairro são numéricos; Região de Planejamento é 'AP.subregião',
 # ex. '4.2', e não pode virar número sem perder precisão)
@@ -432,11 +491,12 @@ _NIVEIS_AGREGACAO = {
     'ap':     {'coluna_geo': 'area_plane', 'tipo': int},
     'rp':     {'coluna_geo': 'cod_rp', 'tipo': str},
     'cap':    {'coluna_geo': 'cod_ap_sms', 'tipo': str},
+    'ra':     {'coluna_geo': 'codra', 'tipo': int},  # Região Administrativa (33 no geojson de bairros; não existe RA 32)
 }
 
 # geojson oficial das 10 CAPs (Coordenadoria de Área Programática de Saúde, SMS-Rio -- não
 # aninha no geojson de bairros do IPP, que só traz Área/Região de Planejamento), Data.Rio
-# ("Áreas Programáticas da Saúde"); ver specs/mortalidade-ap/specification.md §4
+# ("Áreas Programáticas da Saúde"); ver specs/2026-09-08_mortalidade-ap/specification.md §4
 _CAMINHO_GEO_CAP = 'dados_locais/geo/limite_ap_saude_rio.geojson'
 
 # de-para RA -> CAP, derivado do cruzamento espacial com o polígono oficial acima (não de
@@ -524,14 +584,14 @@ def agrega_bairros_por_nivel(df, nivel, colunas_soma):
     return df.groupby(coluna_geo, as_index=False)[colunas_soma].sum()
 
 def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None, nivel='bairro', bins=None,
-                              cmap='Oranges', legenda_titulo=None, fundo='mapa', alpha=None, fonte_dados=None,
+                              cmap='Oranges', legenda_titulo=None, fundo='mapa_oceano_base', alpha=None, fonte_dados=None,
                               caminho_geojson='dados_locais/geo/limite_bairros_rio.geojson',
                               caminho_uf='dados_locais/geo/limite_uf_brasil.geojson',
-                              caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson', formato='png'):
+                              caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson', formato='png', zero_branco=False):
     """Gera um mapa coroplético do Rio (limites IPP/Data.Rio, simplificados) e salva em mapas/.
 
     `nivel`: 'bairro' (padrão) | 'ap' (Área de Planejamento, 5 regiões) | 'rp' (Região de
-    Planejamento, 16 regiões) -- une (`dissolve`) os polígonos de bairro nesse nível antes do join
+    Planejamento, 16 regiões) | 'ra' (Região Administrativa, 33 regiões, chave `codra`) -- une (`dissolve`) os polígonos de bairro nesse nível antes do join
     com `df`. `chave` é a coluna de `df` usada no join; se None, usa o nome padrão de cada nível
     ('codbairro', 'area_plane' ou 'cod_rp') -- `df` deve trazer essa coluna já agregada (ver
     `agrega_bairros_por_nivel` para ir de uma tabela por bairro a uma por AP/RP).
@@ -549,6 +609,10 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
     vizinhos (não Rio de Janeiro) visíveis são rotulados, a vista é ampliada além dos bairros para
     dar contexto (região metropolitana, baía, mar), e o mapa recebe rosa dos ventos + escala gráfica
     (corrigida para a distorção de latitude do Web Mercator).
+    `zero_branco` (só com `bins`, contagens absolutas): quando True, valores iguais a 0 ficam brancos, com
+    entrada própria '0 (sem casos)' na legenda, em vez de cair na primeira classe ('Até X'). Padrão False
+    (comportamento anterior, usado pelos demais mapas).
+
     A figura usa proporção larga (~1,46:1, próxima de A4 paisagem) e é exportada a 300 DPI com
     `bbox_inches='tight'`, para que só o título ocupe espaço fora do mapa em si.
 
@@ -569,6 +633,7 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
     df = df.copy()
     df[chave] = df[chave].astype(tipo)
     gdf = gdf_nivel.merge(df[[chave, coluna_valor]], left_on=coluna_geo, right_on=chave, how='left')
+    gdf_a4 = gdf.copy()   # variante de impressão (mesmos dados, desenho próprio)
 
     # fator de correção do Web Mercator na latitude do Rio (~-23°), para a escala gráfica ficar correta
     # (centroide aproximado só para essa correção, não precisa de precisão métrica -- dispensa reprojeção)
@@ -601,7 +666,8 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
         rotulos = [f"Até {_numero_ptbr(bins[0])}"]
         rotulos += [f"{_numero_ptbr(bins[i-1]+1)} a {_numero_ptbr(bins[i])}" for i in range(1, len(bins))]
         rotulos.append(f"Mais de {_numero_ptbr(bins[-1])}")
-        gdf['faixa'] = pd.cut(gdf[coluna_valor], bins=limites, labels=rotulos, ordered=True)
+        eh_zero = (gdf[coluna_valor] == 0) if zero_branco else pd.Series(False, index=gdf.index)
+        gdf['faixa'] = pd.cut(gdf[coluna_valor].where(~eh_zero), bins=limites, labels=rotulos, ordered=True)
         gdf.plot(
             column='faixa', ax=ax, cmap=cmap, linewidth=0.4, edgecolor='#616161', legend=True, alpha=alpha,
             zorder=2, missing_kwds=missing_kwds,
@@ -609,6 +675,20 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
                          'title_fontsize': 12, 'framealpha': 0.92, 'facecolor': 'white', 'edgecolor': '#c9c9c9',
                          'labelcolor': '#111111'},
         )
+        if zero_branco and eh_zero.any():
+            # zeros por cima do preenchimento 'Sem dado' (que os cobre com hachura), em branco liso
+            gdf[eh_zero].plot(ax=ax, color='white', linewidth=0.4, edgecolor='#616161', zorder=2.5)
+            legenda_antiga = ax.get_legend()
+            handles_ant = list(legenda_antiga.legend_handles)
+            rotulos_ant = [t.get_text() for t in legenda_antiga.get_texts()]
+            if not gdf[coluna_valor].isna().any():  # 'Sem dado' só se houver região realmente sem dado
+                manter = [i for i, r in enumerate(rotulos_ant) if r != 'Sem dado']
+                handles_ant, rotulos_ant = [handles_ant[i] for i in manter], [rotulos_ant[i] for i in manter]
+            handles = [Line2D([0], [0], marker='o', linestyle='', markerfacecolor='white', markeredgecolor='#616161', markersize=11)] + handles_ant
+            rotulos_leg = ['0 (sem casos)'] + rotulos_ant
+            legenda_antiga.remove()
+            ax.legend(handles=handles, labels=rotulos_leg, title=legenda_titulo or coluna_valor, loc='upper left', fontsize=10,
+                      title_fontsize=12, framealpha=0.92, facecolor='white', edgecolor='#c9c9c9', labelcolor='#111111')
         legenda = ax.get_legend()
         legenda.get_title().set_fontweight('bold')
         for texto in legenda.get_texts():
@@ -678,7 +758,1141 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
     ax.axis('off')
     plt.tight_layout()
     plt.savefig(f"mapas/{nome_arquivo}.{formato}", dpi=300, bbox_inches='tight', pad_inches=0.15)
+    _a4_mapa(gdf_a4, coluna_valor, titulo, nome_arquivo=nome_arquivo, nivel=nivel, bins=bins, cmap=cmap,
+             legenda_titulo=legenda_titulo, fonte_dados=fonte_dados, zero_branco=zero_branco,
+             caminho_uf=caminho_uf, caminho_municipios=caminho_municipios)
     plt.show()
+
+# %% [markdown]
+# ### 🖨️ Variante de impressão (relatório PDF)
+#
+# Cada função de visualização acima grava também uma **variante para o relatório em PDF**
+# (`specs/2026-09-25_relatorio_latex`, §5.1 e Bloco 5): figura desenhada no tamanho final do A4 (16 cm de largura útil),
+# sem título nem fonte embutidos (vão para a legenda ABNT do LaTeX), eixo com rótulo por extenso e unidade,
+# números em pt-BR, rótulos diretos seletivos (sem tooltip no papel), paleta de impressão validada e IBM Plex
+# Sans (a fonte do corpo do relatório). Séries com mais de `_LIMIAR_DESTAQUE_SERIES` linhas viram pequenos
+# múltiplos; mapas de taxa por bairro usam teto de cor no percentil 95 (decisão D5).
+# Gráficos em `visualizacoes/a4/*.pdf` (vetorial), mapas em `mapas/a4/*.pdf`; título, fonte e unidade de cada
+# figura vão para `visualizacoes/a4/_manifesto.csv`, lido por `relatorio/latex/build/gera_latex.py`.
+# Desligar com `GERA_VARIANTE_A4 = False`. As PNGs de tela, o site e o DOCX não mudam.
+
+# %%
+from matplotlib import font_manager as _fm
+from matplotlib.ticker import FuncFormatter as _FuncFormatter, MaxNLocator as _MaxNLocator
+from matplotlib.colors import Normalize as _Normalize
+from matplotlib.patches import Patch as _Patch
+import textwrap as _textwrap
+
+GERA_VARIANTE_A4 = True
+_PASTA_A4 = {'grafico': 'visualizacoes/a4', 'mapa': 'mapas/a4'}
+_MANIFESTO_A4 = 'visualizacoes/a4/_manifesto.csv'
+_CM = 1 / 2.54
+_LARGURA_A4 = 16 * _CM
+# paleta de impressão: mesmos matizes e ordem de _PALETA_CATEGORICA, em tons que passam no validador da skill
+# dataviz em fundo branco (luminância, croma, daltonismo, contraste >= 3:1) -- specs/2026-09-25_relatorio_latex §5.1
+_PALETA_IMPRESSAO = ['#3f76b8', '#dc7a45', '#0f7d5c', '#b88a1e', '#b8527b', '#5c9a3c', '#6f64ae', '#b84f4e']
+_TINTA, _TINTA2, _TINTA3, _GRADE, _CINZA_CONTEXTO = '#16202A', '#3F4B57', '#6B7580', '#DDE2E7', '#C9CFD5'
+_PASTA_FONTES = 'relatorio/latex/fontes'
+_FAMILIA_IMPRESSAO = None
+
+# rótulo por extenso, com unidade, para a coluna/ylabel que chega às funções de visualização
+ROTULOS_EIXO = {
+    'taxa_mortalidade_precoce': 'Óbitos de 0 a 6 dias por mil nascidos vivos',
+    'taxa_obitos_tardios': 'Óbitos de 7 a 27 dias por mil nascidos vivos',
+    'taxa_mortalidade_pos_neonatal': 'Óbitos de 28 a 364 dias por mil nascidos vivos',
+    'taxa_mortalidade_infantil': 'Óbitos de menores de 1 ano por mil nascidos vivos',
+    'taxa_por_mil': 'Óbitos evitáveis de menores de 5 anos por mil nascidos vivos',
+    'nascidos vivos': 'Nascidos vivos por ano',
+    'percentual abaixo do peso': '% dos nascidos vivos com menos de 2.500 g',
+    'óbitos-gravidez': 'Óbitos maternos durante a gravidez, por ano',
+    'óbitos-puerpério': 'Óbitos maternos durante o puerpério, por ano',
+    'Percent. baixo peso total': '% das crianças acompanhadas com peso baixo ou muito baixo para a idade',
+    'Percent. sobrepeso total': '% das crianças acompanhadas com sobrepeso ou obesidade',
+    'obesidade_percentual': '% das crianças acompanhadas com obesidade',
+    'populacao_0_a_6': 'Crianças de 0 a 6 anos',
+    'percentual_0_a_6': '% da população do município',
+    'Percentual 0 a 4 anos': '% da população do município',
+    'matriculas': 'Matrículas de crianças de 0 a 5 anos',
+    'Óbitos': 'Óbitos por ano',
+    'Pessoas': 'Pessoas',
+    'Taxa (%)': 'Taxa de frequência escolar bruta (%)',
+    'Percentual (%)': '%',
+    'Notificações': 'Notificações por ano',
+    'notificações': 'Notificações',
+}
+# ... e por arquivo, quando o mesmo ylabel genérico serve a medidas diferentes
+ROTULOS_A4_ARQUIVO = {
+    'percentual_mortalidade_raca_ano': 'Óbitos de menores de 1 ano por mil nascidos vivos',
+    'pnad_frequencia_escolar_por_idade': '% que frequenta escola ou creche',
+    'cadunico_familias_arranjo_renda': '% das famílias do arranjo',
+    'taxa_atendimento_0_a_5_por_ano': 'Matrículas por 100 crianças residentes',
+}
+_ESCALA_100_A4 = {'pnad_frequencia_escolar_por_idade'}   # CSV em fração 0-1
+
+
+def _familia_impressao():
+    """IBM Plex Sans versionada em relatorio/latex/fontes/ (a mesma do corpo do PDF); sans-serif se faltar."""
+    global _FAMILIA_IMPRESSAO
+    if _FAMILIA_IMPRESSAO is None:
+        arquivos = list(Path(_PASTA_FONTES).glob('IBMPlexSans-*.otf'))
+        for arq in arquivos:
+            _fm.fontManager.addfont(str(arq))
+        _FAMILIA_IMPRESSAO = 'IBM Plex Sans' if arquivos else 'sans-serif'
+    return _FAMILIA_IMPRESSAO
+
+
+def _rc_impressao():
+    return {
+        'font.family': _familia_impressao(), 'font.size': 8, 'text.color': _TINTA, 'axes.labelcolor': _TINTA2,
+        'axes.labelsize': 8, 'axes.edgecolor': _TINTA3, 'axes.linewidth': 0.6, 'axes.spines.top': False,
+        'axes.spines.right': False, 'axes.spines.left': False, 'axes.grid': True, 'axes.grid.axis': 'y',
+        'grid.color': _GRADE, 'grid.linewidth': 0.5, 'grid.alpha': 1.0, 'grid.linestyle': '-',
+        'xtick.color': _TINTA3, 'ytick.color': _TINTA3, 'xtick.labelcolor': _TINTA2, 'ytick.labelcolor': _TINTA2,
+        'xtick.labelsize': 7.5, 'ytick.labelsize': 7.5, 'ytick.left': False, 'xtick.major.width': 0.6,
+        'xtick.major.size': 2.5, 'legend.frameon': False, 'legend.fontsize': 7.5, 'legend.title_fontsize': 7.5,
+        'lines.linewidth': 1.6, 'lines.solid_capstyle': 'round', 'pdf.fonttype': 42, 'axes.titlesize': 8,
+        'savefig.dpi': 300, 'axes.prop_cycle': plt.cycler(color=_PALETA_IMPRESSAO), 'hatch.linewidth': 0.4,
+    }
+
+
+def _num_a4(v, dec=0):
+    if v is None or (isinstance(v, float) and math.isnan(v)):
+        return '–'
+    return f'{v:,.{dec}f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
+
+
+def _decimais_a4(valores):
+    """0 casas para contagens e valores grandes, 1 para taxas/percentuais pequenos."""
+    v = pd.Series(valores).dropna().astype(float)
+    if v.empty:
+        return 0
+    inteiros = (v == v.round()).all()
+    return 0 if (inteiros or v.abs().max() >= 100) else 1
+
+
+def _rotulo_a4(coluna_ou_ylabel, nome_arquivo=None):
+    if nome_arquivo in ROTULOS_A4_ARQUIVO:
+        return ROTULOS_A4_ARQUIVO[nome_arquivo]
+    chave = str(coluna_ou_ylabel)
+    if chave in ROTULOS_EIXO:
+        return ROTULOS_EIXO[chave]
+    texto = chave.replace('_', ' ').strip()
+    return texto[:1].upper() + texto[1:]
+
+
+def _categoria_a4(v):
+    """0.0 -> '0'; mantém texto."""
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    return str(v)
+
+
+def _eh_total_a4(v):
+    return str(v).strip().lower().startswith(('total', 'subtotal'))
+
+
+def _rotulo_y_a4(ax, texto):
+    """Unidade na horizontal, acima do eixo -- lê-se sem girar a página."""
+    ax.set_ylabel('')
+    ax.annotate(_textwrap.fill(texto, 95), xy=(0, 1), xycoords='axes fraction', xytext=(0, 8),
+                textcoords='offset points', ha='left', va='bottom', fontsize=7.5, color=_TINTA2)
+
+
+def _eixo_x_anos_a4(ax, xs, rotulo_extra=0):
+    xs = sorted(pd.Series(xs).dropna().unique())
+    if len(xs) <= 12:
+        ax.set_xticks(xs)
+    else:
+        ax.xaxis.set_major_locator(_MaxNLocator(integer=True, nbins=9))
+    ax.set_xlim(xs[0] - 0.5, xs[-1] + 0.5 + rotulo_extra * (xs[-1] - xs[0]))
+    if len(xs) > 12:   # a folga à direita é para os rótulos: nenhum ano marcado além do último dado
+        ax.set_xticks([t for t in ax.get_xticks() if xs[0] <= t <= xs[-1]])
+    ax.xaxis.set_major_formatter(_FuncFormatter(lambda v, _: str(int(v))))
+
+
+def _ponto_a4(ax, x, y, cor, texto=None, dx=0, dy=0, ha='center', va='center', peso='normal', tamanho=7.5):
+    ax.plot([x], [y], 'o', ms=4.0, color=cor, mec='white', mew=1.0, zorder=5, clip_on=False)
+    if texto:
+        ax.annotate(texto, (x, y), xytext=(dx, dy), textcoords='offset points', ha=ha, va=va,
+                    fontsize=tamanho, color=_TINTA, fontweight=peso, zorder=6)
+
+
+def _salva_a4(fig, nome_arquivo, tipo, titulo, fonte, unidade):
+    pasta = Path(_PASTA_A4[tipo])
+    pasta.mkdir(parents=True, exist_ok=True)
+    destino = pasta / f'{nome_arquivo}.pdf'
+    fig.savefig(destino, bbox_inches='tight', pad_inches=0.02)
+    plt.close(fig)
+    manifesto = Path(_MANIFESTO_A4)
+    linha = {'arquivo': destino.as_posix(), 'tipo': tipo, 'titulo': titulo, 'fonte': fonte or '', 'unidade': unidade or ''}
+    df_m = pd.read_csv(manifesto) if manifesto.exists() else pd.DataFrame(columns=list(linha))
+    df_m = pd.concat([df_m[df_m['arquivo'] != linha['arquivo']], pd.DataFrame([linha])], ignore_index=True)
+    manifesto.parent.mkdir(parents=True, exist_ok=True)
+    df_m.sort_values('arquivo').to_csv(manifesto, index=False)
+
+
+def _a4_seguro(funcao):
+    """A variante de impressão nunca interrompe o notebook: falha vira aviso (e a figura cai na PNG de tela)."""
+    def envelope(*args, **kwargs):
+        if not GERA_VARIANTE_A4:
+            return
+        # seaborn aceita x='ano' quando 'ano' é o índice do DataFrame; aqui a coluna precisa existir
+        if args and isinstance(args[0], pd.DataFrame) and not isinstance(args[0], gpd.GeoDataFrame) \
+                and any(n is not None and n not in args[0].columns for n in args[0].index.names):
+            args = (args[0].reset_index(),) + tuple(args[1:])
+        try:
+            with plt.rc_context(_rc_impressao()):
+                funcao(*args, **kwargs)
+        except Exception as erro:  # noqa: BLE001 -- aviso explícito, não silêncio
+            print(f'[variante A4] {funcao.__name__} falhou para {kwargs.get("nome_arquivo", "?")}: {erro} '
+                  '-- o relatório usa a PNG de tela para esta figura')
+    envelope.__name__ = funcao.__name__
+    return envelope
+
+
+# ------------------------------------------------------------------ séries temporais
+@_a4_seguro
+def _a4_serie_unica(df, tempo, valor, titulo, nome_arquivo, fonte_dados):
+    d = df[[tempo, valor]].dropna().sort_values(tempo)
+    x, y = d[tempo].astype(float), d[valor].astype(float)
+    dec = _decimais_a4(y)
+    fig, ax = plt.subplots(figsize=(_LARGURA_A4, 6.0 * _CM))
+    cor = _PALETA_IMPRESSAO[0]
+    ax.plot(x, y, color=cor)
+    ax.set_ylim(0, y.max() * 1.2 if y.max() > 0 else 1)
+    ax.yaxis.set_major_locator(_MaxNLocator(nbins=5, integer=y.max() >= 5))
+    ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0 if y.max() >= 5 else 1)))
+    _eixo_x_anos_a4(ax, x, rotulo_extra=0.07)
+    rotulo = _rotulo_a4(valor, nome_arquivo)
+    _rotulo_y_a4(ax, rotulo)
+    i_min, i_max = y.idxmin(), y.idxmax()
+    marcados = {d.index[0], i_min, i_max}
+    for i in marcados - {d.index[-1]}:
+        acima = i != i_min or i == i_max
+        _ponto_a4(ax, x[i], y[i], cor, _num_a4(y[i], dec), dy=6 if acima else -7, va='bottom' if acima else 'top')
+    u = d.index[-1]
+    _ponto_a4(ax, x[u], y[u], cor, f'{_num_a4(y[u], dec)}\nem {int(x[u])}', dx=5, ha='left', peso='semibold')
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo)
+
+
+def _espaca_rotulos(valores, separacao):
+    """Posições y dos rótulos de fim de linha sem sobreposição (mantém a ordem; desloca o mínimo)."""
+    ordem = sorted(range(len(valores)), key=lambda i: valores[i])
+    pos = list(valores)
+    for k in range(1, len(ordem)):
+        a, b = ordem[k - 1], ordem[k]
+        if pos[b] - pos[a] < separacao:
+            pos[b] = pos[a] + separacao
+    return pos
+
+
+@_a4_seguro
+def _a4_series(df, tempo, colunas, titulo, nome_arquivo, ylabel, fonte_dados, linhas_referencia=None, marcos=None):
+    itens = [(r, c) for r, c in colunas.items() if c in df.columns]
+    if len(itens) > _LIMIAR_DESTAQUE_SERIES:
+        return _a4_pequenos_multiplos(df, tempo, itens, titulo, nome_arquivo, ylabel, fonte_dados)
+    d = df.sort_values(tempo)
+    x = d[tempo].astype(float)
+    todos = pd.concat([d[c] for _, c in itens]).astype(float)
+    dec = _decimais_a4(todos)
+    fig, ax = plt.subplots(figsize=(_LARGURA_A4, 6.8 * _CM))
+    maximo = max([todos.max()] + [v for v, _ in (linhas_referencia or [])])   # metas cabem no gráfico
+    topo = maximo * 1.15 if maximo > 0 else 1
+    ax.set_ylim(0, topo)
+    finais = []
+    for i, (rotulo, col) in enumerate(itens):
+        cor = _PALETA_IMPRESSAO[i % len(_PALETA_IMPRESSAO)]
+        s = d[[tempo, col]].dropna()
+        ax.plot(s[tempo].astype(float), s[col].astype(float), color=cor, label=rotulo)
+        if len(s):
+            finais.append((rotulo, cor, float(s[tempo].iloc[-1]), float(s[col].iloc[-1])))
+    for valor, rotulo_ref in (linhas_referencia or []):
+        ax.axhline(valor, color=_TINTA3, lw=0.6, zorder=0)
+        ax.annotate(rotulo_ref, xy=(0, valor), xycoords=('axes fraction', 'data'), xytext=(2, 2),
+                    textcoords='offset points', fontsize=6.8, color=_TINTA2, va='bottom')
+    for ano, texto in (marcos or {}).items():
+        ax.axvline(ano, color=_TINTA3, lw=0.6, zorder=0)
+        ax.annotate(_textwrap.fill(texto, 30), xy=(ano, topo), xytext=(3, -2), textcoords='offset points',
+                    fontsize=6.8, color=_TINTA2, va='top')
+    # rótulos no fim das linhas (nome e último valor); quando as linhas terminam juntas, o rótulo é afastado
+    # e ligado ao ponto por um fio fino (em vez de empilhar rótulos soltos)
+    ys = _espaca_rotulos([f[3] for f in finais], separacao=topo * 0.075)
+    # nomes longos (ex. subgrupos CID-10) no fim da linha alargariam a figura além dos 16 cm e o texto encolheria
+    # ao caber na página: nesse caso o fim da linha leva só o valor, e o nome fica na legenda (uma entrada por linha)
+    nomes_longos = max((len(str(f[0])) for f in finais), default=0) > 18
+    rotulos_fim = [(_num_a4(f[3], dec) if nomes_longos else f'{f[0]}  {_num_a4(f[3], dec)}') for f in finais]
+    largura_rot = max((len(r) for r in rotulos_fim), default=10)
+    _eixo_x_anos_a4(ax, x, rotulo_extra=min(0.04 + largura_rot * 0.012, 0.35))
+    folga = (x.max() - x.min()) * 0.02
+    for (rotulo, cor, xf, yf), yr, texto_fim in zip(finais, ys, rotulos_fim):
+        ax.plot([xf], [yf], 'o', ms=3.6, color=cor, mec='white', mew=0.9, zorder=5)
+        seta = dict(arrowstyle='-', color=_TINTA3, lw=0.4, shrinkA=0, shrinkB=2) if abs(yr - yf) > topo * 0.01 else None
+        ax.annotate(texto_fim, xy=(xf, yf), xytext=(xf + folga, yr), textcoords='data',
+                    ha='left', va='center', fontsize=7, color=_TINTA, fontweight='semibold',
+                    annotation_clip=False, arrowprops=seta)
+    ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0 if topo >= 10 else 1)))
+    rotulo_y = _rotulo_a4(ylabel, nome_arquivo)
+    _rotulo_y_a4(ax, rotulo_y)
+    if len(itens) > 1:
+        if nomes_longos:
+            alcas, rotulos_leg = ax.get_legend_handles_labels()
+            ax.legend(alcas, [_textwrap.fill(str(r), 70) for r in rotulos_leg], loc='upper left',
+                      bbox_to_anchor=(0, -0.12), ncol=1, handlelength=1.6)
+        else:
+            ax.legend(loc='upper left', bbox_to_anchor=(0, -0.12), ncol=min(len(itens), 4), handlelength=1.6,
+                      columnspacing=1.4)
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo_y)
+
+
+def _a4_pequenos_multiplos(df, tempo, itens, titulo, nome_arquivo, ylabel, fonte_dados):
+    """Um painel por série; a série em cor, as demais em cinza ao fundo; mesma escala em todos."""
+    n = len(itens)
+    ncol = 4 if n <= 8 else (5 if n in (9, 10) else 4)
+    nlin = math.ceil(n / ncol)
+    d = df.sort_values(tempo)
+    x = d[tempo].astype(float)
+    todos = pd.concat([d[c] for _, c in itens]).astype(float)
+    dec = _decimais_a4(todos)
+    topo = todos.max() * 1.18 if todos.max() > 0 else 1
+    fig, axs = plt.subplots(nlin, ncol, figsize=(_LARGURA_A4, (1.2 + 3.7 * nlin) * _CM), sharex=True, sharey=True,
+                            squeeze=False)
+    cor = _PALETA_IMPRESSAO[4]
+    anos = sorted(x.unique())
+    for k, ax in enumerate(axs.flat):
+        if k >= n:
+            ax.axis('off')
+            continue
+        rotulo, col = itens[k]
+        for _, outra in itens:
+            ax.plot(x, d[outra].astype(float), color=_CINZA_CONTEXTO, lw=0.6, zorder=1)
+        s = d[[tempo, col]].dropna()
+        ax.plot(s[tempo].astype(float), s[col].astype(float), color=cor, lw=1.4, zorder=3)
+        if len(s):
+            xf, yf = float(s[tempo].iloc[-1]), float(s[col].iloc[-1])
+            ax.plot([xf], [yf], 'o', ms=3.2, color=cor, mec='white', mew=0.8, zorder=4)
+            ax.annotate(_num_a4(yf, dec), (xf, yf), xytext=(3, 0), textcoords='offset points', ha='left',
+                        va='center', fontsize=6.8, fontweight='semibold', annotation_clip=False)
+        ax.set_title(_textwrap.fill(str(rotulo), 26), fontsize=7, fontweight='semibold', loc='left', color=_TINTA, pad=3)
+        ax.set_ylim(0, topo)
+        ax.set_xticks([anos[0], anos[-1]])
+        ax.set_xlim(anos[0] - 0.5, anos[-1] + (anos[-1] - anos[0]) * 0.22)
+        ax.tick_params(axis='x', labelsize=6.5)
+        ax.tick_params(axis='y', labelsize=6.5)
+        ax.xaxis.set_major_formatter(_FuncFormatter(lambda v, _: str(int(v))))
+    axs[0, 0].yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0 if topo >= 10 else 1)))
+    rotulo_y = _rotulo_a4(ylabel, nome_arquivo)
+    fig.text(0, 1.0, f'{rotulo_y}  ·  em cinza, as demais séries', fontsize=7.5, color=_TINTA2, ha='left', va='bottom')
+    fig.tight_layout(h_pad=1.0, w_pad=0.5)
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo_y)
+
+
+# ------------------------------------------------------------------ barras
+@_a4_seguro
+def _a4_barras(df, categoria, valor, titulo, nome_arquivo, fonte_dados):
+    d = df[[categoria, valor]].copy()
+    d = d[~d[categoria].map(_eh_total_a4)]
+    if nome_arquivo in _ESCALA_100_A4:
+        d[valor] = d[valor] * 100
+    cats = [_categoria_a4(c) for c in d[categoria]]
+    vals = d[valor].astype(float).tolist()
+    dec = _decimais_a4(vals)
+    horizontal = max(len(c) for c in cats) > 12 or len(cats) > 8
+    rotulo = _rotulo_a4(valor, nome_arquivo)
+    cor = _PALETA_IMPRESSAO[0]
+    if horizontal:
+        fig, ax = plt.subplots(figsize=(_LARGURA_A4, (1.2 + 0.62 * len(cats)) * _CM))
+        pos = list(range(len(cats)))[::-1]
+        ax.barh(pos, vals, color=cor, height=0.62)
+        ax.set_yticks(pos, [_textwrap.fill(c, 34) for c in cats])
+        ax.grid(axis='y', visible=False); ax.grid(axis='x', visible=True)
+        ax.tick_params(axis='y', length=0); ax.spines['bottom'].set_visible(False); ax.tick_params(axis='x', length=0)
+        for p, v in zip(pos, vals):
+            ax.annotate(_num_a4(v, dec), (v, p), xytext=(4, 0), textcoords='offset points', va='center',
+                        fontsize=7.5, fontweight='semibold')
+        ax.set_xlim(0, max(vals) * 1.18)
+        ax.xaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
+        ax.set_xlabel(rotulo, loc='left')
+    else:
+        fig, ax = plt.subplots(figsize=(_LARGURA_A4, 6.0 * _CM))
+        ax.bar(cats, vals, color=cor, width=0.6)
+        for c, v in zip(cats, vals):
+            ax.annotate(_num_a4(v, dec), (c, v), xytext=(0, 3), textcoords='offset points', ha='center',
+                        va='bottom', fontsize=7.5, fontweight='semibold')
+        ax.set_ylim(0, max(vals) * 1.15)
+        ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
+        ax.tick_params(axis='x', length=0)
+        ax.set_xlabel(_rotulo_a4(categoria))
+        _rotulo_y_a4(ax, rotulo)
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo)
+
+
+@_a4_seguro
+def _a4_barras_agrupadas(df, categoria, valor, agrupador, titulo, nome_arquivo, ylabel, ordem_categoria,
+                         ordem_agrupador, fonte_dados):
+    d = df[[categoria, agrupador, valor]].copy()
+    d = d[~d[categoria].map(_eh_total_a4) & ~d[agrupador].map(_eh_total_a4)]
+    cats = list(ordem_categoria) if ordem_categoria is not None else list(dict.fromkeys(d[categoria]))
+    grupos = list(ordem_agrupador) if ordem_agrupador is not None else list(dict.fromkeys(d[agrupador]))
+    grupos = [g for g in grupos if not _eh_total_a4(g)]
+    tab = d.pivot_table(index=categoria, columns=agrupador, values=valor, aggfunc='sum').reindex(index=cats, columns=grupos)
+    rotulo = _rotulo_a4(ylabel or valor, nome_arquivo)
+    dec = _decimais_a4(tab.values.ravel())
+    n_barras = len(cats) * len(grupos)
+    rot_cats = [_categoria_a4(c) for c in cats]
+    horizontal = max(len(c) for c in rot_cats) > 14
+    larg = 0.8 / max(len(grupos), 1)
+    if horizontal:
+        fig, ax = plt.subplots(figsize=(_LARGURA_A4, (1.6 + 0.3 * n_barras + 0.25 * len(cats)) * _CM))
+        base = np.arange(len(cats))[::-1]
+        for j, g in enumerate(grupos):
+            vals = tab[g].values.astype(float)
+            ys = base + (len(grupos) - 1) / 2 * larg - j * larg
+            ax.barh(ys, vals, height=larg * 0.9, color=_PALETA_IMPRESSAO[j % 8], label=str(g))
+            for yv, v in zip(ys, vals):
+                if not np.isnan(v):
+                    ax.annotate(_num_a4(v, dec), (v, yv), xytext=(3, 0), textcoords='offset points', va='center', fontsize=6.5)
+        ax.set_yticks(base, [_textwrap.fill(c, 30) for c in rot_cats])
+        ax.grid(axis='y', visible=False); ax.grid(axis='x', visible=True); ax.tick_params(axis='y', length=0)
+        ax.xaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
+        ax.set_xlim(0, np.nanmax(tab.values) * 1.15)
+        ax.set_xlabel(rotulo, loc='left')
+        ax.legend(loc='lower right', ncol=1)
+    else:
+        fig, ax = plt.subplots(figsize=(_LARGURA_A4, 6.8 * _CM))
+        base = np.arange(len(cats))
+        for j, g in enumerate(grupos):
+            vals = tab[g].values.astype(float)
+            xs = base - 0.4 + larg / 2 + j * larg
+            ax.bar(xs, vals, width=larg * 0.9, color=_PALETA_IMPRESSAO[j % 8], label=str(g))
+            if n_barras <= 16:
+                for xv, v in zip(xs, vals):
+                    if not np.isnan(v):
+                        ax.annotate(_num_a4(v, dec), (xv, v), xytext=(0, 2), textcoords='offset points',
+                                    ha='center', va='bottom', fontsize=6.3)
+        ax.set_xticks(base, [_textwrap.fill(c, 16) for c in rot_cats])
+        ax.tick_params(axis='x', length=0)
+        ax.set_ylim(0, np.nanmax(tab.values) * 1.15)
+        ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
+        _rotulo_y_a4(ax, rotulo)
+        ax.set_xlabel(_rotulo_a4(categoria))
+        longos = max((len(str(g)) for g in grupos), default=0) > 18   # nomes longos: uma entrada por linha
+        alcas, rotulos_leg = ax.get_legend_handles_labels()
+        ax.legend(alcas, [_textwrap.fill(str(r), 70) for r in rotulos_leg], loc='upper left',
+                  bbox_to_anchor=(0, -0.16), ncol=1 if longos else min(len(grupos), 4), handlelength=1.2)
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo)
+
+
+@_a4_seguro
+def _a4_ranking(df, categoria, valor, titulo, nome_arquivo, xlabel, linha_referencia, rotulo_referencia, cmap,
+                fonte_dados):
+    d = df.sort_values(valor, ascending=True)
+    vals = d[valor].astype(float).tolist()
+    dec = _decimais_a4(vals)
+    fig, ax = plt.subplots(figsize=(_LARGURA_A4, (1.0 + 0.5 * len(d)) * _CM))
+    pos = list(range(len(d)))
+    ax.barh(pos, vals, color=plt.get_cmap(cmap)(0.65), height=0.62)
+    ax.set_yticks(pos, [_textwrap.fill(str(c), 34) for c in d[categoria]])
+    for p, v in zip(pos, vals):
+        ax.annotate(_num_a4(v, dec), (v, p), xytext=(3, 0), textcoords='offset points', va='center', fontsize=7)
+    if linha_referencia is not None:
+        ax.axvline(linha_referencia, color=_TINTA, lw=0.7)
+        ax.annotate(rotulo_referencia or _num_a4(linha_referencia, 1), xy=(linha_referencia, 1.0),
+                    xycoords=('data', 'axes fraction'), xytext=(3, 0), textcoords='offset points', fontsize=6.8,
+                    color=_TINTA2, va='top')
+    ax.grid(axis='y', visible=False); ax.grid(axis='x', visible=True); ax.tick_params(axis='y', length=0)
+    ax.set_xlim(0, max(vals) * 1.15)
+    ax.xaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
+    rotulo = _rotulo_a4(xlabel or valor, nome_arquivo)
+    ax.set_xlabel(rotulo, loc='left')
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo)
+
+
+# ------------------------------------------------------------------ mapas
+_TETO_PERCENTIL_A4 = 0.95   # D5: teto de cor dos mapas contínuos por bairro na impressão
+
+
+@_a4_seguro
+def _a4_mapa(gdf, coluna_valor, titulo, nome_arquivo, nivel, bins, cmap, legenda_titulo, fonte_dados, zero_branco,
+             caminho_uf, caminho_municipios):
+    gdf = gdf.to_crs(epsg=3857) if gdf.crs is not None and gdf.crs.to_epsg() != 3857 else gdf
+    minx, miny, maxx, maxy = gdf.total_bounds
+    padx, pady = (maxx - minx) * 0.02, (maxy - miny) * 0.06
+    aspecto = (maxx - minx + 2 * padx) / (maxy - miny + 2 * pady)
+    fig, ax = plt.subplots(figsize=(_LARGURA_A4, _LARGURA_A4 / aspecto))
+    fig.subplots_adjust(0, 0, 1, 1)
+    ax.set_xlim(minx - padx, maxx + padx); ax.set_ylim(miny - pady, maxy + pady)
+    borda = dict(linewidth=0.25, edgecolor='#5f5f5f')
+    sem_dado = dict(color='none', edgecolor='#8a8a8a', hatch='////', linewidth=0.3)
+    nota_teto = ''
+    rotulo_leg = str(legenda_titulo or coluna_valor)
+    if bins:
+        eh_zero = (gdf[coluna_valor] == 0) if zero_branco else pd.Series(False, index=gdf.index)
+        lim = [min(gdf[coluna_valor].min(), bins[0]) - 1] + list(bins) + [max(gdf[coluna_valor].max(), bins[-1])]
+        rot = ([f'Até {_numero_ptbr(bins[0])}'] + [f'{_numero_ptbr(bins[i-1]+1)} a {_numero_ptbr(bins[i])}' for i in range(1, len(bins))]
+               + [f'Mais de {_numero_ptbr(bins[-1])}'])
+        faixa = pd.cut(gdf[coluna_valor].where(~eh_zero), bins=lim, labels=rot, ordered=True)
+        cores = plt.get_cmap(cmap)(np.linspace(0.12, 0.92, len(rot)))
+        handles, labels = [], []
+        if zero_branco and eh_zero.any():
+            gdf[eh_zero].plot(ax=ax, color='white', zorder=2, **borda)
+            handles.append(_Patch(facecolor='white', edgecolor='#5f5f5f', linewidth=0.3)); labels.append('0 (sem casos)')
+        for i, r in enumerate(rot):
+            sel = gdf[faixa == r]
+            if len(sel):
+                sel.plot(ax=ax, color=cores[i], zorder=2, **borda)
+            handles.append(_Patch(facecolor=cores[i], edgecolor='#5f5f5f', linewidth=0.3)); labels.append(r)
+        falta = gdf[gdf[coluna_valor].isna()]
+        if len(falta):
+            falta.plot(ax=ax, zorder=2, **sem_dado)
+            handles.append(_Patch(facecolor='white', edgecolor='#8a8a8a', hatch='////', linewidth=0.3)); labels.append('Sem dado')
+        leg = ax.legend(handles, labels, title=rotulo_leg, loc='upper left', bbox_to_anchor=(0.012, 0.985),
+                        fontsize=7, title_fontsize=7.5, frameon=True, framealpha=0.94, edgecolor='none',
+                        handlelength=1.4, handleheight=0.9, borderpad=0.6, labelspacing=0.35, alignment='left')
+        leg.get_title().set_fontweight('semibold')
+    else:
+        valores = gdf[coluna_valor].dropna()
+        vmax = float(valores.max()) if len(valores) else 1.0
+        if nivel == 'bairro' and len(valores):
+            p = float(valores.quantile(_TETO_PERCENTIL_A4))
+            if p > 0 and vmax > p * 1.05:
+                vmax = p
+                nota_teto = f'escala de cor limitada ao percentil {int(_TETO_PERCENTIL_A4 * 100)} ({_num_a4(p, 1)})'
+        norma = _Normalize(0, vmax)
+        gdf.plot(column=coluna_valor, ax=ax, cmap=cmap, norm=norma, zorder=2, **borda)
+        gdf[gdf[coluna_valor].isna()].plot(ax=ax, zorder=2, **sem_dado)
+        cax = ax.inset_axes([0.03, 0.56, 0.022, 0.34])
+        cb = fig.colorbar(plt.cm.ScalarMappable(norm=norma, cmap=cmap), cax=cax, extend='max' if nota_teto else 'neither',
+                          extendfrac=0.06)
+        cb.outline.set_linewidth(0.3)
+        cax.tick_params(labelsize=7, length=2, width=0.4, colors=_TINTA)
+        halo = [pe.withStroke(linewidth=2.2, foreground='white')]
+        cb.set_ticks([t for t in cb.get_ticks() if 0 <= t <= vmax])
+        dec = 0 if vmax >= 10 else 1
+        cb.set_ticklabels([_num_a4(t, dec) for t in cb.get_ticks()])
+        for t in cax.get_yticklabels():
+            t.set_path_effects(halo)
+        if nota_teto:
+            cax.annotate(f'≥ {_num_a4(vmax, dec)}', xy=(1, 1.07), xycoords='axes fraction', xytext=(3, 0),
+                         textcoords='offset points', fontsize=7, va='center', color=_TINTA, path_effects=halo)
+        cax.annotate(rotulo_leg.replace('\n', ' '), xy=(0, 1.16), xycoords='axes fraction', fontsize=7.5,
+                     fontweight='semibold', va='bottom', ha='left', color=_TINTA, path_effects=halo)
+    # contexto: limite estadual, fundo cartográfico reduzido e clareado (menos tinta, mais contraste)
+    x0, x1 = ax.get_xlim(); y0, y1 = ax.get_ylim()
+    gpd.read_file(caminho_uf).to_crs(epsg=3857).clip(box(x0, y0, x1, y1)).boundary.plot(
+        ax=ax, color='#d4b106', linewidth=0.7, linestyle=(0, (3, 2)), zorder=1)
+    img, ext = ctx.bounds2img(x0, y0, x1, y1, source=_PROVEDORES_FUNDO['mapa_oceano_base'])
+    img = (img[..., :3].astype(float) * 0.62 + 255 * 0.38).astype('uint8')
+    ax.imshow(img, extent=ext, zorder=0, interpolation='none')   # 'none': sem reamostrar a 300 dpi (PDF ~0,4 MB)
+    ax.set_xlim(x0, x1); ax.set_ylim(y0, y1)
+    ax.annotate('N', xy=(0.965, 0.93), xytext=(0.965, 0.86), xycoords=ax.transAxes, textcoords=ax.transAxes,
+                ha='center', va='center', fontsize=8, fontweight='semibold', color=_TINTA,
+                arrowprops=dict(arrowstyle='-|>', color=_TINTA, lw=1.0, mutation_scale=10), zorder=5)
+    ax.add_artist(ScaleBar(math.cos(math.radians(-22.9)), units='m', location='lower right', box_alpha=0,
+                           color=_TINTA, scale_loc='top', border_pad=0.5, width_fraction=0.006, length_fraction=0.16,
+                           font_properties={'size': 6.5}))
+    _adiciona_rotulos_municipios_vizinhos(ax, ax.get_xlim(), ax.get_ylim(), cor='#5a6570', tamanho=6.5,
+                                          caminho_municipios=caminho_municipios)
+    for t in ax.texts:
+        if t.get_text() != 'N':
+            t.set_path_effects([pe.withStroke(linewidth=1.8, foreground='white')])
+    ax.annotate('Fundo: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ', xy=(0.006, 0.006),
+                xycoords='axes fraction', fontsize=4.8, color=_TINTA3, va='bottom')
+    ax.axis('off')
+    fonte = fonte_dados or ''
+    if nota_teto:
+        fonte = f'{fonte}. Nota: {nota_teto}; o valor real está na tabela do apêndice'.lstrip('. ')
+    _salva_a4(fig, nome_arquivo, 'mapa', titulo, fonte, rotulo_leg.replace('\n', ' '))
+
+# %% [markdown]
+# ### 🛡️ Proteção — carregadores e utilitários
+#
+# Funções do eixo Proteção (violência familiar/autoprovocada — Sinan/Tabnet por bairro;
+# violência territorial — Data.Rio/IPS por Região Administrativa) e utilitários de taxa e de
+# agregação geográfica. Ver `specs/2026-09-23_inclusao_dados_protecao/`.
+
+# %%
+import unicodedata
+
+_CAMINHO_GEO_BAIRROS = 'dados_locais/geo/limite_bairros_rio.geojson'
+
+# vínculo do provável autor -> arquivo Sinan/Tabnet (violência familiar, 0 a 5 anos)
+_VINCULOS_VIOLENCIA_FAMILIAR = {
+    'mae': 'violencia_familiar_mae.csv',
+    'pai': 'violencia_familiar_pai.csv',
+    'padrasto': 'violencia_familiar_padrasto.csv',
+    'irmao': 'violencia_familiar_irmao(a).csv',
+    'conjuge': 'violencia_familiar_conjuge.csv',
+    'exconjuge': 'violencia_familiar_exconjuge.csv',
+    'filho': 'violencia_familiar_filho(a).csv',
+}
+# vínculos agrupados em 'outros' (mãe e pai ficam de fora e nunca são somados entre si)
+_VINCULOS_OUTROS = ['padrasto', 'irmao', 'conjuge', 'exconjuge', 'filho']
+
+# grafia do IPS/Data.Rio que difere do geojson de bairros (regiao_adm), só para a checagem cruzada
+_ALIAS_RA_IPS = {'SANTA TERESA': 'SANTA TEREZA'}
+
+def _sem_acento_maiusculo(texto):
+    return ''.join(c for c in unicodedata.normalize('NFKD', str(texto)) if not unicodedata.combining(c)).upper().strip()
+
+def numeral_romano_para_int(s):
+    """Converte um numeral romano (ex.: 'XXXIV') em inteiro (34) -- usado no de-para RA do IPS."""
+    valores = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100}
+    s = s.strip().upper()
+    if not s or any(c not in valores for c in s):
+        raise ValueError(f'numeral romano inválido: {s!r}')
+    total = 0
+    for atual, proximo in zip(s, s[1:] + ' '):
+        v = valores[atual]
+        total += -v if proximo in valores and valores[proximo] > v else v
+    return total
+
+def _bairros_referencia(caminho_geojson=_CAMINHO_GEO_BAIRROS):
+    """Tabela dos 166 bairros do geojson (codbairro int, nome, codra int, cod_rp, area_plane)."""
+    g = gpd.read_file(caminho_geojson).drop(columns='geometry')
+    g['codbairro'] = g['codbairro'].astype(int)
+    g['codra'] = g['codra'].astype(int)
+    g['regiao_adm'] = g['regiao_adm'].str.strip()  # o geojson traz espaços à direita em algumas RAs
+    return g[['codbairro', 'nome', 'regiao_adm', 'codra', 'cod_rp', 'area_plane']].sort_values('codbairro').reset_index(drop=True)
+
+def carrega_sinan_bairro(caminho, categoria, anos_validos):
+    """Lê um export Sinan NET/Tabnet por bairro de residência (6 linhas de metadados, latin-1, formato
+    largo com colunas de ano esparsas) e devolve o formato longo `codbairro, bairro, ano, <categoria>`
+    numa grade completa dos 166 bairros do geojson x `anos_validos`, com 0 onde não havia linha
+    (bairro sem caso = 0, não ausente). A linha de filtro do export vai em `df.attrs['filtro']`."""
+    with open(caminho, encoding='latin-1') as f:
+        filtro = [next(f).strip() for _ in range(6)][4]
+    df = pd.read_csv(caminho, sep=';', encoding='latin-1', skiprows=6)
+    df = df.rename(columns={df.columns[0]: 'bairro_resid'})
+    df = df[df['bairro_resid'] != 'Total']
+    df[['codbairro', 'bairro']] = df['bairro_resid'].str.split(n=1, expand=True)
+    df['codbairro'] = df['codbairro'].astype(int)
+    colunas_ano = [c for c in df.columns if str(c).isdigit()]
+    longo = df.melt(id_vars=['codbairro'], value_vars=colunas_ano, var_name='ano', value_name=categoria)
+    longo['ano'] = longo['ano'].astype(int)
+    ref = _bairros_referencia()
+    assert set(longo['codbairro']) <= set(ref['codbairro']), 'código de bairro do Sinan fora do geojson'
+    grade = ref[['codbairro', 'nome']].rename(columns={'nome': 'bairro'}).merge(pd.DataFrame({'ano': list(anos_validos)}), how='cross')
+    out = grade.merge(longo, on=['codbairro', 'ano'], how='left')
+    out[categoria] = out[categoria].fillna(0).astype(int)
+    out.attrs['filtro'] = filtro
+    return out
+
+def carrega_violencia_familiar(pasta, anos_validos):
+    """Lê os 7 exports de violência familiar por vínculo (mãe, pai, padrasto, irmão(ã), cônjuge,
+    ex-cônjuge, filho(a)) e devolve um longo `vinculo, codbairro, bairro, ano, casos`. Acrescenta o
+    vínculo `outros` (padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a)) SEM remover os originais.
+    Os vínculos não são excludentes: nunca somar mãe + pai, nem tratar `outros` como total."""
+    partes = []
+    for vinculo, arquivo in _VINCULOS_VIOLENCIA_FAMILIAR.items():
+        d = carrega_sinan_bairro(Path(pasta) / arquivo, 'casos', anos_validos)
+        d.insert(0, 'vinculo', vinculo)
+        partes.append(d)
+    longo = pd.concat(partes, ignore_index=True)
+    outros = (longo[longo['vinculo'].isin(_VINCULOS_OUTROS)]
+              .groupby(['codbairro', 'bairro', 'ano'], as_index=False)['casos'].sum())
+    outros.insert(0, 'vinculo', 'outros')
+    return pd.concat([longo, outros], ignore_index=True)
+
+def carrega_violencia_territorial_ra(caminho):
+    """Lê `violencia_territorial.xlsx` (Data.Rio/IPS 2024, por Região Administrativa; todas as idades).
+    Devolve `codra, regiao_adm, taxa_homicidios, homicidios_acao_policial, homicidios_jovens_negros`
+    (32 RAs); a linha 'RIO DE JANEIRO' (referência municipal) vai em `df.attrs['municipio']`.
+    A chave é o numeral romano do IPS convertido em `codra`; o nome só serve de checagem cruzada."""
+    bruto = pd.read_excel(caminho, header=None)
+    linha_cab = next(i for i, v in bruto[1].items() if 'homic' in _sem_acento_maiusculo(v).lower())
+    dados = bruto.iloc[linha_cab + 1:, :4].dropna(how='all').copy()
+    dados.columns = ['regiao', 'taxa_homicidios', 'homicidios_acao_policial', 'homicidios_jovens_negros']
+    cols_num = ['taxa_homicidios', 'homicidios_acao_policial', 'homicidios_jovens_negros']
+    dados[cols_num] = dados[cols_num].astype(float)
+    eh_municipio = dados['regiao'].str.strip().str.upper() == 'RIO DE JANEIRO'
+    municipio = dados[eh_municipio].iloc[0]
+    ras = dados[~eh_municipio].copy()
+    ras['codra'] = ras['regiao'].str.split().str[0].map(numeral_romano_para_int)
+    ras['nome_ips'] = ras['regiao'].str.split(n=1).str[1].map(_sem_acento_maiusculo)
+    ref = _bairros_referencia()[['codra', 'regiao_adm']].drop_duplicates('codra')
+    ras = ras.merge(ref, on='codra', how='left')
+    assert ras['regiao_adm'].notna().all(), 'RA do IPS sem correspondência no geojson'
+    esperado = ras['regiao_adm'].map(_sem_acento_maiusculo)
+    assert (ras['nome_ips'].map(lambda n: _ALIAS_RA_IPS.get(n, n)) == esperado).all(), 'nome da RA diverge do geojson'
+    out = ras[['codra', 'regiao_adm'] + cols_num].sort_values('codra').reset_index(drop=True)
+    out.attrs['municipio'] = {c: float(municipio[c]) for c in cols_num}
+    return out
+
+def carrega_pop_0_4_bairro(caminho='dados_locais/censo/pop_censo_2022_datario.csv'):
+    """População de 0 a 4 anos por bairro (Censo 2022) -- `codbairro, pop_0_4`. Lê o CSV direto,
+    sem depender de `df_censo` ter sido calculado antes."""
+    d = pd.read_csv(caminho, encoding='latin-1', sep=';')
+    return d[['codbairro', '0 a 4 anos']].rename(columns={'0 a 4 anos': 'pop_0_4'}).astype({'codbairro': int})
+
+def taxa_por_mil(df, col_casos, col_pop, nome_taxa='taxa_por_mil'):
+    """Taxa por 1.000 = casos / população * 1000. Chamar SEMPRE depois de somar casos e população
+    no nível desejado (nunca média de taxas). População 0 ou ausente -> NaN (nunca inf)."""
+    df = df.copy()
+    pop = df[col_pop].where(df[col_pop] > 0)
+    df[nome_taxa] = df[col_casos] / pop * 1000
+    return df
+
+def bairro_para_nivel(df, nivel, chave='codbairro'):
+    """Anexa a `df` (tabela por bairro) a coluna administrativa do nível: 'ra' -> codra; 'cap' ->
+    cod_ap_sms (via `_RA_PARA_CAP` sobre codra); 'rp' -> cod_rp; 'ap' -> area_plane. Serve para
+    depois somar contagens com `agrega_bairros_por_nivel` (e só então recalcular taxas)."""
+    ref = _bairros_referencia()
+    ref['cod_ap_sms'] = ref['codra'].map(_RA_PARA_CAP)
+    coluna = _NIVEIS_AGREGACAO[nivel]['coluna_geo']
+    if coluna not in ref.columns:
+        raise ValueError(f'nível {nivel!r} não suportado por bairro_para_nivel')
+    return df.merge(ref[['codbairro', coluna]].rename(columns={'codbairro': chave}), on=chave, how='left')
+
+def serie_temporal_multipla_marcos(df,tempo,colunas,titulo,nome_arquivo,marcos=None,ylabel='Valor',legend_title='Vínculo',figsize=(12,6),formato='png', fonte_dados=None):
+    """Como `serie_temporal_multipla` (mesmo estilo/paleta), com linhas verticais tracejadas anotadas
+    em `marcos` ({ano: 'texto'}) -- ex.: possível quebra de série. Função à parte para não alterar a
+    assinatura da original."""
+    plt.figure(figsize=figsize)
+    for i,(rotulo,coluna) in enumerate(colunas.items()):
+        sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None,
+                     color=_PALETA_CATEGORICA[i % len(_PALETA_CATEGORICA)])
+    topo = plt.gca().get_ylim()[1]
+    for ano,texto in (marcos or {}).items():
+        plt.axvline(ano, color='#6b6b6b', linestyle='--', linewidth=1.1, zorder=0)
+        plt.annotate(texto, xy=(ano, topo), xytext=(4, -6), textcoords='offset points', ha='left', va='top',
+                     fontsize=9, color='#3a3a3a', style='italic')
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    plt.xlabel(tempo,fontsize=12)
+    plt.ylabel(ylabel,fontsize=12)
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
+    plt.legend(title=legend_title,fontsize=9,loc='upper left')
+    plt.grid(True,alpha=0.3)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout()
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_series(df, tempo, colunas, titulo, nome_arquivo=nome_arquivo, ylabel=ylabel, fonte_dados=fonte_dados,
+               marcos=marcos)
+    plt.show()
+
+def grafico_barra_ranking(df,categoria,valor,titulo,nome_arquivo,xlabel=None,linha_referencia=None,rotulo_referencia=None,cmap='OrRd',figsize=(10,9),formato='png', fonte_dados=None):
+    """Barras horizontais ordenadas (maior no topo), com linha vertical opcional de referência (ex.: valor
+    do município). Uma cor sequencial só (magnitude), do tema `cmap`."""
+    d = df.sort_values(valor, ascending=True)
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.barh(d[categoria].astype(str), d[valor], color=plt.get_cmap(cmap)(0.62))
+    if linha_referencia is not None:
+        ax.axvline(linha_referencia, color='#262626', linestyle='--', linewidth=1.2)
+        ax.annotate(rotulo_referencia or f'{linha_referencia:.1f}', xy=(linha_referencia, 0.02), xycoords=('data','axes fraction'),
+                    xytext=(4, 0), textcoords='offset points', ha='left', va='bottom', fontsize=9, color='#262626')
+    ax.set_xlabel(xlabel or valor, fontsize=12)
+    ax.set_title(titulo, fontsize=15, fontfamily=_FONTE_TITULO, fontweight='bold', pad=12)
+    ax.grid(True, axis='x', alpha=0.3)
+    ax.set_axisbelow(True)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout(rect=(0, 0.03, 1, 1))  # reserva a base para o rodapé de fonte
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_ranking(df, categoria, valor, titulo, nome_arquivo=nome_arquivo, xlabel=xlabel, linha_referencia=linha_referencia,
+                rotulo_referencia=rotulo_referencia, cmap=cmap, fonte_dados=fonte_dados)
+    plt.show()
+
+def agrega_violencia_familiar_nivel(df_bairro, df_pop, nivel, vinculos=('mae', 'pai', 'outros')):
+    """Agrega a tabela por bairro x ano de violência familiar (colunas `vinculos`) e a população 0-4
+    para 'ra' ou 'cap': soma casos e população por ano e SÓ ENTÃO recalcula a taxa por 1.000 de cada
+    vínculo (`taxa_por_mil_<vinculo>`), nunca média de taxas de bairro. Não soma vínculos entre si."""
+    base = bairro_para_nivel(df_bairro.merge(df_pop, on='codbairro'), nivel)
+    partes = []
+    for ano, d in base.groupby('ano'):
+        a = agrega_bairros_por_nivel(d, nivel, list(vinculos) + ['pop_0_4'])
+        a.insert(1, 'ano', ano)
+        partes.append(a)
+    out = pd.concat(partes, ignore_index=True)
+    for v in vinculos:
+        out = taxa_por_mil(out, v, 'pop_0_4', f'taxa_por_mil_{v}')
+    return out
+
+# %% [markdown]
+# ### 🗂️ CadÚnico — carregadores, recortes e privacidade
+#
+# Recortes por sexo, raça/cor e arranjo familiar × renda das famílias com crianças na primeira
+# infância, e a regra de supressão de células pequenas aplicada a toda saída CadÚnico
+# sub-municipal. Ver `specs/2026-09-23_recortes_cadunico/`.
+
+# %%
+# faixas de renda per capita do CTPE (`grupo_renda_pct`) -> rótulo para público não técnico.
+# R$ 218 = linha de extrema pobreza; R$ 810,50 = 1/2 salário mínimo de 2026 (R$ 1.621)
+_ORDEM_RENDA_CADUNICO = ['0-218', '219-810', '811-1621', '1621-3242', '3242+']
+_ROTULOS_RENDA_CADUNICO = {
+    '0-218': 'Extrema pobreza\n(até R$ 218)',
+    '219-810': 'Pobreza/baixa renda\n(R$ 218 a 810)',
+    '811-1621': '1/2 a 1 SM\n(R$ 810 a 1.621)',
+    '1621-3242': '1 a 2 SM\n(R$ 1.621 a 3.242)',
+    '3242+': 'Acima de 2 SM\n(mais de R$ 3.242)',
+}
+# nos cruzamentos (arranjo x renda) as faixas acima de 1/2 SM se juntam -- evita células pequenas
+_RENDA_CADUNICO_3_FAIXAS = {'0-218': '0-218', '219-810': '219-810',
+                            '811-1621': '811+', '1621-3242': '811+', '3242+': '811+'}
+_ROTULOS_RENDA_CADUNICO_3 = {'0-218': _ROTULOS_RENDA_CADUNICO['0-218'],
+                             '219-810': _ROTULOS_RENDA_CADUNICO['219-810'],
+                             '811+': 'Acima de 1/2 SM\n(mais de R$ 810)'}
+
+_ORDEM_ARRANJO_CADUNICO = ['Uma adulta (mulher)', 'Dois adultos (homem e mulher)', 'Dois adultos (outra composição)',
+                           'Um adulto (homem)', 'Três ou mais adultos', 'Sem adulto (18+)']
+_ORDEM_COMPOSICAO_SEXO = ['Só meninas', 'Só meninos', 'Meninas e meninos']
+_ORDEM_RACA_CADUNICO = ['Parda', 'Branca', 'Preta', 'Amarela', 'Indígena']
+
+_LIMIAR_SUPRESSAO_CADUNICO = 20  # spec recortes_cadunico §5: nenhuma célula sub-municipal < 20 publicada
+_ROTULO_SEM_BAIRRO_CADUNICO = 'Sem bairro identificado (CEP fora da lista)'
+_MESES_PTBR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+
+def fonte_cadunico_com_particao(data_particao):
+    """Texto de fonte das saídas CadÚnico com o mês da extração (ex. 'CadÚnico (extração CTPE,
+    jun/2026)') -- a silver só guarda uma partição, então a data é a única pista de quando o
+    retrato foi tirado."""
+    data = pd.Timestamp(data_particao)
+    return f"CadÚnico (extração CTPE, {_MESES_PTBR[data.month - 1]}/{data.year})"
+
+def carrega_cadunico_familias_0_6(engine):
+    """Todas as pessoas (de qualquer idade) das famílias com ao menos uma criança do grupo '0-6'.
+
+    O `df_original` da seção CadÚnico traz só as crianças; o arranjo familiar precisa dos adultos
+    da mesma família. O filtro é feito no SQL (subconsulta por `id_familia`) e só as colunas usadas
+    são lidas. Microdado: fica só em memória, nunca é gravado em disco (spec §5)."""
+    consulta = """
+        SELECT id_pessoa, id_familia, idade, grupo_idade, sexo, raca_cor, grupo_renda_pct,
+               n_pessoas_familia, cep, data_particao
+        FROM ctpe.silver_cadunico_geral
+        WHERE id_familia IN (SELECT id_familia FROM ctpe.silver_cadunico_geral WHERE grupo_idade = '0-6')
+    """
+    return pd.read_sql(consulta, engine)
+
+def classifica_arranjo_familiar(df_membros, idade_adulto=18):
+    """Uma linha por família, com o arranjo familiar *aproximado* pela composição do cadastro.
+
+    A silver não tem parentesco com o responsável familiar, então o arranjo é inferido contando
+    os membros com `idade_adulto`+ anos e o sexo deles: 'Uma adulta (mulher)' NÃO é o conceito de
+    família monoparental do MDS (que usa parentesco) -- um companheiro fora do cadastro não aparece
+    (spec §3 R3). Também devolve a composição de sexo das crianças (categorias exclusivas),
+    a faixa de renda per capita e o CEP das crianças (endereço da família).
+
+    Asserções: a renda per capita é única por família e o nº de linhas por família bate com
+    `n_pessoas_familia` (cadastro completo) -- se falharem, o proxy deixa de valer."""
+    d = df_membros.copy()
+    d['adulto'] = d['idade'] >= idade_adulto
+    d['adulta'] = d['adulto'] & (d['sexo'] == 'Feminino')
+    d['adulto_h'] = d['adulto'] & (d['sexo'] == 'Masculino')
+    d['crianca'] = d['grupo_idade'] == '0-6'
+    d['menina'] = d['crianca'] & (d['sexo'] == 'Feminino')
+    d['menino'] = d['crianca'] & (d['sexo'] == 'Masculino')
+
+    assert d.groupby('id_familia')['grupo_renda_pct'].nunique(dropna=False).max() == 1, \
+        'grupo_renda_pct não é único por família'
+    tamanho = d.groupby('id_familia').agg(n_linhas=('id_pessoa', 'count'), n_pessoas=('n_pessoas_familia', 'max'))
+    assert (tamanho['n_linhas'] == tamanho['n_pessoas']).all(), \
+        'cadastro incompleto: nº de membros na tabela != n_pessoas_familia'
+
+    fam = d.groupby('id_familia').agg(
+        n_adultos=('adulto', 'sum'), n_adultas=('adulta', 'sum'), n_adultos_h=('adulto_h', 'sum'),
+        n_criancas=('crianca', 'sum'), n_meninas=('menina', 'sum'), n_meninos=('menino', 'sum'),
+        idade_mais_velho=('idade', 'max'), grupo_renda_pct=('grupo_renda_pct', 'first'),
+    )
+    fam['cep'] = d[d['crianca']].groupby('id_familia')['cep'].first().astype(str)
+
+    def _arranjo(r):
+        if r.n_adultos == 0:
+            return 'Sem adulto (18+)'
+        if r.n_adultos == 1:
+            return 'Uma adulta (mulher)' if r.n_adultas == 1 else 'Um adulto (homem)'
+        if r.n_adultos == 2:
+            return 'Dois adultos (homem e mulher)' if (r.n_adultas == 1 and r.n_adultos_h == 1) else 'Dois adultos (outra composição)'
+        return 'Três ou mais adultos'
+    fam['arranjo'] = fam.apply(_arranjo, axis=1)
+    fam['composicao_sexo_criancas'] = np.select(
+        [fam['n_meninos'] == 0, fam['n_meninas'] == 0], ['Só meninas', 'Só meninos'], default='Meninas e meninos')
+    return fam.reset_index()
+
+def agrega_cadunico_familias(df_familias, coluna, ordem):
+    """Famílias, crianças (soma de `n_criancas`) e % de famílias por uma categoria EXCLUSIVA da
+    família (arranjo, composição de sexo) -- como cada família está numa categoria só, as linhas
+    somam e a linha 'Total' é válida."""
+    t = (df_familias.groupby(coluna).agg(**{'Famílias': ('id_familia', 'count'), 'Crianças': ('n_criancas', 'sum')})
+         .reindex(ordem).fillna(0).astype(int))
+    t['% das famílias'] = (t['Famílias'] / t['Famílias'].sum() * 100).round(1)
+    t.loc['Total'] = [t['Famílias'].sum(), t['Crianças'].sum(), 100.0]
+    return t.astype({'Famílias': int, 'Crianças': int})
+
+def agrega_cadunico_criancas(df_criancas, coluna, ordem, col_crianca='Crianças', col_familia='Famílias'):
+    """Crianças (`count`) e famílias com ao menos uma criança da categoria (`nunique`) por um
+    atributo DA CRIANÇA (sexo, raça/cor). As famílias NÃO são exclusivas entre categorias (uma
+    família com um menino e uma menina conta nas duas), por isso não há linha de total somado --
+    o total de famílias vai numa linha própria, calculado sobre a base inteira."""
+    t = (df_criancas.groupby(coluna).agg(**{'Crianças': (col_crianca, 'count'), 'Famílias com ao menos uma': (col_familia, 'nunique')})
+         .reindex(ordem).fillna(0).astype(int))
+    t['% das crianças'] = (t['Crianças'] / len(df_criancas) * 100).round(1)
+    t.loc['Total (famílias não somam)'] = [len(df_criancas), df_criancas[col_familia].nunique(), 100.0]
+    return t.astype({'Crianças': int, 'Famílias com ao menos uma': int})
+
+def atribui_bairro_por_cep(df, caminho='dados_locais/lista_bairros.csv'):
+    """Mesmo join CEP -> nome de bairro da seção CadÚnico (`lista_bairros.csv`, bairro dos
+    Correios), empacotado para reuso nos recortes novos. CEPs fora da lista ficam com `bairro`
+    NaN (~8% das crianças, ver nota A1 da seção) -- o bairro dos Correios nem sempre é o bairro
+    oficial IPP (viés documentado na nota A2)."""
+    ref = pd.read_csv(caminho, dtype={'cep': str})
+    out = df.copy()
+    out['cep'] = out['cep'].astype(str)
+    return out.merge(ref[['cep', 'bairro']], on='cep', how='left')
+
+def suprime_celulas_pequenas(df, colunas_denominador, colunas, limiar=_LIMIAR_SUPRESSAO_CADUNICO):
+    """Regra de privacidade do CadÚnico (spec recortes_cadunico §5): devolve uma CÓPIA com
+    `colunas` = NaN nas linhas em que qualquer coluna de `colunas_denominador` for < `limiar`, e
+    a coluna booleana `suprimido`. Usar só no que é publicado (CSV, mapa, relatório) -- cálculos e
+    agregações usam sempre o dado sem supressão."""
+    if isinstance(colunas_denominador, str):
+        colunas_denominador = [colunas_denominador]
+    out = df.copy()
+    inteiras = [c for c in colunas if pd.api.types.is_integer_dtype(out[c])]
+    mascara = (out[colunas_denominador] < limiar).any(axis=1)
+    out.loc[mascara, colunas] = np.nan
+    out[inteiras] = out[inteiras].astype('Int64')  # contagens seguem inteiras (vazio, não '15809.0')
+    out['suprimido'] = mascara
+    return out
+
+# %% [markdown]
+# ### 👥 População de referência (Ripsa/MS) — carregadores
+#
+# Estimativas populacionais Ripsa/Ministério da Saúde 2000-2025 (Nota Técnica Ripsa nº 01/2025), por
+# município, sexo e idade simples, via Tabnet (`popsvs2024br.def`). É o denominador de **toda taxa
+# municipal** do projeto; abaixo do município (bairro, AP, RP, RA, CAP) o denominador continua sendo o
+# Censo 2022 (decisão B1). Ver `specs/2026-09-24_populacao-referencia/` e a nota geral no início da seção Censo 2022.
+
+# %%
+import csv
+import re
+import time
+import urllib.parse
+import requests
+
+# Tabnet da Ripsa, versão 2000-2025 (NÃO usar `popsvsbr.def`, que é a versão antiga 2000-2021)
+_URL_TABNET_RIPSA = 'http://tabnet.datasus.gov.br/cgi/tabcgi.exe?ibge/cnv/popsvs2024br.def'
+_CAMINHO_EXTRATO_RIPSA = 'dados_locais//populacao//ripsa_populacao_rio.csv'
+# todos os filtros do formulário do Tabnet; os não usados vão como 'TODAS_AS_CATEGORIAS__'
+_FILTROS_TABNET_RIPSA = ['SRegião', 'SUnidade_da_Federação', 'SMunicípio', 'SCapital', 'SRegião_de_Saúde_(CIR)',
+                         'SMacrorregião_de_Saúde', 'SMicrorregião_IBGE', 'SRegião_Metropolitana_-_RIDE',
+                         'SMacrorregião_PNDR', 'SAmazônia_Legal', 'SSemiárido', 'SFaixa_de_Fronteira',
+                         'SZona_de_Fronteira', 'SMunicípio_de_extrema_pobreza', 'SSexo', 'SFaixa_Etária_1',
+                         'SFaixa_Etária_2', 'SIdade_simples']
+_SEXOS_TABNET_RIPSA = {'masculino': '1', 'feminino': '2'}
+
+def _consulta_tabnet_ripsa(anos, idades=None, sexo=None, cod_municipio_tabnet='3262', tentativas=5, espera=5):
+    """Um POST no Tabnet da Ripsa: linha = ano; coluna = idade simples (se `idades`) ou só o total.
+    Devolve um DataFrame indexado por ano, com uma coluna por idade (0, 1, ...) ou a coluna 'total'.
+
+    O corpo vai em latin-1 (os nomes de campo têm acento). O servidor derruba conexões às vezes
+    (`ConnectionResetError` em 2 de 5 consultas no levantamento), por isso as `tentativas`. O código
+    '3262' é o código interno do Tabnet para 330455 Rio de Janeiro."""
+    campos = [('Linha', 'Ano'), ('Coluna', 'Idade_simples' if idades is not None else '--Não-Ativa--'),
+              ('Incremento', 'População_residente')]
+    campos += [('Arquivos', f'pop{a % 100:02d}.dbf') for a in anos]
+    for filtro in _FILTROS_TABNET_RIPSA:
+        if filtro == 'SMunicípio':
+            campos.append((filtro, cod_municipio_tabnet))
+        elif filtro == 'SSexo' and sexo is not None:
+            campos.append((filtro, _SEXOS_TABNET_RIPSA[sexo]))
+        elif filtro == 'SIdade_simples' and idades is not None:
+            campos += [(filtro, str(i + 1)) for i in idades]  # opção 1 = 'Menos que 1 ano de idade'
+        else:
+            campos.append((filtro, 'TODAS_AS_CATEGORIAS__'))
+    campos += [('formato', 'prn'), ('mostre', 'Mostra')]
+    corpo = urllib.parse.urlencode(campos, encoding='latin-1')
+
+    for tentativa in range(1, tentativas + 1):
+        try:
+            r = requests.post(_URL_TABNET_RIPSA, data=corpo, timeout=120,
+                              headers={'Content-Type': 'application/x-www-form-urlencoded'})
+            r.raise_for_status()
+            break
+        except (requests.ConnectionError, requests.Timeout, requests.HTTPError):
+            if tentativa == tentativas:
+                raise
+            time.sleep(espera * tentativa)
+    texto = r.content.decode('latin-1')
+    bloco = re.search(r'<PRE>(.*?)</PRE>', texto, re.S | re.I)
+    if bloco is None:
+        raise ValueError('resposta do Tabnet sem bloco <PRE> (formulário mudou?)')
+    # leitor com aspas: o cabeçalho traz entidades HTML ('Popula&ccedil;&atilde;o') com ';' dentro das aspas
+    linhas = [l.strip() for l in bloco.group(1).splitlines() if l.strip().startswith('"')]
+    tabela = list(csv.reader(linhas, delimiter=';', quotechar='"'))
+    df = pd.DataFrame(tabela[1:], columns=tabela[0])
+    df = df[df.iloc[:, 0] != 'Total'].rename(columns={df.columns[0]: 'ano'})
+    df['ano'] = df['ano'].astype(int)
+    df = df.set_index('ano').replace('-', '0').astype(int)
+    if idades is not None:
+        df = df.drop(columns='Total')
+        df.columns = list(idades)
+    else:
+        df.columns = ['total']
+    return df
+
+def carrega_populacao_ripsa(anos=range(2000, 2026), idades=range(0, 7), caminho_extrato=_CAMINHO_EXTRATO_RIPSA,
+                            cod_municipio_tabnet='3262'):
+    """População residente do município do Rio de Janeiro, estimativas Ripsa/MS (1º de julho de cada ano),
+    em formato longo `ano, idade, sexo, populacao, data_consulta`:
+    - idade simples em `idades` (0 = menos de 1 ano) x sexo ('masculino'/'feminino');
+    - mais uma linha por ano com o total de todas as idades (`idade='total'`, `sexo='total'`).
+
+    Lê o extrato versionado `caminho_extrato` quando ele cobre `anos` e `idades` (o notebook roda sem
+    rede). Senão, consulta o Tabnet, confere a grade (anos x idades x 2 sexos) e que a soma dos sexos
+    bate com o total por idade, e regrava o extrato com a data da consulta -- a Ripsa revisa as
+    estimativas todo ano, então uma consulta nova pode mudar anos passados."""
+    anos, idades = list(anos), list(idades)
+    if os.path.exists(caminho_extrato):
+        ext = pd.read_csv(caminho_extrato, dtype={'idade': str, 'sexo': str})
+        idades_ext = {int(i) for i in ext['idade'] if i != 'total'}
+        if set(anos) <= set(ext['ano']) and set(idades) <= idades_ext:
+            manter = ext['ano'].isin(anos) & (ext['idade'].isin([str(i) for i in idades]) | (ext['idade'] == 'total'))
+            return ext[manter].reset_index(drop=True)
+        anos = sorted(set(anos) | set(ext['ano']))
+        idades = sorted(set(idades) | idades_ext)
+
+    partes = []
+    for sexo in _SEXOS_TABNET_RIPSA:
+        largo = _consulta_tabnet_ripsa(anos, idades, sexo, cod_municipio_tabnet)
+        longo = largo.reset_index().melt(id_vars='ano', var_name='idade', value_name='populacao')
+        longo.insert(2, 'sexo', sexo)
+        partes.append(longo)
+    por_sexo = pd.concat(partes, ignore_index=True)
+    total_idade = _consulta_tabnet_ripsa(anos, idades, None, cod_municipio_tabnet)
+    total_geral = _consulta_tabnet_ripsa(anos, None, None, cod_municipio_tabnet)
+
+    assert len(por_sexo) == len(anos) * len(idades) * 2 and set(por_sexo['ano']) == set(anos), \
+        'Ripsa: grade incompleta (anos x idades x sexos)'
+    soma_sexos = por_sexo.pivot_table(index='ano', columns='idade', values='populacao', aggfunc='sum')
+    assert (soma_sexos.reindex(index=total_idade.index, columns=total_idade.columns) == total_idade).all().all(), \
+        'Ripsa: soma dos sexos diferente do total por idade'
+
+    total = total_geral.reset_index().rename(columns={'total': 'populacao'})
+    total['idade'], total['sexo'] = 'total', 'total'
+    out = pd.concat([por_sexo, total[['ano', 'idade', 'sexo', 'populacao']]], ignore_index=True)
+    out['idade'] = out['idade'].astype(str)
+    out['data_consulta'] = pd.Timestamp.today().date().isoformat()
+    out = out.sort_values(['ano', 'sexo', 'idade']).reset_index(drop=True)
+    Path(caminho_extrato).parent.mkdir(parents=True, exist_ok=True)
+    out.to_csv(caminho_extrato, index=False)
+    return out
+
+def populacao_ripsa(df_ripsa, idade_min=0, idade_max=5, sexo='total', anos=None):
+    """Soma a população do longo de `carrega_populacao_ripsa` numa faixa etária (idades inteiras,
+    inclusive) e devolve `ano, populacao`. `idade_min=None` e `idade_max=None` -> total de todas as
+    idades. `sexo='total'` soma masculino + feminino."""
+    d = df_ripsa
+    if idade_min is None and idade_max is None:
+        d = d[d['idade'] == 'total']
+    else:
+        d = d[d['idade'] != 'total']
+        idade = d['idade'].astype(int)
+        d = d[(idade >= idade_min) & (idade <= idade_max)]
+        if sexo != 'total':
+            d = d[d['sexo'] == sexo]
+    if anos is not None:
+        d = d[d['ano'].isin(list(anos))]
+    return d.groupby('ano', as_index=False)['populacao'].sum()
+
+# %% [markdown]
+# ### 🎓 Censo Escolar (INEP) — carregadores
+#
+# Matrículas de 0 a 5 anos no município, direto dos microdados do Censo Escolar da Educação Básica/INEP
+# (uma linha por escola, com matrículas agregadas em faixas de idade desde a adequação à LGPD). Ver
+# `specs/2026-09-24_populacao-referencia/matriculas/`.
+
+# %%
+import zipfile
+
+_URL_INEP_MICRODADOS = 'https://download.inep.gov.br/dados_abertos/'
+_ZIP_INEP_EXCECOES = {2025: 'microdados_censo_escolar_2025_.zip'}  # 2025 saiu com '_' no fim do nome
+_CAMINHO_EXTRATO_INEP = 'dados_locais//educacao//inep_matriculas_rio.csv'
+_DEPENDENCIAS_INEP = {1: 'federal', 2: 'estadual', 3: 'municipal', 4: 'privada'}
+# contagens por escola: faixas de idade (data padrão do Censo, última quarta-feira de maio) e etapas.
+# As colunas '_REF_31_03' de 2025 (idade em 31/03) não são usadas: não existem nos outros anos.
+_COLUNAS_MATRICULA_INEP = {'QT_MAT_BAS_0_3': 'mat_0_a_3', 'QT_MAT_BAS_4_5': 'mat_4_a_5', 'QT_MAT_INF': 'mat_inf',
+                           'QT_MAT_INF_CRE': 'mat_inf_creche', 'QT_MAT_INF_PRE': 'mat_inf_pre'}
+
+def _baixa_zip_inep(ano, pasta_cache, tentativas=5, espera=10):
+    """Baixa o ZIP de microdados do ano para o cache (gitignorado), se ainda não estiver lá."""
+    destino = Path(pasta_cache) / f'microdados_censo_escolar_{ano}.zip'
+    if destino.exists():
+        return destino
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    url = _URL_INEP_MICRODADOS + _ZIP_INEP_EXCECOES.get(ano, f'microdados_censo_escolar_{ano}.zip')
+    for tentativa in range(1, tentativas + 1):
+        try:
+            with requests.get(url, stream=True, timeout=300) as r:
+                r.raise_for_status()
+                parcial = destino.with_suffix('.zip.part')
+                with open(parcial, 'wb') as f:
+                    for bloco in r.iter_content(chunk_size=1 << 20):
+                        f.write(bloco)
+            parcial.rename(destino)
+            return destino
+        except (requests.ConnectionError, requests.Timeout, requests.HTTPError):
+            if tentativa == tentativas:
+                raise
+            time.sleep(espera * tentativa)
+
+def _le_matriculas_zip_inep(caminho_zip, ano, cod_municipio):
+    """Lê, de dentro do ZIP (sem extrair), o CSV com as contagens de matrícula por escola e devolve as
+    somas do município por dependência administrativa. Até 2024 as contagens estão em
+    `microdados_ed_basica_<ano>.csv` (.CSV em alguns anos); em 2025, na `Tabela_Matricula_<ano>*.csv`."""
+    padrao = re.compile(rf'(microdados_ed_basica_{ano}|tabela_matricula_{ano}[^/]*)\.csv$', re.I)
+    with zipfile.ZipFile(caminho_zip) as zf:
+        nomes = [n for n in zf.namelist() if padrao.search(n)]
+        if len(nomes) != 1:
+            raise ValueError(f'{ano}: esperado 1 CSV de matrículas no ZIP, achados {nomes}')
+        colunas = ['CO_MUNICIPIO', 'TP_DEPENDENCIA'] + list(_COLUNAS_MATRICULA_INEP)
+        with zf.open(nomes[0]) as f:
+            df = pd.read_csv(f, sep=';', encoding='latin-1', usecols=lambda c: c in colunas, low_memory=False)
+    faltando = set(colunas) - set(df.columns)
+    if {'QT_MAT_BAS_0_3', 'QT_MAT_BAS_4_5'} & faltando:
+        raise ValueError(f'{ano}: sem as colunas de faixa etária {sorted(faltando)} (P6)')
+    df = df[df['CO_MUNICIPIO'] == cod_municipio]
+    agregado = (df.groupby('TP_DEPENDENCIA')[[c for c in _COLUNAS_MATRICULA_INEP if c in df.columns]].sum()
+                .reindex(list(_DEPENDENCIAS_INEP), fill_value=0).astype(int).rename(columns=_COLUNAS_MATRICULA_INEP))
+    agregado = agregado.rename_axis('tp_dependencia').reset_index()
+    agregado.insert(0, 'ano', ano)
+    agregado.insert(2, 'dependencia', agregado['tp_dependencia'].map(_DEPENDENCIAS_INEP))
+    return agregado
+
+def carrega_censo_escolar_matriculas(anos, cod_municipio=3304557, pasta_cache='dados_locais//educacao//inep_microdados',
+                                     caminho_extrato=_CAMINHO_EXTRATO_INEP):
+    """Matrículas da educação básica no município por ano x dependência administrativa (federal,
+    estadual, municipal, privada): `ano, tp_dependencia, dependencia, mat_0_a_3, mat_4_a_5, mat_inf,
+    mat_inf_creche, mat_inf_pre` (as colunas `mat_inf*`, por etapa, ficam só como referência).
+
+    Lê o extrato versionado `caminho_extrato` quando ele cobre `anos` (o notebook roda sem rede e sem os
+    ZIPs). Senão, baixa os ZIPs faltantes para o cache gitignorado, lê cada ano de dentro do ZIP e
+    regrava o extrato. Só contagens agregadas por escola: não há dado pessoal."""
+    anos = list(anos)
+    extrato = pd.read_csv(caminho_extrato) if os.path.exists(caminho_extrato) else None
+    if extrato is not None and set(anos) <= set(extrato['ano']):
+        return extrato[extrato['ano'].isin(anos)].reset_index(drop=True)
+    ja_lidos = set(extrato['ano']) if extrato is not None else set()
+    partes = [extrato] if extrato is not None else []
+    for ano in sorted(set(anos) - ja_lidos):
+        partes.append(_le_matriculas_zip_inep(_baixa_zip_inep(ano, pasta_cache), ano, cod_municipio))
+    out = pd.concat(partes, ignore_index=True).sort_values(['ano', 'tp_dependencia']).reset_index(drop=True)
+    assert out.groupby('ano').size().eq(len(_DEPENDENCIAS_INEP)).all(), 'extrato INEP: ano sem as 4 dependências'
+    out.to_csv(caminho_extrato, index=False)
+    return out[out['ano'].isin(anos)].reset_index(drop=True)
+
+def resume_matriculas_0_a_5(df_matriculas, df_ripsa):
+    """Tabela final por ano: matrículas de 0 a 5 anos (total, 0-3, 4-5, pública, privada), população
+    Ripsa das mesmas faixas e a taxa bruta de atendimento (%) de cada faixa. A taxa de 0-5 é
+    (mat 0-3 + mat 4-5) ÷ (pop 0-3 + pop 4-5), nunca a média das taxas de 0-3 e 4-5."""
+    m = df_matriculas.assign(mat_0_a_5=df_matriculas['mat_0_a_3'] + df_matriculas['mat_4_a_5'])
+    publica = m['tp_dependencia'].isin([1, 2, 3])
+    out = m.groupby('ano').agg(matriculas=('mat_0_a_5', 'sum'), matriculas_0_a_3=('mat_0_a_3', 'sum'),
+                               matriculas_4_a_5=('mat_4_a_5', 'sum'))
+    out['matriculas_publica'] = m[publica].groupby('ano')['mat_0_a_5'].sum()
+    out['matriculas_privada'] = m[~publica].groupby('ano')['mat_0_a_5'].sum()
+    for faixa, (ini, fim) in {'0_a_3': (0, 3), '4_a_5': (4, 5), '0_a_5': (0, 5)}.items():
+        out[f'populacao_{faixa}'] = populacao_ripsa(df_ripsa, ini, fim).set_index('ano')['populacao']
+    for faixa in ['0_a_3', '4_a_5', '0_a_5']:
+        numerador = out['matriculas'] if faixa == '0_a_5' else out[f'matriculas_{faixa}']
+        out[f'taxa_atendimento_{faixa}'] = (numerador / out[f'populacao_{faixa}'] * 100).round(1)
+    return out.reset_index()
 
 # %% [markdown]
 # ### ⚙️ Setup
@@ -706,7 +1920,7 @@ extrai_planilha_evitaveis_cap('dados_locais/mortalidade/obitos_causas_evitaveis_
 # > apresentação em `relatorio/index.html`, no PDF e no DOCX de curadoria é
 # > reorganizada por **eixo da política municipal de primeira infância**,
 # > definida em `specs/estrutura_eixos.md` (crosswalk e decisões de projeto em
-# > `specs/ajuste_eixos/specs.md`). Editar esse `.md` e pedir a atualização do
+# > `specs/2026-09-22_ajuste_eixos/specs.md`). Editar esse `.md` e pedir a atualização do
 # > relatório não exige reordenar nenhuma célula deste notebook.
 
 # %% [markdown]
@@ -719,6 +1933,41 @@ extrai_planilha_evitaveis_cap('dados_locais/mortalidade/obitos_causas_evitaveis_
 
 # %% [markdown]
 # ### 🏘️ Censo 2022(10/00)
+
+# %% [markdown]
+# > **Nota metodológica: população de referência** (`specs/2026-09-24_populacao-referencia`, A5). Vale para todo
+# > cálculo do notebook que divide por população.
+# >
+# > | Nível | Denominador | Anos | Onde é usado |
+# > |---|---|---|---|
+# > | **Município** | Estimativas **Ripsa/Ministério da Saúde** 2000-2025 (Nota Técnica Ripsa nº 01/2025), idade simples e sexo, população em 1º de julho | um por ano | série de população infantil (abaixo), taxa municipal de violência familiar, razão CadÚnico/população, taxa de atendimento escolar (matrículas) |
+# > | **Bairro, AP, RP, RA, CAP** | **Censo 2022** (IBGE/Data.Rio), 0 a 4 anos, referência fixa (decisão B1) | só 2022 | taxas de violência familiar por bairro/RA/CAP, % CadÚnico sobre o Censo por bairro |
+# >
+# > A Ripsa não tem nível bairro (o menor nível do Tabnet é o município) e não há fonte pública de
+# > população por bairro × idade × ano; por isso o Censo 2022 fica abaixo do município, sem estimativa
+# > derivada por ano.
+# >
+# > **Ripsa e Censo 2022 não são comparáveis diretamente.** A Ripsa herda das Projeções do IBGE (revisão
+# > 2024) a correção da cobertura incompleta do Censo 2022, que subcontou sobretudo as crianças pequenas:
+# >
+# > | 2022, Rio de Janeiro | Censo 2022 (SIDRA 9606) | Ripsa 2022 | Diferença |
+# > |---|---|---|---|
+# > | Total (todas as idades) | 6.211.223 | 6.742.618 | +8,6% |
+# > | 0 a 4 anos | 310.648 | 361.163 | +16,3% |
+# > | 0 a 5 anos | 379.609 | 439.907 | +15,9% |
+# > | Menos de 1 ano | 54.337 | 64.701 | +19,1% |
+# >
+# > (O Censo por bairro do Data.Rio, usado nos mapas, soma 6.183.971 no total e 310.157 de 0 a 4 anos,
+# > um pouco abaixo do SIDRA.) Consequências:
+# > 1. **Participações na população calculadas com uma e com outra fonte não se comparam.** A participação
+# >    de 0 a 4 anos é 7,6% / 5,8% / 5,0% nos Censos 2000/2010/2022 (tabela 2974 por bairro) e 7,9% / 6,1% /
+# >    5,4% na Ripsa. Todo número diz de onde vem.
+# > 2. **Taxas sub-municipais com o Censo no denominador tendem a ficar mais altas** do que com uma
+# >    estimativa corrigida (denominador subcontado).
+# > 3. **A Ripsa é revisada todo ano**, então uma consulta nova pode mudar anos passados. O extrato
+# >    versionado `dados_locais/populacao/ripsa_populacao_rio.csv` guarda a data da consulta
+# >    (`data_consulta`); `carrega_populacao_ripsa` só consulta o Tabnet se o extrato não cobrir os anos
+# >    pedidos.
 
 # %% [markdown]
 # Dados do Censo IBGE 2022 (agregados DataRio), população por bairro e faixa etária.
@@ -804,6 +2053,10 @@ grafico_barra_agrupado(
 )
 
 # %% [markdown]
+# <!-- nota-curadoria:censo_sidra_populacao_0_6_sexo_2022 -->
+# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem detalhar a população de crianças até 6 anos no município do Rio de Janeiro por idade, raça/cor e sexo. A distribuição por idade possibilita observar a composição desse grupo ao longo dos primeiros anos de vida, enquanto os recortes por raça/cor e sexo ampliam a caracterização demográfica da primeira infância. Os dados são apresentados para o conjunto do município e complementam o recorte territorial de crianças de 0 a 4 anos analisado anteriormente. Essa caracterização é importante para contextualizar os indicadores de saúde, educação, proteção social e demais dimensões analisadas no relatório.
+
+# %% [markdown]
 # #### 🗺️ Mapa coroplético (bairros)
 #
 # Mapas coropléticos de crianças de 0 a 4 anos por bairro (Censo 2022), a partir de
@@ -835,6 +2088,10 @@ mapa_coropletico_bairros(
     fonte_dados=fonte_censo,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:mapa_censo_0_4_absoluto -->
+# **Nota de curadoria:** O mapa apresenta a distribuição da população de 0 a 4 anos por bairro no município do Rio de Janeiro, segundo o Censo Demográfico 2022. Por apresentar números absolutos, o mapa pode ser utilizado para comparar a quantidade de crianças entre os diferentes territórios e dimensionar o tamanho desse grupo em cada bairro. A informação também serve como referência para análises que envolvam outros indicadores da primeira infância, permitindo relacionar a quantidade de crianças de cada território a diferentes características demográficas e sociais.
+
 # %%
 mapa_coropletico_bairros(
     df_mapa_censo, coluna_valor='Percentual 0 a 4',
@@ -844,6 +2101,10 @@ mapa_coropletico_bairros(
     legenda_titulo='% da população do bairro',
     fonte_dados=fonte_censo,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_censo_0_4_percentual -->
+# **Nota de curadoria:** A participação das crianças de 0 a 4 anos na população total do município diminuiu entre os Censos de 2000, 2010 e 2022. A proporção passou de aproximadamente 7,6% em 2000 para 5,8% em 2010 e 5,0% em 2022. O mapa complementa essa tendência ao mostrar diferenças na participação dessa faixa etária entre os bairros. A análise percentual permite comparar territórios de diferentes tamanhos populacionais, evidenciando o peso relativo das crianças de 0 a 4 anos em cada localidade. Esse indicador contribui para caracterizar a estrutura etária do município e contextualizar as demandas relacionadas à primeira infância.
 
 # %% [markdown]
 # #### 🗺️ Versões alternativas: por Área e por Região de Planejamento
@@ -923,37 +2184,64 @@ df_serie_censo['Percentual 0 a 4 anos'] = (
 df_serie_censo.to_csv('tabelas_finais//censo_0_a_4_anos_por_ano.csv')
 
 # %%
-plt.figure(figsize=(12, 6))
-sns.lineplot(data=df_serie_censo, x='ano', y='0 a 4 anos', label='Total 0 a 4 anos', marker='o', errorbar=None)
-sns.lineplot(data=df_serie_censo, x='ano', y='Sexo feminino, 0 a 4 anos', label='Sexo Feminino', marker='o', errorbar=None)
-sns.lineplot(data=df_serie_censo, x='ano', y='Sexo masculino, 0 a 4 anos', label='Sexo Masculino', marker='o', errorbar=None)
-#sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o')
+# gravado como censo_0_a_4_serie_total_ano (antes desenhado à mão e nunca salvo: o arquivo só existia via
+# regen_missing_pngs.py, sem fonte -- achado do inventário de fontes, specs/2026-09-25_relatorio_latex Bloco 1)
+serie_temporal_multipla(
+    df_serie_censo, tempo='ano',
+    colunas={'Total': '0 a 4 anos', 'Meninas': 'Sexo feminino, 0 a 4 anos', 'Meninos': 'Sexo masculino, 0 a 4 anos'},
+    titulo='Evolução da população de 0 a 4 anos — Censos 2000, 2010 e 2022',
+    nome_arquivo='censo_0_a_4_serie_total_ano', ylabel='Crianças de 0 a 4 anos', legend_title='',
+    fonte_dados=fonte_censo,
+)
 
-# Customize the plot
-plt.title('Evolução da população de 0 a 4 anos — Censos 2000, 2010 e 2022', fontsize=16)
-plt.xlabel('Ano', fontsize=12)
-plt.ylabel('Número de crianças', fontsize=10)
-plt.legend(title='Indicadores', fontsize=10)
-plt.grid(True)
-plt.tight_layout()
-
-# Show the plot
-plt.show()
+# %% [markdown]
+# <!-- nota-curadoria:censo_0_a_4_serie_total_ano -->
+# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem dimensionar a população de crianças de 0 a 4 anos no município e observar sua distribuição territorial. A análise combina a série municipal e o mapa por bairro, permitindo visualizar tanto a magnitude da população infantil quanto sua concentração no território. A leitura dos números absolutos é importante para identificar os bairros que concentram maior quantidade de crianças nessa faixa etária, mas deve considerar as diferenças no tamanho da população de cada bairro. Esse indicador contribui para contextualizar os demais resultados do relatório, especialmente aqueles relacionados à saúde, proteção social e educação na primeira infância.
 
 # %%
-plt.figure(figsize=(12, 6))
-sns.lineplot(data=df_serie_censo, x='ano', y='Percentual 0 a 4 anos', label='Percentual 0 a 4 anos', marker='o', errorbar=None)
+serie_temporal(
+    df_serie_censo, 'ano', 'Percentual 0 a 4 anos',
+    titulo='Percentual da população de 0 a 4 anos — Censos 2000, 2010 e 2022',
+    nome_arquivo='censo_0_a_4_serie_percentual_ano', fonte_dados=fonte_censo,
+)
 
-# Customize the plot
-plt.title('Percentual da população de 0 a 4 anos — Censos 2000, 2010 e 2022', fontsize=16)
-plt.xlabel('Ano', fontsize=12)
-plt.ylabel('Percentual (%)', fontsize=12)
-plt.legend(title='Indicadores', fontsize=10)
-plt.grid(True)
-plt.tight_layout()
+# %% [markdown]
+# <!-- nota-curadoria:censo_0_a_4_serie_percentual_ano -->
+# **Nota de curadoria:** A participação das crianças de 0 a 4 anos na população total do município diminuiu entre os Censos de 2000, 2010 e 2022. A proporção passou de aproximadamente 7,6% em 2000 para 5,8% em 2010 e 5,0% em 2022. O mapa complementa essa tendência ao mostrar diferenças na participação dessa faixa etária entre os bairros. A análise percentual permite comparar territórios de diferentes tamanhos populacionais, evidenciando o peso relativo das crianças de 0 a 4 anos em cada localidade. Esse indicador contribui para caracterizar a estrutura etária do município e contextualizar as demandas relacionadas à primeira infância.
 
-# Show the plot
-plt.show()
+# %% [markdown]
+# #### 👶 População de 0 a 6 anos por ano (estimativas Ripsa/MS, 2000-2025)
+#
+# Série anual da população de 0 a 6 anos do município (idade simples), com o total de 0 a 5 anos (faixa
+# das taxas municipais do projeto) e a participação de 0 a 6 anos no total da população
+# (`specs/2026-09-24_populacao-referencia`, A2). Fonte e ressalvas na nota de população de referência, no início
+# desta seção: **os valores não se comparam com os dos Censos acima** (a Ripsa corrige a subcontagem do
+# Censo 2022). A participação é recalculada da soma (0 a 6 anos ÷ total), nunca média de anos.
+
+# %%
+fonte_ripsa = 'Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025)'
+
+df_ripsa = carrega_populacao_ripsa()
+df_pop_infantil = (df_ripsa[(df_ripsa['idade'] != 'total')]
+                   .assign(idade=lambda d: 'populacao_idade_' + d['idade'])
+                   .pivot_table(index='ano', columns='idade', values='populacao', aggfunc='sum'))
+df_pop_infantil.columns.name = None
+df_pop_infantil['populacao_0_a_5'] = populacao_ripsa(df_ripsa, 0, 5).set_index('ano')['populacao']
+df_pop_infantil['populacao_0_a_6'] = populacao_ripsa(df_ripsa, 0, 6).set_index('ano')['populacao']
+df_pop_infantil['populacao_total'] = populacao_ripsa(df_ripsa, None, None).set_index('ano')['populacao']
+df_pop_infantil['percentual_0_a_6'] = df_pop_infantil['populacao_0_a_6'] / df_pop_infantil['populacao_total'] * 100
+df_pop_infantil = df_pop_infantil.reset_index()
+assert len(df_pop_infantil) == 26 and df_pop_infantil.loc[df_pop_infantil['ano'] == 2025, 'populacao_0_a_5'].item() == 393073
+df_pop_infantil.to_csv('tabelas_finais//populacao_ripsa_0_a_6_por_ano.csv', index=False)
+df_pop_infantil[['ano', 'populacao_0_a_5', 'populacao_0_a_6', 'populacao_total', 'percentual_0_a_6']]
+
+# %%
+serie_temporal(df_pop_infantil, 'ano', 'populacao_0_a_6', 'População de 0 a 6 anos por ano (estimativas Ripsa/MS)',
+               nome_arquivo='populacao_ripsa_0_a_6_por_ano', fonte_dados=fonte_ripsa)
+
+# %%
+serie_temporal(df_pop_infantil, 'ano', 'percentual_0_a_6', 'Participação de 0 a 6 anos na população total (%, estimativas Ripsa/MS)',
+               nome_arquivo='populacao_ripsa_0_a_6_percentual_por_ano', fonte_dados=fonte_ripsa)
 
 # %% [markdown]
 # ##### Pendente: Censo 2022 por idade e raça/cor (0 a 6 anos, cidade toda)
@@ -962,12 +2250,29 @@ plt.show()
 # ### 🗂️ Cadúnico
 
 # %% [markdown]
-# Fonte: CadÚnico via banco CTPE (`silver_cadunico_geral`), recorte de crianças 0-6 anos.
+# Fonte: CadÚnico via banco CTPE (`silver_cadunico_geral`), recorte de crianças de 0 a 5 anos (grupo `'0-6'` do CTPE).
 #
 # > **Nota:** requer conexão ativa com o banco CTPE (credenciais em `.env`) para reproduzir; não roda apenas com os arquivos em `dados_locais/`.
+# > O driver é `psycopg` 3 (`requirements.txt`) -- rode com o kernel/env `analises_env`; o Python base do
+# > Anaconda só tem `psycopg2` e falha na conexão.
+#
+# **O que o grupo `'0-6'` representa (verificado no banco em 2026-09-23, `specs/2026-09-23_recortes_cadunico` S3):**
+# crianças nascidas a partir de **2020-08-12**, ou seja, **0 a 5 anos completos** (até 72 meses, o recorte
+# de primeira infância do Marco Legal). A `idade` da silver é calculada numa data de referência
+# (~2026-08-12) posterior à partição (2026-06-12). **Crianças com 6 anos completos NÃO estão aqui** -- caem
+# no grupo `'7-14'` do CTPE. Desde a auditoria de faixas etárias (`specs/2026-09-24_populacao-referencia/auditoria_faixas.md`)
+# os títulos abaixo dizem "0 a 5 anos"; antes diziam "0-6", o nome do grupo no CTPE. Comparação entre
+# fontes (roadmap item 6); outras fontes do projeto usam outros recortes (Censo 0-4, Sinan 0-5...).
+#
+# **Filtro de cadastro (S9):** a silver não traz `estado_cadastral`/`ativo` (só a bronze); não se sabe se
+# ela já exclui cadastros inativos ou desatualizados -- a confirmar com o CTPE. Vale para todos os números
+# CadÚnico do projeto.
+#
+# **Privacidade:** toda saída CadÚnico abaixo do nível município passa por `suprime_celulas_pequenas`
+# (< 20 famílias vira vazio + coluna `suprimido`) antes de ir para `tabelas_finais/`/mapas.
 
 # %% [markdown]
-# #### Recorte 0-6 anos
+# #### Recorte 0 a 5 anos (grupo `'0-6'` do CTPE)
 
 # %%
 fonte_cadunico = 'CadÚnico (extração CTPE)'
@@ -976,6 +2281,12 @@ fonte_cadunico = 'CadÚnico (extração CTPE)'
 engine = connect_db_ctpe()
 df_original = pd.read_sql("SELECT * FROM silver_cadunico_geral WHERE grupo_idade='0-6'", engine)
 df =  df_original.copy()
+# recortes_cadunico D5: fonte com o mês da extração (a silver guarda uma única partição)
+fonte_cadunico_particao = fonte_cadunico_com_particao(df_original['data_particao'].max())
+# nota de rodapé dos mapas CadÚnico por bairro (A2/A4)
+# (quebra de linha: numa linha só o rodapé invade a atribuição do basemap no canto inferior esquerdo)
+fonte_mapa_cadunico = (f"{fonte_cadunico_particao}.\nBairro atribuído pelo CEP (Correios), pode divergir do bairro oficial; "
+                       f"bairros com menos de {_LIMIAR_SUPRESSAO_CADUNICO} famílias suprimidos")
 df_original
 
 # %%
@@ -997,23 +2308,39 @@ df_renda = df.groupby(by='faixa de renda').agg({'Crianças':'count','Famílias':
 df_renda.loc['Total'] = df_renda.sum()
 custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 df_renda = df_renda.reindex(custom_order)
-df_renda.to_csv('tabelas_finais/cadunico_por_faixa_etaria_2026.csv')
+# recortes_cadunico A5 (D8): o arquivo se chamava cadunico_por_faixa_etaria_2026.csv, mas o conteúdo é por renda
+# recortes_cadunico A7: rótulo descritivo da faixa (renda per capita), sem quebra de linha no CSV
+df_renda['faixa de renda (descrição)'] = [_ROTULOS_RENDA_CADUNICO.get(f, f).replace('\n', ' ') for f in df_renda.index]
+df_renda.to_csv('tabelas_finais/cadunico_por_faixa_renda_2026.csv')
 
 # %%
 df_renda.head(10)
 
 # %%
-grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Famílias',
-              titulo='CADÚNICO: Famílias c/crianças 0-6 por faixa de renda per capita',
-              nome_arquivo='cadunico_familias_por_faixa_renda', fonte_dados=fonte_cadunico)
+# recortes_cadunico A7: eixo x com o significado da faixa, não só o intervalo em R$
+df_renda_grafico = df_renda.iloc[:-1,:].reset_index()
+df_renda_grafico['faixa de renda'] = df_renda_grafico['faixa de renda'].map(_ROTULOS_RENDA_CADUNICO)
+grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Famílias',
+              titulo='CADÚNICO: Famílias com crianças de 0 a 5 anos, por faixa de renda per capita',
+              nome_arquivo='cadunico_familias_por_faixa_renda', fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_familias_por_faixa_renda -->
+# **Nota de curadoria:** A partir do dado de famílias com crianças de 0 a 5 anos no CadÚnico é possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R$218, um dos critérios de extrema pobreza, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade. No que diz respeito às rendas mais altas a tendência é diminuindo conforme aumenta-se a renda, chegando a patamares estatisticamente irrelevantes.
 
 # %%
-grafico_barra(df_renda.iloc[:-1,:],categoria='faixa de renda',valor='Crianças',
-              titulo='CADÚNICO: Crianças 0-6 por faixa de renda per capita',
-              nome_arquivo='cadunico_criancas_por_faixa_renda', fonte_dados=fonte_cadunico)
+grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Crianças',
+              titulo='CADÚNICO: Crianças de 0 a 5 anos, por faixa de renda per capita',
+              nome_arquivo='cadunico_criancas_por_faixa_renda', fonte_dados=fonte_cadunico_particao)
 
 # %% [markdown]
 # #### Análise por idade
+#
+# **Leitura (recortes_cadunico A6):** a coluna `Famílias` conta, em cada idade, as famílias com ao menos
+# uma criança daquela idade -- uma família com crianças de 1 e 4 anos aparece nas duas barras, então as
+# barras **não somam** o total de famílias (Σ = 191.824 contra 173.768 famílias distintas). E há
+# **sub-registro no 1º ano** (11.328 crianças com 0 anos contra 43.187 com 5): o recém-nascido entra no
+# cadastro com defasagem, então a barra de 0 anos não é uma estimativa de nascimentos.
 
 # %%
 #quantitativos por idade
@@ -1024,12 +2351,52 @@ df_idade.head(10)
 
 
 # %%
-grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: Famílias c/ crianças 0-6 por idade',
-              nome_arquivo='cadunico_familias_por_idade', fonte_dados=fonte_cadunico)
+grafico_barra(df_idade,categoria='idade',valor='Famílias', titulo='CADÚNICO: Famílias com crianças de 0 a 5 anos, por idade',
+              nome_arquivo='cadunico_familias_por_idade', fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_familias_por_idade -->
+# **Nota de curadoria:** No recorte por família com crianças de 0 a 5 anos no CadÚnico, à medida que se avança a idade, aumenta-se a quantidade de família com criança naquela idade que está cadastrada no CadÚnico. Seguindo, notoriamente, o mesmo padrão do gráfico das crianças cadastradas no CadÚnico.
 
 # %%
-grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças 0-6 por idade',
-              nome_arquivo='cadunico_criancas_por_idade', fonte_dados=fonte_cadunico)
+grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: Crianças de 0 a 5 anos, por idade',
+              nome_arquivo='cadunico_criancas_por_idade', fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_criancas_por_idade -->
+# **Nota de curadoria:** A quantidade de crianças no Cadúnico vai crescendo à medida que a idade vai aumentando. Um total de 11.328 crianças de 0 anos estão no CadÚnico, ao passo que quando se trata de crianças de 5 anos o número salta para 43.187 crianças. É importante frisar que esse dado não pode afirmar que os nascimentos estão diminuindo ou aumentando, haja vista o universo utilizado aqui diz respeito apenas às crianças que estão cadastradas no CadÚnico. Diversos podem ser os motivos para esse movimento: momento de inclusão da família no CadÚnico, atualização cadastral, dentre outros.
+
+# %% [markdown]
+# #### Razão municipal: crianças de 0 a 5 anos no CadÚnico sobre a população (Ripsa)
+#
+# Número-resumo do eixo Inclusão (`specs/2026-09-24_populacao-referencia`, A4): crianças do grupo `'0-6'` do CadÚnico
+# (na prática **0 a 5 anos completos**, ver a nota de idade no início da seção) ÷ população de 0 a 5 anos
+# do município em 2025 (estimativas Ripsa/MS). Ressalvas:
+# - **Um ano de diferença:** o cadastro é da partição de 2026 e a estimativa mais recente da Ripsa é de
+#   2025 (1º de julho). Como a população de 0 a 5 anos vem caindo (439.907 em 2022, 393.073 em 2025), a
+#   razão com a população de 2026 tende a ser um pouco maior.
+# - **Registro administrativo × estimativa:** o numerador conta cadastros (inclusive desatualizados, se a
+#   silver não os excluir, S9), e o denominador é uma estimativa demográfica. É uma razão, não a cobertura
+#   exata do cadastro.
+# - Só no nível município. Por bairro, o % CadÚnico/Censo fica só no notebook (mapa mais abaixo, decisão
+#   D6 de `recortes_cadunico`).
+
+# %%
+fonte_cadunico_ripsa = f'{fonte_cadunico_particao}; população 0 a 5 anos: estimativas Ripsa/Ministério da Saúde (2025)'
+
+_ano_pop_cadunico = 2025
+_pop_0_5 = populacao_ripsa(carrega_populacao_ripsa(), 0, 5, anos=[_ano_pop_cadunico])['populacao'].item()
+assert df_original['idade'].between(0, 5).all(), "grupo '0-6' do CadÚnico fora de 0 a 5 anos"
+df_cadunico_razao = pd.DataFrame([{
+    'data_particao': str(pd.Timestamp(df_original['data_particao'].max()).date()),
+    'criancas_cadunico_0_a_5': len(df_original),
+    'familias_cadunico': df_original['id_familia'].nunique(),
+    'ano_populacao': _ano_pop_cadunico,
+    'populacao_ripsa_0_a_5': _pop_0_5,
+    'razao_percentual': len(df_original) / _pop_0_5 * 100,
+}])
+df_cadunico_razao.to_csv('tabelas_finais/cadunico_razao_populacao_0_a_5_2026.csv', index=False)
+df_cadunico_razao
 
 # %% [markdown]
 # #### Análise por bairros
@@ -1037,20 +2404,30 @@ grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: C
 # %%
 #quantitativos por grupo de renda pct
 df_bairro = df.groupby(by=['bairro']).agg({'Crianças':'count','Famílias':'nunique'})
+# recortes_cadunico A1: crianças cujo CEP não está em lista_bairros.csv sumiam do groupby em silêncio
+_sem_bairro = df[df['bairro'].isna()]
+df_bairro.loc[_ROTULO_SEM_BAIRRO_CADUNICO] = [len(_sem_bairro), _sem_bairro['Famílias'].nunique()]
 df_bairro.loc['Total'] = df_bairro.sum()
+assert df_bairro.loc['Total', 'Crianças'] == len(df), 'tabela por bairro não fecha com o total de crianças'
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro.to_csv('tabelas_finais/cadunico_por_bairro_2026.csv')
+# recortes_cadunico A4: CSV publicado com supressão < 20 (df_bairro em memória segue completo)
+suprime_celulas_pequenas(df_bairro, 'Famílias', ['Crianças', 'Famílias']).to_csv('tabelas_finais/cadunico_por_bairro_2026.csv')
 
 # %% [markdown]
-# **Nota sobre bairros do CadÚnico sem correspondência oficial:** o CadÚnico geocodifica
-# endereços por bairro autodeclarado/histórico, que nem sempre bate com a lista oficial de
-# 166 bairros do IPP usada em `df_censo`. Duas situações, tratadas de formas diferentes:
-# 4 nomes são variações de grafia do mesmo bairro oficial (normalizados via
-# `_ALIAS_BAIRRO_CADUNICO` antes do join); 6 são localidades informais/históricas sem bairro
-# oficial correspondente (ex. Dendê, Tubiacanga -- localidades da Ilha do Governador), juntos
-# **380 crianças de 178.329 (~0,2%)** -- excluídas só do mapa por bairro (a tabela completa,
-# `cadunico_por_bairro_2026.csv`, mantém todos os nomes originais).
+# **Nota sobre a atribuição de bairro no CadÚnico** (reescrita em `specs/2026-09-23_recortes_cadunico`, A1/A2):
+# o CadÚnico não traz bairro; ele é obtido pelo CEP da família em `dados_locais/lista_bairros.csv`
+# (bairro dos **Correios**, não o bairro oficial IPP usado em `df_censo`). Três perdas/distorções:
+# 1. **15.809 crianças (8,1% de 194.138) têm CEP fora da lista** e ficam sem bairro -- antes sumiam em
+#    silêncio do groupby; agora aparecem na linha "Sem bairro identificado" de `cadunico_por_bairro_2026.csv`.
+# 2. Dos nomes que casam, 4 são variações de grafia do mesmo bairro oficial (normalizados via
+#    `_ALIAS_BAIRRO_CADUNICO`) e 6 são localidades sem bairro oficial (ex. Dendê, Tubiacanga -- Ilha do
+#    Governador), juntos **380 crianças** excluídas só dos mapas.
+# 3. **O bairro dos Correios não é o bairro oficial:** bairros-favela ficam subcontados e os vizinhos
+#    inflados (Maré 3.405 x Bonsucesso 2.936; Jacarezinho 277 x Jacaré 1.409; Rocinha 1.237 x Gávea
+#    1.858), e **Vila Kennedy, Jabour, Gericinó, Ilha de Guaratiba e Lapa não aparecem** (os CEPs caem em
+#    Bangu, Senador Camará, Guaratiba e Centro) -- ficam "Sem dado" nos mapas. Corrigir exige
+#    geocodificação espacial (pendência F1 da spec).
 
 # %%
 _ALIAS_BAIRRO_CADUNICO = {
@@ -1063,8 +2440,8 @@ _BAIRROS_CADUNICO_SEM_CORRESPONDENCIA = [
     'Dendê', 'Dumas', 'Guarabu', 'Itacolomi', 'Nossa Senhora das Graças', 'Tubiacanga',
 ]
 
-# versão com codbairro (via df_censo), sem a linha 'Total' -- insumo do mapa por bairro (ver Mapas)
-df_bairro_mapa = df_bairro.drop(index='Total').reset_index()
+# versão com codbairro (via df_censo), sem as linhas 'Total' e 'Sem bairro' -- insumo do mapa por bairro (ver Mapas)
+df_bairro_mapa = df_bairro.drop(index=['Total', _ROTULO_SEM_BAIRRO_CADUNICO]).reset_index()
 df_bairro_mapa['bairro'] = df_bairro_mapa['bairro'].replace(_ALIAS_BAIRRO_CADUNICO)
 df_bairro_mapa = df_bairro_mapa[~df_bairro_mapa['bairro'].isin(_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA)]
 df_bairro_mapa = junta_codbairro_por_bairro(df_bairro_mapa, df_censo)
@@ -1081,7 +2458,8 @@ df_bairro_ate_4 = df_ate_4.groupby(by=['bairro']).agg({'Crianças':'count','Fam�
 df_bairro_ate_4.loc['Total'] = df_bairro_ate_4.sum()
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-df_bairro_ate_4.to_csv('tabelas_finais/cadunico_por_bairro_ate_4_2026.csv')
+# recortes_cadunico A4: CSV publicado com supressão < 20
+suprime_celulas_pequenas(df_bairro_ate_4, 'Famílias', ['Crianças', 'Famílias']).to_csv('tabelas_finais/cadunico_por_bairro_ate_4_2026.csv')
 # mesma normalização/exclusão de nomes sem correspondência oficial que df_bairro_mapa (nota acima) --
 # sem isso, o merge 'right' abaixo já dropava essas linhas em silêncio (nenhum erro, só sumia o dado)
 df_bairro_ate_4 = df_bairro_ate_4.rename(index=_ALIAS_BAIRRO_CADUNICO).drop(index=_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA, errors='ignore')
@@ -1099,19 +2477,26 @@ df_bairro.loc[['Complexo do Alemão']]
 # #### 🗺️ Mapas por bairro
 
 # %%
-df_bairro_mapa.to_csv('tabelas_finais//tabela_mapa_cadunico_criancas_2026.csv', index=False)
+# recortes_cadunico A4: mapa e gêmea (lida pelo HTML, que mostra o valor no tooltip) saem da mesma
+# tabela suprimida -- bairro com < 20 famílias fica sem cor ('Sem dado') e sem valor no tooltip
+df_bairro_mapa_pub = suprime_celulas_pequenas(df_bairro_mapa, 'Famílias', ['Crianças', 'Famílias'])
+df_bairro_mapa_pub.to_csv('tabelas_finais//tabela_mapa_cadunico_criancas_2026.csv', index=False)
 mapa_coropletico_bairros(
-    df_bairro_mapa, coluna_valor='Crianças', titulo='Crianças (0-6 anos) no CadÚnico, por bairro',
+    df_bairro_mapa_pub, coluna_valor='Crianças', titulo='Crianças (0 a 5 anos) no CadÚnico, por bairro',
     nome_arquivo='mapa_cadunico_criancas_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'],
-    bins=[250, 750, 1500, 3000], legenda_titulo='Crianças', fonte_dados=fonte_cadunico,
+    bins=[250, 750, 1500, 3000], legenda_titulo='Crianças', fonte_dados=fonte_mapa_cadunico,
 )
 
 # %% [markdown]
-# **Nota:** o percentual abaixo tem um valor atípico (>500% num bairro pequeno) -- a base do
-# CadÚnico e a do Censo usam metodologias de contagem diferentes (registro administrativo x
-# recenseamento), e bairros com poucos residentes no Censo amplificam qualquer descompasso
-# nessa razão. Mantido sem ajuste (dado real, não erro de processamento); leia com cautela.
+# **Nota (reescrita em `specs/2026-09-23_recortes_cadunico`, A2):** o percentual abaixo passa de 100% em 8 bairros
+# (Camorim ~510%, Bonsucesso ~341%, Gávea ~313%, Jacaré ~242%, Anil, Ramos, Gardênia Azul, Cidade de
+# Deus). A **causa principal é a atribuição de bairro pelo CEP** (nota da seção de bairros acima): o
+# numerador usa o bairro dos Correios e o denominador (Censo 2022) o bairro oficial IPP -- crianças de
+# Maré, Jacarezinho e Rocinha são contadas em Bonsucesso, Jacaré e Gávea, que ficam acima de 100%, e as
+# favelas ficam abaixo. Diferenças de método (registro administrativo x recenseamento) e de data
+# (2026 x 2022) contribuem, mas são secundárias. **Por isso este mapa fica só no notebook** e não entra
+# no relatório HTML/PDF (decisão D6) até a geocodificação ser refeita (pendência F1).
 
 # %%
 df_ate_4_mapa = df_bairro_ate_4[df_bairro_ate_4['bairro'] != 'Total'].copy()
@@ -1119,20 +2504,212 @@ df_ate_4_mapa = df_bairro_ate_4[df_bairro_ate_4['bairro'] != 'Total'].copy()
 # usada nas células acima; o mapa segue a convenção do projeto de percentual em escala 0-100
 # (mesma de 'Percentual 0 a 4' do Censo)
 df_ate_4_mapa['Percentual Primeira Inf. Cadúnico'] = df_ate_4_mapa['Primeira Inf. Cadúnico'] * 100
-df_ate_4_mapa.to_csv('tabelas_finais//tabela_mapa_cadunico_primeira_infancia_2026.csv', index=False)
+# recortes_cadunico A4: suprime quando o numerador (famílias CadÚnico) OU o denominador (pop. Censo 0-4) < 20
+df_ate_4_mapa = suprime_celulas_pequenas(df_ate_4_mapa, ['Famílias', '0 a 4 anos'],
+                                         ['Crianças', 'Famílias', 'Primeira Inf. Cadúnico', 'Percentual Primeira Inf. Cadúnico'])
+df_ate_4_mapa.to_csv('tabelas_finais//tabela_mapa_cadunico_criancas_0_a_4_2026.csv', index=False)
 
 mapa_coropletico_bairros(
     df_ate_4_mapa, coluna_valor='Crianças', titulo='Crianças (0-4 anos) no CadÚnico, por bairro',
-    nome_arquivo='mapa_cadunico_primeira_infancia_bairro_2026', chave='codbairro',
+    nome_arquivo='mapa_cadunico_criancas_0_a_4_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'],
-    bins=[200, 500, 1000, 2000], legenda_titulo='Crianças', fonte_dados=fonte_cadunico,
+    bins=[200, 500, 1000, 2000], legenda_titulo='Crianças', fonte_dados=fonte_mapa_cadunico,
 )
 mapa_coropletico_bairros(
-    df_ate_4_mapa, coluna_valor='Percentual Primeira Inf. Cadúnico', titulo='% de crianças 0-4 anos no CadÚnico sobre o Censo, por bairro',
-    nome_arquivo='mapa_percentual_cadunico_primeira_infancia_bairro_2026', chave='codbairro',
+    df_ate_4_mapa, coluna_valor='Percentual Primeira Inf. Cadúnico', titulo='% de crianças 0-4 anos no CadÚnico sobre a população 0-4 do Censo 2022, por bairro',
+    nome_arquivo='mapa_percentual_cadunico_0_a_4_sobre_censo_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'],
-    legenda_titulo='% CadÚnico/Censo', fonte_dados=fonte_cadunico,
+    legenda_titulo='% CadÚnico/Censo 2022', fonte_dados=fonte_mapa_cadunico + '; população 0 a 4 anos: Censo 2022 (IBGE/Data.Rio)',
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_cadunico_criancas_0_a_4_bairro_2026 -->
+# **Nota de curadoria:** Olhando para a distribuição espacial, pode-se observar que a maior concentração tanto de crianças de 0 a 5 quanto de 0 a 4 anos no CadÚnico está presente nas Zonas Oeste e Norte da cidade. Há alterações absolutas nos intervalos de distribuição quando se olha para os dois mapas, mas o padrão de distribuição geográfica segue praticamente o mesmo. Nos dois mapas, a Zona Oeste apresenta a maior concentração de crianças cadastradas. Já a Zona Sul e parte da extensão litorânea da Barra da Tijuca/Recreio apresentam menores quantitativos. Na Zona Norte e no Centro apresentam-se uma maior fragmentação por terem muitos bairros, favelas e comunidades.
+
+# %% [markdown]
+# #### 👨‍👩‍👧 Recortes por família: sexo, raça/cor, arranjo familiar e renda
+#
+# Indicadores do eixo **Inclusão** (`specs/estrutura_eixos.md`; spec `specs/2026-09-23_recortes_cadunico`). "Crianças
+# até 6 anos" é a redação do catálogo (mantida nos subtítulos de `estrutura_eixos.md`, decisão C-D2 de
+# `populacao-referencia`); o dado é de **0 a 5 anos completos**, e é isso que os títulos dos gráficos e mapas
+# dizem (ver a nota de idade no início da seção). Sexo e raça/cor são atributos **da criança** (D1): uma família com um menino e uma
+# menina tem as duas categorias. O arranjo familiar é aproximado pela composição do cadastro (D2), porque
+# a silver não tem parentesco com o responsável familiar -- por isso esta célula também lê os adultos das
+# famílias, não só as crianças.
+
+# %%
+df_membros_cadunico = carrega_cadunico_familias_0_6(engine)
+df_familias = classifica_arranjo_familiar(df_membros_cadunico, idade_adulto=18)  # D3: adulto = 18+
+# fecha com o recorte de crianças da seção (mesma partição, mesmas famílias)
+assert len(df_familias) == df['Famílias'].nunique(), 'nº de famílias diverge do recorte de crianças'
+assert df_familias['n_criancas'].sum() == len(df), 'nº de crianças diverge do recorte de crianças'
+print(f"{_numero_ptbr(len(df_familias))} famílias, {_numero_ptbr(df_familias['n_criancas'].sum())} crianças, "
+      f"{_numero_ptbr(len(df_membros_cadunico))} pessoas no total")
+
+# %% [markdown]
+# ##### Por sexo
+#
+# Duas leituras na mesma tabela: **crianças** por sexo, e **famílias** pela composição de sexo das
+# crianças (só meninas / só meninos / meninas e meninos) -- categorias exclusivas, que somam o total de
+# famílias. Contar "famílias com ao menos uma menina" e "com ao menos um menino" contaria duas vezes as
+# famílias com crianças dos dois sexos.
+
+# %%
+df_sexo_criancas = agrega_cadunico_criancas(df, 'sexo', ['Feminino', 'Masculino'])
+df_sexo_familias = agrega_cadunico_familias(df_familias, 'composicao_sexo_criancas', _ORDEM_COMPOSICAO_SEXO)
+tabela_sexo = pd.concat({'Crianças por sexo': df_sexo_criancas,
+                         'Famílias por sexo das crianças': df_sexo_familias}, names=['recorte', 'categoria'])
+tabela_sexo = tabela_sexo.astype({c: 'Int64' for c in tabela_sexo.columns if not c.startswith('%')})
+tabela_sexo.to_csv('tabelas_finais/cadunico_por_sexo_2026.csv')
+tabela_sexo
+
+# %%
+grafico_barra(df_sexo_criancas.drop(index='Total (famílias não somam)').rename_axis('sexo da criança').reset_index(),
+              categoria='sexo da criança', valor='Crianças',
+              titulo='CADÚNICO: Crianças de 0 a 5 anos, por sexo',
+              nome_arquivo='cadunico_criancas_por_sexo', fonte_dados=fonte_cadunico_particao)
+
+# %%
+grafico_barra(df_sexo_familias.drop(index='Total').rename_axis('sexo das crianças da família').reset_index(),
+              categoria='sexo das crianças da família', valor='Famílias',
+              titulo='CADÚNICO: Famílias com crianças de 0 a 5 anos, por sexo das crianças',
+              nome_arquivo='cadunico_familias_por_sexo_criancas', fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# ##### Por raça/cor
+#
+# As 5 categorias do CadÚnico, mais o agregado **negra = preta + parda** (convenção IBGE). A coluna de
+# famílias conta as famílias com **ao menos uma** criança da categoria -- não somam entre linhas (famílias
+# com crianças de raça/cor diferentes aparecem em mais de uma). Amarela e indígena são grupos pequenos na
+# cidade (1.208 e 69 crianças) e **nunca aparecem abaixo do nível município** (privacidade, spec §5); por
+# bairro só se publica o % de crianças negras.
+
+# %%
+df_raca = agrega_cadunico_criancas(df, 'raca_cor', _ORDEM_RACA_CADUNICO)
+_negras = df[df['raca_cor'].isin(['Preta', 'Parda'])]
+df_raca.loc['Negra (preta + parda)'] = [len(_negras), _negras['Famílias'].nunique(), round(len(_negras) / len(df) * 100, 1)]
+df_raca = df_raca.reindex(_ORDEM_RACA_CADUNICO + ['Negra (preta + parda)', 'Total (famílias não somam)'])
+df_raca = df_raca.astype({'Crianças': int, 'Famílias com ao menos uma': int}).rename_axis('raça/cor da criança')
+df_raca['nota'] = 'famílias não exclusivas entre categorias; não somar'
+df_raca.to_csv('tabelas_finais/cadunico_por_raca_cor_2026.csv')
+df_raca
+
+# %%
+df_raca_grafico = df_raca.loc[_ORDEM_RACA_CADUNICO].reset_index()
+grafico_barra(df_raca_grafico, categoria='raça/cor da criança', valor='Crianças',
+              titulo='CADÚNICO: Crianças de 0 a 5 anos, por raça/cor',
+              nome_arquivo='cadunico_criancas_por_raca_cor', fonte_dados=fonte_cadunico_particao)
+
+# %%
+grafico_barra(df_raca_grafico, categoria='raça/cor da criança', valor='Famílias com ao menos uma',
+              titulo='CADÚNICO: Famílias com ao menos uma criança de 0 a 5 anos de cada raça/cor',
+              nome_arquivo='cadunico_familias_por_raca_cor', fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# ##### Por arranjo familiar e renda
+#
+# **Arranjo familiar (aproximado):** membros de 18 anos ou mais da família, por sexo. **"Uma adulta
+# (mulher)" não é o conceito de família monoparental do MDS**, que depende do parentesco com o responsável
+# familiar (campo ausente na extração -- pendência F2). Um companheiro que não está no cadastro não aparece;
+# a sub-declaração de cônjuges é um viés conhecido do CadÚnico (reforçado pela regra de renda per capita)
+# e provavelmente infla essa categoria. O cadastro de cada família está completo (nº de pessoas na tabela =
+# `n_pessoas_familia`, conferido em `classifica_arranjo_familiar`).
+#
+# **Renda:** faixa de renda per capita da família (`grupo_renda_pct`). No cruzamento com o arranjo, as
+# faixas acima de 1/2 salário mínimo se juntam numa só, para não gerar células pequenas; células com menos
+# de 20 famílias seriam suprimidas.
+
+# %%
+df_arranjo = agrega_cadunico_familias(df_familias, 'arranjo', _ORDEM_ARRANJO_CADUNICO).rename_axis('arranjo familiar')
+df_arranjo.to_csv('tabelas_finais/cadunico_familias_por_arranjo_2026.csv')
+df_arranjo
+
+# %%
+# famílias sem nenhum membro de 18+: inspeção só em agregado (idade do membro mais velho)
+df_familias.loc[df_familias['arranjo'] == 'Sem adulto (18+)', 'idade_mais_velho'].value_counts().sort_index()
+
+# %% [markdown]
+# **Famílias sem adulto (713, partição jun/2026):** em 554 o membro mais velho tem 16 ou 17 anos -- responsável
+# familiar adolescente, permitido pelo CadÚnico a partir de 16 anos. Em 85 o membro mais velho tem até 5 anos
+# (cadastro só com a criança), o que indica cadastro incompleto ou inconsistente. As 713 ficam como categoria
+# própria, sem descarte; são 0,4% das famílias.
+
+# %%
+_renda_3 = df_familias['grupo_renda_pct'].map(_RENDA_CADUNICO_3_FAIXAS)
+df_arranjo_renda = (df_familias.assign(renda=_renda_3).groupby(['arranjo', 'renda']).size()
+                    .rename('Famílias').reset_index())
+assert df_arranjo_renda['Famílias'].sum() == len(df_familias)
+df_arranjo_renda['% no arranjo'] = (df_arranjo_renda['Famílias'] /
+                                    df_arranjo_renda.groupby('arranjo')['Famílias'].transform('sum') * 100).round(1)
+df_arranjo_renda['arranjo'] = pd.Categorical(df_arranjo_renda['arranjo'], _ORDEM_ARRANJO_CADUNICO, ordered=True)
+df_arranjo_renda['faixa de renda per capita'] = df_arranjo_renda['renda'].map(_ROTULOS_RENDA_CADUNICO_3).str.replace('\n', ' ')
+df_arranjo_renda = df_arranjo_renda.sort_values(['arranjo', 'renda']).drop(columns='renda')
+# nível município, mas a regra de célula pequena vale igual (spec §5)
+df_arranjo_renda_pub = suprime_celulas_pequenas(df_arranjo_renda, 'Famílias', ['Famílias', '% no arranjo'])
+df_arranjo_renda_pub.to_csv('tabelas_finais/cadunico_familias_arranjo_renda_2026.csv', index=False)
+df_arranjo_renda_pub
+
+# %%
+# rótulos do eixo x em 2 linhas (os nomes de arranjo são longos)
+_rotulo_arranjo = {a: a.replace(' (', '\n(') for a in _ORDEM_ARRANJO_CADUNICO}
+grafico_barra(df_arranjo.drop(index='Total').rename(index=_rotulo_arranjo).reset_index(),
+              categoria='arranjo familiar', valor='Famílias',
+              titulo='CADÚNICO: Famílias com crianças de 0 a 5 anos, por arranjo familiar',
+              nome_arquivo='cadunico_familias_por_arranjo', fonte_dados=fonte_cadunico_particao)
+
+# %%
+_graf_arranjo_renda = df_arranjo_renda_pub.assign(arranjo=df_arranjo_renda_pub['arranjo'].astype(str).map(_rotulo_arranjo))
+grafico_barra_agrupado(_graf_arranjo_renda, categoria='arranjo', valor='% no arranjo', agrupador='faixa de renda per capita',
+                       titulo='CADÚNICO: Renda per capita das famílias com crianças de 0 a 5 anos, por arranjo familiar',
+                       nome_arquivo='cadunico_familias_arranjo_renda', ylabel='% das famílias do arranjo',
+                       legend_title='Renda per capita', ordem_categoria=list(_rotulo_arranjo.values()), rotacao_x=0,
+                       fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# ##### 🗺️ Mapas por bairro: % de crianças negras e de famílias com uma só adulta
+#
+# Taxas **internas ao CadÚnico** (numerador e denominador da mesma base e do mesmo bairro atribuído pelo
+# CEP), recalculadas a partir das contagens absolutas de cada bairro -- sofrem bem menos com o viés de
+# CEP -> bairro do que a razão CadÚnico/Censo, mas o bairro continua sendo o dos Correios (nota acima). Mesma
+# normalização de nomes e join por `codbairro` de `df_bairro_mapa`. Bairros com menos de 20 famílias no
+# CadÚnico ficam sem cor (supressão, spec §5); escala contínua (convenção de taxas).
+
+# %%
+_fam_bairro = atribui_bairro_por_cep(df_familias)
+df_recortes_bairro = pd.concat([
+    df.groupby('bairro').agg(**{'Crianças': ('Crianças', 'count'),
+                                'Meninas': ('sexo', lambda s: (s == 'Feminino').sum()),
+                                'Crianças negras': ('raca_cor', lambda s: s.isin(['Preta', 'Parda']).sum())}),
+    _fam_bairro.groupby('bairro').agg(**{'Famílias': ('id_familia', 'count'),
+                                         'Famílias com uma adulta': ('arranjo', lambda s: (s == 'Uma adulta (mulher)').sum())}),
+], axis=1).fillna(0).astype(int).reset_index()
+df_recortes_bairro['bairro'] = df_recortes_bairro['bairro'].replace(_ALIAS_BAIRRO_CADUNICO)
+df_recortes_bairro = df_recortes_bairro[~df_recortes_bairro['bairro'].isin(_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA)]
+df_recortes_bairro = junta_codbairro_por_bairro(df_recortes_bairro, df_censo)
+# taxa sempre de absolutos (nunca média de percentuais)
+df_recortes_bairro['% meninas'] = df_recortes_bairro['Meninas'] / df_recortes_bairro['Crianças'] * 100
+df_recortes_bairro['% crianças negras'] = df_recortes_bairro['Crianças negras'] / df_recortes_bairro['Crianças'] * 100
+df_recortes_bairro['% famílias com uma adulta'] = df_recortes_bairro['Famílias com uma adulta'] / df_recortes_bairro['Famílias'] * 100
+
+_cols_recortes = ['Crianças', 'Meninas', 'Crianças negras', 'Famílias', 'Famílias com uma adulta',
+                  '% meninas', '% crianças negras', '% famílias com uma adulta']
+df_recortes_bairro_pub = suprime_celulas_pequenas(df_recortes_bairro, 'Famílias', _cols_recortes)
+df_recortes_bairro_pub.to_csv('tabelas_finais/tabela_mapa_cadunico_recortes_bairro_2026.csv', index=False)
+df_recortes_bairro_pub.sort_values('% famílias com uma adulta', ascending=False).head(10)
+
+# %%
+# mapa de % meninas cortado na revisão visual (recortes_cadunico T12.3): ~49% em todo bairro, sem
+# informação territorial -- a coluna segue na tabela gêmea
+for _coluna, _titulo, _arquivo, _legenda in [
+    ('% crianças negras', '% de crianças negras (pretas e pardas) de 0 a 5 anos no CadÚnico, por bairro',
+     'mapa_percentual_cadunico_criancas_negras_bairro_2026', '% negras'),
+    ('% famílias com uma adulta', 'Famílias com crianças de 0 a 5 anos no CadÚnico: % com uma só adulta, por bairro',
+     'mapa_percentual_cadunico_familias_uma_adulta_bairro_2026', '% uma adulta'),
+]:
+    mapa_coropletico_bairros(
+        df_recortes_bairro_pub, coluna_valor=_coluna, titulo=_titulo, nome_arquivo=_arquivo, chave='codbairro',
+        cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo=_legenda, fonte_dados=fonte_mapa_cadunico,
+    )
 
 # %% [markdown]
 # ### 🏥 DataSus - tabnet
@@ -1163,6 +2740,15 @@ fonte_datasus_bairro = 'DATASUS/Tabnet, óbitos e nascimentos de residentes no m
 # 'EM BRANCO' (bairro não identificado) fica sem 'codigo' em limpeza_tabnet_bairros -- não
 # mapeável, mesmo tratamento de dado incompleto já usado noutras seções ('Ignorado' etc.)
 df_vivos_mapa = df_vivos[df_vivos['ano']=='2025'].dropna(subset=['codigo']).copy()
+# populacao-referencia D1 (item "percentual de nascidos vivos por bairro de residência da mãe" do catálogo):
+# nascidos vivos do bairro ÷ total do município × 100. O total INCLUI 'EM BRANCO' (bairro não informado:
+# 6.336 de 65.507 em 2025), então a soma dos bairros fica abaixo de 100% (~90%) e a lacuna fica visível.
+# O mapa continua sendo o de contagem -- o percentual é a mesma informação dividida por uma constante.
+_total_vivos_2025 = df_vivos.loc[df_vivos['ano']=='2025', 'nascidos vivos'].sum()
+_em_branco_2025 = _total_vivos_2025 - df_vivos_mapa['nascidos vivos'].sum()
+df_vivos_mapa['percentual_do_municipio'] = df_vivos_mapa['nascidos vivos'] / _total_vivos_2025 * 100
+print(f'Nascidos vivos 2025: {_total_vivos_2025} no município, {_em_branco_2025} sem bairro (EM BRANCO); '
+      f'soma dos bairros = {df_vivos_mapa["percentual_do_municipio"].sum():.1f}%')
 df_vivos_mapa.to_csv('tabelas_finais//tabela_mapa_nascidos_vivos_2025.csv', index=False)
 
 mapa_coropletico_bairros(
@@ -1171,6 +2757,10 @@ mapa_coropletico_bairros(
     cmap=_CORES_TEMA_MAPA['natalidade'],
     bins=[200, 400, 800, 1500], legenda_titulo='Nascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_nascidos_vivos_bairro_2025 -->
+# **Nota de curadoria:** Quando se olha para a distribuição espacial desses nascidos vivos pelo território carioca, há uma maior concentração deles na AP5 (Santa Cruz, Campo Grande e Bangu, por exemplo) e AP4 (Jacarepaguá, Barra da Tijuca, Recreio e Taquara, por exemplo). Ao passo que na AP 2, principalmente na Zona Sul há uma quantidade menor. Ficando a AP3 com uma quantidade intermediária.
 
 # %%
 #agrupamento por ano
@@ -1183,6 +2773,10 @@ df_vivos_por_ano.to_csv('tabelas_finais/nascidos_vivos_por_ano.csv')
 # %%
 serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nascidos vivos por ano',
                nome_arquivo='nascidos_vivos_por_ano', fonte_dados=fonte_datasus_bairro)
+
+# %% [markdown]
+# <!-- nota-curadoria:nascidos_vivos_por_ano -->
+# **Nota de curadoria:** A partir do gráfico de nascidos vivos é possível observar que há uma tendência de queda no número de nascidos vivos na cidade do Rio de Janeiro, com alguns períodos de recuperação. Entre os anos de 2020 e 2021, após um período com uma persistente queda acentuada, a série atinge um patamar muito baixo, período que coincide com o pico da pandemia da COVID-19, apontando que em 2022 a recuperação aparece como um ajuste estatístico da série. Logo, a queda, ainda que não linear, é consistente e aponta para uma redução de cerca de 30% ao longo da série histórica.
 
 # %% [markdown]
 # #### Nascidos abaixo peso
@@ -1220,6 +2814,14 @@ mapa_coropletico_bairros(
     legenda_titulo='% baixo peso', fonte_dados=fonte_datasus_bairro,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:mapa_percentual_baixo_peso_bairro_2025 -->
+# **Nota de curadoria:** Em 2025, a maior parte dos bairros do Rio de Janeiro apresentou percentuais de nascidos com baixo peso entre 7,4% e 29,4%. Alguns bairros apresentam percentuais mais elevados, chegando a valores acima de 20%. Diferentemente dos números absolutos, o mapa percentual permite comparar melhor os bairros, pois considera a quantidade de nascidos com baixo peso em relação ao total de nascimentos. Valores extremos devem ser analisados com cautela, especialmente em bairros com poucos nascimentos.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_nascidos_baixo_peso_bairro_2025 -->
+# **Nota de curadoria:** A distribuição espacial dos nascidos com baixo peso em 2025 mostra maior concentração em bairros das Zona Oeste e Norte, com destaque para Campo Grande, Santa Cruz, Bangu, Jacarepaguá e Guaratiba. Em contraste, grande parte dos bairros apresenta até 30 registros. Como o mapa utiliza números absolutos, os maiores valores não indicam necessariamente maior incidência, sendo importante compará-los ao total de nascimentos de cada bairro.
+
 # %%
 df_baixo_ano = df_baixo_peso.loc[:,['ano','nascidos abaixo peso']].groupby(by='ano').sum()
 df_baixo_ano.reset_index(inplace=True)
@@ -1230,6 +2832,10 @@ df_baixo_ano.head(25)
 # %%
 serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titulo='Percentual Nascidos com baixo peso por ano',
                nome_arquivo='nascidos_abaixo_peso_percentual_por_ano', fonte_dados=fonte_datasus_bairro)
+
+# %% [markdown]
+# <!-- nota-curadoria:nascidos_abaixo_peso_percentual_por_ano -->
+# **Nota de curadoria:** Entre 2006 e 2025, o percentual de nascidos com baixo peso apresentou oscilações moderadas. Após permanecer próximo de 10% até 2010, o indicador caiu e atingiu seu menor valor em 2017, com 9,15%. A partir de 2018, observa-se uma tendência de crescimento, chegando ao pico de 10,63% em 2023. Nos anos seguintes houve pequena redução, com o percentual chegando a 10,26% em 2025.
 
 # %% [markdown]
 # #### 📉 Mortalidade
@@ -1313,6 +2919,9 @@ df_mortalidade_raca_bairro['obitos_total'] = df_mortalidade_raca_bairro[colunas_
 df_mortalidade_raca_bairro['nascidos_total'] = df_mortalidade_raca_bairro[colunas_nascidos].sum(axis=1)
 percentual_total = (df_mortalidade_raca_bairro['obitos_total'] / df_mortalidade_raca_bairro['nascidos_total']) * 100
 df_mortalidade_raca_bairro['percentual_total'] = percentual_total.replace([float('inf'), -float('inf')], float('nan')).round(2)
+# revisão de unidades (specs/2026-09-25_website_graficos): mortalidade infantil se publica por MIL nascidos vivos,
+# como as demais taxas do relatório; `percentual_*` (por 100) fica no CSV só para quem já o lê
+df_mortalidade_raca_bairro['taxa_mortalidade_infantil_total'] = (df_mortalidade_raca_bairro['percentual_total'] * 10).round(2)
 
 df_mortalidade_raca_bairro = df_mortalidade_raca_bairro.sort_values(by=['ano','bairro']).reset_index(drop=True)
 df_mortalidade_raca_bairro.to_csv('dados_locais//tratados//mortalidade_raca_bairro_ano.csv', index=False)
@@ -1333,13 +2942,19 @@ for raca in racas:
     percentual = (df_mortalidade_raca_municipio[f'obitos_{raca}'] / df_mortalidade_raca_municipio[f'nascidos_{raca}']) * 100
     df_mortalidade_raca_municipio[f'percentual_{raca}'] = percentual.replace([float('inf'), -float('inf')], float('nan')).round(2)
 
+df_mortalidade_raca_municipio = agrupa_racas_raras(df_mortalidade_raca_municipio)   # E5, specs/exclusoes.md
+# taxa por mil nascidos vivos (revisão de unidades), recalculada dos absolutos -- inclusive amarela_indigena
+for raca in racas + ['amarela_indigena']:
+    taxa = df_mortalidade_raca_municipio[f'obitos_{raca}'] / df_mortalidade_raca_municipio[f'nascidos_{raca}'] * 1000
+    df_mortalidade_raca_municipio[f'taxa_mortalidade_{raca}'] = taxa.replace([float('inf'), -float('inf')], float('nan')).round(2)
 df_mortalidade_raca_municipio.to_csv('dados_locais//tratados//mortalidade_raca_municipio_ano.csv', index=False)
 df_mortalidade_raca_municipio.to_csv('tabelas_finais//mortalidade_raca_municipio_ano.csv', index=False)
 df_mortalidade_raca_municipio
 
 # %%
-rotulos_raca = {'Amarela':'amarela','Branca':'branca','Indígena':'indigena',
-                 'Parda':'parda','Preta':'preta','Não informada':'nao_informado'}
+# E5 (specs/exclusoes.md): amarela e indígena desenhadas juntas
+rotulos_raca = {'Branca':'branca','Parda':'parda','Preta':'preta',
+                 'Amarela e indígena':'amarela_indigena','Não informada':'nao_informado'}
 
 serie_temporal_multipla(
     df_mortalidade_raca_municipio,
@@ -1350,6 +2965,10 @@ serie_temporal_multipla(
     ylabel='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:obitos_raca_ano -->
+# **Nota de curadoria:** A série permite observar mudanças distintas na trajetória dos óbitos segundo raça/cor. Entre 2006 e 2025, os registros para crianças brancas passaram de 468 para 272, enquanto entre crianças pardas passaram de 373 para 396, após oscilações e valores superiores a 500 em alguns anos. Entre crianças pretas, os registros passaram de 89 para 57. A categoria “não informada” também apresentou redução, de 167 para 47, o que altera sua participação na série ao longo do período. Essas diferenças podem ser analisadas em conjunto com os nascidos vivos por raça/cor, disponíveis a partir de 2011, para distinguir composição dos nascimentos e ocorrência dos óbitos.
+
 # %%
 # percentual só existe a partir de 2011 (início da série de nascidos vivos por raça/cor da mãe)
 df_percentual_raca_municipio = df_mortalidade_raca_municipio[df_mortalidade_raca_municipio['ano'] >= 2011]
@@ -1357,11 +2976,15 @@ df_percentual_raca_municipio = df_mortalidade_raca_municipio[df_mortalidade_raca
 serie_temporal_multipla(
     df_percentual_raca_municipio,
     tempo='ano',
-    colunas={rotulo: f'percentual_{raca}' for rotulo, raca in rotulos_raca.items()},
-    titulo='Percentual de óbitos (0-364 dias) em relação aos nascidos vivos por raça/cor - Rio de Janeiro (2011-2025)',
-    nome_arquivo='percentual_mortalidade_raca_ano',
-    ylabel='Percentual (%)', fonte_dados=fonte_datasus_bairro,
+    colunas={rotulo: f'taxa_mortalidade_{raca}' for rotulo, raca in rotulos_raca.items()},
+    titulo='Taxa de mortalidade infantil (0-364 dias) por raça/cor, por mil nascidos vivos - Rio de Janeiro (2011-2025)',
+    nome_arquivo='percentual_mortalidade_raca_ano',   # nome do arquivo mantido (chave do texto curado e do crosswalk)
+    ylabel='Óbitos por mil nascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:percentual_mortalidade_raca_ano -->
+# **Nota de curadoria:** A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, as taxas de crianças brancas e pardas permaneceram próximas, variando de 17,6 a 11,3 e de 19,8 a 14,3 óbitos por mil nascidos vivos, respectivamente. Para crianças pretas, a taxa variou entre 5,0 e 14,3 por mil, enquanto a categoria amarela e indígena, agrupada por ter poucos registros, apresenta oscilações maiores associadas ao pequeno número de casos. A categoria “não informada” também apresenta forte variação, relacionada à quantidade de nascidos classificados nessa categoria. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
 
 # %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025) — total de óbitos, todas as raças
@@ -1377,11 +3000,19 @@ mapa_coropletico_bairros(
     bins=[2, 5, 10, 20], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 )
 mapa_coropletico_bairros(
-    df_raca_mapa_2025, coluna_valor='percentual_total', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
+    df_raca_mapa_2025, coluna_valor='taxa_mortalidade_infantil_total', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
     nome_arquivo='mapa_taxa_obitos_raca_total_bairro_2025', chave='codigo',
     cmap=_CORES_TEMA_MAPA['mortalidade'],
-    legenda_titulo='% s/ nascidos vivos', fonte_dados=fonte_datasus_bairro,
+    legenda_titulo='Óbitos por mil\nnascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_taxa_obitos_raca_total_bairro_2025 -->
+# **Nota de curadoria:** A taxa de mortalidade infantil permite comparar os bairros considerando a relação entre os óbitos e os nascidos vivos de cada território. Em 2025, Cidade Nova e Gericinó apresentaram a maior taxa registrada, de 71,4 óbitos por mil nascidos vivos, mas com números diferentes de óbitos e nascidos vivos: 3 óbitos entre 42 nascidos vivos em Cidade Nova e 1 entre 14 em Gericinó. Cidade Universitária apresentou 58,8 por mil, com 1 óbito entre 17 nascidos vivos. A comparação entre taxa, número de óbitos e nascidos vivos permite qualificar a leitura das diferenças territoriais e serve de base para relacionar o indicador a outros recortes da mortalidade infantil.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_obitos_raca_total_bairro_2025 -->
+# **Nota de curadoria:** A distribuição territorial dos óbitos infantis evidencia diferenças na quantidade de registros entre os bairros do município. Em 2025, Santa Cruz concentrou 53 óbitos, seguido por Campo Grande, com 40, e Jacarepaguá, com 32. Dos 167 bairros presentes na tabela, 139 registraram ao menos um óbito e 28 não apresentaram registros. Como o mapa utiliza números absolutos, essas diferenças podem ser relacionadas ao número de nascidos vivos de cada território, permitindo complementar a análise com a taxa de mortalidade infantil e outros recortes demográficos.
 
 # %%
 ## Retirar não informados do gráfico de percentual
@@ -1547,18 +3178,26 @@ serie_temporal_multipla(
     legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_grupo_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, observa-se uma redução expressiva dos óbitos de crianças de 0 a 364 dias por causas evitáveis. O número caiu de cerca de 1,5 mil registros no início da série para 502 em 2025. As causas mal definidas também apresentaram forte redução, chegando a 15 registros, enquanto as demais causas recuaram de forma mais moderada, alcançando 206 óbitos em 2025.
+
 # %%
 colunas_subgrupo = {c: c for c in df_evitaveis_subgrupo_wide.columns if c != 'ano'}
 serie_temporal_multipla(
     df_evitaveis_subgrupo_wide,
     tempo='ano',
-    colunas=colunas_subgrupo,
+    colunas=filtra_colunas_subgrupo(colunas_subgrupo),   # E3, specs/exclusoes.md
     titulo='Óbitos por causas evitáveis (0-364 dias) por subgrupo - Rio de Janeiro (1996-2025)',
     nome_arquivo='obitos_causas_evitaveis_subgrupo_ano',
     ylabel='Óbitos',
     legend_title='Subgrupo',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_ano -->
+# **Nota de curadoria:** Nos subgrupos de causas evitáveis, observa-se redução ao longo da série na maior parte das categorias. Os óbitos reduzíveis por adequada atenção à mulher na gestação permanecem como o principal grupo em 2025, com 263 registros. Também houve queda expressiva nos óbitos relacionados à atenção ao recém-nascido, que passaram de 543 em 1996 para 67 em 2025, enquanto aqueles relacionados à atenção à mulher no parto chegaram a 68 registros.
 
 # %% [markdown]
 # ##### Óbitos por causas evitáveis, por grupo de causa e faixa etária
@@ -1576,10 +3215,10 @@ df_evitaveis_subgrupo_0_6 = carrega_causas_evitaveis_categoria(faixas_evitaveis_
 df_evitaveis_grupo_0_6_wide = df_evitaveis_grupo_0_6.pivot(index='ano', columns='causa', values='obitos').reset_index()
 df_evitaveis_subgrupo_0_6_wide = df_evitaveis_subgrupo_0_6.pivot(index='ano', columns='causa', values='obitos').reset_index()
 
-df_evitaveis_grupo_0_6_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_grupo_0_6_ano.csv', index=False)
-df_evitaveis_subgrupo_0_6_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_subgrupo_0_6_ano.csv', index=False)
-df_evitaveis_grupo_0_6_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_grupo_0_6_ano.csv', index=False)
-df_evitaveis_subgrupo_0_6_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_subgrupo_0_6_ano.csv', index=False)
+df_evitaveis_grupo_0_6_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_grupo_0_a_6_dias_ano.csv', index=False)
+df_evitaveis_subgrupo_0_6_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_subgrupo_0_a_6_dias_ano.csv', index=False)
+df_evitaveis_grupo_0_6_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_grupo_0_a_6_dias_ano.csv', index=False)
+df_evitaveis_subgrupo_0_6_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_subgrupo_0_a_6_dias_ano.csv', index=False)
 df_evitaveis_grupo_0_6_wide.head()
 
 # %%
@@ -1589,23 +3228,31 @@ serie_temporal_multipla(
     tempo='ano',
     colunas=colunas_grupo_0_6,
     titulo='Óbitos por causas evitáveis (0-6 dias) por grupo - Rio de Janeiro (1996-2025)',
-    nome_arquivo='obitos_causas_evitaveis_grupo_0_6_ano',
+    nome_arquivo='obitos_causas_evitaveis_grupo_0_a_6_dias_ano',
     ylabel='Óbitos',
     legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_grupo_0_a_6_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos de crianças de 0 a 6 dias apresentaram queda expressiva. As causas evitáveis permaneceram como o principal grupo durante toda a série, reduzindo-se para 269 registros em 2025. No mesmo ano, as demais causas somaram 62 óbitos, enquanto as causas mal definidas ficaram em apenas 2 registros.
 
 # %%
 colunas_subgrupo_0_6 = {c: c for c in df_evitaveis_subgrupo_0_6_wide.columns if c != 'ano'}
 serie_temporal_multipla(
     df_evitaveis_subgrupo_0_6_wide,
     tempo='ano',
-    colunas=colunas_subgrupo_0_6,
+    colunas=filtra_colunas_subgrupo(colunas_subgrupo_0_6),   # E3
     titulo='Óbitos por causas evitáveis (0-6 dias) por subgrupo - Rio de Janeiro (1996-2025)',
-    nome_arquivo='obitos_causas_evitaveis_subgrupo_0_6_ano',
+    nome_arquivo='obitos_causas_evitaveis_subgrupo_0_a_6_dias_ano',
     ylabel='Óbitos',
     legend_title='Subgrupo',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_0_a_6_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos de crianças de 0 a 6 dias apresentaram redução em praticamente todos os subgrupos. As causas reduzíveis por atenção à mulher na gestação permaneceram como o principal componente, chegando a 183 registros em 2025. Também houve queda importante nos óbitos relacionados à atenção ao recém-nascido e à atenção à mulher no parto, enquanto as causas mal definidas ficaram em apenas 2 registros no final da série.
 
 # %% [markdown]
 # ###### Tardia (7 a 27 dias)
@@ -1617,10 +3264,10 @@ df_evitaveis_subgrupo_7_27 = carrega_causas_evitaveis_categoria(faixas_evitaveis
 df_evitaveis_grupo_7_27_wide = df_evitaveis_grupo_7_27.pivot(index='ano', columns='causa', values='obitos').reset_index()
 df_evitaveis_subgrupo_7_27_wide = df_evitaveis_subgrupo_7_27.pivot(index='ano', columns='causa', values='obitos').reset_index()
 
-df_evitaveis_grupo_7_27_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_grupo_7_27_ano.csv', index=False)
-df_evitaveis_subgrupo_7_27_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_subgrupo_7_27_ano.csv', index=False)
-df_evitaveis_grupo_7_27_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_grupo_7_27_ano.csv', index=False)
-df_evitaveis_subgrupo_7_27_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_subgrupo_7_27_ano.csv', index=False)
+df_evitaveis_grupo_7_27_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_grupo_7_a_27_dias_ano.csv', index=False)
+df_evitaveis_subgrupo_7_27_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_subgrupo_7_a_27_dias_ano.csv', index=False)
+df_evitaveis_grupo_7_27_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_grupo_7_a_27_dias_ano.csv', index=False)
+df_evitaveis_subgrupo_7_27_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_subgrupo_7_a_27_dias_ano.csv', index=False)
 df_evitaveis_grupo_7_27_wide.head()
 
 # %%
@@ -1630,23 +3277,31 @@ serie_temporal_multipla(
     tempo='ano',
     colunas=colunas_grupo_7_27,
     titulo='Óbitos por causas evitáveis (7-27 dias) por grupo - Rio de Janeiro (1996-2025)',
-    nome_arquivo='obitos_causas_evitaveis_grupo_7_27_ano',
+    nome_arquivo='obitos_causas_evitaveis_grupo_7_a_27_dias_ano',
     ylabel='Óbitos',
     legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_grupo_7_a_27_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos entre 7 e 27 dias de vida apresentaram tendência de queda. As causas evitáveis permaneceram como o principal grupo, passando de níveis próximos a 250-280 registros no início da série para 99 em 2025. As demais causas também diminuíram, chegando a 42 registros, enquanto as causas mal definidas ficaram praticamente zeradas no final do período.
 
 # %%
 colunas_subgrupo_7_27 = {c: c for c in df_evitaveis_subgrupo_7_27_wide.columns if c != 'ano'}
 serie_temporal_multipla(
     df_evitaveis_subgrupo_7_27_wide,
     tempo='ano',
-    colunas=colunas_subgrupo_7_27,
+    colunas=filtra_colunas_subgrupo(colunas_subgrupo_7_27),   # E3
     titulo='Óbitos por causas evitáveis (7-27 dias) por subgrupo - Rio de Janeiro (1996-2025)',
-    nome_arquivo='obitos_causas_evitaveis_subgrupo_7_27_ano',
+    nome_arquivo='obitos_causas_evitaveis_subgrupo_7_a_27_dias_ano',
     ylabel='Óbitos',
     legend_title='Subgrupo',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_7_a_27_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos entre 7 e 27 dias de vida apresentaram tendência de queda na maior parte dos subgrupos. A maior queda ocorreu nas causas reduzíveis por adequada atenção ao recém-nascido, que passaram de 157 registros em 1996 para 20 em 2025. Já as causas relacionadas à atenção a mulher na gestação permaneceram como o principal subgrupo no final da série, com 64 óbitos em 2025. Os demais apresentaram valores mais abaixos.
 
 # %% [markdown]
 # ###### Pós-neonatal (28 a 364 dias)
@@ -1658,10 +3313,10 @@ df_evitaveis_subgrupo_28_364 = carrega_causas_evitaveis_categoria(faixas_evitave
 df_evitaveis_grupo_28_364_wide = df_evitaveis_grupo_28_364.pivot(index='ano', columns='causa', values='obitos').reset_index()
 df_evitaveis_subgrupo_28_364_wide = df_evitaveis_subgrupo_28_364.pivot(index='ano', columns='causa', values='obitos').reset_index()
 
-df_evitaveis_grupo_28_364_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_grupo_28_364_ano.csv', index=False)
-df_evitaveis_subgrupo_28_364_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_subgrupo_28_364_ano.csv', index=False)
-df_evitaveis_grupo_28_364_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_grupo_28_364_ano.csv', index=False)
-df_evitaveis_subgrupo_28_364_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_subgrupo_28_364_ano.csv', index=False)
+df_evitaveis_grupo_28_364_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_grupo_28_a_364_dias_ano.csv', index=False)
+df_evitaveis_subgrupo_28_364_wide.to_csv('dados_locais//tratados//mortalidade_causas_evitaveis_subgrupo_28_a_364_dias_ano.csv', index=False)
+df_evitaveis_grupo_28_364_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_grupo_28_a_364_dias_ano.csv', index=False)
+df_evitaveis_subgrupo_28_364_wide.to_csv('tabelas_finais//mortalidade_causas_evitaveis_subgrupo_28_a_364_dias_ano.csv', index=False)
 df_evitaveis_grupo_28_364_wide.head()
 
 # %%
@@ -1671,23 +3326,31 @@ serie_temporal_multipla(
     tempo='ano',
     colunas=colunas_grupo_28_364,
     titulo='Óbitos por causas evitáveis (28-364 dias) por grupo - Rio de Janeiro (1996-2025)',
-    nome_arquivo='obitos_causas_evitaveis_grupo_28_364_ano',
+    nome_arquivo='obitos_causas_evitaveis_grupo_28_a_364_dias_ano',
     ylabel='Óbitos',
     legend_title='Grupo', fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_grupo_28_a_364_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos entre 28 e 364 dias apresentaram tendência de redução. As causas evitáveis permaneceram como o principal grupo, passando de 461 registros em 1996 para 134 em 2025. As demais causas também diminuíram, chegando a 102 óbitos, enquanto as causas mal definidas apresentaram a maior redução proporcional, passando de 108 para 13 registros.
 
 # %%
 colunas_subgrupo_28_364 = {c: c for c in df_evitaveis_subgrupo_28_364_wide.columns if c != 'ano'}
 serie_temporal_multipla(
     df_evitaveis_subgrupo_28_364_wide,
     tempo='ano',
-    colunas=colunas_subgrupo_28_364,
+    colunas=filtra_colunas_subgrupo(colunas_subgrupo_28_364),   # E3
     titulo='Óbitos por causas evitáveis (28-364 dias) por subgrupo - Rio de Janeiro (1996-2025)',
-    nome_arquivo='obitos_causas_evitaveis_subgrupo_28_364_ano',
+    nome_arquivo='obitos_causas_evitaveis_subgrupo_28_a_364_dias_ano',
     ylabel='Óbitos',
     legend_title='Subgrupo',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_28_a_364_dias_ano -->
+# **Nota de curadoria:** Entre 1996 e 2025, os óbitos entre 28 e 364 dias apresentaram queda na maior parte dos subgrupos. O principal destaque é a redução dos óbitos reduzíveis por ações de diagnóstico e tratamento adequado, que saíram de patamares muito elevados no início da série e chegaram a 43 registros em 2025. No final do período, os maiores valores ficaram em ações de promoção vinculadas às ações de atenção, com 56 óbitos, seguidas por diagnóstico e tratamento adequado, enquanto os demais subgrupos apresentaram números mais baixos.
 
 # %% [markdown]
 # ###### Comparação entre faixas etárias (2025)
@@ -1759,7 +3422,7 @@ colunas_subgrupo_evitaveis_cap = {c: c for c in df_evitaveis_subgrupo_mrj_wide.c
 serie_temporal_multipla(
     df_evitaveis_subgrupo_mrj_wide,
     tempo='ano',
-    colunas=colunas_subgrupo_evitaveis_cap,
+    colunas=filtra_colunas_subgrupo(colunas_subgrupo_evitaveis_cap),   # E3
     titulo='Óbitos por causas evitáveis (< 5 anos) por subgrupo - Rio de Janeiro (2006-2025)',
     nome_arquivo='obitos_evitaveis_menores_5_subgrupo_ano',
     ylabel='Óbitos',
@@ -1773,6 +3436,10 @@ serie_temporal(
     'Taxa de mortalidade por causas evitáveis (< 5 anos), por mil nascidos vivos - Rio de Janeiro (2006-2025)',
     nome_arquivo='taxa_mortalidade_evitaveis_menores_5_ano', fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:taxa_mortalidade_evitaveis_menores_5_ano -->
+# **Nota de curadoria:** A taxa relaciona os óbitos por causas evitáveis ao número de nascidos vivos, permitindo acompanhar a ocorrência do indicador ao longo do tempo. Em 2006, foram registrados 1.353 óbitos e taxa de 16,48 por mil nascidos vivos. Em 2025, foram 856 óbitos e 14,58 por mil, enquanto o menor valor da série ocorreu em 2014, com 13,10 por mil. A trajetória apresenta oscilações, inclusive nos anos mais recentes, quando a taxa passou de 14,28 em 2022 para 14,97 em 2023, 14,28 em 2024 e 14,58 em 2025. A série permite acompanhar conjuntamente a ocorrência dos óbitos e sua relação com os nascidos vivos.
 
 # %% [markdown]
 # ###### Panorama municipal, por subgrupo — demais faixas etárias
@@ -1797,7 +3464,7 @@ for sufixo, rotulo in faixas_evitaveis_municipio_extra.items():
     serie_temporal_multipla(
         df_municipio_faixa_wide,
         tempo='ano',
-        colunas={c: c for c in df_municipio_faixa_wide.columns if c != 'ano'},
+        colunas=filtra_colunas_subgrupo({c: c for c in df_municipio_faixa_wide.columns if c != 'ano'}, rotulo),   # E2/E3
         titulo=f'Óbitos por causas evitáveis ({rotulo}) por subgrupo - Rio de Janeiro (2006-2025)',
         nome_arquivo=f'obitos_evitaveis_{sufixo}_subgrupo_ano',
         ylabel='Óbitos', legend_title='Subgrupo', figsize=(14,7), fonte_dados=fonte_evitaveis,
@@ -1886,6 +3553,10 @@ serie_temporal_multipla(
     legend_title='CAP',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_evitaveis_total_cap_ano -->
+# **Nota de curadoria:** A série permite acompanhar a evolução dos óbitos de menores de 5 anos nas diferentes Áreas Programáticas de Saúde (CAP) e comparar como esses registros variam entre os territórios ao longo do tempo. No conjunto das CAPs, os óbitos passaram de 1.311 em 2006 para 856 em 2025, com redução ao longo da série, embora tenha ocorrido aumento entre 2024 e 2025, de 819 para 856 registros. A distribuição territorial também apresenta diferenças importantes em 2025, com 150 óbitos na CAP 4.0 e 131 na CAP 3.3. Esses dados podem ser relacionados à composição das causas e ao percentual de óbitos evitáveis em cada CAP.
 
 # %% [markdown]
 # ###### Por subgrupo e CAP — séries temporais
@@ -2049,6 +3720,10 @@ serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durant
                nome_arquivo='obitos_gravidez_por_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
+# <!-- nota-curadoria:obitos_gravidez_por_ano -->
+# **Nota de curadoria:** A série histórica permite acompanhar a variação dos óbitos ocorridos durante a gravidez no município entre 2006 e 2025. O número de registros passou de 78 em 2006 para 15 em 2025, uma redução de aproximadamente 81%, embora a trajetória apresente oscilações ao longo do período. Em 2024 foram registrados 4 óbitos, seguido de aumento para 15 em 2025. Por se tratar de número absoluto de óbitos, o indicador permite acompanhar a evolução temporal do evento, mas não representa, isoladamente, uma medida de risco. A série pode servir de base para comparações com outros indicadores de mortalidade materna.
+
+# %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025)
 #
 # **Nota:** contagens muito pequenas por bairro (a maioria com 0 óbitos em 2025) -- leia como
@@ -2065,6 +3740,10 @@ df_obitos_gravidez_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_gravidez_2025
 #     cmap=_CORES_TEMA_MAPA['mortalidade'],
 #     bins=[0, 1], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 # )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_obitos_gravidez_bairro_2025 -->
+# **Nota de curadoria:** A distribuição territorial dos óbitos durante a gravidez permite identificar os bairros com registros do evento em 2025. Foram registrados 14 óbitos em 12 bairros, com dois registros em Vigário Geral e Rocinha. O total do mapa é menor que o da série municipal (15 óbitos em 2025) porque 1 registro não tem bairro de residência informado. Como são números absolutos e contagens pequenas, o mapa pode ser utilizado como referência territorial e relacionado a outros indicadores, como nascidos vivos, população e características demográficas, para ampliar a análise da mortalidade materna.
 
 # %%
 df_obitos_puerperio = pd.read_csv('dados_locais/mortalidade/obitos_puerperio_bairro_2006_2025.csv')
@@ -2084,6 +3763,10 @@ serie_temporal(df_obitos_puerperio_anual,'ano','óbitos-puerpério','Óbitos dur
                nome_arquivo='obitos_puerperio_por_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
+# <!-- nota-curadoria:obitos_puerperio_por_ano -->
+# **Nota de curadoria:** A série histórica permite acompanhar a variação dos óbitos ocorridos durante o puerpério entre 2006 e 2025. Os registros passaram de 67 em 2006 para 35 em 2025, com oscilações ao longo do período. Destaca-se o aumento observado em 2020 e 2021, quando foram registrados 74 e 109 óbitos, respectivamente, seguido de redução nos anos posteriores. Em 2024 ocorreu o menor número da série, com 33 óbitos, seguido de 35 em 2025. A série pode ser utilizada para comparações temporais com outros indicadores de mortalidade materna.
+
+# %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025)
 #
 # **Nota:** mesma ressalva do mapa de óbitos na gravidez acima -- contagens muito pequenas
@@ -2101,6 +3784,10 @@ df_obitos_puerperio_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_puerperio_20
 # )
 
 # %% [markdown]
+# <!-- nota-curadoria:mapa_obitos_puerperio_bairro_2025 -->
+# **Nota de curadoria:** A distribuição territorial dos óbitos durante o puerpério permite identificar os bairros com registros do evento em 2025. Foram registrados 31 óbitos distribuídos em 24 bairros, com maior número em Senador Camará, que apresentou 3 registros. Jacarepaguá, Bangu, Pavuna, Guaratiba e Complexo do Alemão registraram 2 óbitos cada, enquanto os demais bairros com ocorrência apresentaram 1 registro. O total do mapa é menor que o da série municipal (35 óbitos em 2025) porque 4 registros não têm bairro de residência informado. Como são números absolutos, o mapa pode ser relacionado a outros indicadores, como nascidos vivos e características demográficas, para ampliar a análise territorial da mortalidade materna.
+
+# %% [markdown]
 # #### 🩺 Mortalidade Neonatal
 
 
@@ -2113,53 +3800,12 @@ df_obitos_puerperio_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_puerperio_20
 # ##### Precoce (0 a 6 dias)
 
 # %%
-# df_neonatal_precoce = pd.read_csv('dados_locais//mortalidade//obitos_0_6_dias_bairro_2006_2025.csv', sep=';')
-# df_neonatal_precoce = limpa_dados_datasus(df_neonatal_precoce)
-# df_neonatal_precoce = limpeza_tabnet_bairros(df_neonatal_precoce,categoria='obitos precoces')
-# df_neonatal_precoce = df_vivos.merge(
-#     df_neonatal_precoce,
-#     on=['bairro', 'ano', 'codigo'],
-#     how='left'
-# )
-
-# df_neonatal_precoce['obitos_precoces'] = (
-#     df_neonatal_precoce['obitos_precoces'].fillna(0)
-# )
-# df_neonatal_precoce['taxa_mortalidade_precoce'] = (df_neonatal_precoce['obitos precoces']/df_neonatal_precoce['nascidos vivos'])*1000
-# df_neonatal_precoce.to_csv('tabelas_finais//mortalidade_neonatal_precoce_bairro_ano.csv', index=False)
-# df_neonatal_precoce.head()
-
-df_neonatal_precoce = pd.read_csv(
-    'dados_locais//mortalidade//obitos_0_6_dias_bairro_2006_2025.csv',
-    sep=';'
-)
-
+df_neonatal_precoce = pd.read_csv('dados_locais//mortalidade//obitos_0_6_dias_bairro_2006_2025.csv', sep=';')
 df_neonatal_precoce = limpa_dados_datasus(df_neonatal_precoce)
-df_neonatal_precoce = limpeza_tabnet_bairros(
-    df_neonatal_precoce,
-    categoria='obitos precoces'
-)
-
-df_neonatal_precoce = df_vivos.merge(
-    df_neonatal_precoce,
-    on=['bairro', 'ano', 'codigo'],
-    how='left'
-)
-
-df_neonatal_precoce['obitos precoces'] = (
-    df_neonatal_precoce['obitos precoces'].fillna(0)
-)
-
-df_neonatal_precoce['taxa_mortalidade_precoce'] = (
-    df_neonatal_precoce['obitos precoces']
-    / df_neonatal_precoce['nascidos vivos']
-) * 1000
-
-df_neonatal_precoce.to_csv(
-    'tabelas_finais//mortalidade_neonatal_precoce_bairro_ano.csv',
-    index=False
-)
-
+df_neonatal_precoce = limpeza_tabnet_bairros(df_neonatal_precoce,categoria='obitos precoces')
+df_neonatal_precoce = df_neonatal_precoce.merge(df_vivos, on=['bairro','ano','codigo'])
+df_neonatal_precoce['taxa_mortalidade_precoce'] = (df_neonatal_precoce['obitos precoces']/df_neonatal_precoce['nascidos vivos'])*1000
+df_neonatal_precoce.to_csv('tabelas_finais//mortalidade_neonatal_precoce_bairro_ano.csv', index=False)
 df_neonatal_precoce.head()
 
 # %%
@@ -2171,6 +3817,10 @@ df_neonatal_precoce_anual
 # %%
 serie_temporal(df_neonatal_precoce_anual,'ano','taxa_mortalidade_precoce','Taxa de óbitos precoces por ano',
                nome_arquivo='taxa_mortalidade_precoce_ano', fonte_dados=fonte_datasus_bairro)
+
+# %% [markdown]
+# <!-- nota-curadoria:taxa_mortalidade_precoce_ano -->
+# **Nota de curadoria:** A série histórica permite analisar a evolução da mortalidade neonatal precoce em relação ao número de nascidos vivos no município. Entre 2006 e 2025, a taxa passou de 7,86 para 6,42 óbitos por mil nascidos vivos, embora tenha apresentado oscilações ao longo do período. Em 2024, foram registrados 389 óbitos, o menor número da série, seguido de aumento para 420 em 2025. A leitura conjunta da taxa e dos números absolutos permite distinguir mudanças na ocorrência dos óbitos de variações relacionadas ao número de nascidos vivos, servindo como base para comparações temporais e para o cruzamento com outros indicadores de mortalidade infantil.
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2191,6 +3841,14 @@ mapa_coropletico_bairros(
     cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_taxa_mortalidade_precoce_bairro_2025 -->
+# **Nota de curadoria:** A taxa de mortalidade neonatal precoce permite comparar os bairros considerando o número de nascidos vivos de cada território, evitando a interpretação baseada apenas na quantidade de óbitos. Em 2025, alguns bairros apresentam taxas elevadas associadas a poucos registros de óbitos e a um número reduzido de nascidos vivos, como Gericinó, com 1 óbito entre 14 nascidos vivos, e Cidade Universitária, com 1 entre 17. Por isso, a leitura territorial da taxa deve considerar também o número absoluto de óbitos e o tamanho do denominador. Esses dados podem servir de base para comparar os territórios e aprofundar a análise em conjunto com outros indicadores.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_obitos_neonatal_precoce_bairro_2025 -->
+# **Nota de curadoria:** A distribuição dos óbitos neonatais precoces por bairro permite identificar como os 420 óbitos registrados em 2025 estão distribuídos territorialmente. Por apresentar números absolutos, o mapa possibilita comparar a quantidade de óbitos entre os bairros e reconhecer onde esses registros estão mais concentrados. A informação pode ser utilizada como base para cruzamentos com o número de nascidos vivos, relacionando a ocorrência dos óbitos ao tamanho da população exposta. O recorte territorial também pode ser relacionado a outros indicadores de mortalidade infantil e características demográficas dos bairros, ampliando a análise do fenômeno.
 
 # %% [markdown]
 # ##### Tardia (7 a 27 dias)
@@ -2215,6 +3873,10 @@ serie_temporal(df_neonatal_tardia_anual,'ano','taxa_obitos_tardios','Taxa de ób
                nome_arquivo='taxa_obitos_tardios_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
+# <!-- nota-curadoria:taxa_obitos_tardios_ano -->
+# **Nota de curadoria:** A série histórica permite acompanhar a evolução da mortalidade neonatal tardia em relação ao número de nascidos vivos. Entre 2006 e 2025, a taxa passou de 2,70 para 2,60 óbitos por mil nascidos vivos, com oscilações ao longo do período. O maior valor ocorreu em 2020 (3,46), enquanto o menor foi registrado em 2022 (2,29). No mesmo período, os óbitos tardios passaram de 250 para 170. A leitura conjunta desses indicadores permite diferenciar a variação no número de óbitos da variação proporcional em relação aos nascidos vivos e serve de base para comparações temporais com outros indicadores de mortalidade infantil.
+
+# %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
 
 # %%
@@ -2233,6 +3895,14 @@ mapa_coropletico_bairros(
     cmap=_CORES_TEMA_MAPA['mortalidade'],
     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_taxa_obitos_tardios_bairro_2025 -->
+# **Nota de curadoria:** A taxa de mortalidade neonatal tardia permite comparar os bairros considerando o número de nascidos vivos de cada território. Em 2025, alguns bairros apresentam taxas elevadas mesmo com apenas um óbito, como Cidade Nova, com 1 óbito entre 42 nascidos vivos, e Riachuelo, com 1 entre 66. Dos 161 bairros da tabela, 86 não registraram óbitos tardios. Por isso, a leitura da taxa deve considerar conjuntamente o número de óbitos e o número de nascidos vivos, especialmente nos territórios com menor número de nascimentos. O indicador pode servir de base para comparações territoriais e cruzamentos com outros dados de mortalidade infantil.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_obitos_neonatal_tardia_bairro_2025 -->
+# **Nota de curadoria:** A distribuição territorial dos óbitos neonatais tardios permite identificar como os registros de 2025 se concentram entre os bairros. Na base utilizada para o mapa, 86 bairros não apresentaram registros, enquanto os maiores números ocorreram em Santa Cruz e Campo Grande, com 12 óbitos cada, e Jacarepaguá, com 8. Como se trata de números absolutos, a quantidade de óbitos deve ser interpretada em conjunto com o número de nascidos vivos de cada território. Essa informação pode servir de base para comparar a distribuição dos registros com as respectivas taxas e com outros indicadores de mortalidade neonatal.
 
 # %% [markdown]
 # ##### Pós-neonatal (28 a 364 dias)
@@ -2281,9 +3951,13 @@ df_mortalidade_infantil_anual['taxa_mortalidade_pos_neonatal'] = (df_mortalidade
 df_mortalidade_infantil_anual.to_csv('tabelas_finais//mortalidade_infantil_pos_neonatal_total_por_ano.csv')
 df_mortalidade_infantil_anual
 
-# # %%
-# serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonatal','Taxa de mortalidade pós-neonatal (28-364 dias) por ano',
-#                nome_arquivo='taxa_mortalidade_pos_neonatal_ano', fonte_dados=fonte_datasus_bairro)
+# %%
+serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonatal','Taxa de mortalidade pós-neonatal (28-364 dias) por ano',
+               nome_arquivo='taxa_mortalidade_pos_neonatal_ano', fonte_dados=fonte_datasus_bairro)
+
+# %% [markdown]
+# <!-- nota-curadoria:taxa_mortalidade_pos_neonatal_ano -->
+# **Nota de curadoria:** Ao longo da série, o indicador apresenta oscilações, com valores mais elevados no início do período e redução até 2020, quando atingiu 3,70 óbitos por mil nascidos vivos. A partir de 2021, observa-se retomada dos valores, chegando a 4,65 em 2024 e 4,48 em 2025. A comparação entre os anos permite identificar mudanças no comportamento desse componente da mortalidade infantil e verificar como sua trajetória se relaciona às variações observadas na taxa de mortalidade infantil total.
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2298,42 +3972,58 @@ df_mortalidade_infantil_mapa.to_csv('tabelas_finais//tabela_mapa_mortalidade_inf
 #     cmap=_CORES_TEMA_MAPA['mortalidade'],
 #     bins=[1, 2, 4, 8], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
 # )
-# mapa_coropletico_bairros(
-#     df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_pos_neonatal', titulo='Taxa de mortalidade pós-neonatal (28-364 dias) por bairro (2025)',
-#     nome_arquivo='mapa_taxa_mortalidade_pos_neonatal_bairro_2025', chave='codigo',
-#     cmap=_CORES_TEMA_MAPA['mortalidade'],
-#     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
-# )
+mapa_coropletico_bairros(
+    df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_pos_neonatal', titulo='Taxa de mortalidade pós-neonatal (28-364 dias) por bairro (2025)',
+    nome_arquivo='mapa_taxa_mortalidade_pos_neonatal_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
+    legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
+)
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_taxa_mortalidade_pos_neonatal_bairro_2025 -->
+# **Nota de curadoria:** A taxa permite comparar os bairros considerando o número de nascidos vivos de cada território. Em 2025, os maiores valores ocorreram em Cidade Nova (47,62 por mil), Camorim (28,57) e Pitangueiras (26,32). Esses valores correspondem a poucos registros de óbitos: 2 em Cidade Nova, 1 em Camorim e 2 em Pitangueiras. A leitura conjunta da taxa com o número de óbitos e de nascidos vivos é importante para contextualizar as diferenças entre os territórios, especialmente nos bairros com menor número de nascimentos.
 
 # %% [markdown]
 # ##### Total (0 a 364 dias)
 
 # %%
-# serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','Taxa de mortalidade infantil (0-364 dias) por ano',
-#                nome_arquivo='taxa_mortalidade_infantil_ano', fonte_dados=fonte_datasus_bairro)
+serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','Taxa de mortalidade infantil (0-364 dias) por ano',
+               nome_arquivo='taxa_mortalidade_infantil_ano', fonte_dados=fonte_datasus_bairro)
+
+# %% [markdown]
+# <!-- nota-curadoria:taxa_mortalidade_infantil_ano -->
+# **Nota de curadoria:** A série histórica apresenta oscilações entre 2006 e 2025, com redução até 2017, quando atingiu 11,26 óbitos por mil nascidos vivos. A partir de 2018, observa-se uma retomada gradual, chegando a 13,03 em 2024 e 13,06 em 2025. A comparação ao longo do período permite identificar mudanças no comportamento do indicador e relacioná-las às variações no número de óbitos e de nascidos vivos. A trajetória também pode ser analisada em conjunto com os diferentes componentes da mortalidade na primeira infância.
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
 
 # %%
-# mapa_coropletico_bairros(
-#     df_mortalidade_infantil_mapa, coluna_valor='obitos_0_364', titulo='Óbitos infantis (0-364 dias) por bairro (2025)',
-#     nome_arquivo='mapa_mortalidade_infantil_bairro_2025', chave='codigo',
-#     cmap=_CORES_TEMA_MAPA['mortalidade'],
-#     bins=[2, 5, 10, 20], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
-# )
-# mapa_coropletico_bairros(
-#     df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_infantil', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
-#     nome_arquivo='mapa_taxa_mortalidade_infantil_bairro_2025', chave='codigo',
-#     cmap=_CORES_TEMA_MAPA['mortalidade'],
-#     legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
-# )
+mapa_coropletico_bairros(
+    df_mortalidade_infantil_mapa, coluna_valor='obitos_0_364', titulo='Óbitos infantis (0-364 dias) por bairro (2025)',
+    nome_arquivo='mapa_mortalidade_infantil_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
+    bins=[2, 5, 10, 20], legenda_titulo='Óbitos', fonte_dados=fonte_datasus_bairro,
+)
+mapa_coropletico_bairros(
+    df_mortalidade_infantil_mapa, coluna_valor='taxa_mortalidade_infantil', titulo='Taxa de mortalidade infantil (0-364 dias) por bairro (2025)',
+    nome_arquivo='mapa_taxa_mortalidade_infantil_bairro_2025', chave='codigo',
+    cmap=_CORES_TEMA_MAPA['mortalidade'],
+    legenda_titulo='Taxa por mil NV', fonte_dados=fonte_datasus_bairro,
+)
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_mortalidade_infantil_bairro_2025 -->
+# **Nota de curadoria:** Em 2025, foram registrados 773 óbitos infantis nos bairros analisados. Santa Cruz concentrou 53 registros, seguida por Campo Grande, com 40, e Jacarepaguá, com 32. Em 28 dos 167 bairros não houve registro de óbitos. Como os números variam também conforme o tamanho da população de nascidos vivos, a comparação entre os bairros ganha contexto quando relacionada à respectiva taxa de mortalidade infantil.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_taxa_mortalidade_infantil_bairro_2025 -->
+# **Nota de curadoria:** Em 2025, alguns bairros apresentaram taxas elevadas mesmo com poucos registros de óbitos. Em Cidade Nova, foram 2 óbitos entre 42 nascidos vivos, resultando em 47,62 óbitos por mil nascidos vivos. Em Camorim, 1 óbito entre 35 nascidos vivos correspondeu a 28,57 por mil, enquanto em Pitangueiras foram 2 óbitos entre 76 nascidos vivos, com taxa de 26,32 por mil. Esses exemplos mostram como o número de nascidos vivos influencia a taxa e reforçam a importância de analisá-la junto aos valores absolutos.
 
 # %% [markdown]
 # ### 🥗 DataSus - SISVAN
 
 # %% [markdown]
-# Percentual de crianças 0-6 anos com sobrepeso/obesidade e desnutrição, agregado por ano (fonte: SISVAN).
+# Percentual de crianças de 0 a 5 anos (fase da vida "Criança (de 0 a 5 anos)" do SISVAN) com sobrepeso/obesidade e desnutrição, agregado por ano (fonte: SISVAN).
 
 # %%
 fonte_sisvan = 'SISVAN/DATASUS'
@@ -2346,8 +4036,12 @@ df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo
 df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
 df_desnutricao.to_csv('tabelas_finais/sisvan_desnutricao_por_ano.csv')
-serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual de crianças de 0 a 6 anos com baixo peso - SISVAN',
+serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual de crianças de 0 a 5 anos com baixo peso - SISVAN',
                nome_arquivo='sisvan_desnutricao_percentual_por_ano', fonte_dados=fonte_sisvan)
+
+# %% [markdown]
+# <!-- nota-curadoria:sisvan_desnutricao_percentual_por_ano -->
+# **Nota de curadoria:** Ao longo da série, o percentual de crianças com baixo peso para a idade (desnutrição) apresentou oscilações, permanecendo na maior parte dos anos entre 3% e 7%. O principal destaque ocorreu em 2018, quando o indicador atingiu 15,5%, valor muito acima dos outros anos. Após esse pico, o percentual retorna a níveis mais próximos do padrão da série, chegando a 7,5% em 2025. O valor de 2018 se destaca como um ponto fora do comportamento geral e merece atenção ao ser analisado.
 
 # %%
 df_sobrepeso = pd.read_csv("dados_locais/tratados/sobrepeso.csv", index_col=0)
@@ -2358,12 +4052,20 @@ df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].appl
 df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
 df_sobrepeso.to_csv('tabelas_finais/sisvan_sobrepeso_por_ano.csv')
-serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual de crianças de 0 a 6 anos com sobrepeso e obesidade - SISVAN',
+serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual de crianças de 0 a 5 anos com sobrepeso e obesidade - SISVAN',
                nome_arquivo='sisvan_sobrepeso_percentual_por_ano', fonte_dados=fonte_sisvan)
 
+# %% [markdown]
+# <!-- nota-curadoria:sisvan_sobrepeso_percentual_por_ano -->
+# **Nota de curadoria:** O percentual de crianças com sobrepeso apresentou oscilações ao longo da série. O indicador cresce até atingir seu maior valor em 2013, com 21,48%, e depois passa a apresentar redução, chegando a 12,30% em 2021. A partir de 2022, observa-se nova elevação, alcançando 16,89% em 2025.
+
 # %%
-serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual de crianças de 0 a 6 anos com obesidade - SISVAN',
+serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Percentual de crianças de 0 a 5 anos com obesidade - SISVAN',
                nome_arquivo='sisvan_obesidade_percentual_por_ano', fonte_dados=fonte_sisvan)
+
+# %% [markdown]
+# <!-- nota-curadoria:sisvan_obesidade_percentual_por_ano -->
+# **Nota de curadoria:** O percentual de crianças com obesidade, semelhante ao com sobrepeso, também apresentou oscilações ao longo da série. Após crescimento entre 2008 e 2013, o indicador atingiu seu maior valor em 2013, com 11,36%. Nos anos seguintes houve tendência de redução, chegando a 5,36% em 2020. A partir de 2022, os valores permaneceram relativamente estáveis, com leve aumento recente, alcançando 7,34% em 2025. O valor de 2009, de 0,07%, aparece muito abaixo do restante da série e deve ser interpretado com cautela.
 
 # %% [markdown]
 # ### 💉 Cobertura Vacinal EPI
@@ -2397,6 +4099,10 @@ df_cobertura_vacinal_wide.head()
 # )
 
 # %% [markdown]
+# <!-- nota-curadoria:cobertura_vacinal_epi_ano -->
+# **Nota de curadoria:** A evolução da cobertura vacinal na cidade do Rio de Janeiro traz uma trajetória com uma elevada cobertura para grande parte dos imunizantes até 2018, momento que se inicia uma redução entre os anos de 2019 e 2022. A partir de 2023 observa-se recuperação das coberturas, especialmente para pneumocócica 10-valente, poliomielite, meningocócica C, rotavírus e primeira dose da tríplice viral. Entretanto, a recuperação não é homogênea entre os imunizantes, permanecendo níveis baixos em vacinas como DTP de primeiro reforço, hepatite A e segunda dose da tríplice viral, chamando atenção para o cuidado com as doses de reforço.
+
+# %% [markdown]
 # Comparativo da cobertura vacinal por imunobiológico nos anos de 2016, 2019, 2022 e 2025.
 
 # %%
@@ -2425,13 +4131,17 @@ grafico_barra_agrupado(
 )
 
 # %% [markdown]
+# <!-- nota-curadoria:cobertura_vacinal_epi_comparativo_anos -->
+# **Nota de curadoria:** A cobertura vacinal no município do Rio de Janeiro quando analisada comparando-se os anos apresenta uma trajetória marcada por um patamar relativamente elevado e heterogêneo no início da série, uma redução generalizada que atinge seu ponto mais baixo em 2022e e uma recuperação observada a partir de 2023, ficando mais evidente em 2025. Entretanto, a recuperação não é uniforme entre os imunobiológicos, permanecendo baixas em coberturas de algumas doses de reforço/esquema vacinal.
+
+# %% [markdown]
 # ### 🎓 PNAD Contínua, Censo Escolar e INEP
 
 # %% [markdown]
-# Frequência escolar (PNAD Contínua) e matrículas (Censo Escolar/INEP) de crianças de 0 a 6 anos.
+# Frequência escolar (PNAD Contínua, até 6 anos) e matrículas (Censo Escolar/INEP, 0 a 5 anos) de crianças pequenas.
 
 # %% [markdown]
-# #### Frequência escolar 0-6 anos (IBGE SIDRA, Censo 2022)
+# #### Frequência escolar de 0 a 5 anos e taxa de frequência de 0 a 6 anos (IBGE SIDRA, Censo 2022)
 #
 # Comparativo mais recente e granular (idade simples, por raça/sexo) que a série PNAD abaixo
 # -- mas de fonte e desenho diferentes: o Censo é enumeração completa (não amostral) de um
@@ -2475,6 +4185,18 @@ grafico_barra_agrupado(
 )
 
 # %%
+# populacao-referencia D3: item do catálogo "Crianças até 6 anos frequentando escola/creche (geral)" --
+# o total (todas as raças e sexos) por idade. A tabela 10057 vai só até 5 anos (faixa real 0 a 5).
+df_sidra_freq_total = df_sidra_freq_sexo[df_sidra_freq_sexo['Sexo'] == 'Total'].copy()
+df_sidra_freq_total = (df_sidra_freq_total[df_sidra_freq_total['idade'] != 'Total'][['idade', 'valor']]
+                       .rename(columns={'valor': 'Crianças'}))
+assert df_sidra_freq_total['Crianças'].sum() == 233509
+df_sidra_freq_total.to_csv('tabelas_finais//sidra_frequencia_escola_0_5_total_2022.csv', index=False)
+grafico_barra(df_sidra_freq_total, categoria='idade', valor='Crianças',
+              titulo='Crianças de 0 a 5 anos que frequentam escola/creche, por idade - Rio de Janeiro (Censo 2022)',
+              nome_arquivo='sidra_frequencia_escola_0_5_total_2022', fonte_dados=fonte_sidra_educacao)
+
+# %%
 grafico_barra_agrupado(
     df_sidra_taxa_raca[df_sidra_taxa_raca['Cor ou raça'] != 'Total'],
     categoria='idade', valor='valor', agrupador='Cor ou raça',
@@ -2507,24 +4229,95 @@ df_freq_escolar.to_csv('tabelas_finais//frequencia_escolar_pnad_por_idade.csv', 
 df_freq_escolar
 
 # %%
-# grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequencia escolar por idade",
-#               nome_arquivo='pnad_frequencia_escolar_por_idade', fonte_dados=fonte_pnad)
+grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequência escolar por idade, 0 a 6 anos (PNAD Contínua)",
+              nome_arquivo='pnad_frequencia_escolar_por_idade', fonte_dados=fonte_pnad)
 
 # %% [markdown]
-# #### Número de matrículas 0 a 6 anos (complementar 2021-2025)
+# <!-- nota-curadoria:pnad_frequencia_escolar_por_idade -->
+# **Nota de curadoria:** A frequência escolar na primeira infância apresenta uma trajetória de crescimento acelerado à medida que a idade da criança vai aumentando. Esse movimento pode ser explicado pela necessidade de retorno dos pais, em especial das mães, ao mercado de trabalho e garantia do direito constitucional ao desenvolvimento para as crianças. A partir dos 4 anos, quando há a obrigatoriedade legal da pré-escola a taxa sobe para cerca de 83%, atingindo 90% aos 5 anos. A despeito do alto percentual, é um ponto de atenção ter uma déficit de 17% e 10% de crianças em idade escolar obrigatória que não a estejam frequentando.
+
+# %% [markdown]
+# #### Matrículas e taxa de atendimento de 0 a 5 anos (Censo Escolar/INEP, 2007-2025)
+#
+# **Nota de método** (`specs/2026-09-24_populacao-referencia/matriculas/`):
+# - **Fonte:** microdados do Censo Escolar da Educação Básica (INEP), município do Rio de Janeiro
+#   (`CO_MUNICIPIO` 3304557), lidos dos ZIPs originais por `carrega_censo_escolar_matriculas`. O extrato
+#   `dados_locais/educacao/inep_matriculas_rio.csv` (ano × dependência) deixa o notebook rodar sem os ZIPs.
+# - **Só contagens por escola:** desde a adequação à LGPD o INEP publica uma linha por escola, com as
+#   matrículas já agregadas em faixas de idade (e republicou os anos anteriores nesse formato). Não há dado
+#   por aluno.
+# - **0 a 5 anos, não 0 a 6:** a faixa de 6 anos vem misturada com 7-10 (`QT_MAT_BAS_6_10`), então "até 6
+#   anos" exato não é calculável com os dados abertos. Usa-se 0-3 + 4-5 (`QT_MAT_BAS_0_3` + `QT_MAT_BAS_4_5`),
+#   a faixa da educação infantil (creche e pré-escola) por idade, não por etapa.
+# - **Idade na data de referência do Censo Escolar** (última quarta-feira de maio). As colunas de 2025 com
+#   idade em 31/03 (`_REF_31_03`) não entram, porque não existem nos outros anos.
+# - **Troca da série antiga:** o CSV anterior (`censo_escolar_matriculas_ate_6anos.csv`, 2007-2020, sem
+#   registro de como foi gerado) tinha 205.371 em 2020, contra 247.133 de 0-5 nos microdados. Nenhuma
+#   combinação óbvia reproduz o número antigo, e juntar as duas séries criaria um degrau artificial; por
+#   isso a série inteira foi reconstruída da mesma fonte.
+# - **2021 é um vale** (pandemia), e **2025 vem em tabelas separadas** no ZIP (`Tabela_Matricula`), com as
+#   mesmas colunas. Escolas paralisadas/extintas não têm matrícula de 0-5 (conferido em 2020).
+# - Pública = federal + estadual + municipal (`TP_DEPENDENCIA` 1-3); privada = 4.
 
 # %%
-fonte_matriculas = 'Censo Escolar/INEP'
+fonte_matriculas = 'Censo Escolar da Educação Básica (INEP), microdados'
+fonte_taxa_atendimento = 'Censo Escolar (INEP), microdados; população: estimativas Ripsa/Ministério da Saúde'
 
-df_freq_escolar = pd.read_csv('dados_locais//educacao//censo_escolar_matriculas_ate_6anos.csv')
-df_freq_escolar.sort_values('ano', inplace=True)
-df_freq_escolar.rename(columns={'f0_': 'matriculas'}, inplace=True)
-df_freq_escolar.to_csv('tabelas_finais//matriculas_0_a_6_por_ano.csv', index=False)
-df_freq_escolar
+df_matriculas_rede = carrega_censo_escolar_matriculas(range(2007, 2026))
+df_matriculas = resume_matriculas_0_a_5(df_matriculas_rede, carrega_populacao_ripsa())
+assert len(df_matriculas) == 19
+assert (df_matriculas['matriculas'] == df_matriculas['matriculas_0_a_3'] + df_matriculas['matriculas_4_a_5']).all()
+assert (df_matriculas['matriculas'] == df_matriculas['matriculas_publica'] + df_matriculas['matriculas_privada']).all()
+assert df_matriculas.set_index('ano').loc[[2020, 2025], 'matriculas'].tolist() == [247133, 230284]
+df_matriculas.to_csv('tabelas_finais//matriculas_0_a_5_por_ano.csv', index=False)
+df_matriculas
 
 # %%
-# serie_temporal(df_freq_escolar,'ano','matriculas','Matrículas de 0 a 6 anos por ano',
-#                nome_arquivo='matriculas_0_a_6_por_ano', fonte_dados=fonte_matriculas)
+serie_temporal(df_matriculas, 'ano', 'matriculas', 'Matrículas de crianças de 0 a 5 anos por ano',
+               nome_arquivo='matriculas_0_a_5_por_ano', fonte_dados=fonte_matriculas)
+
+# %%
+serie_temporal_multipla(
+    df_matriculas, tempo='ano', colunas={'0 a 3 anos (creche)': 'matriculas_0_a_3', '4 a 5 anos (pré-escola)': 'matriculas_4_a_5'},
+    titulo='Matrículas de crianças de 0 a 5 anos, por faixa de idade', nome_arquivo='matriculas_0_a_5_creche_pre_por_ano',
+    ylabel='Matrículas', legend_title='Faixa de idade', fonte_dados=fonte_matriculas,
+)
+
+# %%
+serie_temporal_multipla(
+    df_matriculas, tempo='ano', colunas={'Rede pública': 'matriculas_publica', 'Rede privada': 'matriculas_privada'},
+    titulo='Matrículas de crianças de 0 a 5 anos, por rede', nome_arquivo='matriculas_0_a_5_rede_por_ano',
+    ylabel='Matrículas', legend_title='Rede', fonte_dados=fonte_matriculas,
+)
+
+# %% [markdown]
+# **Nota metodológica da taxa de atendimento** (decisão D7 de `matriculas/`; a nota geral de população de
+# referência está no início da seção Censo 2022):
+# 1. **Denominador:** estimativas Ripsa/MS 2000-2025 (Nota Técnica Ripsa nº 01/2025), população em 1º de
+#    julho, por idade simples, ajustada às Projeções do IBGE (revisão 2024); consulta ao Tabnet de
+#    2026-09-24 (coluna `data_consulta` do extrato).
+# 2. **Por que não o Censo 2022:** ele conta 379.609 crianças de 0-5 no Rio contra 439.907 da Ripsa (+16%),
+#    com a maior diferença em menores de 1 ano (sub-registro de crianças pequenas, corrigido pelo IBGE). Com
+#    o Censo, a taxa de 2022 seria **64,9%** (0-3: 47,8%; 4-5: 94,4%) em vez de 56,0%; números do Censo 2022
+#    no notebook (SIDRA) não se comparam diretamente com esta taxa.
+# 3. **Taxa bruta:** o numerador conta matrículas em escolas do município, inclusive de crianças que moram
+#    em outros municípios; o denominador são os residentes. As datas de referência diferem (fim de maio e 1º
+#    de julho).
+# 4. **Revisões:** a Ripsa revisa as estimativas todo ano, então uma consulta nova pode mudar anos passados.
+# 5. **Diferença com a PNAD** (taxa de frequência escolar, acima): aquela é declarada no domicílio; esta é
+#    registro administrativo ÷ estimativa. Ordem de grandeza coerente (PNAD ~83% aos 4 anos e ~90% aos 5).
+# 6. **Metas do PNE** (Lei 13.005/2014, Meta 1): 50% de atendimento em creche (0-3) e universalização da
+#    pré-escola (4-5), como linhas de referência no gráfico.
+
+# %%
+serie_temporal_multipla(
+    df_matriculas, tempo='ano',
+    colunas={'0 a 3 anos (creche)': 'taxa_atendimento_0_a_3', '4 a 5 anos (pré-escola)': 'taxa_atendimento_4_a_5',
+             '0 a 5 anos': 'taxa_atendimento_0_a_5'},
+    titulo='Taxa bruta de atendimento escolar de 0 a 5 anos (%)', nome_arquivo='taxa_atendimento_0_a_5_por_ano',
+    ylabel='Matrículas por 100 crianças residentes', legend_title='Faixa de idade', fonte_dados=fonte_taxa_atendimento,
+    linhas_referencia=[(50, 'Meta PNE creche: 50%'), (100, 'Meta PNE pré-escola: 100%')],
+)
 
 # %% [markdown]
 # #### Juncao de tabelas por bairro
@@ -2556,237 +4349,378 @@ df_final.head()
 
 # %% [markdown]
 # ---
+# ## 🛡️ Proteção
+#
+# Violência contra crianças de 0 a 5 anos (Sinan NET/Tabnet, por bairro de residência) e violência
+# territorial (Data.Rio/IPS, por Região Administrativa). Especificação: `specs/2026-09-23_inclusao_dados_protecao/`.
+#
+# > **Leitura dos dados — avisos que valem para toda a seção**
+# > - Os **vínculos** (mãe, pai, padrasto...) **não são excludentes** e não existe "total de violência
+# >   familiar": a mesma notificação pode citar mais de um provável autor. **Nunca somar mãe + pai.**
+# >   `outros` = padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a) e pode contar uma notificação mais de uma vez.
+# > - **2026 é ano parcial** e fica fora das séries de violência familiar (2011-2025). Na lesão autoprovocada,
+# >   2026 é o ano de referência (33 dos 40 casos da série).
+# > - Possível **quebra de série em 2017** (salto de mães 600 → 1.514 e pais 371 → 1.261): *hipótese* de mudança
+# >   de ficha/notificação, **a confirmar com a fonte**.
+# > - Contagem absoluta **não é risco**: bairros populosos concentram mais casos. A taxa por 1.000 crianças usa
+# >   numerador 0-5 anos e denominador 0-4 anos (Censo 2022) — superestima ~20%, de modo uniforme. No município, a
+# >   taxa usa a população de 0 a 5 anos da Ripsa/MS do mesmo ano (A3), sem essa ressalva.
+# > - Violência territorial (IPS): dado da **população geral (todas as idades), NÃO específico de crianças nem de jovens**; só 2024.
+
+# %% [markdown]
+# ### Violência familiar por vínculo do provável autor
+
+# %%
+fonte_sinan = 'Sinan NET/Tabnet (SMS-Rio), notificações de residentes no município do Rio de Janeiro, 0 a 5 anos'
+fonte_sinan_censo = 'Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 4 anos: Censo Demográfico 2022 (IBGE/Data.Rio)'
+fonte_ips = 'Data.Rio / Índice de Progresso Social (IPS), 2024, por Região Administrativa (todas as idades)'
+
+ANOS_VF = list(range(2011, 2026))  # 2026 é ano parcial: fora das séries de violência familiar
+df_vf = carrega_violencia_familiar('dados_locais/protecao/violencia_familiar', range(2011, 2027))
+df_vf_fechado = df_vf[df_vf['ano'].isin(ANOS_VF)]
+
+_tot = df_vf.groupby(['vinculo', 'ano'])['casos'].sum()
+assert _tot['mae'].loc[2011:2025].sum() + _tot['mae'][2026] == 15066          # total do bruto (mãe)
+assert (_tot['mae'][2017], _tot['mae'][2025], _tot['pai'][2025]) == (1514, 1756, 1404)
+assert (_tot['outros'] == df_vf[df_vf['vinculo'].isin(_VINCULOS_OUTROS)].groupby('ano')['casos'].sum()).all()
+assert df_vf.groupby('vinculo')['codbairro'].nunique().eq(166).all()          # grade completa, com zeros
+
+# %% [markdown]
+# ##### T1 · Município x vínculo x ano
+
+# %%
+ordem_vinculos = ['mae', 'pai', 'padrasto', 'irmao', 'conjuge', 'exconjuge', 'filho', 'outros']
+df_vf_vinculo_ano = (df_vf_fechado.pivot_table(index='ano', columns='vinculo', values='casos', aggfunc='sum')
+                     [ordem_vinculos].reset_index())
+df_vf_vinculo_ano.columns.name = None
+df_vf_vinculo_ano.to_csv('tabelas_finais/violencia_familiar_por_vinculo_ano.csv', index=False)
+df_vf_vinculo_ano
+
+# %% [markdown]
+# ##### G1 · Série temporal por vínculo (mãe, pai e outros)
+#
+# > Os vínculos não se somam. A linha tracejada em 2017 marca a **possível** quebra de série (hipótese, a confirmar).
+
+# %%
+serie_temporal_multipla_marcos(
+    df_vf_vinculo_ano, tempo='ano', colunas={'Mãe': 'mae', 'Pai': 'pai', 'Outros vínculos': 'outros'},
+    titulo='Notificações de violência familiar contra crianças de 0 a 5 anos, por vínculo (2011-2025)',
+    nome_arquivo='violencia_familiar_serie_vinculos', marcos={2017: 'possível quebra de série (2017)'},
+    ylabel='Notificações', legend_title='Vínculo do provável autor', fonte_dados=fonte_sinan,
+)
+
+# %% [markdown]
+# ##### A3 · Taxa municipal por 1.000 crianças de 0 a 5 anos, por vínculo (2011-2025)
+#
+# > Notificações de cada vínculo ÷ população de **0 a 5 anos** do mesmo ano (estimativas Ripsa/MS) × 1.000
+# > (`specs/2026-09-24_populacao-referencia`, A3). No município, numerador e denominador têm a mesma faixa (0-5) e o
+# > mesmo ano, então a ressalva D9 (numerador 0-5 sobre população 0-4 do Censo) **não se aplica aqui**; ela
+# > vale só para as taxas por bairro/RA/CAP mais abaixo. Os vínculos seguem sem soma entre si, e a possível
+# > quebra de série de 2017 vale também para a taxa. Fonte da população: nota no início da seção Censo 2022.
+
+# %%
+fonte_sinan_ripsa = 'Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 5 anos: estimativas Ripsa/Ministério da Saúde'
+
+df_vf_taxa_municipio = df_vf_vinculo_ano[['ano', 'mae', 'pai', 'outros']].merge(
+    populacao_ripsa(carrega_populacao_ripsa(), 0, 5, anos=ANOS_VF).rename(columns={'populacao': 'populacao_0_a_5'}), on='ano')
+for _v in ['mae', 'pai', 'outros']:
+    df_vf_taxa_municipio = taxa_por_mil(df_vf_taxa_municipio, _v, 'populacao_0_a_5', f'taxa_por_mil_{_v}')
+assert len(df_vf_taxa_municipio) == len(ANOS_VF)
+assert round(df_vf_taxa_municipio.loc[df_vf_taxa_municipio['ano'] == 2025, 'taxa_por_mil_mae'].item(), 2) == round(1756 / 393073 * 1000, 2)
+df_vf_taxa_municipio.to_csv('tabelas_finais/violencia_familiar_taxa_municipio_ano.csv', index=False)
+
+serie_temporal_multipla_marcos(
+    df_vf_taxa_municipio, tempo='ano',
+    colunas={'Mãe': 'taxa_por_mil_mae', 'Pai': 'taxa_por_mil_pai', 'Outros vínculos': 'taxa_por_mil_outros'},
+    titulo='Notificações de violência familiar por 1.000 crianças de 0 a 5 anos, por vínculo (2011-2025)',
+    nome_arquivo='violencia_familiar_taxa_municipio_ano', marcos={2017: 'possível quebra de série (2017)'},
+    ylabel='Notificações por 1.000 crianças', legend_title='Vínculo do provável autor', fonte_dados=fonte_sinan_ripsa,
+)
+df_vf_taxa_municipio.round(2)
+
+# %% [markdown]
+# ##### T4 e G2 · Composição de "outros"
+
+# %%
+componentes_outros = ['padrasto', 'irmao', 'conjuge', 'exconjuge', 'filho']
+df_vf_outros_detalhe = df_vf_vinculo_ano[['ano'] + componentes_outros + ['outros']].copy()
+assert (df_vf_outros_detalhe[componentes_outros].sum(axis=1) == df_vf_outros_detalhe['outros']).all()
+assert df_vf_outros_detalhe.loc[df_vf_outros_detalhe['ano'] == 2025, 'outros'].item() == 110
+df_vf_outros_detalhe.to_csv('tabelas_finais/violencia_familiar_outros_detalhe.csv', index=False)
+
+serie_temporal_multipla(
+    df_vf_outros_detalhe, tempo='ano',
+    colunas={'Padrasto': 'padrasto', 'Irmão(ã)': 'irmao', 'Cônjuge': 'conjuge', 'Ex-cônjuge': 'exconjuge', 'Filho(a)': 'filho'},
+    titulo='Vínculos agrupados em "outros" (2011-2025)', nome_arquivo='violencia_familiar_outros_serie',
+    ylabel='Notificações', legend_title='Vínculo', fonte_dados=fonte_sinan,
+)
+
+# %% [markdown]
+# ##### T2 · Por bairro (mãe, pai, outros) x ano
+
+# %%
+df_vf_bairro = (df_vf_fechado[df_vf_fechado['vinculo'].isin(['mae', 'pai', 'outros'])]
+                .pivot_table(index=['codbairro', 'bairro', 'ano'], columns='vinculo', values='casos').reset_index())
+df_vf_bairro.columns.name = None
+df_vf_bairro.to_csv('tabelas_finais/violencia_familiar_por_bairro.csv', index=False)
+assert df_vf_bairro.groupby('ano')['mae'].sum().loc[2025] == 1756
+df_vf_bairro.head()
+
+# %% [markdown]
+# ##### 🗺️ Mapas por bairro (M1 mãe 2025, M2 pai 2025, M3 "outros" acumulado 2021-2025)
+#
+# Contagens absolutas → classes discretas. Mãe e pai em 2025; "outros" tem só ~110 casos em 2025, então usa o
+# acumulado 2021-2025.
+
+# %%
+df_vf_2025 = df_vf_bairro[df_vf_bairro['ano'] == 2025]
+df_vf_outros_acum = (df_vf_bairro[df_vf_bairro['ano'].between(2021, 2025)]
+                     .groupby(['codbairro', 'bairro'], as_index=False)['outros'].sum()
+                     .rename(columns={'outros': 'outros_2021_2025'}))
+assert df_vf_outros_acum['outros_2021_2025'].sum() == df_vf_outros_detalhe[df_vf_outros_detalhe['ano'].between(2021, 2025)]['outros'].sum()
+
+df_vf_2025[['codbairro', 'bairro', 'mae']].to_csv('tabelas_finais/tabela_mapa_violencia_familiar_mae_2025.csv', index=False)
+df_vf_2025[['codbairro', 'bairro', 'pai']].to_csv('tabelas_finais/tabela_mapa_violencia_familiar_pai_2025.csv', index=False)
+df_vf_outros_acum.to_csv('tabelas_finais/tabela_mapa_violencia_familiar_outros_2021_2025.csv', index=False)
+
+mapa_coropletico_bairros(
+    df_vf_2025, coluna_valor='mae', chave='codbairro', bins=[5, 15, 30, 60],
+    titulo='Notificações de violência familiar por bairro — mãe (2025)',
+    nome_arquivo='mapa_violencia_familiar_mae_bairro_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', zero_branco=True,
+    legenda_titulo='Notificações (mãe)', fonte_dados=fonte_sinan,
+)
+mapa_coropletico_bairros(
+    df_vf_2025, coluna_valor='pai', chave='codbairro', bins=[5, 15, 30, 60],
+    titulo='Notificações de violência familiar por bairro — pai (2025)',
+    nome_arquivo='mapa_violencia_familiar_pai_bairro_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', zero_branco=True,
+    legenda_titulo='Notificações (pai)', fonte_dados=fonte_sinan,
+)
+mapa_coropletico_bairros(
+    df_vf_outros_acum, coluna_valor='outros_2021_2025', chave='codbairro', bins=[1, 3, 6, 12],
+    titulo='Notificações de violência familiar por bairro — outros vínculos (2021-2025)',
+    nome_arquivo='mapa_violencia_familiar_outros_bairro_2021_2025', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', zero_branco=True,
+    legenda_titulo='Notificações (outros,\nacumulado 5 anos)', fonte_dados=fonte_sinan,
+)
+
+# %% [markdown]
+# ##### G3 · Dez bairros com mais notificações (mãe e pai, 2025)
+#
+# > Ordenado pelo vínculo mãe; mãe e pai aparecem lado a lado, **sem soma**. Contagem absoluta — bairros populosos lideram.
+
+# %%
+top10_mae = df_vf_2025.nlargest(10, 'mae')['codbairro']
+df_top_bairros = (df_vf_2025[df_vf_2025['codbairro'].isin(top10_mae)]
+                  .sort_values('mae', ascending=False)
+                  .melt(id_vars=['codbairro', 'bairro'], value_vars=['mae', 'pai'], var_name='vinculo', value_name='notificações'))
+df_top_bairros['vinculo'] = df_top_bairros['vinculo'].map({'mae': 'Mãe', 'pai': 'Pai'})
+df_top_bairros.to_csv('tabelas_finais/violencia_familiar_top_bairros_2025.csv', index=False)
+grafico_barra_agrupado(
+    df_top_bairros, categoria='bairro', valor='notificações', agrupador='vinculo',
+    titulo='Dez bairros com mais notificações de violência familiar (2025)',
+    nome_arquivo='violencia_familiar_top_bairros_2025', ylabel='Notificações', legend_title='Vínculo',
+    ordem_categoria=list(df_top_bairros['bairro'].drop_duplicates()), ordem_agrupador=['Mãe', 'Pai'],
+    fonte_dados=fonte_sinan,
+)
+
+# %% [markdown]
+# ##### T3 · Por Região Administrativa e por CAP (casos somados; taxa recalculada depois de somar)
+
+# %%
+df_pop_04 = carrega_pop_0_4_bairro()
+if 'df_censo' in globals():  # denominador confere com o Censo já carregado na seção Censo 2022
+    assert (df_pop_04.set_index('codbairro')['pop_0_4']
+            == df_censo.set_index('codbairro')['0 a 4 anos'].reindex(df_pop_04['codbairro'])).all()
+
+df_vf_ra = agrega_violencia_familiar_nivel(df_vf_bairro, df_pop_04, 'ra')
+df_vf_ra = df_vf_ra.merge(_bairros_referencia()[['codra', 'regiao_adm']].drop_duplicates('codra'), on='codra', how='left')
+df_vf_cap = agrega_violencia_familiar_nivel(df_vf_bairro, df_pop_04, 'cap')
+for _df in (df_vf_ra, df_vf_cap):
+    assert _df[_df['ano'] == 2025]['mae'].sum() == 1756 and _df[_df['ano'] == 2025]['pop_0_4'].sum() == df_pop_04['pop_0_4'].sum()
+df_vf_ra.to_csv('tabelas_finais/violencia_familiar_por_ra.csv', index=False)
+df_vf_cap.to_csv('tabelas_finais/violencia_familiar_por_cap.csv', index=False)
+df_vf_cap[df_vf_cap['ano'] == 2025]
+
+# %% [markdown]
+# ### Notificações de lesão autoprovocada (0 a 5 anos)
+#
+# > O arquivo cobre **apenas lesão autoprovocada** (não a violência interpessoal total) e não separa menores de 1 ano
+# > de 1 a 5 anos. Série muito esparsa: 40 casos em 2018-2026, 33 deles em 2026 (ano parcial). O salto em 2026 pode
+# > refletir mudança de registro administrativo — **hipótese, a confirmar com a fonte (SMS/Sinan)**.
+
+# %%
+df_autoprov = carrega_sinan_bairro('dados_locais/protecao/notif_viol_ interpes_ autoprovocada_menor_1, 1-5.csv',
+                                   'casos', range(2018, 2027))
+assert 'Autoprov' in df_autoprov.attrs['filtro']
+assert df_autoprov['casos'].sum() == 40 and df_autoprov.loc[df_autoprov['ano'] == 2026, 'casos'].sum() == 33
+df_autoprov['ano_parcial'] = df_autoprov['ano'] == 2026
+df_autoprov.to_csv('tabelas_finais/notif_autoprovocada_por_bairro_ano.csv', index=False)
+
+df_autoprov_periodos = pd.DataFrame({
+    'período': ['2018-2025 (8 anos)', '2026 (ano parcial)'],
+    'notificações': [df_autoprov.loc[~df_autoprov['ano_parcial'], 'casos'].sum(), df_autoprov.loc[df_autoprov['ano_parcial'], 'casos'].sum()],
+})
+assert df_autoprov_periodos['notificações'].tolist() == [7, 33]
+grafico_barra(df_autoprov_periodos, 'período', 'notificações',
+              'Lesão autoprovocada notificada, 0 a 5 anos: 2018-2025 x 2026',
+              nome_arquivo='notif_autoprovocada_antes_2026_vs_2026',
+              fonte_dados='Sinan NET/Tabnet (SMS-Rio). 2026 parcial; possível mudança de registro (hipótese)')
+
+# %% [markdown]
+# ##### 🗺️ Mapa por bairro (M7 · 2026, ano de referência desta série)
+
+# %%
+df_autoprov_2026 = df_autoprov[df_autoprov['ano'] == 2026][['codbairro', 'bairro', 'casos']]
+df_autoprov_2026.to_csv('tabelas_finais/tabela_mapa_notif_autoprovocada_2026.csv', index=False)
+mapa_coropletico_bairros(
+    df_autoprov_2026, coluna_valor='casos', chave='codbairro', bins=[1, 3],
+    titulo='Lesão autoprovocada notificada por bairro (2026, ano parcial)',
+    nome_arquivo='mapa_notif_autoprovocada_bairro_2026', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', zero_branco=True,
+    legenda_titulo='Notificações\n(2026, parcial)', fonte_dados='Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos',
+)
+
+# %% [markdown]
+# ### Violência territorial por Região Administrativa (Data.Rio/IPS, 2024)
+#
+# > **Dado geral da população, NÃO específico de crianças ou jovens:** um único ano (2024) e todas as idades.
+# > A RA XXI Paquetá não tem dado no IPS ("Sem dado" nos mapas).
+
+# %%
+df_terr = carrega_violencia_territorial_ra('dados_locais/protecao/violencia_territorial.xlsx')
+terr_municipio = df_terr.attrs['municipio']
+assert len(df_terr) == 32 and set(_bairros_referencia()['codra']) - set(df_terr['codra']) == {21}
+assert round(terr_municipio['taxa_homicidios'], 3) == 16.663
+df_terr_saida = pd.concat([df_terr, pd.DataFrame([{'codra': None, 'regiao_adm': 'MUNICÍPIO DO RIO DE JANEIRO', **terr_municipio}])],
+                          ignore_index=True)
+df_terr_saida.to_csv('tabelas_finais/violencia_territorial_por_ra_2024.csv', index=False)
+df_terr.to_csv('tabelas_finais/tabela_mapa_violencia_territorial_ra_2024.csv', index=False)
+
+indicadores_territoriais = {
+    'taxa_homicidios': ('Taxa de homicídios', 'homicidios'),
+    'homicidios_acao_policial': ('Homicídios por ação policial', 'homicidios_acao_policial'),
+    'homicidios_jovens_negros': ('Homicídios de jovens negros', 'homicidios_jovens_negros'),
+}
+# só mapas (índice/taxa -> colorbar contínua); sem gráficos de barra por RA. Dado da população geral, não infantil
+for coluna, (rotulo, sufixo) in indicadores_territoriais.items():
+    mapa_coropletico_bairros(
+        df_terr, coluna_valor=coluna, chave='codra', nivel='ra',
+        titulo=f'{rotulo} por RA (2024) — população geral', nome_arquivo=f'mapa_violencia_territorial_{sufixo}_ra_2024',
+        cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+        legenda_titulo='Taxa (IPS)\ntodas as idades,\nnão só crianças', fonte_dados=fonte_ips,
+    )
+
+# %% [markdown]
+# ### Taxa de notificações de violência familiar por 1.000 crianças
+#
+# > **Ressalva D9:** numerador com crianças de 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022) — a taxa
+# > superestima ~20%, de forma uniforme, então o *ranking* entre bairros se preserva. "Outros" usa o acumulado
+# > 2021-2025 (numerador) sobre a mesma população. Bairros com poucas crianças geram taxas instáveis (D10): a escala
+# > de cor é limitada ao percentil 95 (valores maiores aparecem com a cor máxima); a tabela guarda o valor real.
+# >
+# > **População de referência (`specs/2026-09-24_populacao-referencia`, B3):** o denominador por bairro, RA e CAP é **fixo no
+# > Censo 2022** (decisão B1), porque não há população por bairro × idade × ano.
+# > - **Anos diferentes:** o numerador é de 2025 (mãe, pai) ou 2021-2025 (outros), e a população é de 2022. A
+# >   população de 0 a 5 anos do município caiu ~11% entre 2022 e 2025 (Ripsa: 439.907 → 393.073), então a população
+# >   de 2022 tende a ser maior que a de 2025, o que puxa a taxa para baixo.
+# > - **O Censo 2022 subconta crianças pequenas:** no município, 0-4 anos soma 310.648 no Censo contra 361.163 na
+# >   Ripsa (+16%; nota no início da seção Censo 2022). Com o denominador subcontado, a taxa por bairro tende a ficar
+# >   **mais alta** do que ficaria com uma estimativa corrigida.
+# > - Os dois efeitos vão em sentidos opostos e não se anulam de forma exata; por isso as taxas por bairro servem para
+# >   comparar territórios entre si, não para comparar com a taxa municipal (A3), que usa a Ripsa. Nenhum cálculo muda.
+
+# %%
+df_vf_taxa_bairro = (df_vf_2025[['codbairro', 'bairro', 'mae', 'pai']]
+                     .rename(columns={'mae': 'casos_mae_2025', 'pai': 'casos_pai_2025'})
+                     .merge(df_vf_outros_acum.rename(columns={'outros_2021_2025': 'casos_outros_2021_2025'}), on=['codbairro', 'bairro'])
+                     .merge(df_pop_04, on='codbairro'))
+for _nome, _casos in [('mae_2025', 'casos_mae_2025'), ('pai_2025', 'casos_pai_2025'), ('outros_2021_2025', 'casos_outros_2021_2025')]:
+    df_vf_taxa_bairro = taxa_por_mil(df_vf_taxa_bairro, _casos, 'pop_0_4', f'taxa_por_mil_{_nome}')
+assert not np.isinf(df_vf_taxa_bairro.select_dtypes('number')).any().any()
+df_vf_taxa_bairro.to_csv('tabelas_finais/violencia_familiar_taxa_por_bairro.csv', index=False)
+
+# D10: bairros com poucas crianças de 0 a 4 anos, sinalizados (não suprimidos)
+bairros_pop_pequena = df_vf_taxa_bairro[df_vf_taxa_bairro['pop_0_4'] < 100][['bairro', 'pop_0_4']]
+print('Bairros com menos de 100 crianças de 0 a 4 anos (taxa instável):', bairros_pop_pequena.values.tolist())
+
+# %% [markdown]
+# ##### 🗺️ Mapas de taxa por bairro (M8-M10) — colorbar contínua (taxa)
+
+# %%
+def _limite_escala_p95(serie):
+    """Limite superior da escala de cor: percentil 95 arredondado para cima (múltiplo de 5)."""
+    return int(math.ceil(serie.quantile(0.95) / 5) * 5)
+
+for _nome, _rotulo, _periodo in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
+    _col = f'taxa_por_mil_{_nome}'
+    _lim = _limite_escala_p95(df_vf_taxa_bairro[_col])
+    _mapa = df_vf_taxa_bairro[['codbairro', 'bairro', 'pop_0_4', _col]].copy()
+    _mapa['taxa_escala_mapa'] = _mapa[_col].clip(upper=_lim)
+    _mapa.to_csv(f'tabelas_finais/tabela_mapa_violencia_familiar_taxa_{_nome}.csv', index=False)
+    mapa_coropletico_bairros(
+        _mapa, coluna_valor='taxa_escala_mapa', chave='codbairro',
+        titulo=f'Notificações de violência ({_rotulo}) por 1.000 crianças de 0 a 4 anos ({_periodo})',
+        nome_arquivo=f'mapa_violencia_familiar_{_nome.split("_")[0]}_taxa_bairro_{_nome.split("_", 1)[1]}',
+        cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', legenda_titulo=f'Notificações por\n1.000 crianças 0-4\n(Censo 2022; escala até {_lim})',
+        fonte_dados=fonte_sinan_censo,
+    )
+
+# %% [markdown]
+# ##### 🗺️ Mapas de taxa por Região Administrativa (M11-M13) — colorbar contínua
+#
+# Casos somados por RA e taxa recalculada sobre a população 0-4 da RA (nunca média de taxas de bairro).
+
+# %%
+_ra_2025 = df_vf_ra[df_vf_ra['ano'] == 2025][['codra', 'regiao_adm', 'pop_0_4', 'mae', 'pai']]
+_ra_outros = (df_vf_ra[df_vf_ra['ano'].between(2021, 2025)].groupby('codra', as_index=False)['outros'].sum()
+              .rename(columns={'outros': 'outros_2021_2025'}))
+df_vf_taxa_ra = _ra_2025.merge(_ra_outros, on='codra')
+for _nome, _casos in [('mae_2025', 'mae'), ('pai_2025', 'pai'), ('outros_2021_2025', 'outros_2021_2025')]:
+    df_vf_taxa_ra = taxa_por_mil(df_vf_taxa_ra, _casos, 'pop_0_4', f'taxa_por_mil_{_nome}')
+assert not np.isinf(df_vf_taxa_ra.select_dtypes('number')).any().any()
+
+for _nome, _rotulo, _periodo in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
+    _col = f'taxa_por_mil_{_nome}'
+    _mapa_ra = df_vf_taxa_ra[['codra', 'regiao_adm', 'pop_0_4', _col]].copy()
+    _mapa_ra.to_csv(f'tabelas_finais/tabela_mapa_violencia_familiar_taxa_ra_{_nome}.csv', index=False)
+    mapa_coropletico_bairros(
+        _mapa_ra, coluna_valor=_col, chave='codra', nivel='ra',
+        titulo=f'Notificações de violência ({_rotulo}) por 1.000 crianças de 0 a 4 anos, por RA ({_periodo})',
+        nome_arquivo=f'mapa_violencia_familiar_{_nome.split("_")[0]}_taxa_ra_{_nome.split("_", 1)[1]}',
+        cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
+        legenda_titulo='Notificações por\n1.000 crianças 0-4\n(Censo 2022)', fonte_dados=fonte_sinan_censo,
+    )
+
+# %% [markdown]
+# ##### G8 · Dez maiores taxas (mãe e pai, 2025)
+#
+# > Só bairros com 100 ou mais crianças de 0 a 4 anos (taxa estável); mãe e pai lado a lado, sem soma.
+
+# %%
+_est = df_vf_taxa_bairro[df_vf_taxa_bairro['pop_0_4'] >= 100]
+top10_taxa = _est.nlargest(10, 'taxa_por_mil_mae_2025')
+df_top_taxa = (top10_taxa[['bairro', 'taxa_por_mil_mae_2025', 'taxa_por_mil_pai_2025']]
+               .rename(columns={'taxa_por_mil_mae_2025': 'Mãe', 'taxa_por_mil_pai_2025': 'Pai'})
+               .melt(id_vars='bairro', var_name='vinculo', value_name='taxa por 1.000'))
+df_top_taxa.to_csv('tabelas_finais/violencia_familiar_taxa_top_bairros_2025.csv', index=False)
+grafico_barra_agrupado(
+    df_top_taxa, categoria='bairro', valor='taxa por 1.000', agrupador='vinculo',
+    titulo='Dez maiores taxas de notificação por 1.000 crianças de 0 a 4 anos (2025)',
+    nome_arquivo='violencia_familiar_taxa_top_bairros_2025', ylabel='Notificações por 1.000 crianças\nde 0 a 4 anos (Censo 2022)',
+    legend_title='Vínculo', ordem_categoria=list(top10_taxa['bairro']), ordem_agrupador=['Mãe', 'Pai'],
+    fonte_dados=fonte_sinan_censo + '; bairros com 100+ crianças',
+)
+
+# %% [markdown]
+# ---
 # ## 📝 Análise / Relatório
 #
 # *(Pendente)* Síntese narrativa dos achados, organizada pelos 6 eixos ativos
 # da política municipal de primeira infância (`specs/estrutura_eixos.md`,
-# `specs/ajuste_eixos/specs.md`) — substitui os 5 subtítulos antigos por
+# `specs/2026-09-22_ajuste_eixos/specs.md`) — substitui os 5 subtítulos antigos por
 # fonte de dado (Demografia e População, Assistência Social, Educação,
 # Saúde, Proteção).
 
 # %% [markdown]
-# ### Análise dos resultados
-#
-# As análises a seguir sintetizam os principais achados dos dados
-# apresentados no relatório, priorizando tendências, diferenças
-# territoriais e aspectos relevantes para a compreensão da primeira
-# infância no município do Rio de Janeiro.
-
-## %% [markdown]
-# ### Censo 2022 — população na primeira infância
-#
-# Os dados do Censo Demográfico 2022 permitem dimensionar a população
-# infantil do município do Rio de Janeiro e observar sua distribuição
-# territorial. No recorte analisado, são consideradas as crianças de
-# 0 a 4 anos, tanto em números absolutos quanto em sua participação na
-# população de cada bairro. Essa distinção é importante porque bairros
-# com populações totais muito diferentes podem apresentar números
-# absolutos semelhantes de crianças, enquanto a proporção de crianças
-# revela outra dimensão da composição demográfica.
-#
-# O recorte também é complementado pelos dados do IBGE/SIDRA para a
-# população de 0 a 6 anos, permitindo observar a distribuição por idade,
-# raça/cor e sexo no nível municipal. Esses dados ajudam a caracterizar
-# o público da primeira infância antes da análise dos indicadores de
-# saúde, mortalidade, proteção social e educação. A leitura conjunta
-# dos números absolutos e percentuais, especialmente na escala dos
-# bairros, contribui para contextualizar os demais resultados
-# apresentados no relatório.
-
-# %% [markdown]
-# ### Mortalidade infantil
-#
-# A mortalidade infantil é analisada a partir dos óbitos ocorridos entre
-# 0 e 364 dias de vida, relacionados ao número de nascidos vivos no
-# município. A taxa apresentada é calculada por mil nascidos vivos,
-# permitindo acompanhar a evolução do indicador ao longo do período
-# analisado. O recorte também possibilita distinguir os óbitos
-# pós-neonatais, correspondentes ao período de 28 a 364 dias de vida,
-# dos óbitos ocorridos nos primeiros 27 dias.
-#
-# A análise territorial complementa a série temporal municipal ao
-# apresentar a distribuição dos óbitos e das taxas entre os bairros,
-# com destaque para o ano de 2025. Essa combinação entre magnitude,
-# taxa e localização permite observar o fenômeno em diferentes
-# escalas e evita interpretar o número absoluto de óbitos isoladamente.
-# Para a leitura territorial, é importante considerar que bairros com
-# diferentes números de nascidos vivos podem apresentar taxas distintas
-# mesmo quando o número absoluto de óbitos é semelhante. Dessa forma,
-# os resultados devem ser interpretados conjuntamente com o denominador
-# utilizado no cálculo e com as demais dimensões da mortalidade infantil.
-
-# %% [markdown]
-# **Principais achados**
-#
-# Entre 2006 e 2025, o número absoluto de óbitos de menores de 1 ano no
-# município do Rio de Janeiro apresentou redução, passando de 1.097 para
-# 773 óbitos. Essa redução ocorreu simultaneamente à queda expressiva no
-# número de nascidos vivos, de 82.068 para 59.171 no mesmo período. Por
-# isso, a evolução da taxa de mortalidade infantil apresenta um comportamento
-# diferente do observado nos números absolutos: a taxa passou de 13,37
-# óbitos por mil nascidos vivos em 2006 para 13,06 em 2025, tendo atingido
-# seu menor valor em 2017, com 11,26 por mil.
-#
-# Nos últimos anos da série, observa-se aumento da taxa em relação ao
-# menor nível registrado, apesar de a quantidade absoluta de óbitos
-# continuar abaixo dos valores observados no início do período. Em 2025,
-# foram registrados 773 óbitos infantis e uma taxa de 13,06 por mil
-# nascidos vivos. Os resultados mostram, portanto, a importância de
-# analisar conjuntamente os números absolutos e as taxas, especialmente
-# diante da redução do número de nascidos vivos ao longo da série.
-
-# %% [markdown]
-# **Principais achados — mortalidade neonatal**
-#
-# A mortalidade neonatal apresenta comportamentos distintos entre os
-# componentes precoce e tardio. Entre 2006 e 2025, os óbitos ocorridos
-# de 0 a 6 dias passaram de 728 para 420, enquanto os óbitos de 7 a 27
-# dias passaram de 250 para 170. As taxas também apresentaram redução no
-# período: de 7,86 para 6,42 óbitos por mil nascidos vivos no componente
-# neonatal precoce e de 2,70 para 2,60 por mil no componente tardio.
-#
-# A trajetória, entretanto, não foi linear. No componente precoce, o
-# menor número de óbitos ocorreu em 2024, com 389 registros, seguido de
-# aumento para 420 em 2025. No componente tardio, houve maior oscilação,
-# com a taxa atingindo 3,46 por mil em 2020 e 2,29 em 2022, antes de
-# chegar a 2,60 em 2025. Os dados mostram que o componente neonatal
-# precoce concentra maior número de óbitos e permanece como parte
-# relevante da mortalidade infantil. A análise conjunta dos componentes
-# permite compreender melhor a composição dos óbitos ocorridos no
-# primeiro mês de vida.
-
-
-# %% [markdown]
-# **Principais achados — componente pós-neonatal**
-#
-# O componente pós-neonatal, correspondente aos óbitos ocorridos entre
-# 28 e 364 dias de vida, também apresenta redução no número absoluto de
-# óbitos ao longo da série analisada. Em 2006 foram registrados 376 óbitos
-# nessa faixa etária, enquanto em 2025 foram registrados 265. A taxa,
-# entretanto, apresentou variações ao longo do período e não acompanhou
-# de forma proporcional à redução dos números absolutos. O menor valor da
-# série ocorreu em 2021, com 3,70 óbitos por mil nascidos vivos, enquanto
-# em 2024 a taxa chegou a 4,65 por mil e, em 2025, ficou em 4,48 por mil.
-#
-# Esse comportamento reforça a importância de interpretar conjuntamente
-# o número de óbitos e a taxa calculada sobre os nascidos vivos. A redução
-# dos nascimentos ao longo do período altera o denominador utilizado no
-# indicador e pode fazer com que oscilações relativamente pequenas no
-# número de óbitos resultem em mudanças perceptíveis na taxa. Assim, o
-# componente pós-neonatal deve ser analisado em conjunto com os demais
-# períodos da mortalidade infantil, especialmente os componentes neonatal
-# precoce e tardio, para compreender a composição do indicador.
-
-# %% [markdown]
-# **Principais achados — causas evitáveis**
-#
-# Entre 1996 e 2025, os óbitos classificados como causas evitáveis
-# apresentaram redução expressiva no município do Rio de Janeiro,
-# passando de 1.599 para 502 óbitos, uma redução de aproximadamente 69%.
-# A trajetória, entretanto, não foi linear ao longo de todo o período.
-# Nos anos mais recentes, foram registrados 592 óbitos em 2021, 518 em
-# 2022, 527 em 2023, 469 em 2024 e 502 em 2025. Assim, embora o número
-# observado em 2025 permaneça muito abaixo do registrado no início da
-# série, houve aumento em relação ao menor valor observado em 2024.
-#
-# As causas mal definidas também apresentaram redução importante,
-# passando de 163 óbitos em 1996 para 15 em 2025. Já as demais causas,
-# não claramente evitáveis, passaram de 376 para 206 óbitos no mesmo
-# período. A leitura conjunta dos grupos evidencia uma redução dos
-# óbitos ao longo da série, com comportamentos distintos entre as
-# categorias. Para as causas evitáveis, a análise dos recortes por
-# faixa etária e território permite aprofundar quais componentes
-# concentram os óbitos e como eles se distribuem no município.
-
-# %% [markdown]
-# **Principais achados — subgrupos das causas evitáveis**
-#
-# A análise dos subgrupos mostra que a redução dos óbitos por causas
-# evitáveis entre 1996 e 2025 ocorreu de forma diferente entre as
-# categorias. Em 1996, destacavam-se os óbitos relacionados à adequada
-# atenção ao recém-nascido, com 543 registros, à atenção à mulher na
-# gestação, com 438, e às ações de diagnóstico e tratamento adequado,
-# com 301. Em 2025, esses valores passaram para 67, 263 e 46 óbitos,
-# respectivamente.
-#
-# A maior redução ocorreu no grupo relacionado à adequada atenção ao
-# recém-nascido, que apresentou queda de 543 para 67 óbitos. Também
-# houve redução expressiva no grupo relacionado a diagnóstico e
-# tratamento adequado. Apesar da redução observada em relação ao início
-# da série, a categoria relacionada à atenção à mulher na gestação
-# permanece como a de maior número de óbitos em 2025. Os resultados
-# indicam, portanto, mudanças na composição das causas evitáveis ao longo
-# do período, justificando a análise dos diferentes componentes em vez
-# de considerar apenas o total de óbitos evitáveis.
-
-# %% [markdown]
-# **Principais achados — causas evitáveis por faixa etária**
-#
-# A distribuição das causas evitáveis apresenta diferenças importantes
-# conforme a faixa etária do óbito. Entre os óbitos ocorridos de 0 a 6
-# dias de vida, destacam-se as causas relacionadas à atenção à mulher
-# na gestação e à adequada atenção ao recém-nascido. Em 2025, foram
-# registrados 183 óbitos relacionados à atenção à mulher na gestação e
-# 36 relacionados à atenção ao recém-nascido nesse período. Entre 7 e
-# 27 dias, essas categorias também permanecem entre as principais, com
-# 64 e 20 óbitos, respectivamente.
-#
-# No período de 28 a 364 dias, observa-se uma composição diferente:
-# em 2025, destacaram-se os óbitos relacionados a diagnóstico e
-# tratamento adequado, com 43 registros, e às ações de promoção
-# vinculadas às ações de atenção, com 56. Esse padrão também se
-# diferenciava no início da série, quando essas categorias apresentavam
-# 283 e 129 óbitos, respectivamente. Os resultados mostram que a
-# composição das causas evitáveis varia ao longo do primeiro ano de
-# vida, reforçando a importância de analisar os períodos neonatal e
-# pós-neonatal separadamente.
-
-# %% [markdown]
-# **Principais achados — distribuição territorial das causas evitáveis**
-#
-# Em 2025, a distribuição dos óbitos por causas evitáveis apresentou
-# diferenças entre as áreas de planejamento e também entre as faixas
-# etárias. Entre os menores de 1 ano, foram registrados 491 óbitos
-# evitáveis no conjunto das CAPs analisadas. A maior quantidade ocorreu
-# na CAP 4.0, com 89 óbitos, seguida pela CAP 3.3, com 84, e pela CAP
-# 5.2, com 67. Entre as crianças de 1 a 4 anos, foram registrados 66
-# óbitos evitáveis, com maior concentração na CAP 3.3, com 12 registros,
-# seguida pelas CAPs 5.3 e 5.1, com 10 e 9, respectivamente.
-#
-# Considerando os menores de 5 anos, as CAPs 4.0 e 3.3 apresentaram os
-# maiores números absolutos, com 96 óbitos evitáveis cada. As proporções
-# também apresentam diferenças territoriais, mas devem ser interpretadas
-# com cautela quando o número total de óbitos é pequeno. Assim, os mapas
-# de quantidade e proporção são complementares: o primeiro evidencia a
-# magnitude do fenômeno, enquanto o segundo mostra o peso das causas
-# evitáveis entre os óbitos registrados em cada território.
-#
-# O recorte territorial complementa a análise municipal ao mostrar como
-# os óbitos por causas evitáveis se distribuem entre as diferentes áreas
-# de planejamento. Essa dimensão territorial contribui para compreender
-# desigualdades na mortalidade infantil que não aparecem quando se observa
-# apenas o resultado agregado do município.
-
-# %% [markdown]
-# **Principais achados — gravidez e puerpério**
-#
-# Os indicadores de óbitos relacionados à gravidez e ao puerpério
-# apresentam trajetórias distintas ao longo do período analisado. Entre
-# 2006 e 2025, os óbitos relacionados à gravidez passaram de 78 para 15
-# registros, representando uma redução de aproximadamente 81%. No
-# puerpério, a redução no período foi menor, passando de 67 para 35
-# óbitos, aproximadamente 48%.
-#
-# A série de puerpério apresenta ainda uma oscilação importante nos anos
-# mais recentes. Foram registrados 74 óbitos em 2020 e 109 em 2021,
-# seguidos por redução para 42 em 2022, 40 em 2023, 33 em 2024 e 35 em
-# 2025. Assim, embora os valores de 2025 estejam abaixo dos observados
-# no início da série, a trajetória não foi linear. A leitura conjunta
-# dos dois indicadores complementa a análise das causas evitáveis,
-# especialmente aquelas relacionadas à atenção à mulher durante a
-# gestação, mas os resultados devem ser interpretados separadamente,
-# considerando as diferenças observadas entre as duas séries.
-
+# *(Pendente)* Síntese narrativa dos achados.
 
 # %%
 ###
