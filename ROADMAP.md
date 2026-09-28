@@ -12,10 +12,10 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 ## Em andamento
 
 0. **Melhorias do site e do relatório — Rodada A implementada em 2026-09-28** (`specs/2026-09-28_melhorias_site`,
-   branch `spec/melhorias-site`): favicon novo (opção A; alternativas em `website/build/favicon_opcoes/`, trocar com
-   `gera_favicon.py`), texto de abertura de cada eixo (`introducao_<eixo>`, lorem até ser curado), lorem ≤ 150
-   palavras, pequenos múltiplos só com Painéis, `index.html` 785 → 343 KB sem mudança visual. Falta: o usuário
-   escolher o favicon, merge em `staging_main` e deploy. Na sequência do mesmo pedido: **Rodada B** = Próximos,
+   branch `spec/melhorias-site`): favicon novo (monograma "PI", escolhido pelo usuário; alternativas em `website/build/favicon_opcoes/`,
+   trocar com `gera_favicon.py`), texto de abertura de cada eixo (`introducao_<eixo>`, lorem até ser curado), lorem ≤ 150
+   palavras, pequenos múltiplos só com Painéis, `index.html` 785 → 343 KB sem mudança visual. Mesclada em
+   `staging_main` em 2026-09-28; falta o deploy. Na sequência do mesmo pedido: **Rodada B** = Próximos,
    item 1 (organização do projeto, fases 1a e 1b; 1c — pastas de dados — fica para depois) e **Rodada C** =
    Próximos, item 6 (documentação + documento de especificação funcional/técnica em `docs/especificacao_projeto.md`),
    nessa ordem, uma branch por rodada.

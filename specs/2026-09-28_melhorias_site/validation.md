@@ -6,7 +6,7 @@ instalado, `channel="chrome"`), todas as abas, página inteira, a 1400 px e 390 
 
 | # | Verificação | Como | Resultado |
 |---|---|---|---|
-| V1 | Favicon: SVG, `.ico` e `apple-touch-icon` publicados e referenciados | arquivos + `<head>` gerado | **OK** — `assets/images/favicon.svg` (opção A, 477 B), `favicon.ico` (16/32/48, 2,2 KB), `assets/images/apple-touch-icon.png` (180 px, 2,8 KB); três `<link>` com `?v=`; `.ico` aceito no workflow e no relatório de tamanho |
+| V1 | Favicon: SVG, `.ico` e `apple-touch-icon` publicados e referenciados | arquivos + `<head>` gerado | **OK** — `assets/images/favicon.svg` (opção C, monograma "PI", escolhida pelo usuário; 423 B), `favicon.ico` (16/32/48, 1,8 KB), `assets/images/apple-touch-icon.png` (180 px, 1,2 KB); três `<link>` com `?v=`; `.ico` aceito no workflow e no relatório de tamanho |
 | V2 | 6 aberturas de eixo no site, no PDF e no DOCX, ≤ 100 palavras, abaixo de "Principais achados" | contagem no HTML, texto do PDF, bookmarks do DOCX | **OK** — 6 × 90 palavras no site, o mesmo texto nas 6 no PDF, 6 bookmarks `introducao_<eixo>` novos no DOCX; posição conferida na captura (logo abaixo do callout) |
 | V3 | Nenhum lorem > 150 palavras (site, PDF, DOCX) | script: blocos lorem de cada artefato | **OK** — máximo 150 no site (93 blocos), 143 no PDF, 150 no DOCX (57 blocos) |
 | V4 | `textos_curados.json` sem alteração; sincronização do DOCX regenerado não muda nenhuma chave | diff + `sincroniza_docx.coleta_edicoes` | **OK** — JSON idêntico; 77 blocos curados do DOCX anterior intactos; `coleta_edicoes` do DOCX novo: 0 diferenças com o JSON |

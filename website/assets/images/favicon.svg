@@ -1,8 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Opção A (recomendada): adulto e criança de mãos dadas: cuidado na primeira infância. Azul IPP + ciano. -->
+  <!-- Opção C: monograma "PI" (Primeira Infância) desenhado em traços, sem fonte. Azul IPP + ciano. -->
   <rect width="64" height="64" rx="14" fill="#004a80"/>
-  <circle cx="24" cy="17" r="7" fill="#ffffff"/>
-  <path d="M12 54 V38 a12 12 0 0 1 24 0 V54 Z" fill="#ffffff"/>
-  <circle cx="45" cy="30" r="5.5" fill="#00aeef"/>
-  <path d="M36 54 V47 a9 9 0 0 1 18 0 V54 Z" fill="#00aeef"/>
+  <path d="M15 51 V13 H29 a10.5 10.5 0 0 1 0 21 H15" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M46 13 V51" stroke="#00aeef" stroke-width="7"/>
 </svg>

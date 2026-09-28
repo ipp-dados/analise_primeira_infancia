@@ -415,7 +415,7 @@ na tabela SIDRA 10056). Updates antigos movidos para `relatorio/textos_updates_a
 
 ## 2026-09-28 — `specs/melhorias_site` (Rodada A: favicon, abertura dos eixos, lorem, Painéis, HTML menor)
 
-Favicon novo (adulto e criança, azul IPP e ciano), com `favicon.ico` e `apple-touch-icon` gerados por
+Favicon novo (monograma "PI" de Primeira Infância, azul IPP e ciano, escolhido entre três opções), com `favicon.ico` e `apple-touch-icon` gerados por
 `website/build/gera_favicon.py`; as outras opções ficam em `website/build/favicon_opcoes/`. Cada eixo ganha um texto
 de abertura logo abaixo de "Principais achados" (`introducao_<eixo>`, bloco do relatório compartilhado por site, PDF e
 DOCX; lorem de 90 palavras até ser curado). Todo lorem passa a ter no máximo 150 palavras nos três geradores; o DOCX

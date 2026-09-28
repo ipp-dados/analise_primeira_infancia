@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Favicon do site a partir de um SVG de `website/build/favicon_opcoes/` (specs/2026-09-28_melhorias_site U1).
 
-    python website/build/gera_favicon.py [<opcao>]      (padrão: a_adulto_crianca)
+    python website/build/gera_favicon.py [<opcao>]      (padrão: c_monograma_pi, escolhida pelo usuário em 2026-09-28)
 
 Grava:
 - `website/assets/images/favicon.svg` -- navegadores modernos (<link rel="icon" type="image/svg+xml">);
@@ -31,7 +31,7 @@ def rasteriza(svg, tamanho, pagina):
     return Image.open(io.BytesIO(pagina.screenshot(omit_background=True))).convert("RGBA")
 
 
-def main(opcao="a_adulto_crianca"):
+def main(opcao="c_monograma_pi"):
     svg = (OPCOES / f"{opcao}.svg").read_text(encoding="utf-8")
     (SITE / "assets" / "images" / "favicon.svg").write_text(svg, encoding="utf-8")
     # apple-touch-icon: fundo até a borda (o sistema aplica a máscara arredondada)
