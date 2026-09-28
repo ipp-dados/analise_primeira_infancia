@@ -94,8 +94,9 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
 `specs/2026-09-24_website_refactor`) e `relatorio/analise_primeira_infancia.pdf` são saídas de
 pipeline. (Em `website/`, `css/` e `js/` são fonte editada à mão, não saída — ver
 `website/README.md`.) Uma
-mudança nesses arquivos que não vier de rodar `analise.py` ou os scripts em
-`.claude/skills/*/scripts/` (ou `website/build/build_site.py`) será sobrescrita na próxima regeneração e não
+mudança nesses arquivos que não vier de rodar `analise.py` ou os geradores (`website/build/build_site.py`,
+`relatorio/latex/build/`, `relatorio/curadoria/`; até 2026-09-28 parte deles morava em
+`.claude/skills/*/scripts/`) será sobrescrita na próxima regeneração e não
 deve ser commitada como se fosse a fonte da mudança — edite o gerador, não o
 gerado.
 
