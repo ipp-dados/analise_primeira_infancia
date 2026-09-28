@@ -7,7 +7,11 @@ descartadas nas `SKILL.md` e nas specs por rodada).
 ## Linguagem e execução
 
 - **Python 3**, sem gerenciador de ambiente próprio além de `venv`/`pip` —
-  `requirements.txt` na raiz, `analise_env/` é o ambiente local (gitignorado).
+  `requirements.txt` na raiz (dependências diretas com versões fixadas; `requirements-dev.txt` para o Playwright —
+  até 2026-09-28 era um `pip freeze` de 130 pacotes), `analise_env/` é o ambiente local (gitignorado); no computador
+  de desenvolvimento, o conda env `analises_env` (tem o `psycopg` 3 do CadÚnico).
+- Funções reutilizáveis do notebook no pacote local `primeira_infancia/` (sem instalação: importado a partir da
+  raiz, onde o notebook roda). Rejeitado: pacote instalável (`pip install -e`) agora — é o item 2 do ROADMAP.
 - **Jupytext** (`py:percent`, `jupytext.toml`) mantém `analise.py` como
   fonte versionada e sincronizável com `analise.ipynb` (gerado, gitignorado).
   Rodado interativamente via **JupyterLab/Jupyter Notebook** (`ipykernel`).
@@ -19,7 +23,7 @@ descartadas nas `SKILL.md` e nas specs por rodada).
 ## Dados e banco
 
 - **CadÚnico** vem de um banco **PostgreSQL** (camada silver, CTPE/Siurb),
-  acessado via **SQLAlchemy** + **psycopg** (`connect_db_ctpe` em `analise.py`).
+  acessado via **SQLAlchemy** + **psycopg** (`connect_db_ctpe` em `primeira_infancia/conexao.py`).
   Credenciais em `.env` (`python-dotenv`), nunca commitadas — ver `.env.example`.
 - Demais fontes (Tabnet/DataSUS, Censo/IBGE, SISVAN, IBGE SIDRA, planilha
   TabWin de óbitos por causas evitáveis) são arquivos estáticos em
@@ -97,7 +101,7 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   `workflow_dispatch`) copia uma lista fixa de `website/` para `_site/` e publica no **GitHub Pages**;
   o CI não gera nada (a saída gerada é versionada).
 - Validação de navegador: Chrome via DevTools Protocol (`websocket-client`, já instalado) e Playwright
-  (Firefox/WebKit) só no ambiente de dev — nenhum dos dois entra no `requirements.txt`.
+  (Firefox/WebKit) só no ambiente de dev — Playwright em `requirements-dev.txt`, fora do `requirements.txt`.
 
 ## Exportação em PDF/DOCX
 

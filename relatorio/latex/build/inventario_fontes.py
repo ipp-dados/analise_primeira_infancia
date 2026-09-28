@@ -24,10 +24,21 @@ from datetime import date
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(RAIZ / ".claude/skills/export_pdf_report/scripts"))
+sys.path.insert(0, str(RAIZ / "relatorio/curadoria"))
 from gera_estrutura_eixos import parse_estrutura_eixos  # noqa: E402
 
 ANALISE = RAIZ / "analise.py"
+# funções auxiliares do notebook (specs/2026-09-28_organizacao): antes eram as linhas 1-1897 de analise.py; lidas na
+# ordem do __init__ do pacote, antes do notebook, como quando ficavam no topo do arquivo
+PACOTE = RAIZ / "primeira_infancia"
+MODULOS_PACOTE = ["conexao", "limpeza", "estilo", "impressao", "graficos", "mapas", "protecao", "cadunico",
+                  "populacao", "educacao"]
+
+
+def fonte_notebook():
+    """Texto do pacote de funções auxiliares (na ordem do __init__) + analise.py: o que antes era um arquivo só."""
+    partes = [(PACOTE / f"{m}.py").read_text(encoding="utf-8") for m in MODULOS_PACOTE if (PACOTE / f"{m}.py").exists()]
+    return partes + [ANALISE.read_text(encoding="utf-8")]
 BIB = RAIZ / "relatorio/latex/fontes.bib"
 SAIDA_MD = RAIZ / "relatorio/inventario_fontes.md"
 SAIDA_CSV = RAIZ / "relatorio/inventario_fontes.csv"
@@ -277,16 +288,18 @@ def mapa_estrutura():
 # ---------------------------------------------------------------------------------------------
 def coleta():
     """(linhas, alertas, bib): uma linha por arquivo no disco -- também usada por gera_latex.py."""
-    arvore = ast.parse(ANALISE.read_text(encoding="utf-8"))
+    arvore = ast.Module(body=[no for texto in fonte_notebook() for no in ast.parse(texto).body], type_ignores=[])
     helpers = helpers_que_gravam(arvore)
     leitor = Leitor(helpers)
     leitor.env["__funcoes__"] = funcoes_simples(arvore)
     for no in arvore.body:
-        if not isinstance(no, ast.FunctionDef):   # corpo das funções não é chamada; só o topo
+        # corpo das funções não é chamada; só o topo. Imports do pacote (`from .x import ...`) não interessam
+        if not isinstance(no, (ast.FunctionDef, ast.Import, ast.ImportFrom)):
             leitor.visit(no)
 
-    comentados = set(re.findall(r"^#.*nome_arquivo\s*=\s*['\"]([\w\-]+)['\"]", ANALISE.read_text(encoding="utf-8"), re.M))
-    comentados |= {Path(c).name for c in re.findall(r"^#.*to_csv\(['\"]([^'\"]+)['\"]", ANALISE.read_text(encoding="utf-8"), re.M)}
+    _texto = "\n".join(fonte_notebook())
+    comentados = set(re.findall(r"^#.*nome_arquivo\s*=\s*['\"]([\w\-]+)['\"]", _texto, re.M))
+    comentados |= {Path(c).name for c in re.findall(r"^#.*to_csv\(['\"]([^'\"]+)['\"]", _texto, re.M)}
     regen = RAIZ / ".claude/skills/export_pdf_report/scripts/regen_missing_pngs.py"
     regen_txt = regen.read_text(encoding="utf-8") if regen.exists() else ""
     regravados = set(re.findall(r"nome_arquivo=['\"]([\w\-]+)['\"]", regen_txt)) | set(re.findall(r"\{OUT\}/([\w\-]+)\.png", regen_txt))

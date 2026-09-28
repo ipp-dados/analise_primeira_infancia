@@ -14,7 +14,7 @@ python website/build/build_site.py <pasta>    # escreve em outra pasta (copia cs
 ```
 
 Lê `tabelas_finais/*.csv`, `dados_locais/geo/*.geojson` e `relatorio/textos_curados.json`
-(texto curado do DOCX, via `.claude/skills/export_pdf_report/scripts/sincroniza_docx.py`, que
+(texto curado do DOCX, via `relatorio/curadoria/sincroniza_docx.py`, que
 também roda este gerador). Imprime o tamanho de cada arquivo publicado e **avisa** se passar do
 orçamento (`index.html` ≤ 1 MB, site ≤ 2 MB — spec §4.9). Gerar não precisa de rede: o fundo
 cartográfico só é baixado se `assets/images/basemap-<hash>.jpg` ainda não existir.

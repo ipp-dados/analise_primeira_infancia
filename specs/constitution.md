@@ -27,10 +27,12 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   `analise.ipynb` é gerado (`jupytext --to notebook`) e está no `.gitignore`
   — nunca edite o `.ipynb` esperando que a mudança persista; edite o `.py` e
   rode `jupytext --sync`.
-- Toda função reutilizável de limpeza/wrangling ou de visualização vive na
-  seção **📦 Pacotes e Funções Auxiliares**, no topo do arquivo. Seções de
-  análise abaixo só **chamam** essas funções — não redefinem lógica de
-  limpeza ou de plot inline numa célula de análise.
+- Toda função reutilizável de limpeza/wrangling ou de visualização vive no
+  pacote **`primeira_infancia/`** (um módulo por tema), importado na seção
+  **📦 Pacotes e Funções Auxiliares** no topo do arquivo. Seções de análise
+  só **chamam** essas funções — não redefinem lógica de limpeza ou de plot
+  inline numa célula de análise. (Até 2026-09-28 as funções ficavam no próprio
+  `analise.py`; mudança aprovada pelo usuário em `specs/2026-09-28_organizacao`.)
 - Rode o notebook do zero (kernel limpo, top-to-bottom) antes de considerar
   uma mudança validada — já houve bug real (`specs/2026-09-09_maps-and-ibge`) que só
   aparecia fora de uma reexecução de células fora de ordem.
@@ -136,7 +138,7 @@ nenhuma saída publicada (`tabelas_finais/`, o site `website/` (antes `relatorio
 tooltips e CSV de download, PDF, DOCX) mostra uma contagem de crianças ou
 famílias do CadÚnico **menor que 20** abaixo do nível município. O mesmo vale
 para o denominador de uma taxa. A célula vira vazia, com a marcação
-"suprimido (< 20)", via `suprime_celulas_pequenas` em `analise.py`, aplicada
+"suprimido (< 20)", via `suprime_celulas_pequenas` (`primeira_infancia/cadunico.py`), aplicada
 *depois* do cálculo e só no que é gravado ou publicado (agregações usam o
 dado completo). Grupos pequenos na cidade inteira (ex. raça/cor amarela e
 indígena) só aparecem no total do município. Microdados de pessoa ou

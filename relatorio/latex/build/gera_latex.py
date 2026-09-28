@@ -35,7 +35,7 @@ LATEX = RAIZ / "relatorio/latex"
 GERADO = LATEX / "gerado"
 CACHE = LATEX / "_build/img"
 sys.path.insert(0, str(AQUI))
-sys.path.insert(0, str(RAIZ / ".claude/skills/export_pdf_report/scripts"))
+sys.path.insert(0, str(RAIZ / "relatorio/curadoria"))
 from gera_estrutura_eixos import chave_eixo, parse_estrutura_eixos, valida_estrutura  # noqa: E402
 import inventario_fontes  # noqa: E402
 import tabelas  # noqa: E402
