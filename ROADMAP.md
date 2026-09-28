@@ -1,6 +1,6 @@
 # Roadmap
 
-Estado em 2026-09-25. Arquivo único do projeto: substitui `specs/roadmap.md` e `website/ROADMAP.md`
+Estado em 2026-09-28. Arquivo único do projeto: substitui `specs/roadmap.md` e `website/ROADMAP.md`
 (fundidos aqui em 2026-09-25). As decisões e o *porquê* de cada item ficam na pasta da rodada em `specs/`
 (`specs/<AAAA-MM-DD>_<nome>/`); aqui fica só o que falta fazer e onde procurar.
 
@@ -12,7 +12,10 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 ## Em andamento
 
 1. **Site: exclusões + `improve charts`** — implementado em 2026-09-25 (`specs/2026-09-25_website_graficos`, branch
-   `spec/website-graficos`); falta só o **deploy**, com OK do usuário. Decisões abertas levantadas na revisão:
+   `spec/website-graficos`). O push para `staging_main` quebrou o site publicado e foi **revertido em 2026-09-28**
+   (commit de rollback `883b4b1`); correções na rodada `specs/2026-09-28_website_bugfix` (mesmo branch: cache das
+   folhas de estilo/JS, telas estreitas, textos curados ausentes). Falta: reintegrar em `staging_main` (reverter o
+   commit de rollback antes do merge) e o **deploy**, com OK do usuário. Decisões abertas levantadas na revisão:
    - mapa de taxa de mortalidade infantil por bairro aparece **duas vezes** no eixo Prioridade (cartão de raça/cor e
      "Total" do cartão neonatal, mesmos valores) — decidir qual fica (site e PDF);
    - unidade dos indicadores do IPS (violência territorial): rotulada "por 100 mil habitantes", convenção do IPS
