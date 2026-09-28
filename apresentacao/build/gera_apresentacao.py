@@ -36,6 +36,7 @@ RAIZ = APRES.parent
 BUILD = APRES / "_build"
 IMG = BUILD / "img"
 sys.path.insert(0, str(AQUI))
+import mapas_apresentacao  # noqa: E402
 import numeros  # noqa: E402
 
 LARGURA_MAX = 1800   # px -- figuras reduzidas (as PNGs do analise.py têm até 3.700 px)
@@ -73,9 +74,19 @@ def condicionais(corpo, meta):
 _MANIFESTO = None
 
 
+def pdf_mapa(nome):
+    """PDF do mapa: próprio da apresentação (build/mapas_apresentacao.py) ou a versão de impressão do analise.py."""
+    if nome in mapas_apresentacao.MAPAS:
+        return mapas_apresentacao.gera(nome)[0]
+    a4 = RAIZ / "mapas/a4" / f"{nome}.pdf"
+    return a4 if a4.exists() else None
+
+
 def fonte_mapa(nome):
     """Fonte (e nota do teto de cor) do mapa A4, do manifesto gravado pelo analise.py -- vai para o rodapé do slide."""
     global _MANIFESTO
+    if nome in mapas_apresentacao.MAPAS:
+        return mapas_apresentacao.gera(nome)[1].replace("'", "’")
     if _MANIFESTO is None:
         import pandas as pd
         arq = RAIZ / "visualizacoes/a4/_manifesto.csv"
@@ -90,8 +101,8 @@ def figura(nome):
     """Mapas: a versão de impressão (mapas/a4/<nome>.pdf), que tem o teto de cor no percentil 95 nos mapas contínuos por
     bairro -- o mesmo tratamento de valores extremos do site (pedido do usuário, 2026-09-28: "sempre os mapas sem os
     outliers") -- e não tem título embutido (o título é o do slide). Gráficos: a PNG de tela do analise.py."""
-    a4 = RAIZ / "mapas/a4" / f"{nome}.pdf"
-    if a4.exists():
+    a4 = pdf_mapa(nome)
+    if a4:
         destino = IMG / f"{nome}_a4.png"
         if not destino.exists() or destino.stat().st_mtime < a4.stat().st_mtime:
             import pymupdf
@@ -179,7 +190,7 @@ def rodape_dos_mapas(corpo):
             continue
         fontes, notas = [], []   # mesma fonte em dois mapas aparece uma vez; as notas (teto de cor) vão no fim
         for nome in re.findall(r"fig:(\w+)", sl):
-            if (RAIZ / "mapas/a4" / f"{nome}.pdf").exists():
+            if pdf_mapa(nome):
                 base, _, nota = fonte_mapa(nome).partition(". Nota: ")
                 if base and base not in fontes:
                     fontes.append(base)

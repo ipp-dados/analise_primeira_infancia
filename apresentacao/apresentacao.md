@@ -205,21 +205,34 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 
 ---
 
+<!-- _class: numero -->
+
 <div class="kicker">Parte II · Quantas crianças</div>
 
-# Quantas crianças? Depende da régua
+<div class="grande">{{n:pop_0_6_ripsa_mil}}</div>
+
+<div class="legenda-grande">crianças de 0 a 6 anos vivem no Rio — <strong>{{n:pct_0_6_ripsa_2025}}</strong> da população em {{n:ano_ripsa}}. E são cada vez menos: eram {{n:pop_0_6_ripsa_2000_mil}} em 2000 ({{n:pct_0_6_ripsa_2000}} da população), <strong>{{n:queda_0_6_ripsa_2000}} a menos</strong>.</div>
+
+<!-- fonte: Ripsa/Ministério da Saúde, estimativas populacionais 2000-2025 -->
+
+---
+
+<div class="kicker">Parte II · Quantas crianças</div>
+
+# {{n:pop_0_6_ripsa_mil}} na cidade; outras réguas no bairro e no cadastro
 
 <div class="stats">
-<div style="--c:var(--c1)"><b>{{n:censo_0_4_2022}}</b><span>crianças de 0 a 4 anos no <strong>Censo 2022</strong> — a única contagem por bairro</span></div>
-<div style="--c:var(--c3)"><b>{{n:pop_0_5_ripsa_2025}}</b><span>de 0 a 5 anos em {{n:ano_ripsa}}, <strong>estimativa Ripsa/Ministério da Saúde</strong></span></div>
-<div style="--c:var(--c2)"><b>{{n:pop_0_6_ripsa_2025}}</b><span>de 0 a 6 anos em {{n:ano_ripsa}}, mesma estimativa — a faixa da política</span></div>
+<div style="--c:var(--c2)"><b>{{n:pop_0_6_ripsa_mil}}</b><span>0 a 6 anos, <strong>estimativa Ripsa/Ministério da Saúde</strong> ({{n:ano_ripsa}}) — a faixa da política, só para a cidade inteira</span></div>
+<div style="--c:var(--c3)"><b>{{n:pop_0_5_ripsa_mil}}</b><span>0 a 5 anos, mesma estimativa — a base de comparação do Cadastro Único, que vai até 5 anos</span></div>
+<div style="--c:var(--c1)"><b>{{n:censo_0_4_2022_mil}}</b><span>0 a 4 anos, <strong>Censo 2022</strong> — a única contagem por bairro, usada nos mapas</span></div>
 </div>
 
 <p class="nota" style="font-size:20px; margin-top:22px">O Censo conta menos crianças pequenas do que existem; a estimativa corrige isso, mas só para a cidade inteira. Por isso: taxas <strong>do município</strong> usam a estimativa do mesmo ano; taxas <strong>por bairro ou região</strong> usam o Censo 2022 e servem para comparar territórios entre si.</p>
 
-<!-- fonte: IBGE, Censo Demográfico 2022; Ripsa/Ministério da Saúde, estimativas populacionais -->
+<!-- fonte: Ripsa/Ministério da Saúde, estimativas populacionais; IBGE, Censo Demográfico 2022 -->
 
 ---
+
 
 <!-- _class: numero -->
 
@@ -252,17 +265,6 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 
 ---
 
-<!-- _class: numero -->
-
-<div class="kicker">Parte II · Retrato da cidade</div>
-
-<div class="grande">{{n:pop_0_6_ripsa_mil}}</div>
-
-<div class="legenda-grande">crianças de 0 a 6 anos vivem no Rio — <strong>{{n:pct_0_6_ripsa_2025}}</strong> da população em {{n:ano_ripsa}}. E são cada vez menos: nos Censos, as de 0 a 4 anos caíram de {{n:censo_0_4_2000_mil}} (2000) para {{n:censo_0_4_2022_mil}} (2022), <strong>{{n:queda_0_4_2000_2022}} a menos</strong>.</div>
-
-<!-- fonte: Ripsa/Ministério da Saúde, estimativas 2000-2025; IBGE, Censos Demográficos -->
-
----
 
 <div class="kicker">Parte II · Onde estão</div>
 
@@ -474,13 +476,13 @@ A pública ainda responde por **{{n:pct_publica_2025}}** das matrículas.
 <div class="lado">
 <div>
 
-Homicídios por 100 mil habitantes, por Região Administrativa — chegam a {{n:ips_homicidios_max_ra}}.
+Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:ips_homicidios_max_ra}} é um valor extremo e fica com a cor máxima; entre as demais RAs, lidera {{n:ips_homicidios_2a_ra}}.
 
 <p class="nota">Dado da população geral, de todas as idades (IPS 2024) — não é específico de crianças.</p>
 
 </div>
 
-![](fig:mapa_violencia_territorial_homicidios_ra_2024)
+![](fig:apres_violencia_territorial_homicidios_ra_2024)
 
 </div>
 
