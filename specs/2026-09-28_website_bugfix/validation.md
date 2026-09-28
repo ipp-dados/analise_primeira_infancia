@@ -24,3 +24,5 @@ textos é versionada (`website/build/confere_textos.py`).
       (sem texto na curadoria, lorem), **0 ERRO**, **8 NÃO PUBLICADO** com o motivo: E4 (2 mapas), E7 (1),
       raça/cor D6 (4) e `obitos_evitaveis_total_cap_ano`, figura que nunca entrou no site (decisão da equipe).
       Os 3 textos `percentual_evitaveis_cap_*_ano` passaram de não publicados a OK
+- [x] V12 `textos_para_revisao.csv` (revisão manual, pedido de 2026-09-28): 140 chaves = 71 PENDENTE (59 de figura +
+      12 blocos do relatório: resumo, achados e síntese por eixo), 8 NÃO PUBLICADO, 61 OK
