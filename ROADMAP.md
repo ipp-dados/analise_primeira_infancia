@@ -16,7 +16,7 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
    "Direito ao Brincar", reordenação conforme a planilha da equipe; `specs/estrutura_eixos.md` já atualizado (51 itens,
    nenhum arquivo removido). **Implementada no mesmo dia** em `spec/nova_estrutura` (site, PDF, DOCX, notas "menores de 5 anos"); falta publicar o PDF e o deploy do site, com OK do usuário. Regra do
    usuário: acrescentar o que falta, nunca remover o que sobra. (b) `specs/2026-09-28_apresentacao`: deck de 30 slides
-   em Marp, com fonte única em Markdown e variantes; depende de (a); respostas Q1-Q6 recebidas (PPTX, gestores, textos propostos por nós). Lacunas registradas:
+   em Marp, com fonte única em Markdown e variantes; depende de (a); respostas Q1-Q6 recebidas; **implementada no mesmo dia** (`spec/apresentacao`: 30 slides, PPTX e PDF em `apresentacao/`); falta a revisão dos 6 textos marcados `revisar` pela equipe. Lacunas registradas:
    taxa de mortalidade de 1 a 4 anos, taxa de violência de todas as naturezas, efeito visual do eixo transversal.
 
 0. **Melhorias do site e do relatório — Rodada A implementada em 2026-09-28** (`specs/2026-09-28_melhorias_site`,

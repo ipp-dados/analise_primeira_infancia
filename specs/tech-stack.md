@@ -149,6 +149,17 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   determinístico — por isso os seeds de texto do HTML/PDF foram alinhados
   a nomes de arquivo reais (não ao rótulo legível da opção) nessa rodada.
 
+## Apresentação (`apresentacao/`, `specs/2026-09-28_apresentacao`)
+
+- **Marp** (`@marp-team/marp-cli`, fixado em `apresentacao/package.json`; Node) — slides a partir de um Markdown só;
+  exporta PPTX (uma imagem por slide, com notas), PDF e HTML; `--pptx-editable` (experimental, LibreOffice) troca as
+  fontes. Escolhido pelo usuário em 2026-09-28 sobre reveal.js (exportação PPTX pior, mais código de tema) e Slidev
+  (Vue/Vite, mais dependências).
+- Pré-processador em Python (`apresentacao/build/gera_apresentacao.py`): variáveis, blocos condicionais, números
+  calculados de `tabelas_finais/` (`numeros.py`), figuras do `analise.py`, QR code (**segno**, `requirements-dev.txt`) e
+  capturas do site/PDF (Playwright, PyMuPDF).
+- Tema `apresentacao/tema/ipp.css`: identidade do site (azul IPP, paleta c1-c11, Fraunces + IBM Plex das fontes do LaTeX).
+
 ## O que foi tentado e descartado (não reintroduzir sem motivo novo)
 
 - Basemap de satélite (`Esri.WorldImagery`) — trocado por basemap
