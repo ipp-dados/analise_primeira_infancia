@@ -30,7 +30,7 @@ descartadas nas `SKILL.md` e nas specs por rodada).
 ### Convenção de nomes (`dados_locais/` · `tabelas_finais/` · `visualizacoes/` · `mapas/`)
 
 Formalizada em 2026-09-22 a partir do padrão que já era maioria — ver
-`specs/reorganize-naming/plan.md` para o levantamento completo (achados,
+`specs/2026-09-22_reorganize-naming/plan.md` para o levantamento completo (achados,
 arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 
 - `dados_locais/`: uma pasta por fonte, tema, snake_case sem espaço/acento
@@ -74,31 +74,47 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   `serie_temporal_multipla`) e para os mapas coropléticos. Estilo
   compartilhado: paleta categórica de 11 cores, título serifado (Palatino
   Linotype), rodapé de fonte, DPI 200 (gráficos) / 300 (mapas) — ver
-  `specs/visual-identity/`.
+  `specs/2026-09-09_visual-identity/`.
 - Export padrão em PNG (`visualizacoes/`, `mapas/`); export SVG existe mas
   fica comentado por padrão em cada função de plot.
 
-## Relatório interativo (`relatorio/index.html`)
+## Site (`website/`) — antes relatório interativo `relatorio/index.html`
 
-- **HTML/CSS/JS vanilla**, um único arquivo autocontido — sem framework, sem
-  passo de build, sem dependência externa além de uma fonte via Google
-  Fonts. Gerado por `.claude/skills/export_pdf_report/scripts/build_html_report.py`
-  (Python puro), que lê `tabelas_finais/*.csv` e os GeoJSON de
-  `dados_locais/geo/` e emite gráficos/mapas como **SVG inline** (motor de
-  chart próprio: `lineChart`/`barChart`/`groupedBarChart`, mapas via
-  `mapa_svg()`), não como imagem raster.
-- Tema claro/escuro automático via `prefers-color-scheme`, sem JS de
-  detecção de tema.
-- Deploy: **GitHub Actions** (`.github/workflows/deploy-relatorio.yml`,
-  disparo manual `workflow_dispatch`) publica `relatorio/index.html` no
-  **GitHub Pages** (copiado para `_site/index.html`, nome exigido na raiz
-  do site pelo Pages).
+- **Site estático, HTML/CSS/JS vanilla** (`specs/2026-09-24_website_refactor`, 2026-09-24) — sem framework, sem
+  passo de build no deploy, sem dependência externa além das fontes do Google Fonts. Até essa rodada
+  era um único `relatorio/index.html` autocontido (20,9 MB); agora `website/index.html` + `css/`
+  (3 arquivos, tokens em `main.css`) + `js/` (`charts.js` motor, `navigation.js` abas, `sidebar.js`
+  sumário lateral) + `data/` (gerado: dados dos gráficos e geometria compartilhada dos mapas).
+- Gerado por `website/build/build_site.py` (Python puro, ex-`build_html_report.py` da skill do PDF),
+  que lê `tabelas_finais/*.csv` e os GeoJSON de `dados_locais/geo/` e emite gráficos/mapas como
+  **SVG inline** (motor de chart próprio: `lineChart`/`barChart`/`groupedBarChart`; mapas via
+  `mapa_svg()` com `<use href>` apontando para a geometria única de cada região em `data/geo.js`,
+  simplificada com `shapely.coverage_simplify` — sem fresta entre vizinhos).
+- Navegação por abas (1 por eixo + Visão geral) com rota só por `#hash` (o Pages não reescreve
+  caminhos); sumário lateral com scroll-spy e progresso.
+- Só tema claro (tema escuro removido na v6.2 de `relatorio/specs.md`).
+- Deploy: **GitHub Actions** (`.github/workflows/deploy-relatorio.yml`, disparo manual
+  `workflow_dispatch`) copia uma lista fixa de `website/` para `_site/` e publica no **GitHub Pages**;
+  o CI não gera nada (a saída gerada é versionada).
+- Validação de navegador: Chrome via DevTools Protocol (`websocket-client`, já instalado) e Playwright
+  (Firefox/WebKit) só no ambiente de dev — nenhum dos dois entra no `requirements.txt`.
 
 ## Exportação em PDF/DOCX
 
+- **Desde 2026-09-25 (`specs/2026-09-25_relatorio_latex`)**: o relatório é **LaTeX** — classe **abnTeX2** (ABNT, modelo de
+  relatório técnico NBR 10719), **xelatex** via **latexmk** (MiKTeX no Windows), bibliografia **BibTeX** com
+  `abntex2cite` (`alf`) para a lista "Fontes", **fontspec** com Fraunces + IBM Plex Sans (OFL, versionadas em
+  `relatorio/latex/fontes/`), **TikZ** para os ícones (os SVG Lucide do site convertidos por
+  `gera_icones.py` com **svgelements**), **tcolorbox**, **longtable/booktabs/pdflscape** nas tabelas. O gerador
+  é Python (`relatorio/latex/build/gera_latex.py`). As figuras de impressão são PDF vetorial do matplotlib
+  (`pdf.fonttype 42`); mapas com fundo reduzido embutido sem reamostrar (`interpolation='none'`, ~0,4 MB/mapa).
+  Alternativas descartadas: continuar no HTML → Chrome/Edge headless (sem capa/sumário/listas ABNT, 49 MB, agrupamento
+  fixo em Python) e o modelo de dissertação do abnTeX2 (o pedido foi relatório/análise de política pública).
+- *Registro anterior (pipeline HTML → navegador, substituída; o script sai após a validação do LaTeX):*
+
 - Pipeline separada (mesma pasta de skill, script diferente:
   `build_notebook_report.py`) monta um HTML espelhando `analise.py` (por
-  eixo da política municipal, `specs/ajuste_eixos/`) com os **PNGs reais do
+  eixo da política municipal, `specs/2026-09-22_ajuste_eixos/`) com os **PNGs reais do
   matplotlib** (não o motor SVG do relatório interativo) e renderiza para
   PDF via **Chrome headless** (`--headless=new` + `--user-data-dir`
   isolado, obrigatório — ver `.claude/skills/export_pdf_report/SKILL.md`
@@ -110,7 +126,7 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   quase vazio sem erro nenhum (achado registrado no `SKILL.md`).
 - Verificação do PDF gerado usa **pypdf** (contagem de páginas) e **PyMuPDF**
   (`fitz`, rasterizar páginas de amostra para inspeção visual).
-- **DOCX de curadoria** (`specs/ajuste_eixos/` Bloco 5): `python-docx`
+- **DOCX de curadoria** (`specs/2026-09-22_ajuste_eixos/` Bloco 5): `python-docx`
   (`requirements.txt`) gera `relatorio/curadoria_textos.docx` — 1 heading
   por eixo/subseção, imagens reais redimensionadas (Pillow, JPEG em
   memória — nunca embute o PNG original de `mapas/`, ~6MB cada), 1
@@ -120,10 +136,10 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   estável (nome de arquivo sem extensão). Sumário do DOCX usa um **campo
   `TOC` nativo do Word** (não uma lista estática) — o usuário atualiza
   clicando "Atualizar campo"/F9 conforme edita o documento.
-- **Sincronização de texto curado** (`specs/ajuste_eixos/` Bloco 7,
+- **Sincronização de texto curado** (`specs/2026-09-22_ajuste_eixos/` Bloco 7,
   `sincroniza_docx.py`): texto editado à mão no DOCX vira a fonte de
   `relatorio/textos_curados.json` (`{seed: texto}`, seed = mesmo nome de
-  arquivo), lido por `build_html_report.py`/`build_notebook_report.py` via
+  arquivo), lido por `website/build/build_site.py` (ex-`build_html_report.py`)/`build_notebook_report.py` via
   um pequeno helper (`_texto_analise(seed)`) antes de cair no lorem ipsum
   determinístico — por isso os seeds de texto do HTML/PDF foram alinhados
   a nomes de arquivo reais (não ao rótulo legível da opção) nessa rodada.
@@ -139,11 +155,22 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 - Relatório em 3 variações estáticas (`index`/`lighter`/`white_index.html`)
   — consolidado num único `index.html` com tema automático.
 - Reordenar fisicamente as células de `analise.py` por eixo da política
-  municipal (`specs/ajuste_eixos/plan.md` §9.1) — mantida a ordem técnica
+  municipal (`specs/2026-09-22_ajuste_eixos/plan.md` §9.1) — mantida a ordem técnica
   de construção do dado; só a apresentação (HTML/PDF/DOCX) é reorganizada.
-- Reescrever `build_html_report.py`/`build_notebook_report.py` como
+- Reescrever `build_html_report.py` (hoje `website/build/build_site.py`)/`build_notebook_report.py` como
   renderizadores genéricos guiados por `specs/estrutura_eixos.md`
   (`parse_estrutura_eixos()` de verdade, não só os seeds de texto) — maior
   risco/custo do que o ganho, decisão do usuário registrada em
-  `specs/ajuste_eixos/specs.md` §9.3; os dois continuam Python hardcoded,
+  `specs/2026-09-22_ajuste_eixos/specs.md` §9.3; os dois continuam Python hardcoded,
   reorganizados fisicamente à mão quando o `.md` muda de agrupamento.
+- (site) Simplificar a geometria dos mapas polígono a polígono (Douglas-Peucker por região) — abriria
+  frestas entre bairros vizinhos; usa-se `coverage_simplify` (`specs/2026-09-24_website_refactor` §4.9).
+- (site) Vetorizar o logo do IPP por conta própria — publicaria uma marca oficial alterada; o PNG
+  oficial é servido em `srcset` até a Ascom fornecer o SVG (`specs/2026-09-24_website_refactor` D6).
+
+## Inclusão dos dados de Proteção (`specs/2026-09-23_inclusao_dados_protecao`)
+
+- Nível geográfico **RA** (`codra`) por `dissolve` do geojson de bairros (sem arquivo novo). Tema de cor `protecao` = `OrRd`
+  (`Purples` descartado: já é `censo` no HTML).
+- Fonte Sinan NET/Tabnet (CSV latin-1 com 6 linhas de metadados, formato largo) lida por `carrega_sinan_bairro`; IPS/Data.Rio por RA (xlsx).
+- Fundo cartográfico: `Esri.OceanBasemap` (serviço `Ocean_Basemap`) fora do ar em 2026-09; usar `World_Ocean_Base` (`fundo='mapa_oceano_base'`).

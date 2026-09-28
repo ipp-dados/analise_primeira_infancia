@@ -96,7 +96,7 @@ totalmente diferente."
   visualizador (`data-theme="light"`/`"dark"` e `prefers-color-scheme`, sem
   *stamp*).
 
-### v5 — `index.html` único, gerado por script, sem prosa (specs/visual-identity)
+### v5 — `index.html` único, gerado por script, sem prosa (specs/2026-09-09_visual-identity)
 
 - Os 3 arquivos (`index`/`lighter`/`white`) foram consolidados em **um único
   `relatorio/index.html`**, com tema claro/escuro automático via
@@ -110,7 +110,7 @@ totalmente diferente."
   tabela" — sem as notas de método/prosa que as versões anteriores copiavam do
   notebook (essas ficam no notebook e no PDF).
 - Cobertura ampliada para as ~73 visualizações do notebook (25 já existentes +
-  tudo que `specs/maps-and-ibge` adicionou: SIDRA, evitáveis por CAP/subgrupo,
+  tudo que `specs/2026-09-09_maps-and-ibge` adicionou: SIDRA, evitáveis por CAP/subgrupo,
   painéis D.1/D.2, raça sem "não informada") e as 32 imagens reais em
   `mapas/*.png` (7 grupos temáticos).
 - `lineChart` ganhou a mesma lógica de destaque de `serie_temporal_multipla`
@@ -138,14 +138,14 @@ totalmente diferente."
   agora têm papéis fixos (esquerda = Crianças, direita = Famílias).
 - `relatorio/index.html` passou a ser versionado no git (exceção adicionada
   ao `.gitignore`, que ignora `*.html` de forma genérica) — pedido direto,
-  substitui a decisão F de `specs/visual-identity/specs.md` (mantinha fora do
+  substitui a decisão F de `specs/2026-09-09_visual-identity/specs.md` (mantinha fora do
   git).
 
 ### v6 — relatório interativo: seções retráteis, seletor de opções, outliers,
-mapas SVG, identidade institucional (`specs/relatorio-interativo`)
+mapas SVG, identidade institucional (`specs/2026-09-14_relatorio-interativo`)
 
 Rodada baseada num wireframe manuscrito (`relatorio/Page 1.pdf`), planejada em
-`specs/relatorio-interativo/specification.md`/`plan.md` antes de implementar.
+`specs/2026-09-14_relatorio-interativo/specification.md`/`plan.md` antes de implementar.
 Motivo: o relatório v5.1 tinha paredes de 6-18 gráficos quase idênticos
 (cortes diferentes do mesmo indicador) e nenhuma interação além do hover.
 
@@ -180,7 +180,7 @@ Motivo: o relatório v5.1 tinha paredes de 6-18 gráficos quase idênticos
   relatório e paleta categórica de dados inalterados. Logo real embutido
   (`relatorio/assets/ipp-logo.png`) — **reverte a decisão de v2** que evitava
   logo institucional não verificado; autorização de uso ainda pendente de
-  confirmação antes de deploy público (`specs/relatorio-interativo/tasks.md`
+  confirmação antes de deploy público (`specs/2026-09-14_relatorio-interativo/tasks.md`
   T0.4).
 - **Rodapé institucional** novo: fontes de dados, links (IPP/Transparência
   Rio/LGPD), contato, data de atualização — escopo enxuto, sem
@@ -405,7 +405,7 @@ pra roxo
   pediu uma cor própria em vez de cinza, mantendo a regra de nunca usar
   azul (reservado ao mar/água do fundo cartográfico).
 
-### v7 — reorganização por eixo da política municipal (`specs/ajuste_eixos`)
+### v7 — reorganização por eixo da política municipal (`specs/2026-09-22_ajuste_eixos`)
 
 - **9 `<h2>` por fonte de dado → 6 `<h2>` por eixo da política municipal**
   (Prioridade sem secundário, Inclusão, Família e Cuidados, Proteção,
@@ -416,7 +416,7 @@ pra roxo
   `build_html_report.py` não lê esse `.md` em tempo de execução — foi
   reorganizado fisicamente uma vez para bater com ele; uma mudança de
   agrupamento no `.md` exige o mesmo ajuste manual de novo (decisão
-  registrada em `specs/ajuste_eixos/specs.md` §9.3, não um bug).
+  registrada em `specs/2026-09-22_ajuste_eixos/specs.md` §9.3, não um bug).
 - **16 indicadores do catálogo sem dado real ainda** (Proteção e Moradia
   quase inteiras, mais alguns em Inclusão/Família e Cuidados) aparecem como
   um bloco "🚧 Indicador catalogado, ainda não disponível" com a razão —
@@ -425,7 +425,7 @@ pra roxo
   favor da navbar — os dois convivem agora, motivos diferentes) + um bloco
   de Introdução (250 palavras, placeholder) logo após o cabeçalho.
 - Faixa de texto de análise por visualização ajustada de 150 palavras fixas
-  para 100-200 (`specs/ajuste_eixos/specs.md` §7).
+  para 100-200 (`specs/2026-09-22_ajuste_eixos/specs.md` §7).
 - **Seeds do texto de análise alinhados a nomes de arquivo reais** (antes
   eram o rótulo legível da pill) — prepara a sincronização com o novo DOCX
   de curadoria (`relatorio/curadoria_textos.docx`,
@@ -433,11 +433,65 @@ pra roxo
   editado à mão no Word passa a aparecer aqui automaticamente na próxima
   geração, via `relatorio/textos_curados.json`.
 
+### v8 — site estático em `website/`: abas por eixo, sumário lateral, novo visual (`specs/2026-09-24_website_refactor`)
+
+A partir desta versão o relatório interativo **não mora mais em `relatorio/`**: é o site estático
+`website/` (gerador `website/build/build_site.py`, ex-`build_html_report.py`; `relatorio/index.html`
+removido do git). Detalhes, medições e validação em `specs/2026-09-24_website_refactor/`; uso em `website/README.md`.
+
+- **Arquivos separados**: CSS (`css/main|layout|components.css`) e JS (`js/charts.js`,
+  `navigation.js`, `sidebar.js`) saíram das strings do gerador e são editados à mão; o gerador escreve
+  só `index.html`, `data/charts.js` e `data/geo.js`. A página ganhou `<!doctype>` (antes rodava em
+  *quirks mode*; só a altura das linhas de tabela mudou).
+- **Peso 20,9 MB → 1,5 MB** — resolve a pendência da v6.1: cada região de cada nível é um único
+  `<path id>` em `data/geo.js`, e os mapas usam `<use href>`; geometria simplificada como cobertura
+  (`shapely.coverage_simplify`, sem fresta entre vizinhos). Furinhos brancos dos mapas AP/RP/RA
+  (frestas do dissolve) corrigidos. Fundo cartográfico em arquivo, reaproveitado (geração determinística,
+  sem rede).
+- **Abas por eixo** (Visão geral + 6) com barra fixa no topo e rota por `#hash`; **sumário lateral**
+  da aba ativa com subseção atual e barra de progresso; Visão geral = Introdução + cartões dos eixos.
+- **Caixa "Fontes desta seção"** no fim de cada eixo (coletada das fontes dos próprios cartões) e
+  **bloco "Conclusões"** (lorem até haver curadoria; seed `conclusao-<sid>`).
+- **Banner**: título passa a ser **"Diagnóstico da Primeira Infância Carioca"**, sempre em 2 linhas;
+  a descrição sai e entram links para o GitHub, o PDF final e a data de atualização; logo maior com
+  `srcset` 1×/2×/3× a partir do PNG oficial.
+- **Revertido nesta versão** (registro, não apagado das versões acima):
+
+  | Antes | Onde | Agora |
+  |---|---|---|
+  | Cartões brutalistas (borda preta 2px, sem raio) | v6/v6.1 | Cartões arredondados com sombra suave |
+  | Navbar hambúrguer com links h2 | v6 | Barra de abas fixa |
+  | Sumário no topo (h2 > h3) | v7 | Sumário lateral da aba ativa |
+  | Seções retráteis | v6 | Abas (uma seção por vez) |
+  | Emojis nos títulos (🎯, 🚧, ℹ️, 🏛️…) | v2 | Ícones SVG (Lucide, ISC) |
+  | Um HTML autocontido | v5 | Site estático com arquivos separados |
+  | `relatorio/index.html` versionado e publicado | v5.1 | `website/` versionado e publicado |
+  | Acento verde `#2E9678`, cinza `#949B99` (contraste 3,7:1 e 2,8:1) | v5.1 | Azul IPP `#0A5A99`, `#5B6773` (AA) |
+  | Título "Análise Primeira Infância Carioca" | v5 | "Diagnóstico da Primeira Infância Carioca" |
+
+### v9 — exclusões, unidades e leitura dos gráficos (`specs/2026-09-25_website_graficos`)
+
+- Exclusões E2-E8 de `specs/exclusoes.md` aplicadas no gerador; E9 vira **alternância Taxa | Óbitos** num cartão só
+  (`option_card_alternancia`), mantendo a pill ao trocar. As pills passaram a trocar também o texto (até aqui o texto
+  ficava sempre no da 1ª opção).
+- **Paleta de dados**: `--c1…--c4` trocadas porque reprovavam no validador da skill `dataviz` (c1 `#6a95c8` croma baixa;
+  c4 `#deb254` com contraste 1,98:1; c2↔c3 ΔE 3,4 em protanopia). Agora `#3f7fc6 #d9773f #008c7c #b08a22`; c5-c11
+  iguais. Cor fixa por entidade para raça/cor e sexo (`_COR_ENTIDADE`).
+- **Unidades**: taxas por mil com `‰` (formato `pm1`; saíam com `%`), mortalidade por raça/cor por mil (era por 100),
+  título de unidade acima do eixo y (`unidade=`), base zero em toda série (decisão P1) com marcas redondas, rótulo
+  direto só até 4 séries, valor na ponta das barras agrupadas com até 12 barras.
+- **Pequenos múltiplos** automáticos a partir de 7 séries, com "Painéis | Linhas" (P2).
+- Teto P95 em todo mapa contínuo por bairro; `inf` (0 nascidos) vira "sem dado".
+- Caixa "Fontes desta seção" com a referência ABNT de `relatorio/latex/fontes.bib`; "Principais achados" e
+  "Conclusões" leem `achados_<eixo>`/`sintese_<eixo>` (mesmas chaves do PDF).
+- Títulos de seção descritivos (sem "Mapas"/"Série temporal"); o id antigo continua como âncora.
+- Botões CSV/outliers com faixa própria no topo do cartão (antes cobriam legenda/eixo em cartões sem subtítulo).
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
 | :--- | :--- | :--- | :--- |
-| `index.html` | Claro (único, v6.2) | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), fundo cartográfico real + rosa dos ventos + escala + legenda interna (v6.7), intercalados no fluxo |
+| `index.html` *(até v7; desde v8 o site é `website/`)* | Claro (único, v6.2) | Pastel (11 cores) + navy/ciano institucional (chrome, não dados) | Todos os ~32 mapas em SVG interativo (bairro/AP/RP/CAP-saúde), fundo cartográfico real + rosa dos ventos + escala + legenda interna (v6.7), intercalados no fluxo |
 
 ## Limitações conhecidas
 
@@ -455,7 +509,7 @@ pra roxo
   (lorem ipsum) — ainda precisa de curadoria editorial real.
 - (v7) Todo texto de análise por visualização também continua lorem ipsum —
   a infraestrutura de curadoria (DOCX + script de sincronização) existe
-  desde `specs/ajuste_eixos` Bloco 5/7, mas ninguém editou o `.docx` ainda.
+  desde `specs/2026-09-22_ajuste_eixos` Bloco 5/7, mas ninguém editou o `.docx` ainda.
 - (v7) ~24 opções de gráfico (cortes granulares que o catálogo não
   enumera um a um, ex. combinações CAP×subgrupo) e as 2 opções CadÚnico
   renda/idade (que compartilham 1 seed combinado no PDF) não têm um
@@ -469,3 +523,8 @@ pra roxo
   placeholders, não confirmados para este relatório especificamente.
 - (v6) Autorização de uso do logo oficial da Prefeitura do Rio/IPP ainda não
   confirmada — bloqueia o deploy público, não o desenvolvimento local.
+
+- (inclusao_dados_protecao) Eixo Proteção deixou de ser 100% pendente: violência territorial (RA, IPS 2024), violência familiar por vínculo
+  (Sinan, 2011-2025), lesão autoprovocada (2018-2026), taxa por 1.000 crianças. Notas metodológicas visíveis (`nota_metodologica`);
+  SGB/inundação removido de Moradia (fora da V1). Mapas de taxa usam `teto` (percentil 95) só na cor; o tooltip mostra o valor real.
+  Fundo cartográfico migrado para `World_Ocean_Base` (o serviço antigo retorna HTTP 500).

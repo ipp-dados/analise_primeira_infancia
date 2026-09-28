@@ -127,3 +127,4 @@ webencodings==0.5.1
 websocket-client==1.9.0
 wheel==0.47.0
 xyzservices==2025.4.0
+svgelements          # relatório LaTeX: ícones do site -> TikZ (relatorio/latex/build/gera_icones.py)

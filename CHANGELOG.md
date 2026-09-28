@@ -287,3 +287,98 @@ processo um `NameError` real (célula ativa sobrevivente da curadoria). Detalhes
 | 0.18.0  | 2026-09-22 | Reorganização de `dados_locais/` por tema (dedup de nascidos_vivos, sisvan/ consolidado, `ibge_sidra/` sem espaço/maiúsculas), rename de `relatorio/Page 1.pdf`, faixa "em desenvolvimento" no `relatorio/index.html` (deploy de teste no GitHub Pages). Convenção de nomes para `tabelas_finais/`/`visualizacoes/`/`mapas/` proposta em `specs/reorganize-naming/` (não executada). |
 | 0.19.0  | 2026-09-22 | `relatorio/`, `mapas/`, `tabelas_finais/`, `visualizacoes/` regenerados de verdade a partir do `analise.py` já corrigido (CadÚnico mantido no último estado salvo). 39 arquivos órfãos removidos, `.gitignore` corrigido (`mapas/`/`tabelas_finais/`/`visualizacoes/` estavam sendo versionados por engano). `relatorio/index.html` renomeado para `relatorio/relatorio.html` (deploy continua publicando como `index.html`, único nome que o GitHub Pages aceita na raiz do site). Primeiro deploy de teste no GitHub Pages. README reestruturado: histórico completo movido para este arquivo (`CHANGELOG.md`). |
 | 0.19.1  | 2026-09-22 | Revertido o rename da 0.19.0: `relatorio/relatorio.html` volta a se chamar `relatorio/index.html`. Todos os arquivos atualizados na 0.19.0 (CLAUDE.md, specs/constitution.md, specs/tech-stack.md, specs/roadmap.md, as 2 SKILL.md, os 2 scripts do export_pdf_report, .gitignore, analise.py, README.md) revertidos junto. |
+
+---
+
+## 2026-09-23 — `specs/inclusao_dados_protecao` (eixo Proteção)
+
+- `analise.py`: novo nível geográfico `'ra'` (Região Administrativa, chave `codra`) em `_NIVEIS_AGREGACAO`; tema de cor
+  `protecao` (`OrRd`); provedor de fundo `'mapa_oceano_base'` (o serviço `Ocean_Basemap` da Esri passou a responder HTTP 500;
+  `'mapa'` segue como estava); carregadores `carrega_sinan_bairro`, `carrega_violencia_familiar`,
+  `carrega_violencia_territorial_ra`, `carrega_pop_0_4_bairro`, `taxa_por_mil`, `bairro_para_nivel`,
+  `agrega_violencia_familiar_nivel`; gráficos `serie_temporal_multipla_marcos` e `grafico_barra_ranking`; nova seção "🛡️ Proteção".
+- Saídas novas: 10 CSVs de tabela + 8 de `tabela_mapa_*`, 8 gráficos, 10 mapas (`violencia_familiar_*`, `violencia_territorial_*`, `notif_autoprovocada_*`).
+- `specs/estrutura_eixos.md`: Proteção com arquivos reais; SGB/inundação removido da V1 (Moradia).
+- `build_html_report.py`: níveis `ra`, formato `dec1`, parâmetro `teto` em `mapa_svg`, `nota_metodologica`, fundo cartográfico via `World_Ocean_Base`.
+- `build_notebook_report.py`, DOCX de curadoria e `relatorio/index.html` regenerados.
+
+---
+
+## 2026-09-23 — `specs/recortes_cadunico` (CadÚnico, eixo Inclusão)
+
+- `analise.py`: funções `carrega_cadunico_familias_0_6`, `classifica_arranjo_familiar` (arranjo aproximado pela composição
+  do cadastro), `agrega_cadunico_familias`, `agrega_cadunico_criancas`, `atribui_bairro_por_cep`, `suprime_celulas_pequenas`
+  (regra de privacidade: < 20 famílias vira vazio) e `fonte_cadunico_com_particao`; recortes por sexo, raça/cor e arranjo × renda
+  com 3 mapas de taxa por bairro.
+- Correções nas saídas CadÚnico existentes: 15.809 crianças sem bairro (CEP fora da lista) agora aparecem numa linha própria;
+  notas reescritas com a causa real do viés de bairro (bairro dos Correios ≠ bairro IPP); definição real de idade documentada
+  (0 a 5 anos completos); supressão < 20 nas tabelas/gêmeas por bairro; `cadunico_por_faixa_etaria_2026.csv` renomeado para
+  `cadunico_por_faixa_renda_2026.csv` (o conteúdo sempre foi por renda); rótulos descritivos de renda; fonte com a data da extração.
+- Relatórios: HTML/PDF/DOCX com os 3 itens de Inclusão; mapa "% CadÚnico/Censo" retirado do HTML/PDF (fica no notebook);
+  `mapa_svg(col_suprimido=...)` mostra "suprimido (< 20)" no tooltip.
+
+---
+
+## 2026-09-24 — `specs/populacao-referencia` (população de referência, matrículas, faixas etárias)
+
+- `analise.py`: `carrega_populacao_ripsa`/`populacao_ripsa` (estimativas Ripsa/MS 2000-2025 via Tabnet, extrato
+  `dados_locais/populacao/ripsa_populacao_rio.csv`) como denominador de toda taxa municipal; série de população de
+  0 a 6 anos, taxa municipal de violência familiar por 1.000 (0-5, 2011-2025) e razão CadÚnico/população (49,4%).
+  Abaixo do município o denominador segue o Censo 2022, agora citado em legendas, fontes e notas.
+- Matrículas: `carrega_censo_escolar_matriculas`/`resume_matriculas_0_a_5` refazem a série 2007-2025 (0 a 5 anos)
+  dos microdados do INEP (extrato `dados_locais/educacao/inep_matriculas_rio.csv`); taxa bruta de atendimento com
+  metas do PNE (`linhas_referencia` opcional em `serie_temporal_multipla`). O CSV antigo "até 6 anos" saiu de uso.
+- Correção: o total da série dos Censos 2000/2010/2022 contava 0-4 anos duas vezes (participação de 0-4 anos
+  passa de 7,1/5,4/4,7% para 7,6/5,8/5,0%).
+- Faixas etárias: auditoria em `specs/populacao-referencia/auditoria_faixas.md`; títulos com a faixa real (CadÚnico
+  e SISVAN são 0 a 5 anos); 21 arquivos renomeados (`*_primeira_infancia_*` → `*_0_a_4_*`; mortalidade `_0_6_` →
+  `_0_a_6_dias_`, idem 7-27 e 28-364).
+- Relatórios: cards novos no HTML/PDF/DOCX; % de nascidos vivos por bairro no tooltip do mapa; aviso no console
+  para itens do crosswalk sem arquivo e sem status.
+
+
+## 2026-09-24 — `specs/website_refactor` (site estático em `website/`)
+
+- O relatório HTML virou um site estático em `website/` (GitHub Pages): gerador movido para
+  `website/build/build_site.py`; CSS e JS em arquivos próprios; `relatorio/index.html` removido.
+- Abas por eixo (Visão geral + 6), sumário lateral com progresso, novo visual (cartões arredondados,
+  ícones SVG, contraste AA), conclusões e caixa de fontes por eixo; título "Diagnóstico da Primeira
+  Infância Carioca". Peso: 20,9 MB → 1,5 MB (geometria dos mapas compartilhada e simplificada).
+
+## 2026-09-24 — curadoria: update 2 incorporado, controle de revisão
+
+- Textos de `curadoria_textos_update_1/2.docx` (sem bookmarks, estrutura antiga) casados com a estrutura
+  atual por `incorpora_update_docx.py`: 58 textos curados (antes 23) no DOCX, no site, no PDF e em
+  `analise.py`. Novo `relatorio/controle_revisao.json` marca cada item como revisado/atualizado/a escrever
+  no título (e no Sumário) e numa tabela de controle; alertas de dado/texto a conferir, sem editar o texto.
+- PDF: pares do CadÚnico usam os textos curados de cada gráfico; texto da série de vacinação; mapas de
+  óbitos tardios, na gravidez e no puerpério incluídos.
+- Correções nos textos curados (pedido do usuário): percentuais do Censo 0-4 (7,6/5,8/5,0%), faixa do CadÚnico
+  (0 a 5 anos), assunto do texto de desnutrição SISVAN, óbitos sem bairro nos mapas de gravidez/puerpério,
+  dois erros de digitação; texto "Crianças até 6 anos" movido para Inclusão › por sexo. Site passa a mostrar
+  os textos das Famílias no CadÚnico (par Crianças + Famílias).
+
+## 2026-09-25 — `specs/relatorio_latex` (relatório final em LaTeX)
+
+Relatório técnico ABNT (abnTeX2, xelatex) em `relatorio/latex/`, com capítulos gerados de `specs/estrutura_eixos.md`
+e dos textos curados no build; figuras em versão de impressão gravadas pelas próprias funções de visualização do
+`analise.py` (`visualizacoes/a4/`, `mapas/a4/`); tabelas no apêndice com regras de tamanho; lista "Fontes" em
+`relatorio/latex/fontes.bib` e inventário de fontes. Lista de exclusões em `specs/exclusoes.md`. Fundo padrão dos
+mapas passa a `mapa_oceano_base`. Detalhe na spec da rodada; mudanças do site planejadas em `specs/website_graficos`.
+
+
+## 2026-09-25 — curadoria: updates 3 e 4 incorporados
+
+Textos novos (taxa de mortalidade pós-neonatal, mapas de taxa de mortalidade infantil e pós-neonatal, série da taxa
+de mortalidade infantil reescrita) e as Considerações finais; textos de figuras fora do relatório guardados como
+órfãos no DOCX. As regressões do update 3 às correções de 2026-09-24 foram ignoradas. Alertas para a equipe em
+`relatorio/controle_revisao.json`.
+
+## 2026-09-25 — organização de `specs/` e roadmap único
+
+As pastas de rodada em `specs/` passam a ter a data de abertura como prefixo (`specs/<AAAA-MM-DD>_<nome>/`, ex.
+`specs/website_refactor` → `specs/2026-09-24_website_refactor`); as referências fora deste arquivo foram
+atualizadas, as entradas acima mantêm os nomes antigos como registro histórico. `specs/roadmap.md` e
+`website/ROADMAP.md` fundidos em `ROADMAP.md` na raiz, reorganizado (em andamento → próximos → backlog por tema →
+concluído), com dois itens novos: organização do projeto (pastas de dados/saídas, `analise.py` em módulos, scripts
+das skills) e empacotamento de scripts para outros projetos.

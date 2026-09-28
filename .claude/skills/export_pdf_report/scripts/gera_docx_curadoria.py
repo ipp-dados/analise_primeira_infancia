@@ -1,4 +1,4 @@
-"""Gera `relatorio/curadoria_textos.docx` (Bloco 5 de `specs/ajuste_eixos/plan.md`).
+"""Gera `relatorio/curadoria_textos.docx` (Bloco 5 de `specs/2026-09-22_ajuste_eixos/plan.md`).
 
 Documento Word para curadoria de textos de análise fora do notebook/HTML:
 abre com um Sumário (campo TOC nativo do Word, sob controle do usuário --
@@ -29,7 +29,8 @@ trabalho na raiz do projeto (`specs/estrutura_eixos.md`, `visualizacoes/`,
 `mapas/`, `relatorio/` são todos caminhos relativos a ela).
 
 CLI:
-    python gera_docx_curadoria.py [<docx_anterior>]
+    python gera_docx_curadoria.py [<docx_anterior>] [--textos <json de incorpora_update_docx.py>] [--controle <json>]
+    (--controle usa relatorio/controle_revisao.json se existir; sem ele, o documento sai sem marcas de status)
 
 Sem argumento: gera do zero (todo texto placeholder, sem apêndice de
 órfãos). Com argumento: lê `<docx_anterior>` para preservar texto já
@@ -49,11 +50,27 @@ from PIL import Image
 from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Inches
+from docx.shared import Inches, Pt, RGBColor
 
-from gera_estrutura_eixos import _nomes_de_arquivo, parse_estrutura_eixos, valida_estrutura
+from gera_estrutura_eixos import (_nomes_de_arquivo, blocos_relatorio, parse_estrutura_eixos, placeholder_bloco,
+                                  valida_estrutura)
 
 CAMINHO_SAIDA_PADRAO = "relatorio/curadoria_textos.docx"
+CAMINHO_CONTROLE_PADRAO = "relatorio/controle_revisao.json"
+
+# ---- controle de revisão (pedido do usuário, 2026-09-24) ----------------------
+# Status de cada bloco de texto, marcado no título (e portanto no Sumário, que é
+# um campo TOC dos títulos) e resumido na tabela "Controle de revisão". Fonte:
+# relatorio/controle_revisao.json, gerado por incorpora_update_docx.py a partir
+# dos arquivos de update (o campo "alertas" é editado à mão).
+STATUS_ICONE = {"revisado": "✅", "atualizado": "✏️", "pendente": "⬜", "indicador": "🚧"}
+STATUS_ROTULO = {
+    "revisado": "Revisado — texto confirmado sem mudança numa rodada posterior",
+    "atualizado": "Atualizado — texto novo ou alterado na última rodada em que apareceu (falta uma revisão)",
+    "pendente": "Texto a escrever — ainda é o texto provisório (lorem ipsum)",
+    "indicador": "Indicador pendente — ainda sem dado no relatório",
+}
+ICONE_ALERTA = "⚠️"
 
 _DIR_POR_CAMPO = {"visualização": "visualizacoes", "mapa": "mapas"}
 
@@ -71,7 +88,7 @@ _BOOKMARK_TRUNC = 32
 
 # ------------------------------------------------------------ lorem ipsum --
 # Copiado literalmente de build_html_report.py (_LOREM_WORDS/_lorem) --
-# specs/ajuste_eixos/specs.md §7 pede o MESMO vocabulário/algoritmo
+# specs/2026-09-22_ajuste_eixos/specs.md §7 pede o MESMO vocabulário/algoritmo
 # determinístico nos 3 artefatos (HTML/PDF/DOCX). Não importado de lá de
 # propósito -- este script é autocontido (ver docstring acima).
 _LOREM_WORDS = (
@@ -253,15 +270,122 @@ def _arquivos_de(campos, chave):
     return _nomes_de_arquivo(valor)
 
 
+# -------------------------------------------------------- controle de revisão --
+
+def _monta_controle(doc, ancora, linhas, rodada_rotulo):
+    """Legenda + contagem + tabela (Eixo | Subseção | Item | Status | Rodada | Observações), inserida
+    logo depois do Sumário (no lugar do parágrafo `ancora`), na mesma ordem dos títulos."""
+    from collections import Counter
+    elementos = []
+
+    def par(texto="", negrito=False, tamanho=None, italico=False):
+        p = doc.add_paragraph()
+        r = p.add_run(texto)
+        r.bold, r.italic = negrito, italico
+        if tamanho:
+            r.font.size = Pt(tamanho)
+        elementos.append(p._p)
+        return p
+
+    par("CONTROLE DE REVISÃO", negrito=True)
+    rod = ", ".join(rodada_rotulo.values()) or "—"
+    par(f"Rodadas de atualização incorporadas: {rod}. O status de cada item aparece no fim do título "
+        "(e por isso também no Sumário, depois de “Atualizar campo”).", tamanho=9, italico=True)
+    for st in ("revisado", "atualizado", "pendente", "indicador"):
+        par(f"{STATUS_ICONE[st]}  {STATUS_ROTULO[st]}", tamanho=9)
+    par(f"◐  Subseção com parte dos textos escritos     {ICONE_ALERTA}  Há algo a conferir (ver observação)", tamanho=9)
+    c = Counter(l[3] for l in linhas)
+    n_obs = sum(1 for l in linhas if l[5] and l[3] != "indicador")
+    par("Situação: " + " · ".join(f"{STATUS_ICONE[k]} {c.get(k, 0)}" for k in ("revisado", "atualizado", "pendente", "indicador"))
+        + f" · {n_obs} itens com observação", negrito=True, tamanho=9)
+
+    tabela = doc.add_table(rows=1, cols=6)
+    tabela.style = doc.styles["Table Grid"]
+    for cel, t in zip(tabela.rows[0].cells, ("Eixo", "Subseção", "Item", "Status", "Rodada", "Observações")):
+        cel.text = ""
+        r = cel.paragraphs[0].add_run(t)
+        r.bold = True
+        r.font.size = Pt(8)
+    for eixo_nome, secao, item, st, rodada, obs in linhas:
+        cels = tabela.add_row().cells
+        for cel, t in zip(cels, (eixo_nome, secao, item, f"{STATUS_ICONE[st]} {st}", rodada, obs)):
+            cel.text = ""
+            cel.paragraphs[0].add_run(t).font.size = Pt(8)
+    elementos.append(tabela._tbl)
+    par("")
+
+    atual = ancora._p
+    for el in elementos:
+        atual.addnext(el)
+        atual = el
+    ancora._p.getparent().remove(ancora._p)
+
+
 # -------------------------------------------------------------- geração ---
 
-def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None):
+def _eh_lorem(texto):
+    ws = [w.lower().strip(".,;:") for w in (texto or "").split() if w.strip(".,;:")]
+    lorem = set(_LOREM_WORDS)
+    return not ws or sum(w in lorem for w in ws) / len(ws) > 0.85
+
+
+def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_extra=None, controle=None):
+    """`textos_extra`: {bookmark_name: texto} que sobrepõe o `docx_anterior` (textos de um arquivo
+    de update casados por incorpora_update_docx.py). `controle`: dict de controle_revisao.json."""
     estrutura = parse_estrutura_eixos()
     valida_estrutura(estrutura)
 
     textos_curados = {}
     if docx_anterior and Path(docx_anterior).exists():
         textos_curados = extrai_textos_por_bookmark(docx_anterior)
+    textos_curados.update(textos_extra or {})
+    controle = controle or {}
+    # "ajustes_manuais" (correções feitas fora de um arquivo de update) vence o status calculado
+    ctl_blocos = {**controle.get("blocos", {}), **controle.get("ajustes_manuais", {})}
+    ctl_alertas = controle.get("alertas", {})
+    ctl_novos = set(controle.get("novos_desde_ultima_rodada", []))
+    ctl_notas = {}
+    for n in controle.get("notas", []):
+        ctl_notas.setdefault(n.get("bookmark"), []).append(n)
+    ctl_realocar = {r["bookmark"]: r for r in controle.get("realocar", [])}
+    rodada_rotulo = {r["id"]: (r["id"].replace("curadoria_textos_", "").replace("_", " ")
+                               + (f" ({r['data']})" if r.get("data") else "")) for r in controle.get("rodadas", [])}
+    linhas_controle = []   # (eixo, seção, item, status, rodada, observação)
+
+    def status_de(bname):
+        texto = textos_curados.get(bname)
+        if not texto or _eh_lorem(texto):
+            return "pendente"
+        return ctl_blocos.get(bname, {}).get("status", "atualizado")
+
+    def marca(status, bname=None):
+        return f"  {STATUS_ICONE[status]}" + (f" {ICONE_ALERTA}" if bname and bname in ctl_alertas else "")
+
+    def paragrafo_aviso(texto, cor, prefixo):
+        p = doc.add_paragraph()
+        r = p.add_run(f"{prefixo} {texto}")
+        r.italic = True
+        r.font.size = Pt(9)
+        r.font.color.rgb = cor
+        return p
+
+    def avisos_do_bloco(bname):
+        for a in ctl_alertas.get(bname, []):
+            paragrafo_aviso(a, RGBColor(0xB0, 0x3A, 0x2E), ICONE_ALERTA)
+        for n in ctl_notas.get(bname, []):
+            origem = rodada_rotulo.get(Path(n["origem"]).stem, n["origem"])
+            paragrafo_aviso(f"Nota do {origem}, em aberto: “{n['texto']}”", RGBColor(0x1F, 0x4E, 0x79), "📝")
+
+    def registra_linha(eixo_nome, secao, item, bname):
+        st = status_de(bname)
+        info = ctl_blocos.get(bname, {})
+        obs = []
+        if bname in ctl_novos and st == "pendente":
+            obs.append("item novo (não existia no último arquivo de update)")
+        obs += ctl_alertas.get(bname, [])
+        obs += [f"nota em aberto: {n['texto']}" for n in ctl_notas.get(bname, [])]
+        rodada = rodada_rotulo.get(info.get("rodada"), "—") if st != "pendente" else "—"
+        linhas_controle.append((eixo_nome, secao, item, st, rodada, "; ".join(obs)))
 
     ids_gerados = set()          # bookmark names emitidos nesta rodada (conteúdo real)
     registro_bookmarks = {}      # bookmark_name -> id_ original (detecção de colisão)
@@ -273,7 +397,7 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None):
 
     doc = Document()
 
-    # ---- sumario + introducao (pedido do usuario, specs/ajuste_eixos) -----
+    # ---- sumario + introducao (pedido do usuario, specs/2026-09-22_ajuste_eixos) -----
     # Sumario = campo TOC nativo do Word (add_toc_field), nao uma lista
     # estatica -- "para controle do usuario": ele mesmo pede a atualizacao
     # no Word conforme edita o documento, sem depender de regerar via
@@ -287,9 +411,38 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None):
     rotulo = doc.add_paragraph()
     rotulo.add_run("SUMÁRIO").bold = True
     add_toc_field(doc.add_paragraph())
+    # a tabela "Controle de revisão" é montada no fim (precisa de todos os blocos) e movida para cá
+    ancora_controle = doc.add_paragraph()
 
-    doc.add_heading("Introdução", level=1)
-    doc.add_paragraph(_lorem("introducao-relatorio-docx", 250))
+    doc.add_heading("Introdução" + (marca(status_de("introducao"), "introducao") if controle else ""), level=1)
+    # Bookmark fixo "introducao": texto curado sobrevive à regeneração e
+    # sincroniza_docx.py o leva para HTML/PDF (textos_curados.json).
+    p_intro = doc.add_paragraph(textos_curados.get("introducao") or _lorem("introducao-relatorio-docx", 250))
+    add_bookmark(p_intro, "introducao", next_id())
+    registro_bookmarks["introducao"] = "introducao"
+    ids_gerados.add("introducao")
+    registra_linha("—", "Introdução", "Introdução", "introducao")
+    avisos_do_bloco("introducao")
+
+    # textos do relatório que não pertencem a uma figura (specs/2026-09-25_relatorio_latex, Bloco 6): resumo, achados e
+    # síntese por eixo, considerações finais -- chave = bookmark = chave em textos_curados.json
+    blocos = blocos_relatorio(estrutura)
+
+    def bloco_relatorio(chave, nivel, eixo_nome="—"):
+        b = blocos[chave]
+        doc.add_heading(b["rotulo"] + (marca(status_de(chave), chave) if controle else ""), level=nivel)
+        if b["linhas"] > 1:
+            p_dica = doc.add_paragraph()
+            p_dica.add_run("Uma frase por linha (Shift+Enter entre as frases).").italic = True
+        texto = textos_curados.get(chave) or placeholder_bloco(b, _lorem)
+        p = doc.add_paragraph(texto)   # "\n" vira quebra de linha no Word
+        add_bookmark(p, chave, next_id())
+        registro_bookmarks[chave] = chave
+        ids_gerados.add(chave)
+        registra_linha(eixo_nome, b["rotulo"], b["rotulo"], chave)
+        avisos_do_bloco(chave)
+
+    bloco_relatorio("resumo", 1)
 
     def bloco_texto(id_):
         """Escreve 1 parágrafo de texto (curado, se já existir, senão lorem
@@ -307,35 +460,73 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None):
         texto = textos_curados.get(bname) or _lorem(id_)
         p = doc.add_paragraph(texto)
         add_bookmark(p, bname, next_id())
+        avisos_do_bloco(bname)
         return bname
 
     n_imagens = 0
 
     for eixo in estrutura:
         doc.add_heading(eixo["eixo"], level=1)
+        chave_achados = next(k for k, b in blocos.items() if k.startswith("achados_") and b.get("eixo") == eixo["eixo"])
+        bloco_relatorio(chave_achados, 2, eixo["eixo"])
         for sub in eixo["subsecoes"]:
             titulo = sub["titulo"]
             campos = sub["campos"]
-            doc.add_heading(titulo, level=2)
 
             if campos.get("status") == "pendente":
+                doc.add_heading(titulo + (f"  {STATUS_ICONE['indicador']}" if controle else ""), level=2)
                 p = doc.add_paragraph(f'[PENDENTE] {campos.get("nota", "")}')
                 p.style = doc.styles["Intense Quote"]
+                linhas_controle.append((eixo["eixo"], titulo, "—", "indicador", "—", campos.get("nota", "")))
                 continue
 
             opcoes = [("visualização", nome) for nome in _arquivos_de(campos, "visualização")]
             opcoes += [("mapa", nome) for nome in _arquivos_de(campos, "mapa")]
+            id_secao = f"{eixo['eixo']}::{titulo}"
+            bname_secao = _bookmark_name(id_secao)
+
+            # status agregado da subseção (marca no H2 => aparece no Sumário)
+            bnames = [_bookmark_name(Path(n).stem) for _, n in opcoes] or [bname_secao]
+            sts = [status_de(b) for b in bnames]
+            if all(x == "revisado" for x in sts):
+                st_secao = "revisado"
+            elif all(x != "pendente" for x in sts):
+                st_secao = "atualizado"
+            elif any(x != "pendente" for x in sts):
+                st_secao = "parcial"
+            else:
+                st_secao = "pendente"
+            icone_secao = {"parcial": "◐"}.get(st_secao) or STATUS_ICONE[st_secao]
+            texto_secao = textos_curados.get(bname_secao)
+            tem_texto_secao = bool(opcoes) and bool(texto_secao) and not _eh_lorem(texto_secao)
+            alerta_secao = any(b in ctl_alertas for b in bnames) or tem_texto_secao
+            marca_h2 = (f"  {icone_secao}" + (f" {ICONE_ALERTA}" if alerta_secao else "")) if controle else ""
+            doc.add_heading(titulo + marca_h2, level=2)
 
             if not opcoes:
                 # fonte-only: sem visualização/mapa dedicado em analise.py.
                 # Ainda assim ganha 1 bloco de texto curável (specs.md §7).
-                bloco_texto(f"{eixo['eixo']}::{titulo}")
+                bloco_texto(id_secao)
+                registra_linha(eixo["eixo"], titulo, "(texto da subseção)", bname_secao)
                 continue
+
+            # Texto curado escrito para a subseção inteira (de quando ela não tinha imagem, ou de um
+            # arquivo de update em que o texto estava direto sob o H2): fica aqui, sinalizado, em vez
+            # de cair no apêndice de órfãos -- a pessoa decide se ele fica, sai ou muda de lugar.
+            if tem_texto_secao:
+                sugestao = ctl_realocar.get(bname_secao, {}).get(
+                    "sugestao", "Conferir se ainda se aplica; se não, mover para a subseção certa ou apagar.")
+                paragrafo_aviso("Texto escrito para esta subseção numa versão anterior (hoje ela mostra os "
+                                "gráficos abaixo). " + sugestao, RGBColor(0xB0, 0x3A, 0x2E), ICONE_ALERTA)
+                bloco_texto(id_secao)
+                registra_linha(eixo["eixo"], titulo, "(texto da subseção, versão anterior)", bname_secao)
 
             for campo, nome in opcoes:
                 id_ = Path(nome).stem
                 label = id_.replace("_", " ").capitalize()
-                doc.add_heading(label, level=3)
+                b_item = _bookmark_name(id_)
+                doc.add_heading(label + (marca(status_de(b_item), b_item) if controle else ""), level=3)
+                registra_linha(eixo["eixo"], titulo, label, b_item)
                 pasta = _DIR_POR_CAMPO[campo]
                 stream = _imagem_redimensionada(Path(pasta) / nome)
                 doc.add_picture(stream, width=Inches(5.5))
@@ -349,10 +540,17 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None):
                 run = p.add_run(f"Tabela de apoio: {nomes_fmt}")
                 run.italic = True
 
+        chave_sintese = next(k for k, b in blocos.items() if k.startswith("sintese_") and b.get("eixo") == eixo["eixo"])
+        bloco_relatorio(chave_sintese, 2, eixo["eixo"])
+
+    bloco_relatorio("consideracoes_finais", 1)
+
     # Blocos cujo bookmark existia no docx_anterior mas não foi regenerado
     # nesta rodada (indicador removido/renomeado na estrutura) -- preservados
     # num apêndice em vez de descartados (plan.md §5.2).
-    orfaos = {bname: texto for bname, texto in textos_curados.items() if bname not in ids_gerados}
+    # só texto de verdade vai para o apêndice; lorem órfão (placeholder de item que saiu da estrutura) é descartado
+    orfaos = {bname: texto for bname, texto in textos_curados.items()
+              if bname not in ids_gerados and not _eh_lorem(texto)}
     if orfaos:
         doc.add_heading("Textos órfãos", level=1)
         for bname, texto in orfaos.items():
@@ -368,6 +566,11 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None):
             rotulo.add_run(bname).bold = True
             p = doc.add_paragraph(texto)
             add_bookmark(p, bname, next_id())
+
+    if controle:
+        _monta_controle(doc, ancora_controle, linhas_controle, rodada_rotulo)
+    else:
+        ancora_controle._p.getparent().remove(ancora_controle._p)
 
     _forca_atualizacao_de_campos(doc)
 
@@ -393,8 +596,26 @@ if __name__ == "__main__":
     except (AttributeError, ValueError):
         pass
 
-    docx_anterior = sys.argv[1] if len(sys.argv) > 1 else None
-    resumo = gera_docx(docx_anterior=docx_anterior)
+    import json
+    args = sys.argv[1:]
+
+    def _opcao(nome):
+        if nome in args:
+            i = args.index(nome)
+            v = args[i + 1]
+            del args[i:i + 2]
+            return v
+        return None
+
+    caminho_textos = _opcao("--textos")
+    caminho_controle = _opcao("--controle") or (CAMINHO_CONTROLE_PADRAO if Path(CAMINHO_CONTROLE_PADRAO).exists() else None)
+    docx_anterior = args[0] if args else None
+    textos_extra = None
+    if caminho_textos:
+        dados = json.loads(Path(caminho_textos).read_text(encoding="utf-8"))
+        textos_extra = {bm: v["texto"] for bm, v in dados["textos"].items()}
+    controle = json.loads(Path(caminho_controle).read_text(encoding="utf-8")) if caminho_controle else None
+    resumo = gera_docx(docx_anterior=docx_anterior, textos_extra=textos_extra, controle=controle)
 
     print(f"Eixos: {resumo['eixos']}")
     print(f"Subseções: {resumo['subsecoes']}")

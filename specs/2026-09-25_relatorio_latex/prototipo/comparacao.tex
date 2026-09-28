@@ -1,0 +1,35 @@
+\documentclass[12pt,a4paper,oneside,brazil]{abntex2}
+\usepackage{fontspec}
+\setmainfont{IBM Plex Sans}
+\usepackage{graphicx,xcolor}
+\usepackage{newfloat}
+\DeclareFloatingEnvironment[fileext=lgf, name=Gráfico, placement=htbp]{grafico}
+\DeclareFloatingEnvironment[fileext=lmp, name=Mapa, placement=htbp]{mapa}
+\usepackage[font=small,labelsep=endash,justification=raggedright,singlelinecheck=false]{caption}
+\setlrmarginsandblock{3cm}{2cm}{*}\setulmarginsandblock{3cm}{2cm}{*}\checkandfixthelayout
+\definecolor{navy}{HTML}{004A80}
+\newcommand{\R}{C:/Users/13073625755/Documents/GitHub/analise_primeira_infancia}
+\begin{document}
+\noindent{\color{navy}\large\bfseries ANTES --- PNG atual reduzida à largura do A4}\par\medskip
+\begin{grafico}[h]\caption{Taxa de mortalidade neonatal precoce, 2006-2025}
+\includegraphics[width=\textwidth]{\R/visualizacoes/taxa_mortalidade_precoce_ano.png}
+\fonte{DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro.}\end{grafico}
+\begin{mapa}[h]\caption{Taxa de mortalidade neonatal precoce por bairro, 2025}
+\includegraphics[width=\textwidth]{\R/mapas/mapa_taxa_mortalidade_precoce_bairro_2025.png}
+\fonte{DATASUS/Tabnet.}\end{mapa}
+\newpage
+\noindent{\color{navy}\large\bfseries DEPOIS --- variante de impressão (tamanho final, sem título embutido)}\par\medskip
+\begin{grafico}[h]\caption{Taxa de mortalidade neonatal precoce, 2006-2025}
+\includegraphics[width=\textwidth]{1_serie_unica.pdf}
+\fonte{Rio de Janeiro (RJ), SMS, SIM e SINASC (2026).}\end{grafico}
+\begin{mapa}[h]\caption{Taxa de mortalidade neonatal precoce por bairro, 2025}
+\includegraphics[width=\textwidth]{6_mapa_taxa.pdf}
+\fonte{Rio de Janeiro (RJ), SMS, SIM e SINASC (2026); limites de bairros: IPP (2024). Nota: escala de cor limitada ao percentil 95; bairros com poucos nascimentos têm taxas instáveis. Sistema de referência SIRGAS 2000.}\end{mapa}
+\newpage
+\begin{grafico}[h]\caption{Notificações de violência familiar contra crianças de 0 a 5 anos, por vínculo do provável autor, 2011-2025}
+\includegraphics[width=\textwidth]{2_series_multiplas.pdf}\fonte{Rio de Janeiro (RJ), SMS, Sinan (2026).}\end{grafico}
+\begin{grafico}[h]\caption{Crianças de 0 a 5 anos no CadÚnico, por faixa de renda per capita da família, junho de 2026}
+\includegraphics[width=\textwidth]{3_barras_categoricas.pdf}\fonte{Brasil, MDS, Cadastro Único (2026).}\end{grafico}
+\begin{grafico}[h]\caption{Óbitos por causas evitáveis de menores de 1 ano, por CAP de residência, 2006-2025}
+\includegraphics[width=\textwidth]{4_pequenos_multiplos.pdf}\fonte{Rio de Janeiro (RJ), SMS, SIM (2026).}\end{grafico}
+\end{document}
