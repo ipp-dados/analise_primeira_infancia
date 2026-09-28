@@ -4,6 +4,8 @@
   "use strict";
   function fmt(n, d){ d = d||0; return Number(n).toLocaleString('pt-BR', {minimumFractionDigits:d, maximumFractionDigits:d}); }
   function pct(n, d){ return fmt(n, d==null?1:d) + '%'; }
+  // taxas por mil (mortalidade por mil nascidos vivos, notificações por mil crianças) -- nunca com '%'
+  function pm(n, d){ return fmt(n, d==null?1:d) + '‰'; }
   const CAT = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c6)','var(--c7)','var(--c8)','var(--c9)','var(--c10)','var(--c11)'];
   const NS = 'http://www.w3.org/2000/svg';
   function svgEl(tag, attrs, parent){
@@ -23,6 +25,8 @@
 
   function prepararSeries(series){
     series.forEach((s,i)=>{ if (!s.color) s.color = series.length===1 ? 'var(--accent)' : CAT[i%CAT.length]; });
+    // painel de pequenos múltiplos: as séries de contexto chegam marcadas (muted) e ficam cinza
+    if (series.some(s=>s.muted)) return { destacadas: series.filter(s=>!s.muted), apagadas: series.filter(s=>s.muted) };
     if (series.length <= LIMIAR_DESTAQUE) return { destacadas: series, apagadas: [] };
     const comFinal = series.map(s=>{
       let v = null;
@@ -37,13 +41,31 @@
   }
 
   // ================= line chart =================
+  // escala com marcas redondas (1, 2, 2,5, 5 x 10^n): [min, max, nº de intervalos] -- antes o eixo era dividido
+  // em 4 partes iguais do intervalo de dados e mostrava marcas como 29, 57, 86, 114
+  function escalaRedonda(lo, hi, alvo){
+    const bruto = ((hi - lo) || Math.abs(hi) || 1) / alvo;
+    const pot = Math.pow(10, Math.floor(Math.log10(bruto)));
+    const passo = [1, 2, 2.5, 5, 10].map(m=>m*pot).find(p=>p >= bruto);
+    const a = Math.floor(lo / passo + 1e-9) * passo, b = Math.ceil(hi / passo - 1e-9) * passo;
+    return [a, b === a ? a + passo : b, Math.max(1, Math.round(((b === a ? a + passo : b) - a) / passo))];
+  }
+
+  // título curto da unidade, na horizontal acima do eixo y (B1, mesma regra do PDF)
+  function tituloEixo(svg, texto, x, y){
+    if (!texto) return;
+    svgEl('text', {x:x, y:y, class:'axis-title', 'text-anchor':'start'}, svg).textContent = texto;
+  }
+
   function lineChart(container, cfg){
     const x = cfg.x, series = cfg.series, opts = cfg.opts || {};
+    // B4 (specs/2026-09-25_website_graficos, P2): 7 ou mais séries -> pequenos múltiplos, com a visão de linhas ao lado
+    if (!opts.painel && opts.multiplos !== false && series.length >= LIMIAR_DESTAQUE + 1) return pequenosMultiplos(container, cfg);
     const { destacadas, apagadas } = prepararSeries(series);
     const W = opts.width || 680, H = opts.height || 250;
     const padL = opts.padL != null ? opts.padL : 38;
     const padR = opts.padR != null ? opts.padR : (opts.endLabels === false ? 14 : 66);
-    const padT = 16, padB = 28;
+    const padT = opts.yLabel ? 30 : 16, padB = 28;
     const plotW = W - padL - padR, plotH = H - padT - padB;
     const allVals = [];
     series.forEach(s=>s.values.forEach(v=>{ if (v!=null) allVals.push(v); }));
@@ -51,17 +73,24 @@
     const refLines = opts.refLines || [];
     refLines.forEach(r=>allVals.push(r.value));
     let vMin = Math.min.apply(null, allVals), vMax = Math.max.apply(null, allVals);
+    if (opts.yMax != null) vMax = opts.yMax;
+    // B8 (P1): base zero em toda série, taxas inclusive (regra do PDF) -- zeroBase:false só para dados com negativos
     if (opts.zeroBase !== false) vMin = Math.min(0, vMin);
     const span = (vMax - vMin) || 1;
-    vMax += span * 0.14;
-    if (opts.zeroBase === false) vMin -= span * 0.14;
+    vMax += span * 0.06;   // folga para o rótulo do máximo
+    if (opts.zeroBase === false) vMin -= span * 0.06;
+    const esc = escalaRedonda(vMin, vMax, opts.painel ? 2 : 4);
+    vMin = esc[0]; vMax = esc[1];
+    const gridN = esc[2];
     const n = x.length;
     const xAt = i => padL + (n===1 ? plotW/2 : (plotW * i/(n-1)));
     const yAt = v => padT + plotH - ((v - vMin)/((vMax-vMin)||1))*plotH;
-    const fmtY = v => cfg.yFormat ? cfg.yFormat(v) : fmt(v, opts.yDecimals||0);
+    const passoY = (vMax - vMin) / gridN;
+    const decY = opts.yDecimals != null ? opts.yDecimals : (Number.isInteger(Math.round(passoY*1e6)/1e6) ? 0 : 1);
+    const fmtY = v => cfg.yFormat ? cfg.yFormat(v) : fmt(v, decY);
 
     const wrap = document.createElement('div'); wrap.className = 'chart-wrap';
-    if (series.length > 1){
+    if (series.length > 1 && !opts.painel){
       const legend = document.createElement('div'); legend.className = 'chart-legend';
       destacadas.forEach(s=>{
         const item = document.createElement('span'); item.className = 'legend-item';
@@ -76,7 +105,7 @@
       wrap.appendChild(legend);
     }
     const svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, class:'chart-svg', preserveAspectRatio:'xMidYMid meet'});
-    const gridN = 4;
+    tituloEixo(svg, opts.yLabel, 0, 12);
     for (let i=0;i<=gridN;i++){
       const v = vMin + (vMax-vMin)*i/gridN;
       const y = yAt(v);
@@ -86,7 +115,8 @@
     const maxLabels = opts.maxXLabels || 7;
     const step = Math.max(1, Math.ceil(n/maxLabels));
     x.forEach((lab,i)=>{
-      if (i % step !== 0 && i !== n-1) return;
+      // o último ano sempre aparece; o rótulo regular colado a ele sai (antes "2024" e "2025" se sobrepunham)
+      if (i !== n-1 && (i % step !== 0 || (n-1-i) < Math.max(2, step*0.6))) return;
       svgEl('text', {x:xAt(i), y:H-7, class:'axis-label', 'text-anchor': i===0?'start':(i===n-1?'end':'middle')}, svg).textContent = lab;
     });
     refLines.forEach(r=>{
@@ -117,7 +147,8 @@
       for (let i=s.values.length-1;i>=0;i--){ if (s.values[i]!=null){ lastValidIdx=i; break; } }
       if (last && !apagada && opts.endLabels !== false){
         svgEl('circle', {cx:last[0], cy:last[1], r:3.2, fill:cor}, svg);
-        if (destacadas.length <= (opts.maxDirectLabels || 8)){
+        // B3: rótulo direto só até 4 séries destacadas (skill dataviz: "<= 4 direct-labeled"); acima, legenda + tooltip
+        if (destacadas.length <= (opts.maxDirectLabels || 4)){
           const t = svgEl('text', {x:last[0]+7, y:last[1], class:'end-label', fill:cor}, svg);
           t.textContent = s.format ? s.format(s.values[s.values.length-1]) : fmtY(s.values[s.values.length-1]);
         }
@@ -129,7 +160,7 @@
       // baixo que o end-label (maxExtremeSeries, nao maxDirectLabels): com muitas series
       // no mesmo grafico, maximos/minimos caem em posicoes X arbitrarias e colidem com
       // mais facilidade do que o end-label (que fica sempre no mesmo X, a ultima coluna).
-      if (!apagada && opts.extremeLabels !== false && destacadas.length <= (opts.maxExtremeSeries || 4)){
+      if (!apagada && opts.extremeLabels !== false && destacadas.length <= (opts.maxExtremeSeries || 2)){
         let iMax=-1, iMin=-1, vMax=-Infinity, vMin=Infinity;
         s.values.forEach((v,i)=>{ if (v!=null){ if (v>vMax){vMax=v;iMax=i;} if (v<vMin){vMin=v;iMin=i;} } });
         [[iMax,-8],[iMin,13]].forEach(([idx,dy])=>{
@@ -196,9 +227,50 @@
     }
   }
 
+  // ================= pequenos múltiplos (B4) =================
+  // um painel por série, todos na mesma escala, demais séries em cinza; controle "Painéis | Linhas" troca para o
+  // gráfico original (P2: alternância no mesmo cartão, abre em Painéis)
+  function pequenosMultiplos(container, cfg){
+    const series = cfg.series, opts = cfg.opts || {};
+    series.forEach((s,i)=>{ if (!s.color) s.color = CAT[i%CAT.length]; });
+    let vMax = -Infinity;
+    series.forEach(s=>s.values.forEach(v=>{ if (v!=null && v>vMax) vMax = v; }));
+    const ctrl = document.createElement('div'); ctrl.className = 'alterna-ctrl sm-ctrl'; ctrl.setAttribute('role','group'); ctrl.setAttribute('aria-label','Visualização');
+    const vistas = [document.createElement('div'), document.createElement('div')];
+    vistas[0].className = 'sm-grid';
+    if (opts.yLabel){ const t = document.createElement('div'); t.className = 'sm-unidade'; t.textContent = opts.yLabel; container.appendChild(t); }
+    series.forEach((s,i)=>{
+      const cel = document.createElement('div'); cel.className = 'sm-cell';
+      const tit = document.createElement('div'); tit.className = 'sm-title'; tit.textContent = s.label;
+      const alvo = document.createElement('div');
+      cel.appendChild(tit); cel.appendChild(alvo); vistas[0].appendChild(cel);
+      const contexto = series.filter((_,j)=>j!==i).map(o=>({label:o.label, values:o.values, format:o.format, muted:true, color:'var(--c-muted)'}));
+      lineChart(alvo, {x:cfg.x, series:contexto.concat([{label:s.label, values:s.values, format:s.format, color:s.color}]), yFormat:cfg.yFormat,
+        opts:{painel:true, width:300, height:170, padR:44, maxXLabels:3, area:false, extremeLabels:false, yMax:vMax, yDecimals:opts.yDecimals, zeroBase:opts.zeroBase}});
+    });
+    lineChart(vistas[1], {x:cfg.x, series:series, yFormat:cfg.yFormat, opts:Object.assign({}, opts, {multiplos:false, table:false})});
+    vistas[1].hidden = true;
+    ['Painéis','Linhas'].forEach((rot,i)=>{
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'alterna-btn'; b.textContent = rot;
+      b.setAttribute('aria-pressed', i===0 ? 'true' : 'false');
+      b.addEventListener('click', ()=>{
+        vistas.forEach((v,j)=>{ v.hidden = (j!==i); });
+        ctrl.querySelectorAll('.alterna-btn').forEach((o,j)=>o.setAttribute('aria-pressed', j===i ? 'true' : 'false'));
+      });
+      ctrl.appendChild(b);
+    });
+    container.appendChild(ctrl); container.appendChild(vistas[0]); container.appendChild(vistas[1]);
+    if (opts.table){
+      const tmp = document.createElement('div');
+      lineChart(tmp, {x:cfg.x, series:series, yFormat:cfg.yFormat, opts:{multiplos:false, table:true}});
+      const det = tmp.querySelector('details.data-table'); if (det) container.appendChild(det);
+    }
+  }
+
   // ================= horizontal bar chart =================
   function barChart(container, cfg){
-    const items = cfg.items;
+    const items = cfg.items, opts = cfg.opts || {};
+    if (opts.yLabel){ const t = document.createElement('div'); t.className = 'bar-unidade'; t.textContent = opts.yLabel; container.appendChild(t); }
     const wrap = document.createElement('div'); wrap.className = 'bar-chart';
     const max = Math.max.apply(null, items.map(it=>it.value)) * 1.06 || 1;
     items.forEach((it,i)=>{
@@ -223,13 +295,17 @@
     const groups = cfg.groups, series = cfg.series, opts = cfg.opts || {};
     series.forEach((s,i)=>{ if (!s.color) s.color = CAT[i%CAT.length]; });
     const W = opts.width || 760, H = opts.height || 320;
-    const padL = 40, padR = 12, padT = 14, padB = 56;
+    const padL = 40, padR = 12, padT = opts.yLabel ? 30 : 14, padB = 56;
+    // B3: valor na ponta só com poucas barras (<= 12); acima disso, tooltip e tabela
+    const rotulaBarras = groups.length * series.length <= 12;
     const plotW = W - padL - padR, plotH = H - padT - padB;
     const allVals = [];
     series.forEach(s=>s.values.forEach(v=>{ if (v!=null) allVals.push(v); }));
-    const maxV = Math.max.apply(null, allVals) * 1.12;
+    const esc = escalaRedonda(0, Math.max.apply(null, allVals) * 1.08, 4);
+    const maxV = esc[1], gridN = esc[2];
     const yAt = v => padT + plotH - (v/maxV)*plotH;
-    const fmtY = v => cfg.yFormat ? cfg.yFormat(v) : fmt(v, opts.yDecimals||0);
+    const decY = opts.yDecimals != null ? opts.yDecimals : (Number.isInteger(Math.round(maxV/gridN*1e6)/1e6) ? 0 : 1);
+    const fmtY = v => cfg.yFormat ? cfg.yFormat(v) : fmt(v, decY);
 
     const wrap = document.createElement('div'); wrap.className = 'chart-wrap';
     const legend = document.createElement('div'); legend.className = 'chart-legend';
@@ -241,7 +317,7 @@
     wrap.appendChild(legend);
 
     const svg = svgEl('svg', {viewBox:'0 0 '+W+' '+H, class:'chart-svg'});
-    const gridN = 4;
+    tituloEixo(svg, opts.yLabel, 0, 12);
     for (let i=0;i<=gridN;i++){
       const v = maxV*i/gridN;
       const y = yAt(v);
@@ -264,6 +340,7 @@
         const by = yAt(v);
         const bh = Math.max(1, padT+plotH - by);
         const rect = svgEl('rect', {x:bx+0.6, y:by, width:Math.max(1,barW-1.2), height:bh, fill:s.color, rx:1.5}, svg);
+        if (rotulaBarras) svgEl('text', {x:bx+barW/2, y:by-5, class:'bar-top-label', 'text-anchor':'middle'}, svg).textContent = s.format ? s.format(v) : fmtY(v);
         rect.style.cursor = 'pointer';
         rect.addEventListener('mousemove', e=>{
           const r = wrap.getBoundingClientRect();
@@ -305,15 +382,47 @@
   // initNavbar/initSections (navbar hambúrguer e seções retráteis) removidos -- substituídos pelas
   // abas (js/navigation.js) e pelo sumário lateral (js/sidebar.js), specs/2026-09-24_website_refactor Bloco 5.
 
+  // o texto de cada opção troca junto com o painel (specification.md §3.13) -- até 2026-09-25 só o painel
+  // trocava e o texto ficava sempre no da 1a pill (specs/2026-09-25_website_graficos, V9.2)
+  function selecionaPill(card, i){
+    const pills = Array.from(card.querySelectorAll(':scope > .pill-col > .pill'));
+    const panes = Array.from(card.querySelectorAll(':scope > .opt-panes > .opt-pane'));
+    const texts = Array.from(card.querySelectorAll(':scope > .opt-texts > .opt-text'));
+    pills.forEach((p,j)=>{
+      if (j===i) p.setAttribute('data-active','true'); else p.removeAttribute('data-active');
+      p.setAttribute('aria-pressed', j===i ? 'true' : 'false');
+    });
+    panes.forEach((pane,j)=>{ pane.hidden = (j!==i); });
+    if (texts.length === panes.length) texts.forEach((t,j)=>{ t.hidden = (j!==i); });
+  }
+  function pillAtiva(card){
+    const pills = Array.from(card.querySelectorAll(':scope > .pill-col > .pill'));
+    return Math.max(0, pills.findIndex(p=>p.getAttribute('data-active') === 'true'));
+  }
+
   function initPills(){
     document.querySelectorAll('.option-card').forEach(card=>{
-      const pills = Array.from(card.querySelectorAll(':scope > .pill-col > .pill'));
-      const panes = Array.from(card.querySelectorAll(':scope > .opt-panes > .opt-pane'));
-      pills.forEach((pill,i)=>{
-        pill.addEventListener('click', ()=>{
-          pills.forEach((p,j)=>{ if (j!==i) p.removeAttribute('data-active'); });
-          pill.setAttribute('data-active','true');
-          panes.forEach((pane,j)=>{ pane.hidden = (j!==i); });
+      card.querySelectorAll(':scope > .pill-col > .pill').forEach((pill,i)=>{
+        pill.addEventListener('click', ()=>selecionaPill(card, i));
+      });
+    });
+  }
+
+  // alternância Taxa <-> Óbitos (E9, specs/2026-09-25_website_graficos §2): um option-card por modo, mesmas
+  // pills na mesma ordem; trocar o modo mantém a pill selecionada
+  function initAlternancia(){
+    document.querySelectorAll('.alterna').forEach(box=>{
+      const botoes = Array.from(box.querySelectorAll(':scope > .alterna-ctrl > .alterna-btn'));
+      const modos = Array.from(box.querySelectorAll(':scope > .alterna-modo'));
+      botoes.forEach((btn,i)=>{
+        btn.addEventListener('click', ()=>{
+          const atual = modos.findIndex(m=>!m.hidden);
+          if (atual === i) return;
+          const cardAtual = modos[atual] && modos[atual].querySelector(':scope > .option-card');
+          const cardNovo = modos[i].querySelector(':scope > .option-card');
+          if (cardAtual && cardNovo) selecionaPill(cardNovo, pillAtiva(cardAtual));
+          modos.forEach((m,j)=>{ m.hidden = (j!==i); });
+          botoes.forEach((b,j)=>b.setAttribute('aria-pressed', j===i ? 'true' : 'false'));
         });
       });
     });
@@ -373,9 +482,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    initPills(); initOutliers(); initDownloads(); initMapTooltips();
+    initPills(); initAlternancia(); initOutliers(); initDownloads(); initMapTooltips();
   });
 
   window.byId = byId; window.lineChart = lineChart; window.barChart = barChart; window.groupedBarChart = groupedBarChart;
-  window.fmt = fmt; window.pct = pct;
+  window.fmt = fmt; window.pct = pct; window.pm = pm;
 })();
