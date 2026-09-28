@@ -437,3 +437,12 @@ dependências diretas, com versões fixadas; Playwright vai para `requirements-d
 notebook (antes e depois, com o CadÚnico lido do banco) deram as mesmas 431 saídas; site, LaTeX, DOCX e inventário de
 fontes também saíram iguais (o inventário passou a ler o pacote). A regra da constituição sobre onde vivem as funções
 foi atualizada.
+
+## 2026-09-28 — `specs/documentacao` (especificação do projeto e documentação alinhada)
+
+Novo `docs/especificacao_projeto.md`: especificação funcional e técnica do projeto inteiro (produtos e público,
+eixos e indicadores com as contagens atuais, fontes, requisitos funcionais e não funcionais, arquitetura com
+diagrama do fluxo de dados, componentes, regras, processos de rodada/curadoria/publicação, operação, limitações e
+glossário). README, CLAUDE.md, tech-stack e constituição alinhados ao estado real (fontes do eixo Proteção, Ripsa e
+INEP; pastas de `dados_locais/`; PDF em LaTeX; geradores fora das skills); `relatorio/specs.md` marcado como
+documento histórico; `.env.example` criado (era citado e não existia).

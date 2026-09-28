@@ -60,10 +60,12 @@ reimplementing this logic:
    ones included, because the sections use some of them. **All new reusable logic goes into the module of its theme,
    not inline in an analysis section** — sections only call these functions. A new module-level name used by a
    sibling module is imported explicitly (`from .estilo import ...`); keep the graph acyclic (`estilo` at the base).
-2. Analysis sections in source order: Censo 2022, CadÚnico, DataSUS/Tabnet
-   (nascidos vivos, baixo peso, mortalidade neonatal, óbitos gravidez/puerpério,
+2. Analysis sections in source order: Censo 2022 (incl. IBGE SIDRA 0-6 and the Ripsa/MS population 2000-2025),
+   CadÚnico, DataSUS/Tabnet (nascidos vivos, baixo peso, mortalidade neonatal, óbitos gravidez/puerpério,
    óbitos por causas evitáveis by CID-10 group/subgroup and by CAP), SISVAN,
-   Cobertura Vacinal EPI, IBGE SIDRA/PNAD/Censo Escolar. **This is the
+   Cobertura Vacinal EPI, PNAD/IBGE SIDRA/Censo Escolar (INEP microdata), the bairro/município joins, and
+   Proteção (SINAN violência familiar and autoprovocada via `carrega_sinan_bairro`/`carrega_violencia_familiar`,
+   IPS violência territorial by RA, rates per 1,000 children). **This is the
    technical build order (each section's data feeds later joins) and is
    deliberately left unchanged** — see the note below.
 3. A closing "Análise / Relatório" section (markdown notes only, no code
@@ -120,8 +122,9 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 
 ### Directory layout
 
-- `dados_locais/` — raw input data by source (`censo/`, `cadunico/`,
-  `mortalidade/`, `sisvan/`, `IBGE SIDRA/`, ...) and `dados_locais/geo/`
+- `dados_locais/` — raw input data by source (`censo/`, `mortalidade/`,
+  `nascidos_vivos/`, `sisvan/`, `ibge_sidra/`, `vacinacao/`, `educacao/`, `populacao/`, `protecao/`; CadÚnico is not a
+  file — it is read from the CTPE database) and `dados_locais/geo/`
   (reference boundary geojsons). **`dados_locais/` is NOT gitignored** —
   files placed there, including geo layers, get committed; verify with `git
   status` before assuming otherwise. `dados_locais/tratados/` holds
@@ -131,6 +134,10 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 - `mapas/` — choropleth PNGs from `mapa_coropletico_bairros`, plus each map's twin input table in `tabelas_finais/tabela_mapa_*.csv` (gitignored except `.gitkeep`). `mapas/tabelas_bairros/` is a legacy Excel-based leftover, kept only for two files not yet migrated.
 - `website/` — the published static site (GitHub Pages; `specs/2026-09-24_website_refactor`): tabs per eixo, sticky outline, interactive SVG charts/maps. `website/build/build_site.py` (moved from the PDF skill's `build_html_report.py`) generates `index.html`, `data/charts.js`, `data/geo.js` (map geometry, one `<path>` per region, shared by all maps via `<use>`; the `<use>` of each map and its CSV are in `window.MAPAS` in `data/charts.js`, inserted by `js/charts.js` on load — `specs/2026-09-28_melhorias_site`) and `assets/images/basemap-*`/`ipp-logo-*`; `css/` and `js/` are **hand-edited static files**, not generator strings. Generated output is committed (CI has no `tabelas_finais/`, so it only copies). **Distinct pipeline and visual identity from `relatorio/analise_primeira_infancia.pdf`** — don't mix their conventions. Static-site rules (relative lowercase paths, hash-only routes, no `fetch`, only html/css/js/svg/png/jpg/ico published) and the size budget (the generator warns above 1 MB `index.html` / 2 MB site) are in `website/README.md`. `*.png`/`*.svg` are gitignored globally; `!/website/assets/**` keeps the site's assets tracked. Narrow screens (`specs/2026-09-28_website_mobile`): every tablet/phone rule is in `css/mobile.css` and charts in narrow containers are redrawn at real width by `js/charts.js` — the desktop (≥ 1100 px) must stay pixel-identical, checked by screenshot comparison before committing.
 - `relatorio/` — the published PDF (`analise_primeira_infancia.pdf`, copied there only by `gera_latex.py --publicar`), `latex/` (LaTeX source: hand-edited `relatorio.tex`/`estilo.sty`/`pretextual/`/`fontes.bib`, generated `gerado/`, gitignored `_build/`), the sources inventory (`inventario_fontes.md/.csv`, for the team), the DOCX curation export with its review status (`controle_revisao.json`), past Google Docs curation rounds (`textos_updates_antigos/curadoria_textos_update_<N>.docx`; a new one arrives as `relatorio/curadoria_textos_update.docx` and is archived there after incorporation), and `textos_curados.json` (curated text read by the site and the PDF). `publicacao.json` is the single "em desenvolvimento" switch: it drives both the site's yellow strip and the PDF watermark — flip it there and rebuild both. `relatorio/index.html` no longer exists (replaced by `website/`).
+- `docs/especificacao_projeto.md` — the functional/technical specification of the whole project (products, eixos and
+  indicators, sources, requirements, architecture, rules, processes, how to run). Update it when a round changes
+  something it describes (its §11 lists what to check).
+- `.env.example` — template of `.env` (CTPE database keys read by `connect_db_ctpe`); `.env` itself is gitignored.
 - `ROADMAP.md` (root) — the single roadmap (in progress → prioritized queue → backlog by theme → done); `specs/roadmap.md` and `website/ROADMAP.md` were merged into it on 2026-09-25. Update it when a round opens or closes.
 - `specs/exclusoes.md` — hand-edited list of what the team excluded from the PDF/site/figures, why, and how to restore it. Check it before re-adding an indicator.
 - `.github/workflows/deploy-relatorio.yml` — manual (`workflow_dispatch`) GitHub Pages deploy of `website/` (explicit include list, excludes `build/`; fails if a non-static file type slips in). Not the PDF.

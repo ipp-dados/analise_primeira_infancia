@@ -16,8 +16,8 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
    trocar com `gera_favicon.py`), texto de abertura de cada eixo (`introducao_<eixo>`, lorem até ser curado), lorem ≤ 150
    palavras, pequenos múltiplos só com Painéis, `index.html` 785 → 343 KB sem mudança visual. Mesclada em
    `staging_main` em 2026-09-28; falta o deploy. **Rodada B concluída** no mesmo dia (item 1 de Próximos, fases 1a e
-   1b, `specs/2026-09-28_organizacao`). Falta a **Rodada C** do mesmo pedido: Próximos, item 6
-   (documentação + documento de especificação funcional/técnica em `docs/especificacao_projeto.md`).
+   1b, `specs/2026-09-28_organizacao`). **Rodada C concluída** no mesmo dia (item 6 de Próximos:
+   documentação + `docs/especificacao_projeto.md`, `specs/2026-09-28_documentacao`).
 
 1. **Site: exclusões + `improve charts`** — implementado em 2026-09-25 (`specs/2026-09-25_website_graficos`, branch
    `spec/website-graficos`). O push para `staging_main` quebrou o site publicado e foi **revertido em 2026-09-28**
@@ -103,10 +103,9 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
    `staging_main` e deploy. Fica para depois: tablet com alvos de toque de 44 px e texto dos gráficos de viewBox fixo
    entre 9,5 e 11 px (a meta de 44 px / 11 px desta rodada era só do celular).
 
-6. **Atualizar a documentação do projeto** — alinhar `CLAUDE.md`, `README.md`, `CHANGELOG.md`,
-   `specs/tech-stack.md`, `specs/constitution.md`, `relatorio/specs.md` e os `SKILL.md` ao estado real
-   (nível `ra`, `dados_locais/protecao/`, `carrega_sinan_*`, eixo Proteção, relatório LaTeX). Fazer junto
-   com o fechamento do item 1, que muda caminhos.
+6. **Atualizar a documentação do projeto — concluído em 2026-09-28** (`specs/2026-09-28_documentacao`): documentos
+   alinhados ao estado real e **especificação funcional/técnica** do projeto em `docs/especificacao_projeto.md`.
+   Mantê-la em dia a cada rodada (a §11 dela diz o que conferir).
 
 ---
 
@@ -172,6 +171,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-09-28 | Documentação alinhada ao estado real e especificação funcional/técnica do projeto (`docs/especificacao_projeto.md`); `.env.example` | `specs/2026-09-28_documentacao` |
 | 2026-09-28 | Organização do projeto, fases 1a e 1b: pacote `primeira_infancia/`, scripts em `relatorio/curadoria/`, requisitos diretos fixados, 431/431 saídas idênticas | `specs/2026-09-28_organizacao` |
 | 2026-09-28 | Rodada A de melhorias: favicon (SVG + `.ico` + apple-touch), abertura de cada eixo, lorem ≤ 150 palavras, só Painéis nos pequenos múltiplos, `index.html` 785 → 343 KB (mapas montados em JS, sprite de ícones) | `specs/2026-09-28_melhorias_site` |
 | 2026-09-28 | Curadoria: update 5 incorporado (7 textos novos no site e no PDF, 2 órfãos; controle de revisão recalculado sobre as 5 rodadas; updates antigos em `relatorio/textos_updates_antigos/`; scripts `compara_updates.py` e `valida_textos_publicados.py`) | `relatorio/controle_revisao.json`, skill `export_pdf_report` |

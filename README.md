@@ -3,9 +3,13 @@
 Pipeline de dados e relatório sobre a primeira infância (0 a 6 anos) no município do
 Rio de Janeiro, produzido pelo **Instituto Pereira Passos (IPP)**, Prefeitura da Cidade
 do Rio de Janeiro. Reúne indicadores de população, assistência social, saúde e educação
-espalhados por fontes diferentes — Censo, CadÚnico, DataSUS/Tabnet, SISVAN, PNAD, Censo
-Escolar — em um único pipeline (`analise.py`) que limpa, cruza e visualiza os dados por
-bairro, Área de Planejamento, Região de Planejamento e Área Programática de Saúde.
+espalhados por fontes diferentes — Censo, CadÚnico, DataSUS/Tabnet, SINAN, SISVAN, PNAD, Censo
+Escolar, IPS — em um único pipeline (`analise.py` + pacote `primeira_infancia/`) que limpa, cruza e
+visualiza os dados por bairro, Área e Região de Planejamento, Região Administrativa e Área Programática
+de Saúde, organizados pelos 6 eixos da política municipal de primeira infância.
+
+📘 **Especificação funcional e técnica do projeto** (o que entrega, dados, arquitetura, regras, processos):
+[`docs/especificacao_projeto.md`](docs/especificacao_projeto.md).
 
 > ⚠️ **Repositório e relatório em desenvolvimento.** O conteúdo, os dados e a estrutura
 > ainda podem mudar — ver o aviso no próprio relatório publicado.
@@ -20,20 +24,24 @@ bairro, Área de Planejamento, Região de Planejamento e Área Programática de 
 
 O site é gerado a partir das saídas do notebook por `website/build/build_site.py` (ver
 [`website/README.md`](website/README.md)) — mesmos dados, gráficos interativos (SVG, tooltip,
-tabela alternativa, CSV), organizado em abas por eixo da política municipal. O PDF é a versão
-para impressão/download, com os gráficos originais do matplotlib.
+tabela alternativa, CSV), organizado em abas por eixo da política municipal. O PDF é um relatório
+técnico ABNT em LaTeX (`relatorio/latex/`), com as figuras do próprio notebook na versão de impressão e
+todas as tabelas no apêndice.
 
 ## Fontes de dados
 
 | Fonte | O que traz | Onde |
 |---|---|---|
-| **CadÚnico** | Famílias/crianças por renda, idade e bairro | Banco CTPE (camada silver, Siurb) — consulta direta, não é arquivo local |
+| **CadÚnico** | Famílias/crianças por renda, idade, sexo, raça/cor, arranjo familiar e bairro | Banco CTPE (camada silver, Siurb) — consulta direta, não é arquivo local |
 | **DataSUS/Tabnet** | Nascidos vivos, baixo peso, mortalidade (neonatal, por raça/cor, gravidez/puerpério) por bairro | `dados_locais/mortalidade/`, `dados_locais/nascidos_vivos/` |
 | **Censo Demográfico** (IBGE/Data.Rio) | População por bairro e idade, 2000/2010/2022 | `dados_locais/censo/` |
 | **IBGE SIDRA** | Censo 2022 por raça/sexo e frequência escolar, nível município | `dados_locais/ibge_sidra/` |
 | **SISVAN** | Sobrepeso e desnutrição infantil | `dados_locais/sisvan/` |
 | **EPI/SVS-Rio** | Cobertura vacinal | `dados_locais/vacinacao/` |
-| **PNAD Contínua / Censo Escolar (INEP)** | Frequência escolar e matrículas | `dados_locais/educacao/` |
+| **PNAD Contínua / Censo Escolar (INEP, microdados)** | Frequência escolar, matrículas 0-5 anos e taxa de atendimento | `dados_locais/educacao/` |
+| **Ripsa/Ministério da Saúde** | População por idade e sexo, 2000-2025 (denominador das taxas municipais) | `dados_locais/populacao/` |
+| **SINAN (SMS-Rio)** | Notificações de violência familiar e autoprovocada, por bairro | `dados_locais/protecao/` |
+| **IPS 2024 (IPP)** | Violência territorial por Região Administrativa | `dados_locais/protecao/` |
 | **SIM/SVS-Rio (TabWin)** | Óbitos por causas evitáveis, por Área Programática de Saúde, 2006-2025 | `dados_locais/mortalidade/obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx` |
 | **Data.Rio/IPP, IBGE** | Geometrias de bairro, Área Programática de Saúde, UF e municípios vizinhos | `dados_locais/geo/` |
 
@@ -44,7 +52,7 @@ compartilhado, acesso restrito — solicitar a leonardoaucar@prefeitura.rio.*
 *   `analise.py`: Script principal (sincronizável com Jupytext) que contém extração, limpeza, análise e geração de visualizações; organizado como notebook (células e markdown). Todas as funções de limpeza/wrangling e de visualização ficam no pacote `primeira_infancia/` (um módulo por tema: conexão, limpeza, estilo, gráficos, mapas, variante de impressão, Proteção, CadÚnico, população, educação), importado no topo do notebook.
 *   `primeira_infancia/`: funções reutilizáveis do notebook, um módulo por tema (`specs/2026-09-28_organizacao`).
 *   `requirements.txt`: dependências diretas, com versões fixadas; `requirements-dev.txt`: só desenvolvimento (Playwright).
-*   `dados_locais/`: Diretório para os dados brutos. Uma pasta por fonte/tema (`censo/`, `mortalidade/`, `sisvan/`, `ibge_sidra/`, `vacinacao/`, `nascidos_vivos/`, `educacao/`, `geo/`).
+*   `dados_locais/`: Diretório para os dados brutos. Uma pasta por fonte/tema (`censo/`, `mortalidade/`, `sisvan/`, `ibge_sidra/`, `vacinacao/`, `nascidos_vivos/`, `educacao/`, `populacao/`, `protecao/`, `geo/`).
 *   `dados_locais/geo/`: Camadas geográficas de referência, versionadas no git: `limite_bairros_rio.geojson` (limites de bairro do Rio, Data.Rio/IPP, camada `Cartografia/Limites_administrativos`, geometria simplificada, com as colunas de Área/Região de Planejamento usadas nos mapas agregados), `limite_uf_brasil.geojson` (limites dos estados/UF do Brasil, IBGE), `limite_municipios_rj.geojson` (limites e nomes dos 92 municípios do estado do Rio, IBGE, usados para rotular os municípios vizinhos nos mapas com basemap) e `limite_ap_saude_rio.geojson` (as 10 Coordenadorias de Área Programática de Saúde da SMS-Rio, Data.Rio -- não são as 5 Áreas de Planejamento do IPP acima; coluna `cod_ap_sms`).
 *   `dados_locais/tratados/`: Saída intermediária de datasets limpos.
 *   `tabelas_finais/`: Pasta de saída padronizada (CSV/Excel) para tabelas e agregados gerados pelo pipeline.
@@ -58,16 +66,17 @@ compartilhado, acesso restrito — solicitar a leonardoaucar@prefeitura.rio.*
 *   `relatorio/`: relatório em PDF (`analise_primeira_infancia.pdf`), DOCX de curadoria de textos,
     `controle_revisao.json` (status de revisão de cada texto), `textos_updates_antigos/` (rodadas de
     curadoria devolvidas pelo Google Docs, `curadoria_textos_update_<N>.docx`) e `textos_curados.json`
-    (texto curado lido pelo site e pelo PDF). O antigo `relatorio/index.html`
-    foi substituído por `website/` (`specs/2026-09-24_website_refactor`).
+    (texto curado lido pelo site e pelo PDF); `latex/` (fonte do relatório ABNT e gerador) e `curadoria/`
+    (estrutura dos eixos, exportação/sincronização do DOCX, validação dos textos publicados). O antigo
+    `relatorio/index.html` foi substituído por `website/` (`specs/2026-09-24_website_refactor`).
 *   `ROADMAP.md`: o que está em andamento, a fila priorizada, o backlog por tema e o histórico resumido.
 *   `specs/`: Constituição do projeto (`constitution.md`), stack técnica (`tech-stack.md`),
     lista de exclusões (`exclusoes.md`) e uma subpasta por rodada de planejamento (`<AAAA-MM-DD>_<nome>/`, pela data de abertura,
     com `plan.md`, `specification.md`/`specs.md`, `tasks.md`, `validation.md`) -- histórico completo de
     decisões de design, com o *porquê* por trás de convenções do código.
-*   `notebooks/`: Notebook(s) .ipynb sincronizados com `analise.py` via Jupytext (opcional).
-*   `.env.example`: Exemplo de variáveis de ambiente necessárias (ex.: credenciais DB).
-*   `scripts/`: Utilitários e conversores auxiliares (se presentes).
+*   `docs/`: especificação funcional e técnica do projeto (`especificacao_projeto.md`).
+*   `.env.example`: modelo do `.env` (credenciais do banco do CTPE, usadas só pela seção CadÚnico).
+*   `.claude/skills/`: instruções operacionais para o assistente (mapas, site, PDF/curadoria).
 
 Pastas de dados/saída (`dados_locais/`, `tabelas_finais/`, `mapas/`, `visualizacoes/`) mantêm um arquivo `.gitkeep` para preservar a estrutura de pastas no git mesmo quando o conteúdo real (dados brutos sensíveis ou saídas geradas) não é versionado.
 
@@ -83,8 +92,12 @@ O script `analise.py` realiza as seguintes operações, em ordem prática:
 6c. IBGE SIDRA: `carrega_sidra_longo(caminho, coluna_corte)` lê as 9 tabelas de `dados_locais/ibge_sidra/` (Censo 2022 e frequência escolar, sempre nível município, sem recorte sub-municipal) e normaliza para formato longo (`idade`, corte de raça/sexo, `valor`); tabelas largas em `tabelas_finais/` e gráficos de barra agrupada por idade × raça/sexo em `visualizacoes/`.
 7.  Padronização: nomes de saída e colunas agregadas seguem o padrão `*_anual` e campos de taxa usam nomes descritivos (ex.: `taxa_mortalidade_precoce`). Saídas finais CSV/Excel são escritas em `tabelas_finais/`.
 8.  Junção final: múltiplas tabelas DATASUS por bairro são unidas (merge outer) em `dados_datasus_por_bairro.xlsx` (`mapas/tabelas_bairros/`).
-8b. Mapas por bairro (cobertura completa): todo indicador com granularidade de bairro -- CadÚnico (via `junta_codbairro_por_bairro`, que resolve nomes de bairro do CadÚnico sem correspondência direta na lista oficial de 166), nascidos vivos, baixo peso, óbitos por raça (coluna total agregada), mortalidade neonatal (precoce/tardia/pós-neonatal/total), óbitos gravidez/puerpério -- gera par `tabelas_finais/tabela_mapa_*.csv` + `mapas/mapa_*.png` (absoluto e, onde já existe denominador, taxa/percentual) para o ano mais recente disponível.
-9.  Visualizações: geração de séries temporais e gráficos de barras em `visualizacoes/`, com nomes de arquivo PNG que refletem a seção/tema da análise; exportação adicional em SVG fica disponível (comentada) em cada função de gráfico.
+8a. Proteção: violência familiar (SINAN) por vínculo do provável autor, bairro, CAP e RA, notificações de lesão
+    autoprovocada, violência territorial por RA (IPS 2024) e taxas por 1.000 crianças de 0 a 4 anos (Censo 2022).
+8b. População de referência e educação: estimativas Ripsa/MS 2000-2025 (denominador de toda taxa municipal) e
+    matrículas de 0 a 5 anos a partir dos microdados do Censo Escolar (INEP), com a taxa bruta de atendimento.
+8c. Mapas por bairro (cobertura completa): todo indicador com granularidade de bairro -- CadÚnico (via `junta_codbairro_por_bairro`, que resolve nomes de bairro do CadÚnico sem correspondência direta na lista oficial de 166), nascidos vivos, baixo peso, óbitos por raça (coluna total agregada), mortalidade neonatal (precoce/tardia/pós-neonatal/total), óbitos gravidez/puerpério -- gera par `tabelas_finais/tabela_mapa_*.csv` + `mapas/mapa_*.png` (absoluto e, onde já existe denominador, taxa/percentual) para o ano mais recente disponível.
+9.  Visualizações: geração de séries temporais e gráficos de barras em `visualizacoes/`, com nomes de arquivo PNG que refletem a seção/tema da análise; exportação adicional em SVG fica disponível (comentada) em cada função de gráfico. Cada gráfico e mapa grava também a versão de impressão usada no PDF (`visualizacoes/a4/`, `mapas/a4/`).
 
 ## Como Executar
 1.  **Clone o repositório:**
@@ -97,7 +110,7 @@ O script `analise.py` realiza as seguintes operações, em ordem prática:
     ```bash
     pip install -r requirements.txt
     ```
-4.  **Configure as variáveis de ambiente**: Crie um arquivo `.env` na raiz do projeto com as credenciais do banco de dados, seguindo o exemplo de `connect_db_ctpe` em `primeira_infancia/conexao.py`. A seção CadÚnico usa o driver `psycopg` 3 (`requirements.txt`) — o kernel precisa ter esse pacote (no ambiente de desenvolvimento, o conda env `analises_env`; o Python base do Anaconda só tem `psycopg2`).
+4.  **Configure as variáveis de ambiente**: copie `.env.example` para `.env` e preencha as credenciais do banco (lidas por `connect_db_ctpe` em `primeira_infancia/conexao.py`). A seção CadÚnico usa o driver `psycopg` 3 (`requirements.txt`) — o kernel precisa ter esse pacote (no ambiente de desenvolvimento, o conda env `analises_env`; o Python base do Anaconda só tem `psycopg2`).
 5.  **Adicione os dados**: Baixe os arquivos de dados do Google Drive e coloque-os na pasta `dados_locais/`.
 6.  **Execute a análise**: Utilize o Jupytext para abrir o `analise.py` como um notebook em seu ambiente Jupyter.
 
@@ -114,6 +127,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.27.1 | 2026-09-28 | Especificação funcional e técnica do projeto (`docs/especificacao_projeto.md`), documentação alinhada ao estado real, `.env.example` (`specs/2026-09-28_documentacao`). |
 | 0.27.0 | 2026-09-28 | Funções do notebook no pacote `primeira_infancia/` (um módulo por tema), scripts de curadoria em `relatorio/curadoria/`, requisitos diretos fixados + `requirements-dev.txt`; mesmas saídas antes e depois (`specs/2026-09-28_organizacao`). |
 | 0.26.0 | 2026-09-28 | Favicon novo; texto de abertura em cada eixo (site, PDF, DOCX); lorem ≤ 150 palavras; pequenos múltiplos só com Painéis; `index.html` 785 → 343 KB sem mudança visual (`specs/2026-09-28_melhorias_site`). |
 | 0.25.1 | 2026-09-28 | Curadoria: update 5 incorporado (7 textos novos no site e no PDF, 2 de figuras fora do relatório guardados como órfãos), controle de revisão recalculado, updates antigos em `relatorio/textos_updates_antigos/` e validação dos textos publicados (`valida_textos_publicados.py`). |
