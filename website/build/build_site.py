@@ -527,6 +527,11 @@ def _texto_seed(seed):
         return "<br><br>".join(_texto_analise(s) for s in curados)
     return _texto_analise(seed[0])
 
+def _attr_seed(seed):
+    """data-seed = chave do texto em relatorio/textos_curados.json (par de gráficos: chaves unidas por '+') --
+    permite conferir texto curado x figura publicada (specs/2026-09-28_website_bugfix, tabela de conferência)."""
+    return f' data-seed="{_esc("+".join(seed) if isinstance(seed, tuple) else seed)}"'
+
 def _lorem_bullets(seed, n=5, palavras=8):
     """n frases curtas (placeholder) para o bloco 'principais achados' --
     mesmo gerador deterministico do _lorem, seed derivado por indice."""
@@ -604,7 +609,7 @@ def option_card(entries, padrao='grafico'):
         parts.append(
             f'<div class="option-card option-card-{padrao} option-card-single">'
             f'<div class="opt-panes">{html}</div>'
-            f'<div class="opt-texts"><div class="opt-text"><div class="opt-text-inner">{_texto_seed(seed)}</div></div></div>'
+            f'<div class="opt-texts"><div class="opt-text"{_attr_seed(seed)}><div class="opt-text-inner">{_texto_seed(seed)}</div></div></div>'
             '</div>'
         )
         return
@@ -614,7 +619,7 @@ def option_card(entries, padrao='grafico'):
         build_fn()
         html = "".join(parts[start:]); del parts[start:]
         panes.append(f'<div class="opt-pane"{" hidden" if i else ""}>{html}</div>')
-        texts.append(f'<div class="opt-text"{" hidden" if i else ""}><div class="opt-text-inner">{_texto_seed(seed)}</div></div>')
+        texts.append(f'<div class="opt-text"{_attr_seed(seed)}{" hidden" if i else ""}><div class="opt-text-inner">{_texto_seed(seed)}</div></div>')
         active = ' data-active="true" aria-pressed="true"' if i == 0 else ' aria-pressed="false"'
         pills.append(f'<button type="button" class="pill"{active}>{_esc(label)}</button>')
     parts.append(
@@ -644,13 +649,13 @@ def tabela_com_texto(build_fn, seed):
     """Padrao C (specification.md §3.13): texto a esquerda, tabela a
     direita -- unica ordem invertida em relacao aos padroes grafico/mapa.
     Sem pills nesta rodada (nenhuma tabela do relatorio tem corte
-    alternativo ainda)."""
+    alternativo ainda). Texto curado se houver (até 2026-09-28 era sempre lorem)."""
     start = len(parts)
     build_fn()
     html = "".join(parts[start:]); del parts[start:]
     parts.append(
         '<div class="table-with-text">'
-        f'<div class="opt-text">{_lorem(seed)}</div>'
+        f'<div class="opt-text"{_attr_seed(seed)}>{_texto_seed(seed)}</div>'
         f'<div class="opt-panes">{html}</div>'
         '</div>'
     )
@@ -1448,14 +1453,13 @@ h5('Grupo evitável e subgrupos (gestação/parto), por CAP')
 # abs+pct) com "Gestação e parto por CAP" (2 subgrupos) num so grupo de 5
 # pills -- eram 2 option_card separados numa rodada anterior.
 GRUPO1_COL = "1. Causas evitáveis"
-# seed: par abs+pct exibido junto (out_pair) num unico card/pill -- so ha 1
-# seed por opcao, entao aponta para o arquivo do lado absoluto (primario);
-# o lado percentual (percentual_evitaveis_cap_*_ano.png) fica sem seed
-# proprio nesta rodada (aproximacao documentada, nao ha 2o slot de seed).
+# seed: par abs+pct exibido junto (out_pair) num unico card/pill -- tupla (absoluto, percentual): _texto_seed junta
+# os dois textos curados. Até 2026-09-28 só o absoluto entrava e o texto curado de percentual_evitaveis_cap_*_ano
+# nunca aparecia no site (specs/2026-09-28_website_bugfix, conferencia_textos_site.csv).
 _SEED_GRUPO_CAP_FAIXA = {
-    'menores de 1 ano': 'obitos_evitaveis_cap_menores_1_ano_ano',
-    'de 1 a 4 anos': 'obitos_evitaveis_cap_1_a_4_anos_ano',
-    'menores de 5 anos': 'obitos_evitaveis_cap_menores_5_anos_ano',
+    'menores de 1 ano': ('obitos_evitaveis_cap_menores_1_ano_ano', 'percentual_evitaveis_cap_menores_1_ano_ano'),
+    'de 1 a 4 anos': ('obitos_evitaveis_cap_1_a_4_anos_ano', 'percentual_evitaveis_cap_1_a_4_anos_ano'),
+    'menores de 5 anos': ('obitos_evitaveis_cap_menores_5_anos_ano', 'percentual_evitaveis_cap_menores_5_anos_ano'),
 }
 _entries_grupo_cap = []
 for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 anos', 'De 1 a 4 anos'), ('menores de 5 anos', 'Menores de 5 anos')]:
@@ -2133,42 +2137,6 @@ RENDER_CALLS_JS = ("// GERADO por website/build/build_site.py -- não editar à 
 # mesma geometria base e tem bounds identicos; CAP tem a sua propria)
 BASEMAP_CSS = "<style>" + "".join(_BASEMAP_CSS_RULES) + "</style>" if _BASEMAP_CSS_RULES else ""
 
-doc = f"""<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{TITULO_SITE}</title>
-<meta name="description" content="Indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro, por eixo da política municipal.">
-<link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/main.css">
-<link rel="stylesheet" href="css/layout.css">
-<link rel="stylesheet" href="css/components.css">
-{BASEMAP_CSS}
-</head>
-<body>
-{body}
-<script src="data/geo.js"></script>
-<script src="js/charts.js"></script>
-<script src="data/charts.js"></script>
-<script src="js/sidebar.js"></script>
-<script src="js/navigation.js"></script>
-</body>
-</html>
-"""
-
-# ---- escrita (specs/2026-09-24_website_refactor) ----------------------------------------
-# OUT_DIR = website/ por padrão. Com outro destino (ex. scratchpad para comparar), os
-# arquivos estáticos editados à mão são copiados junto, para a pasta abrir sozinha.
-import shutil
-SITE_DIR = ROOT / "website"
-OUT_DIR = Path(OUT_PATH)
-_ESTATICOS = ["css", "js", "assets"]
-if OUT_DIR.resolve() != SITE_DIR.resolve():
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for nome in _ESTATICOS:
-        shutil.copytree(SITE_DIR / nome, OUT_DIR / nome, dirs_exist_ok=True)
-(OUT_DIR / "data").mkdir(parents=True, exist_ok=True)
 # geometria compartilhada (Blocos 3/3b): injeta um <svg> oculto com <defs> no início do <body>
 # e expõe window.GEO_NOMES (id -> nome da região, para o tooltip). Só os níveis usados.
 GEO_JS = """// GERADO por website/build/build_site.py -- não editar à mão.
@@ -2187,6 +2155,51 @@ window.GEO_NOMES = nomes;
 })();
 """.replace("__DADOS__", json.dumps(_GEO_USADOS, ensure_ascii=False, separators=(",", ":")))
 
+# cache-busting (specs/2026-09-28_website_bugfix): css/js/data ganham ?v=<md5 do conteúdo>. Sem isso o navegador
+# (e o cache do GitHub Pages, max-age=600) servia o index.html novo com o charts.js/components.css antigos: botão
+# Taxa|Óbitos sem estilo, texto preso na 1a pill, "pm is not defined" e gráficos sem renderizar depois do erro.
+import hashlib
+def _v(rel, conteudo=None):
+    dados = conteudo.encode("utf-8") if conteudo is not None else (ROOT / "website" / rel).read_bytes()
+    dados = dados.replace(b"\r\n", b"\n")   # mesmo hash com checkout CRLF (Windows) ou LF
+    return f"{rel}?v={hashlib.md5(dados).hexdigest()[:8]}"
+
+doc = f"""<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{TITULO_SITE}</title>
+<meta name="description" content="Indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro, por eixo da política municipal.">
+<link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="{_v('css/main.css')}">
+<link rel="stylesheet" href="{_v('css/layout.css')}">
+<link rel="stylesheet" href="{_v('css/components.css')}">
+{BASEMAP_CSS}
+</head>
+<body>
+{body}
+<script src="{_v('data/geo.js', GEO_JS)}"></script>
+<script src="{_v('js/charts.js')}"></script>
+<script src="{_v('data/charts.js', RENDER_CALLS_JS)}"></script>
+<script src="{_v('js/sidebar.js')}"></script>
+<script src="{_v('js/navigation.js')}"></script>
+</body>
+</html>
+"""
+
+# ---- escrita (specs/2026-09-24_website_refactor) ----------------------------------------
+# OUT_DIR = website/ por padrão. Com outro destino (ex. scratchpad para comparar), os
+# arquivos estáticos editados à mão são copiados junto, para a pasta abrir sozinha.
+import shutil
+SITE_DIR = ROOT / "website"
+OUT_DIR = Path(OUT_PATH)
+_ESTATICOS = ["css", "js", "assets"]
+if OUT_DIR.resolve() != SITE_DIR.resolve():
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    for nome in _ESTATICOS:
+        shutil.copytree(SITE_DIR / nome, OUT_DIR / nome, dirs_exist_ok=True)
+(OUT_DIR / "data").mkdir(parents=True, exist_ok=True)
 _gerados = {"index.html": doc, "data/charts.js": RENDER_CALLS_JS, "data/geo.js": GEO_JS}
 for rel, conteudo in _gerados.items():
     with open(OUT_DIR / rel, "w", encoding="utf-8", newline="\n") as f:
