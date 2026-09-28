@@ -398,3 +398,17 @@ pixel: abas com esmaecimento, faixa "Nesta seção" e linha de progresso, gráfi
 select nativo para listas de 6+ opções, legenda do mapa abaixo dele, tooltips por toque, alvos de 44 px, banner
 compacto. `relatorio/publicacao.json` passa a controlar juntos a faixa "EM DESENVOLVIMENTO" do site e a nova marca
 d'água do PDF.
+
+## 2026-09-28 — curadoria: update 5 incorporado
+
+O update 5 (Google Docs, baseado no update 4) trouxe 9 textos novos: no relatório, causas evitáveis por faixa etária
+(2025) e por subgrupo em menores de 1 ano, de 1 a 4 e de menores de 5 anos, Censo 0-6 por raça/cor e taxa de
+frequência escolar por raça/cor e por sexo; fora do relatório (E8), a frequência escolar em números absolutos por
+raça/cor e por sexo, guardada como órfã. Os demais blocos já tinham sido incorporados (ou eram regressões a textos
+corrigidos depois do update 4) e ficaram como estavam; foi removida só a palavra de lorem ipsum ("sunt.") que veio
+colada no fim de um texto. Controle de revisão recalculado sobre as cinco rodadas, com três alertas novos para a
+equipe (número de 2006 no texto de subgrupos < 5 anos; "conjunto de 0 a 6 anos" que é o total de todas as idades
+na tabela SIDRA 10056). Updates antigos movidos para `relatorio/textos_updates_antigos/`. Novos scripts da skill
+`export_pdf_report`: `compara_updates.py` (o que o curador mudou em relação ao update-base) e
+`valida_textos_publicados.py` (cada texto curado, frase a frase, no site e no PDF). PDF publicado (157 páginas,
+14,2 MB).

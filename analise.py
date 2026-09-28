@@ -2043,6 +2043,10 @@ grafico_barra_agrupado(
     ordem_categoria=_ORDEM_IDADE_SIDRA_0_6, fonte_dados=fonte_sidra_censo,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:censo_sidra_populacao_0_6_raca_2022 -->
+# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem comparar a composição da população de 0 a 6 anos por raça/cor e idade. Entre menores de 1 ano, foram registrados 26.909 crianças brancas, 21.576 pardas e 5.762 pretas. Aos 6 anos, esses números passam para 31.345, 32.416 e 9.863, respectivamente. A comparação entre as idades permite observar mudanças na distribuição dos grupos de raça/cor ao longo da primeira infância. Os dados também possibilitam relacionar essa composição a outros indicadores do relatório que utilizem raça/cor e idade como dimensões de análise.
+
 # %%
 grafico_barra_agrupado(
     df_censo_sidra_sexo[df_censo_sidra_sexo['Sexo'] != 'Total'],
@@ -3391,6 +3395,10 @@ grafico_barra_agrupado(
 )
 
 # %% [markdown]
+# <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_faixa_2025 -->
+# **Nota de curadoria:** Em 2025, a distribuição das causas evitáveis varia de forma importante entre as faixas etárias. Nos primeiros dias de vida, predominam os óbitos relacionados à atenção à mulher na gestação, com 183 registros entre 0 e 6 dias e 64 entre 7 e 27 dias. Já entre 28 e 364 dias, ganham maior peso as causas reduzíveis por ações de promoção vinculadas às ações de atenção, com 56 óbitos, e por diagnóstico e tratamento adequado, com 43 registros. O gráfico evidencia, portanto, uma mudança no perfil das causas evitáveis conforme a idade da criança: no período neonatal, destacam-se fatores ligados à gestação, parto e atenção ao recém-nascido, enquanto após os 28 aumentam relativamente às causas relacionadas à promoção, diagnóstico e tratamento.
+
+# %% [markdown]
 # ##### Óbitos por causas evitáveis na primeira infância, por Área Programática de Saúde (CAP)
 
 # %% [markdown]
@@ -3429,6 +3437,10 @@ serie_temporal_multipla(
     legend_title='Subgrupo',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:obitos_evitaveis_menores_5_subgrupo_ano -->
+# **Nota de curadoria:** Entre 2006 e 2025, os óbitos de menores de 5 anos apresentaram tendência geral de redução. As demais causas não claramente evitáveis permaneceram entre os principais componentes, chegando a 277 registros em 2025. Entre as causas evitáveis, destacam-se aquelas relacionadas à atenção à mulher na gestação, que atingiram 266 óbitos em 2025. Também houve redução importante nos óbitos relacionados à atenção ao recém-nascido, que passaram de 198 em 2006 para 55 em 2025, enquanto as causas mal definidas recuaram para 22 registros.
 
 # %%
 serie_temporal(
@@ -4175,6 +4187,10 @@ grafico_barra_agrupado(
     ordem_categoria=_ORDEM_IDADE_SIDRA_0_5, fonte_dados=fonte_sidra_educacao,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:sidra_frequencia_escola_0_5_raca_2022 -->
+# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem analisar a frequência à escola/creche entre crianças de 0 a 5 anos, considerando idade e raça/cor. O número de crianças frequentando escola/creche aumenta conforme a idade, passando de 4.358 entre crianças de 0 ano para 66.163 aos 5 anos. No total do recorte, foram registradas 233.509 crianças, sendo 104.981 brancas, 96.352 pardas e 31.757 pretas. A organização dos dados por idade e raça/cor permite comparar a participação dos diferentes grupos ao longo da primeira infância e relacionar esse indicador a outros recortes educacionais e demográficos.
+
 # %%
 grafico_barra_agrupado(
     df_sidra_freq_sexo[df_sidra_freq_sexo['Sexo'] != 'Total'],
@@ -4183,6 +4199,10 @@ grafico_barra_agrupado(
     nome_arquivo='sidra_frequencia_escola_0_5_sexo_2022', ylabel='Pessoas', legend_title='Sexo',
     ordem_categoria=_ORDEM_IDADE_SIDRA_0_5, fonte_dados=fonte_sidra_educacao,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:sidra_frequencia_escola_0_5_sexo_2022 -->
+# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem analisar a frequência à escola/creche entre crianças de 0 a 5 anos segundo sexo e idade. O número de crianças frequentando aumenta ao longo das idades, passando de 4.358 aos 0 anos para 66.163 aos 5 anos. No total, foram registradas 120.304 crianças do sexo masculino e 113.205 do sexo feminino. A comparação por idade permite observar diferenças entre os sexos ao longo da primeira infância e relacionar esse recorte ao número total de crianças frequentando escola/creche. Os dados também podem ser analisados junto às taxas de frequência escolar por sexo.
 
 # %%
 # populacao-referencia D3: item do catálogo "Crianças até 6 anos frequentando escola/creche (geral)" --
@@ -4205,6 +4225,10 @@ grafico_barra_agrupado(
     ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU, fonte_dados=fonte_sidra_educacao,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:sidra_taxa_frequencia_0_6_raca_2022 -->
+# **Nota de curadoria:** A taxa de frequência escolar bruta aumenta conforme a idade, passando de 8,04% entre crianças de 0 ano para 97,01% aos 6 anos. No conjunto de 0 a 6 anos, a taxa foi de 25,32%, com diferenças entre os grupos de raça/cor: 26,81% entre crianças pardas, 24,48% entre pretas e 24,36% entre brancas. A comparação por idade permite analisar como a frequência escolar se modifica ao longo da primeira infância e como esse comportamento varia entre os grupos de raça/cor. Os dados podem ser relacionados ao número absoluto de crianças frequentando escola/creche para complementar a análise.
+
 # %%
 grafico_barra_agrupado(
     df_sidra_taxa_sexo[df_sidra_taxa_sexo['Sexo'] != 'Total'],
@@ -4213,6 +4237,10 @@ grafico_barra_agrupado(
     nome_arquivo='sidra_taxa_frequencia_0_6_sexo_2022', ylabel='Taxa (%)', legend_title='Sexo',
     ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU, fonte_dados=fonte_sidra_educacao,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:sidra_taxa_frequencia_0_6_sexo_2022 -->
+# **Nota de curadoria:** A taxa de frequência escolar bruta aumenta conforme a idade, passando de 8,04% aos 0 anos para 97,01% aos 6 anos. No conjunto de 0 a 6 anos, a taxa foi de 26,76% entre os meninos e 24,07% entre as meninas. A diferença entre os sexos varia ao longo das idades: aos 4 anos, a taxa foi de 82,51% entre meninos e 83,35% entre meninas, enquanto aos 6 anos os valores foram praticamente iguais, 97,06% e 96,96%, respectivamente. A comparação por idade e sexo permite analisar como a frequência escolar se modifica ao longo da primeira infância.
 
 # %% [markdown]
 # #### Taxa de frequência escolar
