@@ -66,8 +66,9 @@ from gera_docx_curadoria import _arquivos_de, _bookmark_name, _eh_lorem, _lorem,
 from gera_estrutura_eixos import blocos_relatorio, placeholder_bloco
 from gera_estrutura_eixos import parse_estrutura_eixos
 
-# scripts/ -> export_pdf_report/ -> skills/ -> .claude/ -> raiz do projeto
-_RAIZ = Path(__file__).resolve().parents[4]
+# curadoria/ -> relatorio/ -> raiz do projeto (até specs/2026-09-28_organizacao estes scripts moravam em
+# .claude/skills/export_pdf_report/scripts/, quatro níveis abaixo da raiz)
+_RAIZ = Path(__file__).resolve().parents[2]
 
 _CAMINHO_JSON_RELATIVO = "relatorio/textos_curados.json"
 _CAMINHO_ANALISE_RELATIVO = "analise.py"

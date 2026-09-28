@@ -423,3 +423,17 @@ foi regenerado sem carregar o lorem antigo e a sincronização passou a ignorar 
 texto curado. Pequenos múltiplos só com a vista de painéis (sai o botão "Linhas"). `website/index.html` de 785 KB
 para 343 KB sem mudança visual: regiões dos mapas, CSV dos mapas e rosa dos ventos/escala em `window.MAPAS`
 (`data/charts.js`), montados por `js/charts.js`; ícones num sprite; `2000.0` → `2000` nos dados dos gráficos.
+
+## 2026-09-28 — `specs/organizacao` (organização do projeto, fases 1a e 1b)
+
+As funções auxiliares do notebook (as linhas 1-1897 de `analise.py`, mais uma função perdida na seção Proteção) saem
+para o pacote `primeira_infancia/`, um módulo por tema (`conexao`, `limpeza`, `estilo`, `impressao`, `graficos`,
+`mapas`, `protecao`, `cadunico`, `populacao`, `educacao`), extraídas por script sem mudar nenhuma linha de função; o
+notebook passa a importar tudo com `from primeira_infancia import *` e fica com 2.938 linhas. A camada `estilo`
+(paletas, fonte, fundo cartográfico) quebra o ciclo que havia entre gráficos, mapas e a variante de impressão. Os
+scripts de pipeline da skill do PDF (estrutura dos eixos, DOCX de curadoria, sincronização, updates, validação)
+passam para `relatorio/curadoria/`. `requirements.txt` deixa de ser um `pip freeze` de 130 pacotes e lista só as
+dependências diretas, com versões fixadas; Playwright vai para `requirements-dev.txt`. Duas execuções completas do
+notebook (antes e depois, com o CadÚnico lido do banco) deram as mesmas 431 saídas; site, LaTeX, DOCX e inventário de
+fontes também saíram iguais (o inventário passou a ler o pacote). A regra da constituição sobre onde vivem as funções
+foi atualizada.
