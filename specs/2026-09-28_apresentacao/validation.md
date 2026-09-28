@@ -12,10 +12,16 @@ Implementação em 2026-09-28, branch `spec/apresentacao` (a partir de `spec/nov
 | R3 — mapa de limites | substituído: o slide 9 compara dois mapas reais (CAP e RA) |
 | R4 — mapas em 16:9 | não precisou de variante: mapas e gráficos cabem ao lado do texto (`.lado`) ou em par (`.dois`) |
 | Fontes das figuras | as PNGs trazem a fonte; slides só com números têm `<!-- fonte: -->` no rodapé |
-| Textos propostos pelo IPP (Q4) | 6 trechos marcados `<!-- revisar -->`: slides 2, 4, 5, 6, 16 e 29 |
+| Textos propostos pelo IPP (Q4) | 6 trechos marcados `<!-- revisar -->`: slides 2, 3, 5, 6, 7 e 17 |
 | Revisão visual | PNG de cada slide conferida (folhas de contato); ajustes: capa (secretaria vazia, logo branco), largura da tabela de pendentes, slide de educação com o gráfico, link no encerramento |
 | PPTX | `apresentacao/apresentacao_primeira_infancia.pptx` (15,8 MB, uma imagem por slide + notas, com o roteiro da demonstração no slide 28) |
 | PDF | `apresentacao/apresentacao_primeira_infancia.pdf` (4,5 MB, com notas) |
 | PPTX editável (experimental) | gera (`--editavel`), mas com as fontes do sistema no lugar de Fraunces/IBM Plex: títulos longos quebram e sobrepõem. Não publicado; ponto de partida para quem precisar editar no PowerPoint |
 | Variante | `variantes/exemplo_secretaria.md` gera sem erro (secretaria na capa, sem notas de demonstração) |
 | Problema encontrado | o marp-cli espera o Markdown pela entrada padrão quando ela não é um terminal (o primeiro build ficou parado); corrigido com `stdin=DEVNULL` |
+
+## Revisão do usuário (2026-09-28)
+
+- Saiu o slide "O que precisamos das secretarias" (com os próximos passos). Entrou, como slide 3, "Um produto vivo,
+  construído com as secretarias": o projeto é feito **com** elas (vivo, com o conhecimento de quem está na ponta,
+  aberto a sugestões e a dados compartilhados). Continua com 30 slides; a variante de exemplo recebeu a mesma troca.

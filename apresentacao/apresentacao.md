@@ -55,6 +55,26 @@ Mensagem: não é mais um relatório; é uma base comum para planejar e acompanh
 
 <div class="kicker">Parte I · Contexto</div>
 
+# Um produto vivo, construído com as secretarias
+
+<div class="stats">
+<div style="--c:var(--c3)"><b>Vivo</b><span>atualizado a cada nova base de dados e a cada nova necessidade da gestão</span></div>
+<div style="--c:var(--c1)"><b>Com vocês</b><span>quem conhece a política na ponta sabe o que medir e como ler cada número</span></div>
+<div style="--c:var(--c2)"><b>Aberto</b><span>sugestões de indicadores, bases para compartilhar e correções são bem-vindas</span></div>
+</div>
+
+<p class="legenda-grande" style="margin-top:34px; font-size:27px">Este diagnóstico não é um relatório fechado: é um ponto de partida para construirmos juntos.</p>
+
+<!-- revisar -->
+
+<!--
+Mensagem central: o projeto é COM as secretarias, não SOBRE elas. Convidar desde já a sugerir indicadores e dados.
+-->
+
+---
+
+<div class="kicker">Parte I · Contexto</div>
+
 # Um só lugar para os dados da primeira infância
 
 <div class="hub">
@@ -537,29 +557,6 @@ DEMONSTRAÇÃO AO VIVO (3-4 min; se a rede falhar, seguir com este slide):
 5. Celular: abrir pelo QR code.
 -->
 <!-- /se -->
-
----
-
-<div class="kicker">Parte III · Próximos passos</div>
-
-# O que precisamos das secretarias
-
-<!-- se: cooperacao -->
-- **Assistência Social** — crianças com deficiência e condições de moradia no Cadastro Único
-- **Saúde** — violência por tipo, sexo e idade; óbitos evitáveis por raça/cor e sexo
-- **Habitação e Urbanismo** — inadequação habitacional, saneamento, melhorias
-- **Educação** — atendimento por bairro e inclusão escolar
-<!-- /se -->
-
-<!-- se: governanca -->
-<div class="stats" style="--n:3; margin-top:18px">
-<div style="--c:var(--c1)"><b>1</b><span><strong>Pontos focais</strong> em cada secretaria para os dados da primeira infância</span></div>
-<div style="--c:var(--c3)"><b>2</b><span><strong>Acordos de compartilhamento</strong>: formato, periodicidade e sigilo</span></div>
-<div style="--c:var(--c2)"><b>3</b><span><strong>Atualização periódica</strong> do site e do relatório</span></div>
-</div>
-<!-- /se -->
-
-<!-- revisar -->
 
 ---
 
