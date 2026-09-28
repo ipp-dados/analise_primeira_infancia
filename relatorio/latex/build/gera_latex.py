@@ -345,6 +345,26 @@ def compila(publicar=False):
           f"overfull > 5pt: {len(grandes)}")
 
 
+def aviso_em_desenvolvimento():
+    """Marca d'água do PDF enquanto relatorio/publicacao.json diz em_desenvolvimento = true -- a mesma chave da faixa
+    "EM DESENVOLVIMENTO" do site (website/build/build_site.py); as duas saem juntas (specs/2026-09-28_website_mobile).
+    Vai para o preâmbulo (relatorio.tex: \\input{gerado/aviso}); com false, o arquivo fica só com o comentário."""
+    pub = json.loads((RAIZ / "relatorio/publicacao.json").read_text(encoding="utf-8"))
+    cab = "% Gerado por gera_latex.py a partir de relatorio/publicacao.json -- não editar à mão.\n"
+    if not pub.get("em_desenvolvimento"):
+        return cab
+    texto = pub.get("marca_dagua_pdf", "EM DESENVOLVIMENTO")
+    # transparência por um nó TikZ (estilo.sty já carrega o TikZ): a chave alpha só existe no draftwatermark >= 3.4 (o
+    # MiKTeX tem a 3.3) e o pacote transparent só funciona no pdfTeX. Por cima da página (stamp), para aparecer também
+    # sobre as figuras, sem esconder o texto
+    return (cab + "\\usepackage{draftwatermark}\n"
+            "\\DraftwatermarkOptions{text={\\tikz\\node[text opacity=0.16, inner sep=0pt, font=\\normalfont\\bfseries]{"
+            + texto + "};}, color={[gray]{0.45}}, angle=55, fontsize=2.1cm, stamp=true}\n"
+            # o XeTeX só registra o recurso de opacidade quando ela é usada no corpo da página; sem isto a capa (1a
+            # página, marca d'água posta no shipout) saía com a marca opaca (ExtGState pgf@ca0.16 ausente)
+            "\\AtBeginDocument{\\tikz[overlay]\\node[text opacity=0.16, opacity=0.16]{};}\n")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sem-pdf", action="store_true")
@@ -370,6 +390,7 @@ def main():
     (GERADO / "nocite.tex").write_text("% Gerado por gera_latex.py.\n\\nocite{" + ",".join(chaves) + "}\n",
                                        encoding="utf-8")
     (GERADO / "resumo.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n" + resumo(), encoding="utf-8")
+    (GERADO / "aviso.tex").write_text(aviso_em_desenvolvimento(), encoding="utf-8")
     print(f"{len(estrutura)} eixos; {len(FALLBACK)} figuras ainda sem variante A4 (usando a PNG de tela); "
           f"{len(EM_LOREM)} textos em lorem: {', '.join(EM_LOREM[:8])}{' …' if len(EM_LOREM) > 8 else ''}")
     usados = {Path(n).stem for e in estrutura for s in e["subsecoes"] for f in ("visualização", "mapa")
