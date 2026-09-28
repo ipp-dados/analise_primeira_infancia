@@ -305,7 +305,8 @@ As regras completas estão em `specs/constitution.md`; estas são as que mais af
 
 Toda mudança não trivial abre `specs/<AAAA-MM-DD>_<nome>/` (data da abertura) com `plan.md`, `specification.md`,
 `tasks.md` e `validation.md` — escrita **antes** da implementação — e um branch `spec/<nome>`. A rodada fecha com a
-validação preenchida, `ROADMAP.md` e `CHANGELOG.md` atualizados e merge em `staging_main`. Refatorações seguem a regra
+validação preenchida, `ROADMAP.md` e `CHANGELOG.md` atualizados e merge em `staging_main`; depois a branch pode ser
+apagada, com o ponto final guardado na tag `rodada/<nome>`. Refatorações seguem a regra
 "mesmas saídas antes e depois".
 
 ### 9.2 Ciclo de curadoria de textos
