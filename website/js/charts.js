@@ -23,8 +23,18 @@
   // serie_temporal_multipla em analise.py (ver specs/2026-09-09_visual-identity).
   const LIMIAR_DESTAQUE = 6, N_DESTACADAS = 4;
 
+  // cor padrão pulando as cores fixas já usadas no mesmo gráfico (_COR_ENTIDADE): antes "Total" (1ª, --c1) e
+  // "Meninos" (fixa --c1) saíam com a mesma cor (specs/2026-09-28_website_bugfix)
+  function coresPadrao(series){
+    const usadas = new Set(series.filter(s=>s.color).map(s=>s.color));
+    const livres = CAT.filter(c=>!usadas.has(c));
+    let k = 0;
+    series.forEach(s=>{ if (!s.color) s.color = livres.length ? livres[k++ % livres.length] : CAT[k++ % CAT.length]; });
+  }
+
   function prepararSeries(series){
-    series.forEach((s,i)=>{ if (!s.color) s.color = series.length===1 ? 'var(--accent)' : CAT[i%CAT.length]; });
+    if (series.length===1 && !series[0].color) series[0].color = 'var(--accent)';
+    coresPadrao(series);
     // painel de pequenos múltiplos: as séries de contexto chegam marcadas (muted) e ficam cinza
     if (series.some(s=>s.muted)) return { destacadas: series.filter(s=>!s.muted), apagadas: series.filter(s=>s.muted) };
     if (series.length <= LIMIAR_DESTAQUE) return { destacadas: series, apagadas: [] };
@@ -115,8 +125,10 @@
     const maxLabels = opts.maxXLabels || 7;
     const step = Math.max(1, Math.ceil(n/maxLabels));
     x.forEach((lab,i)=>{
-      // o último ano sempre aparece; o rótulo regular colado a ele sai (antes "2024" e "2025" se sobrepunham)
-      if (i !== n-1 && (i % step !== 0 || (n-1-i) < Math.max(2, step*0.6))) return;
+      // o último ano sempre aparece; o rótulo regular colado a ele sai (antes "2024" e "2025" se sobrepunham).
+      // A distância é medida em unidades do viewBox, não em nº de pontos: com 3 anos (Censos 2000/2010/2022) a regra
+      // antiga "< 2 pontos" apagava 2010 (specs/2026-09-28_website_bugfix)
+      if (i !== n-1 && (i % step !== 0 || (xAt(n-1) - xAt(i)) < 44)) return;
       svgEl('text', {x:xAt(i), y:H-7, class:'axis-label', 'text-anchor': i===0?'start':(i===n-1?'end':'middle')}, svg).textContent = lab;
     });
     refLines.forEach(r=>{
@@ -232,7 +244,7 @@
   // gráfico original (P2: alternância no mesmo cartão, abre em Painéis)
   function pequenosMultiplos(container, cfg){
     const series = cfg.series, opts = cfg.opts || {};
-    series.forEach((s,i)=>{ if (!s.color) s.color = CAT[i%CAT.length]; });
+    coresPadrao(series);
     let vMax = -Infinity;
     series.forEach(s=>s.values.forEach(v=>{ if (v!=null && v>vMax) vMax = v; }));
     const ctrl = document.createElement('div'); ctrl.className = 'alterna-ctrl sm-ctrl'; ctrl.setAttribute('role','group'); ctrl.setAttribute('aria-label','Visualização');
@@ -293,9 +305,15 @@
   // ================= grouped vertical bar chart =================
   function groupedBarChart(container, cfg){
     const groups = cfg.groups, series = cfg.series, opts = cfg.opts || {};
-    series.forEach((s,i)=>{ if (!s.color) s.color = CAT[i%CAT.length]; });
-    const W = opts.width || 760, H = opts.height || 320;
-    const padL = 40, padR = 12, padT = opts.yLabel ? 30 : 14, padB = 56;
+    coresPadrao(series);
+    // rótulos do eixo x inclinados quando não cabem na largura do grupo (10 bairros: os nomes se sobrepunham --
+    // specs/2026-09-28_website_bugfix); a altura cresce o necessário para a área do gráfico não encolher
+    const W = opts.width || 760, padL = 40, padR = 12;
+    const maxRot = Math.max.apply(null, groups.map(g=>String(g).length));
+    const inclina = maxRot * 7.2 > ((W - padL - padR) / groups.length) * 0.95;
+    const padB = inclina ? Math.min(150, 26 + maxRot * 5.4) : 56;
+    const H = (opts.height || 320) + (padB - 56);
+    const padT = opts.yLabel ? 30 : 14;
     // B3: valor na ponta só com poucas barras (<= 12); acima disso, tooltip e tabela
     const rotulaBarras = groups.length * series.length <= 12;
     const plotW = W - padL - padR, plotH = H - padT - padB;
@@ -332,7 +350,9 @@
 
     groups.forEach((g,gi)=>{
       const gx0 = padL + gi*groupW + groupW*barPad;
-      svgEl('text', {x: gx0 + innerW/2, y: H-38, class:'axis-label', 'text-anchor':'middle', 'font-size':12.6}, svg).textContent = g;
+      const cx = gx0 + innerW/2, ly = H - padB + 16;
+      svgEl('text', inclina ? {x: cx, y: ly, class:'axis-label', 'text-anchor':'end', 'font-size':12.6, transform:'rotate(-35 '+cx+' '+ly+')'}
+                            : {x: cx, y: H-38, class:'axis-label', 'text-anchor':'middle', 'font-size':12.6}, svg).textContent = g;
       series.forEach((s,si)=>{
         const v = s.values[gi];
         if (v == null) return;
