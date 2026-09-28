@@ -84,7 +84,9 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
    (frequentam / população) e recalcular a taxa, nunca somar percentuais; aplicar no gráfico de `analise.py`
    (tela e impressão), na tabela do PDF e no site.
 
-5. **Site: versão mobile (responsiva)** — a rodada `website_refactor` foi só desktop (spec §4.8); o CSS usa
+5. **Site: versão mobile (responsiva)** — **planejada em 2026-09-28** (`specs/2026-09-28_website_mobile`, decisões
+   M1-M4 do usuário; aguarda OK para abrir o branch `spec/website-mobile`). A lista abaixo é o levantamento original;
+   o plano a detalha e mede o ponto de partida. A rodada `website_refactor` foi só desktop (spec §4.8); o CSS usa
    grid/flex e variáveis para que isto mexa em poucas regras. Por componente:
    - **Barra de abas** (`.tabbar`): hoje rola na horizontal sem indicação. Rolagem com sombra nas bordas e aba
      ativa trazida para a vista (`scrollIntoView` no `tabchange`), ou só ícones + rótulo da ativa, ou um menu
