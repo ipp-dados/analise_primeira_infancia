@@ -81,3 +81,20 @@ implementação, como na rodada `website_graficos`).
 ## 6. Fora do escopo
 
 PWA/offline, modo escuro, gestos de zoom no mapa (pinch), reordenar conteúdo por eixo, mudar textos, PDF e DOCX.
+
+## 7. Registro da implementação (2026-09-28)
+
+- **`css/mobile.css`** em vez de regras espalhadas: as media queries da `website_bugfix` foram movidas para lá; os
+  outros três CSS ficaram só desktop, o que torna a garantia "desktop intocado" fácil de conferir.
+- **Uma mudança visível no desktop, de propósito**: rótulos finais de linha a menos de 18 unidades são afastados
+  (Meninas 152.221 × Meninos 155.513 saíam um sobre o outro também no desktop). Todo o resto, igual pixel a pixel.
+- Largura real: `desenhaLinha`/`desenhaBarras`/`pequenosMultiplos` recebem `ctx` (`null` = caminho do desktop, sem
+  mudança); `registra()` guarda a configuração no contêiner e um `ResizeObserver` redesenha quando o painel aparece
+  ou a largura muda ≥ 40 px. No tablet os painéis de pequenos múltiplos também vão para a largura real (as células
+  têm ~210 px), mesmo com o gráfico-pai no desenho fixo.
+- Toque: `pointerleave` só para mouse (o `mouseleave` de compatibilidade fechava o tooltip logo depois do toque);
+  `pointer-events:all` no retângulo de captura (o Firefox não acertava `fill="transparent"`).
+- Pedidos durante a rodada: GitHub/PDF na mesma linha no celular (rótulo curto) e marca d'água do PDF ligada à faixa
+  do site por `relatorio/publicacao.json` (LaTeX: `draftwatermark` 3.3 + nó TikZ para a transparência; o pacote
+  `transparent` só funciona no pdfTeX e a chave `alpha` não existe nesta versão).
+- Resultados em `validation.md`; falta o teste em aparelho real (V7).

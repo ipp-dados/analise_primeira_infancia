@@ -487,6 +487,23 @@ removido do git). Detalhes, medições e validação em `specs/2026-09-24_websit
 - Títulos de seção descritivos (sem "Mapas"/"Série temporal"); o id antigo continua como âncora.
 - Botões CSV/outliers com faixa própria no topo do cartão (antes cobriam legenda/eixo em cartões sem subtítulo).
 
+### v9.1 — correções depois do rollback (`specs/2026-09-28_website_bugfix`)
+
+- CSS/JS/dados com `?v=<md5>` no `index.html`: o navegador misturava o HTML novo com CSS/JS antigos em cache (botão
+  Taxa|Óbitos sem estilo, texto preso na 1ª pill, `pm is not defined`). Taxa|Óbitos na forma das pills, ativo em
+  azul-marinho. Par absoluto + percentual por CAP com os dois textos curados; cores padrão sem repetir cor fixa.
+
+### v10 — versão mobile (`specs/2026-09-28_website_mobile`)
+
+- Tudo em `css/mobile.css` (desktop ≥ 1100 / tablet / celular < 720 px); desktop conferido pixel a pixel. Única
+  mudança visível no desktop: rótulos finais quase iguais afastados (Meninas × Meninos saíam sobrepostos).
+- Abas com esmaecimento e aba ativa centralizada; sumário vira "Nesta seção ▾" + linha de progresso na barra fixa.
+- Gráficos em contêiner < 640 px redesenhados na largura real (`js/charts.js`, `ctx`): fontes ≥ 11 px, menos rótulos,
+  paddings medidos pelo texto; redesenho ao aparecer e ao girar a tela (`ResizeObserver`).
+- 6+ opções → `<select>` nativo no celular; legenda do mapa abaixo dele; tooltips por toque (`pointerleave` só para
+  mouse); alvos de 44 px; banner compacto com GitHub e PDF lado a lado (rótulo curto).
+- Faixa "EM DESENVOLVIMENTO" controlada por `relatorio/publicacao.json`, a mesma chave da marca d'água do PDF.
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |

@@ -46,11 +46,22 @@ python website/build/build_site.py
   label/colour standardisation, `h3(..., antigo=)`) are in `website/README.md`.
 - New icons: add a Lucide SVG to `website/assets/icons/` (keep the ISC license comment); the
   generator inlines it with `icone(nome)`.
-- Desktop only so far; mobile work is listed in `ROADMAP.md` (root, "Próximos" → versão mobile).
+- **Mobile** (`specs/2026-09-28_website_mobile`): every narrow-screen rule lives in `css/mobile.css` (loaded last;
+  desktop ≥ 1100 px / tablet 720-1099 / phone < 720). The desktop must not change: before committing, compare
+  full-page screenshots of all tabs at 1400 and 1280 px against the previous build (channel difference ≤ 3 is basemap
+  decode noise). Charts in containers < 640 px on narrow screens are redrawn at their real width by `js/charts.js`
+  (`desenhaLinha`/`desenhaBarras` with a `ctx`; `ctx = null` is the untouched desktop path) — keep new chart options
+  working in both paths. Details and component table: `website/README.md` → "Mobile".
+- The yellow "EM DESENVOLVIMENTO" strip is driven by `relatorio/publicacao.json` (`em_desenvolvimento`), the same
+  switch as the PDF watermark — flip it there, never by editing the banner markup.
+- Asset URLs carry `?v=<md5>` (`_v()` in the generator) so browsers never mix a new `index.html` with cached CSS/JS;
+  a new file in `css/`/`js/` must be added to the `<head>` with `_v()`.
 
 ## Verify before publishing
 
-1. Open `website/index.html` directly (file://) — no console errors, all tabs render.
+1. Open `website/index.html` directly (file://) — no console errors, all tabs render — at desktop width and at
+   390×844 / 768×1024 with touch emulation (Playwright `is_mobile`/`has_touch`): no horizontal scroll, touch targets
+   ≥ 44 px on phones, chart text ≥ 11 px, map legend below the map, tooltips open on tap and close on tap outside.
 2. Imitate GitHub Pages: copy the published set (`index.html 404.html .nojekyll css js data assets`)
    into `<tmp>/analise_primeira_infancia/`, run `python -m http.server` in `<tmp>` and open
    `http://127.0.0.1:<port>/analise_primeira_infancia/`.
