@@ -126,3 +126,18 @@ footer.doc-foot{background:var(--ipp-navy); color:#EAF2F8; padding:40px 0 26px;}
 .footer-col a:hover{color:#fff;}
 .footer-rule{height:1px; background:var(--ipp-cyan); opacity:.4;}
 .footer-credit{padding-top:14px; font-family:var(--font-mono); font-size:.66rem; color:#9CC0DA;}
+
+/* ---- telas estreitas (specs/2026-09-28_website_bugfix) -- não é a versão mobile do ROADMAP, só evita quebrar:
+   abaixo de 1100 px a coluna fixa do sumário (280 px) esmagava gráficos e mapas (gráfico com ~90 px a 760 px);
+   o sumário/progresso sai e o conteúdo ocupa a largura toda */
+@media (max-width:1100px){
+  .page-grid{grid-template-columns:minmax(0,1fr);}
+  .outline{display:none;}
+}
+@media (max-width:760px){
+  :root{--gutter:18px;}
+  .banner-inner{grid-template-columns:minmax(0,1fr); gap:24px; padding-top:28px; padding-bottom:28px;}
+  .page-grid{padding-top:28px;}
+  .panel-head{gap:14px;}
+  .panel-icon{width:46px; height:46px;}
+}

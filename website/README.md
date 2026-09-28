@@ -54,6 +54,26 @@ mantém os assets do site no git — não remover.
 - **Fontes**: o texto `fonte=` de cada cartão precisa casar com um `padroes` de `relatorio/latex/fontes.bib`, senão o
   gerador imprime `AVISO` e a caixa de fontes mostra só o texto curto.
 
+## Cache e versões dos arquivos
+
+O `index.html` referencia `css/`, `js/` e `data/` com `?v=<md5 do conteúdo>` (gerado por `_v()` em `build_site.py`).
+Sem isso o navegador servia o `index.html` novo com o CSS/JS antigos em cache (2026-09-28: botão Taxa|Óbitos sem
+estilo, texto preso na 1ª pill, gráficos sem renderizar — `specs/2026-09-28_website_bugfix`). Arquivo novo em
+`css/`/`js/` precisa entrar na lista do `<head>` com `_v()`.
+
+## Conferir textos curados × figuras
+
+`python website/build/confere_textos.py` (Playwright, só desenvolvimento) gera
+`specs/2026-09-28_website_bugfix/conferencia_textos_site.csv`: um bloco de texto por linha (aba, seção, modo, pill,
+figura exibida, chave, texto do DOCX / do JSON / do site, status OK · PENDENTE (lorem) · ERRO · NÃO PUBLICADO).
+Os blocos de texto levam `data-seed` = chave em `relatorio/textos_curados.json`.
+
+## Telas estreitas
+
+Ainda não é a versão mobile (ROADMAP), mas não quebra: abaixo de 1100 px o sumário lateral (com a barra de
+progresso) some e o conteúdo usa a largura toda; abaixo de 900 px mapa/gráfico e texto empilham; abaixo de 760 px
+o banner empilha.
+
 ## Testar localmente
 
 - Abrir `website/index.html` direto no navegador funciona (nenhum `fetch`; tudo por `<script src>`).
