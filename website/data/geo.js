@@ -5,10 +5,12 @@ var D = {"bairro":[["gb133","Grumari","M236.2,340.5l-1.7,1.3-.6,.4-1.7,1.2-.7,2.
 var NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'), defs = document.createElementNS(NS, 'defs'), nomes = {};
 svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true');
 svg.style.position = 'absolute';
-Object.keys(D).forEach(function(n){ D[n].forEach(function(r){
+var ids = {};
+Object.keys(D).forEach(function(n){ ids[n] = []; D[n].forEach(function(r){
   var p = document.createElementNS(NS, 'path'); p.setAttribute('id', r[0]); p.setAttribute('d', r[2]);
-  defs.appendChild(p); nomes[r[0]] = r[1];
+  defs.appendChild(p); nomes[r[0]] = r[1]; ids[n].push(r[0]);
 }); });
 svg.appendChild(defs); document.body.insertBefore(svg, document.body.firstChild);
 window.GEO_NOMES = nomes;
+window.GEO_IDS = ids;   // ordem das regiões por nível (window.MAPAS, specs/2026-09-28_melhorias_site U5)
 })();

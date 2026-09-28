@@ -11,6 +11,15 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 
 ## Em andamento
 
+0. **Melhorias do site e do relatório — Rodada A implementada em 2026-09-28** (`specs/2026-09-28_melhorias_site`,
+   branch `spec/melhorias-site`): favicon novo (monograma "PI", escolhido pelo usuário; alternativas em `website/build/favicon_opcoes/`,
+   trocar com `gera_favicon.py`), texto de abertura de cada eixo (`introducao_<eixo>`, lorem até ser curado), lorem ≤ 150
+   palavras, pequenos múltiplos só com Painéis, `index.html` 785 → 343 KB sem mudança visual. Mesclada em
+   `staging_main` em 2026-09-28; falta o deploy. Na sequência do mesmo pedido: **Rodada B** = Próximos,
+   item 1 (organização do projeto, fases 1a e 1b; 1c — pastas de dados — fica para depois) e **Rodada C** =
+   Próximos, item 6 (documentação + documento de especificação funcional/técnica em `docs/especificacao_projeto.md`),
+   nessa ordem, uma branch por rodada.
+
 1. **Site: exclusões + `improve charts`** — implementado em 2026-09-25 (`specs/2026-09-25_website_graficos`, branch
    `spec/website-graficos`). O push para `staging_main` quebrou o site publicado e foi **revertido em 2026-09-28**
    (commit de rollback `883b4b1`); correções na rodada `specs/2026-09-28_website_bugfix` (mesmo branch: cache das
@@ -170,6 +179,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-09-28 | Rodada A de melhorias: favicon (SVG + `.ico` + apple-touch), abertura de cada eixo, lorem ≤ 150 palavras, só Painéis nos pequenos múltiplos, `index.html` 785 → 343 KB (mapas montados em JS, sprite de ícones) | `specs/2026-09-28_melhorias_site` |
 | 2026-09-28 | Curadoria: update 5 incorporado (7 textos novos no site e no PDF, 2 órfãos; controle de revisão recalculado sobre as 5 rodadas; updates antigos em `relatorio/textos_updates_antigos/`; scripts `compara_updates.py` e `valida_textos_publicados.py`) | `relatorio/controle_revisao.json`, skill `export_pdf_report` |
 | 2026-09-28 | Site mobile (`css/mobile.css`: gráficos na largura real, "Nesta seção", select, legenda abaixo do mapa, toque) e marca d'água "EM DESENVOLVIMENTO" no PDF ligada à faixa do site (`relatorio/publicacao.json`) | `specs/2026-09-28_website_mobile` |
 | 2026-09-28 | Rollback de `staging_main` e correções do site (cache de CSS/JS, telas estreitas, textos curados ausentes); tabelas de conferência texto × figura | `specs/2026-09-28_website_bugfix` |

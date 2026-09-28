@@ -67,7 +67,7 @@ def lorem(seed, palavras=None):
     mesmo texto), para o DOCX de curadoria continuar reconhecendo o que ainda é placeholder."""
     rng = random.Random(seed)
     if palavras is None:
-        palavras = random.Random(f"{seed}-palavras").randint(100, 200)
+        palavras = random.Random(f"{seed}-palavras").randint(100, 150)
     corpo = " ".join(rng.choice(_LOREM_WORDS) for _ in range(palavras))
     return corpo[:1].upper() + corpo[1:] + "."
 
@@ -211,7 +211,7 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
     tex = []
     tex.append(r"\chapter{Introdução}\label{cap:introducao}")
     intro = TEXTOS.get("introducao")
-    tex.append(texto("introducao", 250, lorem_seed="introducao-relatorio") if intro else esc(lorem("introducao-relatorio", 250)))
+    tex.append(texto("introducao", 150, lorem_seed="introducao-relatorio") if intro else esc(lorem("introducao-relatorio", 150)))
     tex.append(r"\input{textual/como_ler}")
     tex.append(r"\section{Os eixos da política}")
     tex.append(r"\begin{itemize}")
@@ -244,6 +244,8 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
             for k in range(5):     # mesmo placeholder do site (_lorem_bullets)
                 tex.append(r"\item " + esc(lorem(f"{sid}-kt-{k}", 8)))
         tex.append(r"\end{itemize}\end{achados}")
+        # texto de abertura do eixo (specs/2026-09-28_melhorias_site U2): mesma chave e mesmo lorem do site
+        tex.append(texto(f"introducao_{chave_eixo(eixo['eixo'])}", 90, lorem_seed=f"introducao-{sid}"))
         for sub in eixo["subsecoes"]:
             c = sub["campos"]
             tex.append(rf"\section{{{titulo_secao(sub['titulo'])}}}")
@@ -286,7 +288,7 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
                     or not TEXTOS.get(f"conclusao-{sid}") else f"conclusao-{sid}", lorem_seed=f"conclusao-{sid}") + r"\end{sintese}")
 
     tex.append(r"\chapter{Considerações finais}\label{cap:consideracoes}")
-    tex.append(texto("consideracoes_finais", 300))
+    tex.append(texto("consideracoes_finais", 150))
     return "\n\n".join(tex) + "\n", tabelas_por_eixo
 
 
@@ -318,7 +320,7 @@ def apendices(tabelas_por_eixo, info_por_arquivo):
 
 
 def resumo():
-    return (r"\setlength{\absparsep}{18pt}" "\n" r"\begin{resumo}" "\n" + texto("resumo", 250) + "\n\n"
+    return (r"\setlength{\absparsep}{18pt}" "\n" r"\begin{resumo}" "\n" + texto("resumo", 150) + "\n\n"
             r"\noindent\textbf{Palavras-chave}: " + PALAVRAS_CHAVE + "\n" r"\end{resumo}" "\n")
 
 
