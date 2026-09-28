@@ -134,7 +134,7 @@ _LOREM_WORDS = (
 def _lorem(seed, palavras=None):
     rng = random.Random(seed)
     if palavras is None:
-        palavras = random.Random(f"{seed}-palavras").randint(100, 200)
+        palavras = random.Random(f"{seed}-palavras").randint(100, 150)
     corpo = " ".join(rng.choice(_LOREM_WORDS) for _ in range(palavras))
     return corpo[:1].upper() + corpo[1:] + "."
 
@@ -337,7 +337,9 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
 
     textos_curados = {}
     if docx_anterior and Path(docx_anterior).exists():
-        textos_curados = extrai_textos_por_bookmark(docx_anterior)
+        # lorem do DOCX anterior não é texto curado: sem descartá-lo, um placeholder antigo (ex. de 200 palavras, antes
+        # de specs/2026-09-28_melhorias_site U3) seria copiado adiante em vez do placeholder atual
+        textos_curados = {b: t for b, t in extrai_textos_por_bookmark(docx_anterior).items() if not _eh_lorem(t)}
     textos_curados.update(textos_extra or {})
     controle = controle or {}
     # "ajustes_manuais" (correções feitas fora de um arquivo de update) vence o status calculado
@@ -417,7 +419,7 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
     doc.add_heading("Introdução" + (marca(status_de("introducao"), "introducao") if controle else ""), level=1)
     # Bookmark fixo "introducao": texto curado sobrevive à regeneração e
     # sincroniza_docx.py o leva para HTML/PDF (textos_curados.json).
-    p_intro = doc.add_paragraph(textos_curados.get("introducao") or _lorem("introducao-relatorio-docx", 250))
+    p_intro = doc.add_paragraph(textos_curados.get("introducao") or _lorem("introducao-relatorio-docx", 150))
     add_bookmark(p_intro, "introducao", next_id())
     registro_bookmarks["introducao"] = "introducao"
     ids_gerados.add("introducao")
@@ -469,6 +471,8 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
         doc.add_heading(eixo["eixo"], level=1)
         chave_achados = next(k for k, b in blocos.items() if k.startswith("achados_") and b.get("eixo") == eixo["eixo"])
         bloco_relatorio(chave_achados, 2, eixo["eixo"])
+        chave_intro = next(k for k, b in blocos.items() if k.startswith("introducao_") and b.get("eixo") == eixo["eixo"])
+        bloco_relatorio(chave_intro, 2, eixo["eixo"])
         for sub in eixo["subsecoes"]:
             titulo = sub["titulo"]
             campos = sub["campos"]

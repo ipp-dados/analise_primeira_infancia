@@ -113,6 +113,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.26.0 | 2026-09-28 | Favicon novo; texto de abertura em cada eixo (site, PDF, DOCX); lorem ≤ 150 palavras; pequenos múltiplos só com Painéis; `index.html` 785 → 343 KB sem mudança visual (`specs/2026-09-28_melhorias_site`). |
 | 0.25.1 | 2026-09-28 | Curadoria: update 5 incorporado (7 textos novos no site e no PDF, 2 de figuras fora do relatório guardados como órfãos), controle de revisão recalculado, updates antigos em `relatorio/textos_updates_antigos/` e validação dos textos publicados (`valida_textos_publicados.py`). |
 | 0.25.0 | 2026-09-28 | Site com versão mobile (`css/mobile.css`, gráficos redesenhados na largura real, "Nesta seção" recolhível, select para listas longas, legenda do mapa abaixo) sem mudar o desktop; marca d'água "EM DESENVOLVIMENTO" no PDF, ligada à faixa do site por `relatorio/publicacao.json` (`specs/2026-09-28_website_mobile`). |
 | 0.24.0 | 2026-09-28 | Rodada de gráficos do site (exclusões, Taxa ↔ Óbitos, unidades, paleta) e correções depois do rollback: cache de CSS/JS versionado, telas estreitas, textos curados ausentes; tabelas de conferência texto × figura (`specs/2026-09-25_website_graficos`, `specs/2026-09-28_website_bugfix`). |

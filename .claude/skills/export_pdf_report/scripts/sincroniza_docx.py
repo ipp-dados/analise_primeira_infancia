@@ -62,7 +62,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))  # same-folder imports, como os scripts irmãos
-from gera_docx_curadoria import _arquivos_de, _bookmark_name, _lorem, extrai_textos_por_bookmark
+from gera_docx_curadoria import _arquivos_de, _bookmark_name, _eh_lorem, _lorem, extrai_textos_por_bookmark
 from gera_estrutura_eixos import blocos_relatorio, placeholder_bloco
 from gera_estrutura_eixos import parse_estrutura_eixos
 
@@ -86,8 +86,12 @@ def eh_lorem_ipsum(seed, texto):
     `_lorem(seed)` geraria hoje -- comparação exata (não heurística), já que
     `_lorem` é 100% determinístico por seed. `seed` aqui é sempre o `id_`
     ORIGINAL (não o nome sanitizado do bookmark) -- ver `_mapa_bookmark_para_id`."""
-    if seed == "introducao":  # bookmark fixo, lorem de 250 palavras (gera_docx_curadoria.py)
-        return texto == _lorem("introducao-relatorio-docx", 250)
+    # rede de segurança: placeholder de uma versão anterior do gerador (ex. lorem de 100-200 palavras, antes de
+    # specs/2026-09-28_melhorias_site U3) não bate com o de hoje, mas continua não sendo texto curado
+    if _eh_lorem(texto):
+        return True
+    if seed == "introducao":  # bookmark fixo, lorem de 150 palavras (gera_docx_curadoria.py)
+        return texto == _lorem("introducao-relatorio-docx", 150)
     blocos = blocos_relatorio(parse_estrutura_eixos())   # resumo, achados/síntese por eixo, considerações finais
     if seed in blocos:
         return texto == placeholder_bloco(blocos[seed], _lorem)

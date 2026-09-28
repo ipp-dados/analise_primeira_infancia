@@ -53,11 +53,14 @@ Nada muda na tela; o DOM depois do JavaScript é o mesmo.
   região, texto do tooltip por região, valor bruto por região (CSV). `js/charts.js` insere os `<use>` na mesma ordem
   e com os mesmos atributos, antes do overlay, no carregamento (todos os mapas, sem esperar a aba — como hoje, que já
   estão no DOM).
-- **CSV dos mapas**: gerado no clique a partir de `window.MAPAS` (nomes das regiões de `GEO_NOMES`, valores com a
-  mesma formatação pt-BR de `_csv_data_attr`); o `data-csv` sai do HTML dos mapas. CSVs dos gráficos continuam.
+- **CSV dos mapas**: montado no carregamento a partir de `window.MAPAS` (nomes das regiões de `GEO_NOMES`, células
+  pré-formatadas pelo gerador com a mesma função de `_csv_data_attr`) e posto em `card.dataset.csv` — o download não
+  mudou; o `data-csv` sai do HTML dos mapas. CSVs dos gráficos continuam no HTML.
+- **Rosa dos ventos e escala** (acrescentado na implementação): iguais em todos os mapas da mesma projeção; saem do
+  HTML para `window.MAPAS_OVERLAYS` (2 variantes) e entram depois das regiões, como antes.
 - **Ícones**: `icone()` passa a emitir `<svg class="icon" …><use href="#i-<nome>"/></svg>`; um único bloco
   `<svg hidden>` com um `<symbol>` por ícone usado, no início do `<body>`.
-- **Números**: floats de `data/charts.js` com no máximo 4 algarismos significativos depois da vírgula que importam
-  para o desenho (arredondar a 4 casas decimais; valores exibidos já são formatados com 0-2 casas).
+- **Números**: em `data/charts.js`, `2000.0` → `2000` (o mesmo número em JS). O arredondamento a 4 casas dos floats
+  longos foi testado e revertido (mudava o antialiasing de algumas linhas; ver `validation.md`).
 - Aceite: `index.html` < 300 KB (meta 250 KB); capturas de todas as abas a 1400 px e 390 px iguais pixel a pixel às
   capturas feitas depois dos blocos 1-4 (para isolar o bloco 5); `outerHTML` dos SVGs de mapa iguais; CSVs iguais.

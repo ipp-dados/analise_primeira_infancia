@@ -32,14 +32,14 @@ jobs:
       - name: Prepara o site
         run: |
           mkdir -p _site
-          cp website/index.html website/404.html website/.nojekyll _site/
+          cp website/index.html website/404.html website/.nojekyll website/favicon.ico _site/
           cp -r website/css website/js website/data website/assets _site/
 
       # Site estático de verdade (spec §4.10): falha se aparecer qualquer tipo de arquivo
       # fora da lista (ex. um .py ou .md copiado por engano).
       - name: Confere o conteúdo publicado
         run: |
-          fora=$(find _site -type f ! -name '.nojekyll' ! -regex '.*\.\(html\|css\|js\|svg\|png\|jpg\)$')
+          fora=$(find _site -type f ! -name '.nojekyll' ! -regex '.*\.\(html\|css\|js\|svg\|png\|jpg\|ico\)$')
           if [ -n "$fora" ]; then echo "Arquivos fora do permitido:"; echo "$fora"; exit 1; fi
           echo "Conteúdo OK: $(find _site -type f | wc -l) arquivos, $(du -sh _site | cut -f1)"
 
