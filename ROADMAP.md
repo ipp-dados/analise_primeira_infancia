@@ -11,6 +11,14 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 
 ## Em andamento
 
+-1. **Nova estrutura + apresentação — planejadas em 2026-09-28** (branch `planning`). (a) `specs/2026-09-28_nova_estrutura`:
+   Introdução com panorama (população e nascidos vivos) na Visão geral e no capítulo de Introdução do PDF, 7º eixo
+   "Direito ao Brincar", reordenação conforme a planilha da equipe; `specs/estrutura_eixos.md` já atualizado (51 itens,
+   nenhum arquivo removido). **Não publicar o PDF antes do Bloco 2** (a Introdução viraria "Eixo 1 de 8"). Regra do
+   usuário: acrescentar o que falta, nunca remover o que sobra. (b) `specs/2026-09-28_apresentacao`: deck de 30 slides
+   em Marp, com fonte única em Markdown e variantes; depende de (a); respostas Q1-Q6 recebidas (PPTX, gestores, textos propostos por nós). Lacunas registradas:
+   taxa de mortalidade de 1 a 4 anos, taxa de violência de todas as naturezas, efeito visual do eixo transversal.
+
 0. **Melhorias do site e do relatório — Rodada A implementada em 2026-09-28** (`specs/2026-09-28_melhorias_site`,
    branch `spec/melhorias-site`): favicon novo (monograma "PI", escolhido pelo usuário; alternativas em `website/build/favicon_opcoes/`,
    trocar com `gera_favicon.py`), texto de abertura de cada eixo (`introducao_<eixo>`, lorem até ser curado), lorem ≤ 150
