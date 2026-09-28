@@ -1,5 +1,11 @@
 # Especificação — Relatório Visual (`relatorio/`)
 
+> **Documento histórico** (atualizado em 2026-09-28, `specs/2026-09-28_documentacao`). Registra a evolução do antigo
+> relatório HTML (v1-v10). Desde 2026-09-24 o relatório interativo é o site em `website/`
+> (`specs/2026-09-24_website_refactor`, regras em `website/README.md`) e, desde 2026-09-25, o PDF é o relatório ABNT
+> em LaTeX (`specs/2026-09-25_relatorio_latex`). Caminhos citados abaixo podem ter mudado — o estado atual do projeto
+> está em `docs/especificacao_projeto.md`.
+
 ## Objetivo
 
 Páginas HTML autocontidas que apresentam os indicadores de `analise.py` de forma
