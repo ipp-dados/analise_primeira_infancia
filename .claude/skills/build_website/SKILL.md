@@ -24,6 +24,14 @@ python website/build/build_site.py
 - Writes `website/index.html`, `website/data/charts.js`, `website/data/geo.js` and generated images
   in `website/assets/images/` (`basemap-*.jpg` only if missing — offline and deterministic;
   `ipp-logo-<altura>.png` from `ipp-logo.png`).
+- Maps (`specs/2026-09-28_melhorias_site` U5): the HTML carries each map's `<svg>` empty (compass and scale
+  bar in `window.MAPAS_OVERLAYS`); the regions (`<use>`, colour, tooltip) and the map's download CSV live in `window.MAPAS` (`data/charts.js`)
+  and `js/charts.js` (`montaMapas`) inserts them on load, in the region order of `window.GEO_IDS` (`data/geo.js`).
+  Icons are a `<symbol>` sprite at the top of `<body>`, one `<use>` per icon. Before that round `index.html` was
+  785 KB; after, ~345 KB — a change that grows it back by hundreds of KB is a regression.
+- Favicon: `python website/build/gera_favicon.py [<opção>]` (options in `website/build/favicon_opcoes/`) writes
+  `assets/images/favicon.svg`, `favicon.ico` (site root) and `assets/images/apple-touch-icon.png`; rebuild the site
+  afterwards (the `<link>`s carry `?v=<md5>`).
 - Prints every published file's size (raw and gzip). **An `AVISO` line means the size budget
   (index ≤ 1 MB, site ≤ 2 MB) was exceeded** — investigate (usually map geometry being inlined per
   map again) instead of publishing.
@@ -44,8 +52,12 @@ python website/build/build_site.py
   2026-09-25, because they failed the `dataviz` validator — `relatorio/specs.md` v9; re-run the validator before
   any palette change). Chart conventions (value formats — `pm1` for per-mil rates, never `%` —, `unidade=`,
   label/colour standardisation, `h3(..., antigo=)`) are in `website/README.md`.
-- New icons: add a Lucide SVG to `website/assets/icons/` (keep the ISC license comment); the
-  generator inlines it with `icone(nome)`.
+- New icons: add a Lucide SVG to `website/assets/icons/` (keep the ISC license comment); `icone(nome)` puts it in
+  the sprite once and emits a `<use>` (don't select inside an icon from CSS: the drawing is in a shadow tree).
+- Small multiples (7+ series) show only the panels ("Painéis"); the "Linhas" toggle was removed on 2026-09-28
+  (`specs/2026-09-28_melhorias_site` U4).
+- Each eixo tab opens with "Principais achados" (`achados_<eixo>`) and, right below it, the eixo's opening text
+  (`introducao_<eixo>`, ≤ 100 words) — both report blocks shared with the PDF and the DOCX.
 - **Mobile** (`specs/2026-09-28_website_mobile`): every narrow-screen rule lives in `css/mobile.css` (loaded last;
   desktop ≥ 1100 px / tablet 720-1099 / phone < 720). The desktop must not change: before committing, compare
   full-page screenshots of all tabs at 1400 and 1280 px against the previous build (channel difference ≤ 3 is basemap

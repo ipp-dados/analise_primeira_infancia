@@ -37,7 +37,6 @@
 .bar-top-label{font-family:var(--font-mono); font-size:10.5px; font-weight:600; fill:var(--ink);}
 .bar-unidade, .sm-unidade{font-size:.7rem; font-weight:600; color:var(--ink-2); margin:0 0 10px;}
 /* pequenos múltiplos (B4) */
-.sm-ctrl{margin:0 0 12px;}
 .sm-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px 18px;}
 .sm-cell{min-width:0;}
 .sm-title{font-size:.68rem; font-weight:600; color:var(--ink); margin:0 0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
@@ -189,6 +188,8 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.76rem;}
 
 .callout-findings{background:var(--accent-soft);}
 .callout-findings .callout-label{color:var(--accent-ink);}
+/* texto de abertura do eixo, logo abaixo dos achados (specs/2026-09-28_melhorias_site U2): mesmo tom da Introdução */
+.eixo-intro{color:var(--ink-2); font-size:.94rem; line-height:1.75; max-width:72ch; margin:-12px 0 40px;}
 
 .callout-sources{background:var(--surface); box-shadow:inset 0 0 0 1px var(--hairline); margin:72px 0 0;}
 .callout-sources .callout-icon{background:var(--surface-3); color:var(--ink-2);}
