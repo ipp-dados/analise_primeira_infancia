@@ -70,7 +70,34 @@ def condicionais(corpo, meta):
     return corpo
 
 
+_MANIFESTO = None
+
+
+def fonte_mapa(nome):
+    """Fonte (e nota do teto de cor) do mapa A4, do manifesto gravado pelo analise.py -- vai para o rodapé do slide."""
+    global _MANIFESTO
+    if _MANIFESTO is None:
+        import pandas as pd
+        arq = RAIZ / "visualizacoes/a4/_manifesto.csv"
+        _MANIFESTO = ({Path(r.arquivo).stem: r.fonte for r in pd.read_csv(arq).fillna("").itertuples()}
+                      if arq.exists() else {})
+    f = re.sub(r"\s+", " ", str(_MANIFESTO.get(nome, ""))).strip()
+    f = f.replace("; o valor real está na tabela do apêndice", "").replace("'", "’")
+    return f.rstrip(".")
+
+
 def figura(nome):
+    """Mapas: a versão de impressão (mapas/a4/<nome>.pdf), que tem o teto de cor no percentil 95 nos mapas contínuos por
+    bairro -- o mesmo tratamento de valores extremos do site (pedido do usuário, 2026-09-28: "sempre os mapas sem os
+    outliers") -- e não tem título embutido (o título é o do slide). Gráficos: a PNG de tela do analise.py."""
+    a4 = RAIZ / "mapas/a4" / f"{nome}.pdf"
+    if a4.exists():
+        destino = IMG / f"{nome}_a4.png"
+        if not destino.exists() or destino.stat().st_mtime < a4.stat().st_mtime:
+            import pymupdf
+            pag = pymupdf.open(a4)[0]
+            pag.get_pixmap(dpi=int(LARGURA_MAX / (pag.rect.width / 72))).save(str(destino))
+        return f"img/{destino.name}"
     for pasta, ext in (("mapas", ".jpg"), ("visualizacoes", ".png")):
         origem = RAIZ / pasta / f"{nome}.png"
         if origem.exists():
@@ -144,8 +171,29 @@ def capturas(url_site):
     return {k: f"img/{v.name}" for k, v in alvos.items()}
 
 
+def rodape_dos_mapas(corpo):
+    """Slide com mapa A4 e sem <!-- fonte: --> própria ganha a fonte do mapa (do manifesto) no rodapé."""
+    slides = re.split(r"(?m)^---\s*$", corpo)
+    for k, sl in enumerate(slides):
+        if "<!-- fonte:" in sl or "_footer" in sl:
+            continue
+        fontes, notas = [], []   # mesma fonte em dois mapas aparece uma vez; as notas (teto de cor) vão no fim
+        for nome in re.findall(r"fig:(\w+)", sl):
+            if (RAIZ / "mapas/a4" / f"{nome}.pdf").exists():
+                base, _, nota = fonte_mapa(nome).partition(". Nota: ")
+                if base and base not in fontes:
+                    fontes.append(base)
+                if nota and nota not in notas:
+                    notas.append(nota)
+        if fontes:
+            texto = "; ".join(fontes) + (". Nota: " + "; ".join(notas) if notas else "")
+            slides[k] = sl.rstrip("\n") + f"\n\n<!-- fonte: {texto} -->\n\n"
+    return "---".join(slides)
+
+
 def preprocessa(meta, corpo):
     corpo = condicionais(corpo, meta)
+    corpo = rodape_dos_mapas(corpo)
     revisar = len(re.findall(r"<!--\s*revisar\s*-->", corpo))
     corpo = re.sub(r"<!--\s*revisar\s*-->", "", corpo)
     corpo = re.sub(r"<!--\s*fonte:\s*(.*?)\s*-->", lambda m: f"<!-- _footer: 'Fonte: {m.group(1)}' -->", corpo)

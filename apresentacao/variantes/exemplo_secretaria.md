@@ -215,28 +215,9 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 <div style="--c:var(--c2)"><b>{{n:pop_0_6_ripsa_2025}}</b><span>de 0 a 6 anos em {{n:ano_ripsa}}, mesma estimativa — a faixa da política</span></div>
 </div>
 
-<p class="nota">O Censo conta menos crianças pequenas do que existem; a estimativa corrige isso, mas só para a cidade inteira.</p>
+<p class="nota" style="font-size:20px; margin-top:22px">O Censo conta menos crianças pequenas do que existem; a estimativa corrige isso, mas só para a cidade inteira. Por isso: taxas <strong>do município</strong> usam a estimativa do mesmo ano; taxas <strong>por bairro ou região</strong> usam o Censo 2022 e servem para comparar territórios entre si.</p>
 
 <!-- fonte: IBGE, Censo Demográfico 2022; Ripsa/Ministério da Saúde, estimativas populacionais -->
-
----
-
-<div class="kicker">Parte II · Método</div>
-
-# Na cidade, estimativa do ano; no bairro, o Censo
-
-<div class="lado">
-<div>
-
-Taxas **do município** usam a população estimada do mesmo ano.
-
-Taxas **por bairro ou região** usam o Censo 2022 — servem para comparar territórios entre si, não com o total da cidade.
-
-</div>
-
-![](fig:populacao_ripsa_0_a_6_por_ano)
-
-</div>
 
 ---
 
@@ -271,30 +252,13 @@ Taxas **por bairro ou região** usam o Censo 2022 — servem para comparar terri
 
 ---
 
-<div class="kicker">Parte II · Retrato da cidade</div>
-
-# Há menos crianças pequenas a cada Censo
-
-<div class="lado largo">
-<div>
-
-De **{{n:censo_0_4_2000_mil}}** (2000) para **{{n:censo_0_4_2022_mil}}** (2022): **{{n:queda_0_4_2000_2022}} a menos** de crianças de 0 a 4 anos.
-
-</div>
-
-![](fig:censo_0_a_4_serie_total_ano)
-
-</div>
-
----
-
 <!-- _class: numero -->
 
 <div class="kicker">Parte II · Retrato da cidade</div>
 
 <div class="grande">{{n:pop_0_6_ripsa_mil}}</div>
 
-<div class="legenda-grande">crianças de 0 a 6 anos vivem no Rio — <strong>{{n:pct_0_6_ripsa_2025}}</strong> da população em {{n:ano_ripsa}}. No Censo, as de 0 a 4 anos eram {{n:pct_0_4_2000}} em 2000 e {{n:pct_0_4_2022}} em 2022.</div>
+<div class="legenda-grande">crianças de 0 a 6 anos vivem no Rio — <strong>{{n:pct_0_6_ripsa_2025}}</strong> da população em {{n:ano_ripsa}}. E são cada vez menos: nos Censos, as de 0 a 4 anos caíram de {{n:censo_0_4_2000_mil}} (2000) para {{n:censo_0_4_2022_mil}} (2022), <strong>{{n:queda_0_4_2000_2022}} a menos</strong>.</div>
 
 <!-- fonte: Ripsa/Ministério da Saúde, estimativas 2000-2025; IBGE, Censos Demográficos -->
 
@@ -399,7 +363,7 @@ Crianças de 0 a 5 anos cadastradas, por bairro.
 
 # Os eixos da política
 
-## Um destaque por eixo — o resto está no site e no relatório
+## Destaques por eixo — o resto está no site e no relatório
 
 ---
 
@@ -437,6 +401,50 @@ Ainda assim, **{{n:pct_evitaveis_menores5_2025}}** dos óbitos de menores de 5 a
 </div>
 
 <p class="nota">Taxa bruta: {{n:matriculas_0_5}} matrículas em escolas do Rio em 2025 sobre a população estimada da mesma idade.</p>
+
+---
+
+<div class="kicker">Eixo Família e Cuidados</div>
+
+# A rede pública perdeu {{n:queda_publica_desde_pico}} das matrículas de 0 a 5 anos desde {{n:mat_publica_pico_ano}}
+
+<div class="lado largo">
+<div>
+
+Rede pública: de **{{n:mat_publica_pico}}** ({{n:mat_publica_pico_ano}}) para **{{n:mat_publica_2025}}** (2025).
+
+Rede privada: caiu para {{n:mat_privada_2021}} na pandemia (2021) e voltou a **{{n:mat_privada_2025}}**.
+
+A pública ainda responde por **{{n:pct_publica_2025}}** das matrículas.
+
+</div>
+
+![](fig:matriculas_0_a_5_rede_por_ano)
+
+</div>
+
+---
+
+<div class="kicker">Eixo Família e Cuidados</div>
+
+# {{n:pct_familias_uma_adulta}} das famílias com crianças no CadÚnico têm uma só adulta
+
+<div class="dois">
+<div>
+
+![](fig:cadunico_familias_por_arranjo)
+
+<div class="rotulo"><strong>{{n:familias_uma_adulta}}</strong> famílias com uma mulher como única adulta; {{n:pct_familias_dois_adultos}} têm um homem e uma mulher</div>
+</div>
+<div>
+
+![](fig:mapa_percentual_cadunico_familias_uma_adulta_bairro_2026)
+
+<div class="rotulo">{{n:pct_uma_adulta_extrema_pobreza}} delas vivem em extrema pobreza</div>
+</div>
+</div>
+
+<p class="nota">Arranjo aproximado pelos adultos (18 anos ou mais) no cadastro; não é o conceito oficial de família monoparental.</p>
 
 ---
 
