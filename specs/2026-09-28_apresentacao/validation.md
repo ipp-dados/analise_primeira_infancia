@@ -40,3 +40,15 @@ Implementação em 2026-09-28, branch `spec/apresentacao` (a partir de `spec/nov
   (sai o gráfico dos Censos). Os dois gráficos seguem no site e no relatório.
 - Observação: no mapa de % de famílias com uma só adulta quase todos os bairros ficam na cor mais escura; não é
   outlier, é o dado: a proporção é alta (cerca de 80%) em toda a cidade.
+
+## Revisão do usuário 3 (2026-09-28)
+
+- **Centro como outlier no mapa do IPS** (slide 26): mapa próprio da apresentação (`apresentacao/build/mapas_apresentacao.py`,
+  gravado só em `apresentacao/_build/mapas/`), com a regra de outlier do site (cercas de Tukey 1,5 x IQR): a escala vai
+  até o maior valor não outlier (Madureira, 33,5) e o Centro (76, acima da cerca de 46,9) fica com a cor máxima, dito
+  no rodapé e no texto. Para isso, `_a4_mapa` (`primeira_infancia/impressao.py`) ganhou o parâmetro opcional `teto=`;
+  sem ele, nada muda nos mapas do relatório. Site e PDF do relatório continuam com o mapa de sempre.
+- **População padronizada**: um número-âncora, **469 mil** crianças de 0 a 6 anos (Ripsa 2025, a faixa da política),
+  sempre em "mil". O slide dele vem antes do das réguas e a tendência usa a mesma fonte (699 mil em 2000 → 469 mil em
+  2025, −33%), em vez de misturar com o Censo de 0 a 4 anos. O slide seguinte explica as outras duas réguas, no mesmo
+  formato: 393 mil (0 a 5 anos, base do CadÚnico) e 308 mil (0 a 4 anos, Censo 2022, a única por bairro).

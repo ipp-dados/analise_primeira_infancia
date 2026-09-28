@@ -56,6 +56,33 @@ def pct_0_6_ripsa_2025():
     return fmt_pct(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["percentual_0_a_6"])
 
 
+def _ripsa_ano(ano):
+    d = _csv("populacao_ripsa_0_a_6_por_ano.csv")
+    return d[d["ano"] == ano].iloc[0]
+
+
+@numero
+def pop_0_6_ripsa_2000_mil():
+    return fmt_int(_ripsa_ano(2000)["populacao_0_a_6"] / 1000) + " mil"
+
+
+@numero
+def pct_0_6_ripsa_2000():
+    return fmt_pct(_ripsa_ano(2000)["percentual_0_a_6"])
+
+
+@numero
+def queda_0_6_ripsa_2000():
+    """Queda da população de 0 a 6 anos entre 2000 e o último ano da série (mesma fonte, Ripsa)."""
+    ult = _ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))
+    return fmt_pct((1 - ult["populacao_0_a_6"] / _ripsa_ano(2000)["populacao_0_a_6"]) * 100, 0)
+
+
+@numero
+def pop_0_5_ripsa_mil():
+    return fmt_int(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["populacao_0_a_5"] / 1000) + " mil"
+
+
 @numero
 def pop_0_5_ripsa_2025():
     return fmt_int(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["populacao_0_a_5"])
@@ -330,6 +357,14 @@ def ips_homicidios_max_ra():
     d = _csv("tabela_mapa_violencia_territorial_ra_2024.csv").dropna(subset=["taxa_homicidios"])
     r = d.loc[d["taxa_homicidios"].idxmax()]
     return f"{fmt_dec(r['taxa_homicidios'], 0)} ({r['regiao_adm'].title()})"
+
+
+@numero
+def ips_homicidios_2a_ra():
+    """Maior taxa entre as RAs depois da primeira (o Centro, outlier no mapa do slide)."""
+    d = _csv("tabela_mapa_violencia_territorial_ra_2024.csv").dropna(subset=["taxa_homicidios"])
+    r = d.sort_values("taxa_homicidios", ascending=False).iloc[1]
+    return f"{r['regiao_adm'].title()} ({fmt_dec(r['taxa_homicidios'], 0)})"
 
 
 @numero
