@@ -66,7 +66,8 @@ estilo, texto preso na 1ª pill, gráficos sem renderizar — `specs/2026-09-28_
 `python website/build/confere_textos.py` (Playwright, só desenvolvimento) gera
 `specs/2026-09-28_website_bugfix/conferencia_textos_site.csv`: um bloco de texto por linha (aba, seção, modo, pill,
 figura exibida, chave, texto do DOCX / do JSON / do site, status OK · PENDENTE (lorem) · ERRO · NÃO PUBLICADO).
-Os blocos de texto levam `data-seed` = chave em `relatorio/textos_curados.json`.
+Também gera `textos_para_revisao.csv` (uma linha por chave, faltantes primeiro, blocos do relatório incluídos,
+colunas em branco "Conferido"/"Comentário" para a revisão manual). Os blocos de texto levam `data-seed` = chave em `relatorio/textos_curados.json`.
 
 ## Telas estreitas
 

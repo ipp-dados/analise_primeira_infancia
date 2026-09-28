@@ -32,8 +32,8 @@ _JS = r"""
   const antes = (el, tag) => { let r = null; for (const h of heads) { if (h.tagName === tag && (h.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)) r = h; } return r; };
   const titulos = pane => {
     if (!pane) return '';
+    // painéis de pills não selecionadas estão [hidden], mas o título existe; variantes com/sem outliers repetem o título (Set)
     const t = Array.from(pane.querySelectorAll('.map-title, .chart-subtitle, .sm-unidade, .bar-unidade, .axis-title'))
-      .filter(e => !e.closest('[hidden]') || e.closest('.outlier-pane'))   // outliers: as duas variantes têm o mesmo título
       .map(txt).filter(Boolean);
     return Array.from(new Set(t)).join(' | ');
   };
@@ -148,6 +148,45 @@ def main():
             w.writerow([r.get(c[0], "") for c in colunas])
     from collections import Counter
     print(f"{SAIDA}: {len(saida)} linhas", dict(Counter(r['status'] for r in saida)))
+    exporta_revisao(saida, docx, curados)
+
+
+REVISAO = SAIDA.with_name("textos_para_revisao.csv")
+_ORDEM = {"PENDENTE": 0, "ERRO": 1, "NÃO PUBLICADO": 2, "OK": 3}
+
+
+def exporta_revisao(saida, docx, curados):
+    """Uma linha por chave de texto (não por pill): textos que faltam primeiro, depois os curados, com colunas em
+    branco para a conferência manual. Inclui os blocos do relatório fora das figuras (introdução, resumo, achados e
+    síntese por eixo, considerações finais), que o site também mostra."""
+    from sincroniza_docx import blocos_relatorio, parse_estrutura_eixos
+    por_chave = {}
+    for r in saida:
+        for k in r["seed"].split("+"):
+            local = " › ".join(x for x in (r["eixo"], r["secao"], r["subsecao"], r["modo"], r["pill"]) if x)
+            e = por_chave.setdefault(k, {"status": r["status"], "locais": [], "figuras": [], "tipos": [],
+                                          "observacao": r["observacao"]})
+            if _ORDEM[r["status"]] < _ORDEM[e["status"]]:
+                e["status"] = r["status"]
+            for campo, v in (("locais", local), ("figuras", r["titulo"]), ("tipos", r["tipo"])):
+                if v and v not in e[campo]:
+                    e[campo].append(v)
+    for k in ["introducao"] + list(blocos_relatorio(parse_estrutura_eixos())):
+        if k in por_chave:
+            continue
+        tem = bool(curados.get(k) or docx.get(k))
+        por_chave[k] = {"status": "OK" if tem else "PENDENTE", "locais": ["bloco do relatório (fora das figuras)"],
+                        "figuras": [], "tipos": ["texto"], "observacao": "" if tem else "sem texto na curadoria"}
+    linhas = sorted(por_chave.items(), key=lambda kv: (_ORDEM[kv[1]["status"]], kv[1]["locais"][0] if kv[1]["locais"] else "", kv[0]))
+    with open(REVISAO, "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.writer(f, delimiter=";")
+        w.writerow(["Status", "Chave do texto (arquivo)", "Onde aparece no site", "Tipo", "Figura(s) no site",
+                    "Observação", "Texto curado (DOCX)", "Texto em textos_curados.json", "Conferido (sim/não)", "Comentário"])
+        for k, e in linhas:
+            w.writerow([e["status"], k, " | ".join(e["locais"]), " | ".join(e["tipos"]), " | ".join(e["figuras"]),
+                        e["observacao"], docx.get(k, ""), curados.get(k, ""), "", ""])
+    from collections import Counter
+    print(f"{REVISAO}: {len(linhas)} chaves", dict(Counter(e["status"] for _, e in linhas)))
 
 
 if __name__ == "__main__":
