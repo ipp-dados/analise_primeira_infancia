@@ -36,8 +36,8 @@ GERADO = LATEX / "gerado"
 CACHE = LATEX / "_build/img"
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(RAIZ / "relatorio/curadoria"))
-from gera_estrutura_eixos import (chave_eixo, eixos_politica, panorama, parse_estrutura_eixos,  # noqa: E402
-                                  valida_estrutura)
+from gera_estrutura_eixos import (TEXTO_PENDENTE, chave_eixo, eixos_politica, motivos_pendentes,  # noqa: E402
+                                  panorama, parse_estrutura_eixos, valida_estrutura)
 import inventario_fontes  # noqa: E402
 import tabelas  # noqa: E402
 
@@ -95,8 +95,7 @@ def esc(s):
     return s
 
 
-TEXTO_PENDENTE = ("Indicador previsto na Política Integrada da Primeira Infância, ainda sem dado disponível para "
-                  "o município nesta edição. Será incluído quando a fonte for incorporada.")
+# TEXTO_PENDENTE: em gera_estrutura_eixos (o site usa a mesma frase, specs/2026-09-29_alinhamento_pdf_site D5)
 
 
 def titulo_secao(s):
@@ -217,8 +216,10 @@ def secoes_indicadores(subsecoes, info_por_arquivo, tabs, rotulo_ap, cmd="sectio
         tex.append(rf"\{cmd}{{{titulo_secao(sub['titulo'])}}}")
         if (c.get("status") or "").strip() == "pendente":
             # as `nota:` de estrutura_eixos.md são anotações internas da equipe ("baixar dados", nomes de
-            # arquivo, datas de decisão) -- o público lê só a frase fixa abaixo
-            tex.append(r"\begin{pendente}" + TEXTO_PENDENTE
+            # arquivo, datas de decisão) -- o público lê a frase fixa + o `motivo:` (texto público, formal; o
+            # site mostra o mesmo par -- specs/2026-09-29_alinhamento_pdf_site D5)
+            motivo = (c.get("motivo") or "").strip()
+            tex.append(r"\begin{pendente}" + TEXTO_PENDENTE + (" " + esc(motivo) if motivo else "")
                        + r"\end{pendente}")
             continue
         for campo, tipo in (("visualização", "grafico"), ("mapa", "mapa")):
@@ -226,8 +227,20 @@ def secoes_indicadores(subsecoes, info_por_arquivo, tabs, rotulo_ap, cmd="sectio
                 info = info_por_arquivo.get(("visualizacoes" if tipo == "grafico" else "mapas") + "/" + nome, {})
                 tex.append(bloco_figura(nome, tipo, info, sub["titulo"]))
                 tex.append(texto(Path(nome).stem))
+        # `tabela_no_texto:` (specs/2026-09-29_alinhamento_pdf_site D3; era a T4.3 de 2026-09-25_relatorio_latex): a
+        # tabela sai no corpo da seção, como no site, com o texto curado da mesma chave -- e não vai para o apêndice
+        no_texto = lista(c.get("tabela_no_texto"))
+        for nome in no_texto:
+            caminho = RAIZ / "tabelas_finais" / nome
+            rotulo = f"tab:{rotulo_label(Path(nome).stem)}"
+            ROTULO_POR_ASSINATURA.setdefault(tabelas.assinatura(caminho), rotulo)
+            info = info_por_arquivo.get("tabelas_finais/" + nome, {})
+            tex.append(tabelas.tabela_latex(caminho, sub["titulo"], legenda_fonte(info, "tabela"), rotulo, no_corpo=True))
+            tex.append(texto(Path(nome).stem))
         refs = []
         for nome in lista(c.get("tabela")):
+            if nome in no_texto:
+                continue
             if nome in tabelas.SUBSTITUI_NO_PDF:          # tabela repetida: remete à que a cobre, ou sai
                 nome = tabelas.SUBSTITUI_NO_PDF[nome]
                 if nome is None:
@@ -397,6 +410,7 @@ def main():
 
     estrutura = parse_estrutura_eixos(str(RAIZ / "specs/estrutura_eixos.md"))
     valida_estrutura(estrutura, base_dir=str(RAIZ))
+    motivos_pendentes(str(RAIZ / "specs/estrutura_eixos.md"))   # erro se algum pendente não tiver `motivo:` (D5)
     linhas, _, _ = inventario_fontes.coleta()
     info = {l["arquivo"]: l for l in linhas}
 

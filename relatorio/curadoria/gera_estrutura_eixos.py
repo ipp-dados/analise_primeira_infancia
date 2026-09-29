@@ -27,6 +27,27 @@ import re
 import unicodedata
 from pathlib import Path
 
+# Quadro de indicador pendente, igual no PDF e no site (specs/2026-09-29_alinhamento_pdf_site D5): esta frase fixa +
+# o `motivo:` do item (texto público e formal). As `nota:` são anotações internas e nunca são publicadas.
+TEXTO_PENDENTE = ("Indicador previsto na Política Integrada da Primeira Infância, ainda sem dado disponível para "
+                  "o município nesta edição. Será incluído quando a fonte for incorporada.")
+
+
+def motivos_pendentes(caminho="specs/estrutura_eixos.md"):
+    """{título do item: motivo} de todo item `status: pendente`; erro se algum não tiver `motivo:` (o público não pode
+    ver um quadro sem explicação, nem a anotação interna no lugar dela)."""
+    out = {}
+    for eixo in parse_estrutura_eixos(caminho):
+        for sub in eixo["subsecoes"]:
+            c = sub["campos"]
+            if (c.get("status") or "").strip() == "pendente":
+                motivo = (c.get("motivo") or "").strip()
+                if not motivo:
+                    raise ValueError(f"item pendente sem 'motivo:' em {caminho}: {sub['titulo']}")
+                out[sub["titulo"]] = motivo
+    return out
+
+
 # Diretorios (relativos a raiz do projeto) onde cada tipo de referencia deve
 # existir de fato -- usados por valida_estrutura().
 _DIRS_POR_CAMPO = {
