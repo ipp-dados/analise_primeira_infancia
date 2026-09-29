@@ -72,6 +72,13 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
 - **Agregar taxas publicadas** (quando não há numerador e denominador da mesma base): somar taxa × população e dividir
   pela soma da população — nunca média simples. Não dividir contagens de tabelas de bases diferentes (ex.: SIDRA
   10057 ÷ 9606 passa de 100%; `specs/2026-09-29_pendencias` D14).
+- **Dado pontual nunca vai para o relatório nem para a versão final do site** (regra do usuário, 2026-09-29,
+  `specs/2026-09-29_dados_adhoc` D7). Item com `- dado_pontual:` no crosswalk (extração fora da rotina, ex. CadÚnico
+  ago/2026) aparece **só no site em desenvolvimento**: o gerador do PDF o descarta (`sem_dados_pontuais`), a fonte
+  dele não entra na lista Fontes (`so_site = {sim}` no `fontes.bib`), e ele é um **bloqueio** da versão final do
+  site — com `em_desenvolvimento = false` em `relatorio/publicacao.json`, `build_site.py` para, e o deploy falha se o
+  HTML tiver `data-dado-pontual` sem a faixa. Para tirar a faixa, antes substitua o dado pontual pela extração
+  automatizada ou retire os blocos (`ROADMAP.md`). Não contornar sem decisão do usuário.
 - `dados_locais/` **não é gitignorado** — arquivos colocados ali (inclusive
   camadas geo) são versionados. Confirme com `git status` antes de assumir o
   contrário; não versione dado bruto sensível sem checar antes se deveria

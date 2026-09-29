@@ -31,3 +31,12 @@ Critérios de aceite; "Resultado" preenchido ao fim (T7.3).
 **Não feito:** execução completa do `analise.py` do zero (constituição §2) — precisa do banco do CTPE e reescreveria
 saídas que esta rodada não pode mudar (D1). A célula nova não depende de nada anterior (só lê `dados_locais/cadunico/`)
 e foi rodada isolada; `jupytext --to notebook` e `ast.parse` sem erro.
+
+## Regra D7 (2026-09-29)
+
+| Verificação | Resultado |
+|---|---|
+| PDF sem dado pontual | ✅ 161 páginas, texto idêntico ao PDF publicado; sem "dado pontual", "BPC" nem "extração pontual" |
+| Site em desenvolvimento | ✅ gera normalmente; 3 blocos com `data-dado-pontual` |
+| Site com `em_desenvolvimento = false` | ✅ `build_site.py` para com "BLOQUEADO…" e não reescreve `index.html` (testado e revertido) |
+| Deploy | ✅ passo "Bloqueia dado pontual na versão final": o site atual passa; um HTML sem a faixa e com `data-dado-pontual` bloquearia (simulado localmente) |

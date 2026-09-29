@@ -249,14 +249,6 @@ AJUSTES = {
         "renomeia": {"total": "Acompanhadas", "magreza_acentuada_percentual": "Magreza acentuada (%)", "magreza_percentual": "Magreza (%)",
                      "eutrofia_percentual": "Eutrofia (%)", "risco sobrepeso_percentual": "Risco de sobrepeso (%)",
                      "sobrepeso_percentual": "Sobrepeso (%)", "obesidade_percentual": "Obesidade (%)"}},
-    # --- dados pontuais do CadÚnico, ref. 08/2026 (specs/2026-09-29_dados_adhoc; faixa 4 a 6 inclui os 6 anos, D1)
-    "cadunico_adhoc_deficiencia_2026_08.csv": {"titulo": "Crianças de 0 a 6 anos com deficiência no Cadastro Único e com Benefício de Prestação Continuada (BPC), agosto de 2026"},
-    "cadunico_adhoc_deficiencia_contexto_2026_08.csv": {"titulo": "Famílias e pessoas com deficiência no Cadastro Único (todas as idades), agosto de 2026"},
-    "cadunico_adhoc_moradia_domicilio_2026_08.csv": {"titulo": "Famílias, pessoas e crianças no Cadastro Único em domicílios sem banheiro ou sem água canalizada, agosto de 2026"},
-    "cadunico_adhoc_moradia_territorio_2026_08.csv": {"titulo": "Famílias, pessoas e crianças no Cadastro Único por forma de abastecimento de água e de escoamento sanitário (fora da rede geral), agosto de 2026",
-        # "Serviço" curto só no PDF (o título já diz): a tabela cabe no retrato, no corpo da seção
-        "filtro": lambda df: df.assign(**{"Serviço": df["Serviço"].replace({"Abastecimento de água": "Água", "Escoamento sanitário": "Esgoto"})}),
-        "nota": "-- indica crianças não informadas na extração (cisterna: 0 crianças em 1.323 famílias, valor tratado como não informado)."},
 }
 
 
@@ -463,7 +455,7 @@ def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo, no_corpo=False):
     titulo = esc(titulo)
     fonte = (fonte_tex + (" " + NOTA_SUPRESSAO if meta["suprimido"] else "")
              + (" " + NOTA_AGREGACAO if meta.get("agregado") else "")
-             + (" Nota: " + esc(aj["nota"]) if aj.get("nota") else ""))   # nota própria da tabela (dados_adhoc A3)
+             + (" Nota: " + esc(aj["nota"]) if aj.get("nota") else ""))   # nota própria da tabela (AJUSTES)
 
     colunas, specs = [], []
     for c in df.columns:
