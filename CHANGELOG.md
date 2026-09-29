@@ -494,3 +494,21 @@ percentual × o total publicado devolvia contagens pequenas em 6 bairros no mapa
 com uma adulta). Aplicado às tabelas versionadas, aos mapas, ao site e ao PDF. Achado registrado no ROADMAP: um commit
 de 2026-09-09, anterior à regra, tem contagens abaixo de 20 no histórico do GitHub.
 
+## 2026-09-29 — `specs/slide_revision` (deck de 30 para 33 slides; rótulos de renda do CadÚnico)
+
+Deck reorganizado pelo pedido de revisão (`revision_readme.md`) com as decisões D1-D8: 33 slides (sai a tabela de
+pendentes; entram causas evitáveis por faixa etária, mapas de violência familiar por bairro (mãe e pai) e
+dois slides de eixos incompletos/ausentes), "até 72 meses" com a nota "= 0 a 5 anos completos", 393 mil como referência
+(o 469 mil de 0-6 fica só como 3ª caixa do slide da população, D10), três caixas no slide da população com a Ripsa
+de até 72 meses em destaque, Direito à Cidade e Participação como eixos distintos com a pesquisa primária como solução comum, "Governança de Dados", nota de
+família monoparental destacada, contato `pesquisaeavaliacao.ipp@prefeitura.rio`. Mapas só do deck
+(`apresentacao/build/mapas_apresentacao.py`, agora com `cmap`/`bins`/`outlier`/`filtro`/`soma`): população em rampa
+terracota (nenhuma terra azul), mortalidade infantil e baixo peso com teto de Tukey e os bairros extremos nomeados no
+rodapé. Violência familiar sem soma de vínculos (D9, revisão de D7 pelo usuário: a mesma notificação pode citar mais de um
+autor): mãe, pai e outros separados no slide 25 e mapas de mãe e pai no slide 26. Os gráficos do deck passam a vir da
+versão de impressão (`visualizacoes/a4/`, sem título embutido) e a legenda de `grafico_barra_agrupado` sai de cima das
+barras. Projeto todo (D1): as faixas de renda do CadÚnico passam a
+"Pobreza (até R$ 218)" e "Baixa renda (R$ 218 a 810)" — R$ 218 per capita é a linha de pobreza do Bolsa Família desde
+2023 — no pacote, nas tabelas, no site, no PDF e no texto curado. `_a4_mapa` não aplica mais o P95 quando recebe um
+teto explícito.
+
