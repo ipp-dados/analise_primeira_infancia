@@ -79,6 +79,15 @@ a equipe cura (JSON, DOCX), no PDF das outras branches e no `staging_main`.
   - A data fica numa chave só (`lancamento_v1: "2026-10-06"` em `publicacao.json` da `demo`), usada pelo site e pelo
     PDF.
 
+- **D12 — Introdução resumida na demo** (pedido do usuário, 2026-09-29, depois da implementação): no site da `demo`, o
+  texto curado `introducao` (421 palavras) é substituído por um resumo em duas partes de ~1/3 cada, em `textos_demo.json`.
+  `introducao_demo` (141 palavras) fica como Introdução e `conclusao_introducao_demo` (142 palavras) vai para um box
+  "Conclusões", no formato do dos eixos, no fim do panorama, antes das fontes. Saem as referências faltantes: "(ref.)"
+  sai; "(ref. email)" vira "pelo contato no rodapé desta página"; "(ref. github)" vira "no GitHub (link no topo desta
+  página)"; "ao fim desse documento… todas as tabelas" vira "cada gráfico, mapa e tabela permite baixar os dados". É
+  a **única exceção** à precedência do texto curado (D5), e só no site da `demo`: `textos_curados.json`, o DOCX e o PDF
+  continuam com o texto integral.
+
 ## 4. Requisitos
 
 - **R1** A branch `demo` existe, criada de `staging_main` depois do merge desta rodada de planejamento.
