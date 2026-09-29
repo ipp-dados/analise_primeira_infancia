@@ -1,0 +1,24 @@
+% demo_aviso.tex -- página final do PDF de demonstração. EXCLUSIVO da branch demo (specs/2026-09-29_demo D1/D11;
+% constituição §7). Editado à mão; o texto vem de relatorio/publicacao.json (demo_textos) via gerado/demo_aviso.tex,
+% escrito por build/demo_pdf.py, que compila esta página e a junta às páginas 1..18 (impressas) do relatório.
+\documentclass[12pt, oneside, a4paper, brazil]{abntex2}
+\usepackage{estilo}
+\input{gerado/aviso}         % mesma marca d'água do relatório
+\input{gerado/demo_aviso}    % \demotitulo e \demotexto
+\begin{document}
+\selectlanguage{brazil}
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture, overlay]
+  \fill[ippnavy] (current page.north west) rectangle ([yshift=-0.55cm]current page.north east);
+  \node[anchor=south west, inner sep=0] at ([xshift=3cm, yshift=2cm]current page.south west)
+    {\faixaespectro[5pt]{\dimexpr\paperwidth-5cm\relax}};
+\end{tikzpicture}
+\vspace*{5cm}
+\noindent{\ttfamily\small\color{acento}\addfontfeature{LetterSpace=8}DIAGNÓSTICO DA PRIMEIRA INFÂNCIA CARIOCA}
+\par\vspace{0.8cm}
+\noindent{\frauncesdisplay\bfseries\color{ippnavy}\fontsize{32}{38}\selectfont\demotitulo\par}
+\vspace{1cm}
+\noindent\begin{minipage}{0.9\textwidth}\raggedright\large\color{tinta2}\setlength{\parskip}{0.4cm}
+  \demotexto
+\end{minipage}
+\end{document}

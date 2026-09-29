@@ -55,6 +55,16 @@ jobs:
           fi
           echo "Dado pontual: OK"
 
+      # Branch demo (specs/2026-09-29_demo R8; constituição §7) -- EXCLUSIVO da demo: o site publicado não pode ter
+      # lorem ipsum nem quadro de indicador pendente. O ambiente github-pages só aceita a branch demo enquanto a
+      # demonstração estiver no ar (regra de branches nas configurações do repositório).
+      - name: Confere demonstração
+        run: |
+          lorem=$(grep -oiwE 'lorem|ipsum|dolor|consectetur|adipiscing|eiusmod|incididunt|laboris|reprehenderit|cupidatat|curabitur|vestibulum' _site/index.html | sort -u | tr '\n' ' ')
+          if [ -n "$lorem" ]; then echo "BLOQUEADO: lorem ipsum no site de demonstração: $lorem"; exit 1; fi
+          if grep -q 'callout-pending' _site/index.html; then echo "BLOQUEADO: quadro de indicador pendente no site de demonstração"; exit 1; fi
+          echo "Demonstração: OK"
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

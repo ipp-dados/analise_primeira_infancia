@@ -95,6 +95,9 @@ avisa_itens_sem_arquivo()
 import pandas as pd
 from PIL import Image
 
+# branch demo (specs/2026-09-29_demo): texto provisório, pendentes ocultos, faixa com a V.1 -- EXCLUSIVO da demo
+import demo
+
 TF = "tabelas_finais"
 MAPAS = "mapas"
 OUT_PATH = _OUT_ARG or "website"   # pasta de saída (specs/2026-09-24_website_refactor Bloco 2)
@@ -530,7 +533,7 @@ def _texto_analise(seed, palavras=None):
     visual de parágrafo."""
     curado = _TEXTOS_CURADOS.get(seed)
     if not curado:
-        return _lorem(seed, palavras)
+        return demo.texto(seed) if demo.ATIVO else _lorem(seed, palavras)
     import html as _html
     return "<br><br>".join(_html.escape(t.strip()) for t in curado.split("\n") if t.strip())
 
@@ -695,6 +698,8 @@ def emite_bloco_pendente(titulo):
     padrao visual do key-takeaways (--surface-2), com um selo proprio para
     nao ser confundido com 'Principais achados'. Sem bloco de texto lorem --
     nao ha conteudo real a comentar ainda (specs.md §7)."""
+    if demo.ATIVO:   # branch demo: bloco que ainda falta fica oculto (specs/2026-09-29_demo D8)
+        return
     h3(titulo)
     _PENDENTES_SECAO[section_starts[-1][2]] = _PENDENTES_SECAO.get(section_starts[-1][2], 0) + 1
     # specs/2026-09-24_website_refactor: callout com ícone (sai o emoji 🚧)
@@ -1267,7 +1272,8 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
 # sumário lateral são montados no fim (ASSEMBLE), quando todos os h2/h3 já existem. Aqui só o
 # texto da Introdução (curado sob o bookmark "introducao" do DOCX, senão lorem de 250 palavras --
 # specs/2026-09-22_ajuste_eixos §7), que vai para o painel Visão geral.
-INTRO_HTML = _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 150)
+INTRO_HTML = (_texto_analise("introducao") if demo.ATIVO else
+              _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 150))
 
 # ============================================================== INTRODUÇÃO ==
 
@@ -2210,6 +2216,8 @@ URL_GITHUB = "https://github.com/ipp-dados/analise_primeira_infancia"
 # raw.githubusercontent.com serve o arquivo como application/octet-stream -> o navegador baixa direto
 # (pedido do usuário: link de download, não a página do GitHub)
 URL_PDF = "https://raw.githubusercontent.com/ipp-dados/analise_primeira_infancia/staging_main/relatorio/analise_primeira_infancia.pdf"
+if demo.ATIVO:   # PDF de demonstração da própria branch (specs/2026-09-29_demo D10)
+    URL_PDF = demo.URL_PDF_DEMO
 
 # rótulo curto da aba e ícone por eixo (título completo continua no h2 do painel)
 _EIXO_META = [  # (prefixo do sid, rótulo curto, ícone)
@@ -2276,13 +2284,13 @@ for i, (start, titulo, sid) in enumerate(_SECOES_EIXO):
     _k_eixo = chave_eixo(titulo)
     _achados_cur = [l.strip() for l in (_TEXTOS_CURADOS.get(f"achados_{_k_eixo}") or "").split("\n") if l.strip()]
     import html as _html_mod
-    _itens = [_html_mod.escape(l) for l in _achados_cur] or _lorem_bullets(sid)
+    _itens = [_html_mod.escape(l) for l in _achados_cur] or (demo.itens(f"achados_{_k_eixo}") if demo.ATIVO else _lorem_bullets(sid))
     achados = callout("findings", "lightbulb", "Principais achados",
                       "<ul>" + "".join(f"<li>{b}</li>" for b in _itens) + "</ul>")
     # texto de abertura do eixo, logo abaixo dos achados (specs/2026-09-28_melhorias_site U2): chave
     # introducao_<eixo> de blocos_relatorio (a mesma do PDF e do DOCX); sem texto curado, lorem de 90 palavras com a
     # mesma semente do PDF
-    achados += f'<p class="eixo-intro">{_texto_analise(f"introducao_{_k_eixo}") if _TEXTOS_CURADOS.get(f"introducao_{_k_eixo}") else _lorem(f"introducao-{sid}", 90)}</p>'
+    achados += f'<p class="eixo-intro">{_texto_analise(f"introducao_{_k_eixo}") if _TEXTOS_CURADOS.get(f"introducao_{_k_eixo}") else demo.texto(f"introducao_{_k_eixo}") if demo.ATIVO else _lorem(f"introducao-{sid}", 90)}</p>'
     # Conclusões do eixo (pedido do usuário no Bloco 4): 100-200 palavras, lorem até haver texto
     # curado sob a seed "conclusao-<sid>" em relatorio/textos_curados.json (o DOCX de curadoria
     # ainda não tem bookmark para isso -- mesma lacuna conhecida das opções sem arquivo, relatorio/specs.md v7)
@@ -2290,7 +2298,7 @@ for i, (start, titulo, sid) in enumerate(_SECOES_EIXO):
     conclusao = (f'<h3 id="{id_conc}" class="h3-conclusao">Conclusões</h3>'
                  f'<div class="conclusao"><div class="conclusao-head">{icone("flag")}'
                  f'<span class="eyebrow">Síntese do eixo · {_esc(rotulo)}</span></div>'
-                 f'<p>{_texto_analise(f"sintese_{_k_eixo}") if _TEXTOS_CURADOS.get(f"sintese_{_k_eixo}") else _texto_analise(f"conclusao-{sid}")}</p></div>')
+                 f'<p>{_texto_analise(f"sintese_{_k_eixo}") if _TEXTOS_CURADOS.get(f"sintese_{_k_eixo}") else demo.texto(f"sintese_{_k_eixo}") if demo.ATIVO else _texto_analise(f"conclusao-{sid}")}</p></div>')
     caixa_fontes = _caixa_fontes(sid)
     paineis.append(
         f'<section class="tab-panel" id="{sid}" role="tabpanel" aria-labelledby="tab-{sid}"'
@@ -2351,7 +2359,8 @@ banner = (
     ('<div class="dev-banner" role="alert">'
      '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
      'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
-     '</div>' if _EM_DESENVOLVIMENTO else '') +
+     '</div>' if _EM_DESENVOLVIMENTO and not demo.ATIVO else '') +
+    (demo.banner_html() if demo.ATIVO else '') +
     '<header class="site-banner"><div class="container banner-inner">'
     f'<div>{logo_link("banner", "banner-logo")}'
     '<div class="eyebrow banner-eyebrow">Relatório interativo · Instituto Pereira Passos</div>'
@@ -2484,6 +2493,8 @@ if OUT_DIR.resolve() != SITE_DIR.resolve():
     for nome in _ESTATICOS:
         shutil.copytree(SITE_DIR / nome, OUT_DIR / nome, dirs_exist_ok=True)
 (OUT_DIR / "data").mkdir(parents=True, exist_ok=True)
+if demo.ATIVO:   # sem lorem, sem pendente, toda chave com texto provisório (specs/2026-09-29_demo R2/R3)
+    demo.confere(doc + RENDER_CALLS_JS)
 _gerados = {"index.html": doc, "data/charts.js": RENDER_CALLS_JS, "data/geo.js": GEO_JS}
 for rel, conteudo in _gerados.items():
     with open(OUT_DIR / rel, "w", encoding="utf-8", newline="\n") as f:

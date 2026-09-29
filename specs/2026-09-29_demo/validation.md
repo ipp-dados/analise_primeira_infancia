@@ -4,19 +4,19 @@ Critérios de aceite. A coluna "Resultado" é preenchida ao fim da implementaç�
 
 | # | Critério | Como verificar | Resultado |
 |---|----------|----------------|-----------|
-| V1 | Branch `demo` criada de `staging_main` após o merge do planejamento | `git merge-base --is-ancestor <merge B0> demo` | |
-| V2 | Site da `demo` sem lorem | nenhuma palavra distintiva do gerador (`dolor`, `adipiscing`, `eiusmod`, `incididunt`, `consectetur`...) em `website/index.html` e `website/data/*.js` | |
-| V3 | Todo texto não curado é provisório e marcado | nº de `data-texto-demo` = nº de chaves de `textos_demo.json` usadas; nenhuma chave curada com `data-texto-demo` | |
-| V4 | Textos provisórios dentro de D6 | ≤ 60 palavras por texto de figura, ≤ 3 achados por eixo; números conferidos por amostra (≥ 1 por eixo) contra `tabelas_finais/` | |
-| V5 | Pendentes ocultos | 0 `callout-pending`; nenhum dos 9 títulos pendentes no HTML (sumário lateral e cartões inclusive); nenhum "pendente" nos cartões da Visão geral | |
-| V6 | Dado pontual continua na `demo` | blocos `data-dado-pontual` de Inclusão e Moradia presentes, com a faixa | |
-| V7 | Curadoria intocada | `git diff staging_main demo -- relatorio/textos_curados.json relatorio/curadoria_textos.docx relatorio/controle_revisao.json` vazio; DOCX regerado na `demo` com lorem e pendentes | |
-| V8 | PDF da `demo` = páginas até a impressa 18 + aviso | nº de páginas = índice da página do "Mapa 1" + 1; última página com o texto de D11 e "6 de outubro de 2026"; marca d'água em todas | |
-| V9 | Sumário completo, sem link quebrado | sumário igual ao da versão completa; nenhum link interno ou marcador para página inexistente (PyMuPDF) | |
-| V10 | PDF sem texto provisório | nenhuma frase de `textos_demo.json` no texto extraído do PDF | |
-| V11 | PDF das outras branches intacto | em `staging_main`, `gera_latex.py` sem a chave `demo` gera 161 páginas (ou o número vigente), sem página de aviso | |
-| V12 | Faixa maior, com a data da V.1 | screenshots: faixa mais alta e com fonte maior que em `staging_main`, "6 de outubro de 2026" visível; no telefone (360 px), ≤ 3 linhas | |
-| V13 | Desktop igual fora da faixa | comparação de screenshots desktop (≥ 1100 px) abaixo da faixa, sem diferença fora das áreas de texto e dos pendentes retirados | |
-| V14 | Link do PDF aponta para a `demo` | `href` do botão PDF contém `/demo/relatorio/analise_primeira_infancia.pdf` | |
-| V15 | Deploy só da `demo` e barrando lorem | regra do ambiente com só `demo`; o passo "Confere demonstração" falha num HTML de teste com lorem | |
-| V16 | Regra registrada | constituição §7 com a regra da `demo` (fluxo só de ida, exclusividade) | |
+| V1 | Branch `demo` criada de `staging_main` após o merge do planejamento | `git merge-base --is-ancestor <merge B0> demo` | ✅ `demo` criada de `staging_main` em `b4275d6` (merge do planejamento) |
+| V2 | Site da `demo` sem lorem | nenhuma palavra distintiva do gerador (`dolor`, `adipiscing`, `eiusmod`, `incididunt`, `consectetur`...) em `website/index.html` e `website/data/*.js` | ✅ `demo.confere` no build e o passo do workflow: nenhuma palavra do gerador em `index.html` nem em `data/charts.js` |
+| V3 | Todo texto não curado é provisório e marcado | nº de `data-texto-demo` = nº de chaves de `textos_demo.json` usadas; nenhuma chave curada com `data-texto-demo` | ✅ 76 chaves distintas com `data-texto-demo` = 76 textos de `textos_demo.json`, todos usados; curados sem a marca (a troca é só no fallback) |
+| V4 | Textos provisórios dentro de D6 | ≤ 60 palavras por texto de figura, ≤ 3 achados por eixo; números conferidos por amostra (≥ 1 por eixo) contra `tabelas_finais/` | ✅ todos ≤ 60 palavras, 3 achados por eixo; números conferidos com `tabelas_finais/` em todas as chaves (1 correção: 4, não 5, RA com taxa zero de homicídio por ação policial) |
+| V5 | Pendentes ocultos | 0 `callout-pending`; nenhum dos 9 títulos pendentes no HTML (sumário lateral e cartões inclusive); nenhum "pendente" nos cartões da Visão geral | ✅ 0 `callout-pending`; nenhum dos 9 títulos no HTML; "pendente" só nas 2 notas metodológicas de dado real (Proteção) |
+| V6 | Dado pontual continua na `demo` | blocos `data-dado-pontual` de Inclusão e Moradia presentes, com a faixa | ✅ 3 blocos `data-dado-pontual` (Inclusão e Moradia), com a faixa |
+| V7 | Curadoria intocada | `git diff staging_main demo -- relatorio/textos_curados.json relatorio/curadoria_textos.docx relatorio/controle_revisao.json` vazio; DOCX regerado na `demo` com lorem e pendentes | ✅ `git diff staging_main` vazio nos 3 arquivos; nenhum script de `relatorio/curadoria/` lê `textos_demo.json` (busca no código; DOCX não regerado para não mexer no arquivo) |
+| V8 | PDF da `demo` = páginas até a impressa 18 + aviso | nº de páginas = índice da página do "Mapa 1" + 1; última página com o texto de D11 e "6 de outubro de 2026"; marca d'água em todas | ✅ 20 páginas = 19 (até a impressa 18, "Mapa 1") + aviso com "6 de outubro de 2026"; marca d'água no aviso também |
+| V9 | Sumário completo, sem link quebrado | sumário igual ao da versão completa; nenhum link interno ou marcador para página inexistente (PyMuPDF) | ✅ páginas do sumário iguais às do PDF completo; 9 links internos, todos válidos; marcadores só até a p. 18 + "Versão de demonstração" |
+| V10 | PDF sem texto provisório | nenhuma frase de `textos_demo.json` no texto extraído do PDF | ✅ nenhum texto de `textos_demo.json` no texto extraído do PDF |
+| V11 | PDF das outras branches intacto | em `staging_main`, `gera_latex.py` sem a chave `demo` gera 161 páginas (ou o número vigente), sem página de aviso | ✅ o PDF completo continua com 161 páginas (`_build/relatorio.pdf`); `staging_main` não tem `demo_pdf.py` nem a chave `demo` |
+| V12 | Faixa maior, com a data da V.1 | screenshots: faixa mais alta e com fonte maior que em `staging_main`, "6 de outubro de 2026" visível; no telefone (360 px), ≤ 3 linhas | ✅ faixa: 42 → 107 px no desktop (fonte 15,7 → 20,2 px), 57 → 111 px no telefone; data em destaque. Telefone (360 px): aviso em 3 linhas + a linha da data |
+| V13 | Desktop igual fora da faixa | comparação de screenshots desktop (≥ 1100 px) abaixo da faixa, sem diferença fora das áreas de texto e dos pendentes retirados | ✅ desktop abaixo da faixa sobreposto ao de `staging_main` (1440 × 900): sem deslocamento visível; diferença só de antialiasing |
+| V14 | Link do PDF aponta para a `demo` | `href` do botão PDF contém `/demo/relatorio/analise_primeira_infancia.pdf` | ✅ `href` = `.../demo/relatorio/analise_primeira_infancia.pdf` |
+| V15 | Deploy só da `demo` e barrando lorem | regra do ambiente com só `demo`; o passo "Confere demonstração" falha num HTML de teste com lorem | ⏳ passo "Confere demonstração" testado localmente: passa no HTML da `demo`, bloqueia o de `staging_main` (com lorem). Regra do ambiente: pendente (manual, usuário) |
+| V16 | Regra registrada | constituição §7 com a regra da `demo` (fluxo só de ida, exclusividade) | ✅ constituição §7 (commit `d76609c`, já em `staging_main`) |

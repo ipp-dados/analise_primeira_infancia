@@ -1,5 +1,13 @@
 {
   "_nota": "Chave única do estado de publicação (specs/2026-09-28_website_mobile). Com em_desenvolvimento = true, o site mostra a faixa 'EM DESENVOLVIMENTO / TEMPORÁRIO' (website/build/build_site.py) e o PDF sai com a marca d'água (relatorio/latex/build/gera_latex.py -> gerado/aviso.tex). Para a versão final: false, e regerar os dois (python website/build/build_site.py; python relatorio/latex/build/gera_latex.py --publicar).",
   "em_desenvolvimento": true,
-  "marca_dagua_pdf": "EM DESENVOLVIMENTO"
+  "marca_dagua_pdf": "EM DESENVOLVIMENTO",
+  "_nota_demo": "Chaves abaixo: SÓ na branch demo (specs/2026-09-29_demo; constituição §7) -- nunca mesclar em staging_main. demo = true liga o texto provisório (website/build/textos_demo.json), oculta os pendentes, aumenta a faixa com a data da V.1 e corta o PDF na página impressa 18 com a página de aviso.",
+  "demo": true,
+  "lancamento_v1": "2026-10-06",
+  "demo_textos": {
+    "faixa": "VERSÃO DE DEMONSTRAÇÃO — em desenvolvimento. Os textos são provisórios e alguns indicadores ainda não aparecem.",
+    "aviso_pdf_titulo": "Versão de demonstração",
+    "aviso_pdf": "Este documento é uma demonstração e termina aqui. Os capítulos listados no sumário (eixos da Política Integrada da Primeira Infância, considerações finais e apêndices) estarão na versão final do relatório, prevista para {data}. Aguarde a versão final."
+  }
 }

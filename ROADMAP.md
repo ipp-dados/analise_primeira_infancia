@@ -14,12 +14,14 @@ Organização em duas partes:
 
 # A fazer
 
-## 0. Rodada em planejamento — versão de demonstração (`specs/2026-09-29_demo`, branch `spec/demo` → `demo`)
+## 0. Versão de demonstração no ar pela branch `demo` (`specs/2026-09-29_demo`)
 
 Planejada em 2026-09-29 (D1-D11). É uma branch `demo`, exclusiva e só de ida, com texto provisório no lugar do lorem,
 pendentes ocultos, faixa maior com a V.1 prevista para **6/10/2026**, PDF até a página impressa 18 mais o aviso, e o
-Pages publicando a partir dela. Falta o OK do usuário para implementar. A troca da branch do ambiente `github-pages` é
-manual.
+Pages publicando a partir dela. **Implementada em 2026-09-29 na `demo`** (V1-V16 em `validation.md`). Falta: (1) trocar a
+regra de branches do ambiente `github-pages` para `demo` (manual, Settings → Environments); (2) push da `demo` e deploy.
+Para atualizar: merge `staging_main` → `demo`; chave nova de figura sem texto curado exige texto provisório (o build para).
+Na V.1: voltar o Pages para `staging_main`/`main`.
 
 ## 1. Rodada atual — pendências (`specs/2026-09-29_pendencias`, branch `spec/pendencias`)
 

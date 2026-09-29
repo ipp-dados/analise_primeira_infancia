@@ -533,3 +533,9 @@ Dado pontual (`- dado_pontual:`) nunca entra no PDF (o gerador o descarta; PDF d
 versão final do site: sem a faixa "em desenvolvimento", `build_site.py` e o deploy param (constituição §3,
 `specs/2026-09-29_dados_adhoc` D7). Deck: um slide para Inclusão e outro para Moradia; site com crianças de 0 a 6 e
 faixas em destaque (D5, D6).
+
+## 2026-09-29 — `specs/demo` (versão de demonstração, só na branch `demo`)
+
+Branch `demo`, exclusiva e só de ida (constituição §7): site sem lorem (76 textos provisórios descritivos em
+`website/build/textos_demo.json`, o curado tem precedência), pendentes ocultos, faixa maior com a V.1 prevista para
+6/10/2026, PDF até a página impressa 18 + página de aviso, e Pages publicando a partir dela. Curadoria (JSON/DOCX) intocada.
