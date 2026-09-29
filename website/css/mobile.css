@@ -96,6 +96,8 @@
 
   /* faixa de aviso + banner compactos (meta: <= 320 px a 390 px) */
   .dev-banner{font-size:.66rem; padding:6px 12px; line-height:1.35;}
+  .dev-banner-demo{font-size:.8rem; padding:12px 14px; gap:6px;}   /* demo: maior que a faixa normal, até 3 linhas a 360 px */
+  .dev-banner-data{font-size:.76rem; padding:3px 10px;}
   .banner-inner{grid-template-columns:minmax(0,1fr); gap:10px; padding-top:12px; padding-bottom:12px;}
   .banner-logo{padding:5px 9px; margin-bottom:8px;}
   .banner-logo .ipp-logo{height:22px;}

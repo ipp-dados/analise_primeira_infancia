@@ -373,8 +373,15 @@ def compila(publicar=False):
     overfull = re.findall(r"Overfull \\hbox \((\d+\.\d+)pt", texto_log)
     grandes = [o for o in overfull if float(o) > 5]
     destino = "relatorio/latex/_build/relatorio.pdf"
+    origem = LATEX / "_build/relatorio.pdf"
+    # branch demo (specs/2026-09-29_demo D1/D2): páginas até a impressa 18 + página de aviso -- EXCLUSIVO da demo
+    import demo_pdf
+    _pub_demo = demo_pdf.config()
+    if _pub_demo:
+        origem = demo_pdf.monta(_pub_demo)
+        destino = "relatorio/latex/_build/relatorio_demo.pdf"
     if publicar:   # só o documento inteiro substitui o PDF publicado (o site aponta para ele)
-        shutil.copy(LATEX / "_build/relatorio.pdf", RAIZ / "relatorio/analise_primeira_infancia.pdf")
+        shutil.copy(origem, RAIZ / "relatorio/analise_primeira_infancia.pdf")
         destino = "relatorio/analise_primeira_infancia.pdf"
     print(f"PDF: {destino}  |  avisos 'undefined': {indef}  |  "
           f"overfull > 5pt: {len(grandes)}")
