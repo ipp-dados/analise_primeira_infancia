@@ -263,7 +263,7 @@ def main():
     base = [npx, "marp", md.name, "--theme-set", "ipp.css", "--html", "--allow-local-files"]
     saidas = []
     for f in formatos:
-        args = {"pptx": ["--pptx"], "pdf": ["--pdf", "--pdf-notes"], "html": ["--html"], "png": ["--images", "png"]}[f]
+        args = {"pptx": ["--pptx"], "pdf": ["--pdf"], "html": ["--html"], "png": ["--images", "png"]}[f]
         destino = BUILD / (f"{nome}.{f}" if f != "png" else f"png/{nome}.png")
         destino.parent.mkdir(exist_ok=True)
         # stdin fechado: sem isso o marp-cli espera o Markdown pela entrada padrão (fica parado quando não é terminal)
