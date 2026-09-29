@@ -483,6 +483,54 @@ def valor(chave):
     return _NUMEROS[chave]()
 
 
+# ---------------------------------------------------------------- dados pontuais do CadÚnico (ref. 08/2026)
+# specs/2026-09-29_dados_adhoc: extração pontual, faixas 0-3 e 4-6 (inclui os 6 anos, D1) -- sai com a substituição
+# pela extração automatizada (ROADMAP)
+def _deficiencia_adhoc():
+    return _csv("cadunico_adhoc_deficiencia_2026_08.csv").set_index("Faixa etária")
+
+
+def _moradia_adhoc(forma):
+    d = pd.concat([_csv("cadunico_adhoc_moradia_domicilio_2026_08.csv").rename(columns={"Situação do domicílio": "Forma"}),
+                   _csv("cadunico_adhoc_moradia_territorio_2026_08.csv")]).set_index("Forma")
+    return d.loc[forma]
+
+
+@numero
+def adhoc_criancas_deficiencia_0_6():
+    return fmt_int(_deficiencia_adhoc().loc["Total (0 a 6 anos)", "Crianças com deficiência"])
+
+
+@numero
+def adhoc_bpc_pct_0_3():
+    return fmt_pct(_deficiencia_adhoc().loc["0 a 3 anos", "% com BPC"], 0)
+
+
+@numero
+def adhoc_bpc_pct_4_6():
+    return fmt_pct(_deficiencia_adhoc().loc["4 a 6 anos", "% com BPC"], 0)
+
+
+def _criancas_0_6(forma):
+    r = _moradia_adhoc(forma)
+    return fmt_int(r["Crianças de 0 a 3 anos"] + r["Crianças de 4 a 6 anos"])
+
+
+@numero
+def adhoc_criancas_sem_agua():
+    return _criancas_0_6("Sem água canalizada")
+
+
+@numero
+def adhoc_criancas_sem_banheiro():
+    return _criancas_0_6("Sem banheiro")
+
+
+@numero
+def adhoc_criancas_vala_ceu_aberto():
+    return _criancas_0_6("Vala a céu aberto")
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     for k in _NUMEROS:
