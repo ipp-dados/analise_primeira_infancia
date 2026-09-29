@@ -25,6 +25,13 @@
 > - eixo novo **Direito ao Brincar** (7 eixos no total);
 > - campo novo `- eixo transversal: <eixo>` (coluna "Eixo Transversal" da planilha): só registrado aqui, sem
 >   efeito no site/PDF/DOCX nesta rodada (decisão do usuário, 2026-09-28).
+>
+> **Campos novos (`specs/2026-09-29_alinhamento_pdf_site`, 2026-09-29):**
+> - `- motivo: <texto>` — **obrigatório em todo item `status: pendente`**: frase pública e formal que o site e o PDF
+>   mostram depois da frase fixa do quadro de pendente (`TEXTO_PENDENTE`). Os builds param se faltar. As `- nota:`
+>   continuam internas e nunca são publicadas;
+> - `- tabela_no_texto: `<arquivo>.csv`` — a tabela (também listada em `- tabela:`) sai no corpo da seção do PDF,
+>   com o texto curado da mesma chave, e não no apêndice. Usado quando o site mostra a tabela dentro do cartão.
 
 ## 🧭 Introdução
 
@@ -105,6 +112,20 @@
 - tabela: `tabela_mapa_obitos_neonatal_tardia_2025.csv`
 
 - nota: `mapa_obitos_neonatal_tardia_bairro_2025.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
+### Taxa de mortalidade na primeira infância (menores de 1, 1-4, 0-5 anos)
+- fonte: DataSUS/Tabnet municipal
+- visualização: `taxa_mortalidade_infantil_ano.png`
+- visualização: `taxa_mortalidade_pos_neonatal_ano.png`
+- mapa: `mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png`
+- tabela: `mortalidade_infantil_pos_neonatal_total_por_ano.csv`
+- tabela: `mortalidade_infantil_pos_neonatal_total_bairro_ano.csv`
+- tabela: `tabela_mapa_mortalidade_infantil_2025.csv`
+- nota: posto logo depois das taxas neonatais, na ordem do site (specs/2026-09-29_alinhamento_pdf_site D1); a planilha da equipe de 2026-09-28 o punha no bloco de causas evitáveis
+
+- nota: `mapa_obitos_pos_neonatal_bairro_2025.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
+- nota: `mapa_taxa_mortalidade_infantil_bairro_2025.png` fora do relatório (specs/exclusoes.md, E13, 2026-09-29): idêntico ao mapa `mapa_taxa_obitos_raca_total_bairro_2025.png` do item "Mortalidade infantil por raça/cor", que fica
+- nota: mapa_mortalidade_infantil_bairro_2025.png fora do relatório (specs/exclusoes.md, E9, 2026-09-25): mapa de contagem ao lado do de taxa; no site vira alternância Taxa/Óbitos
+- nota: a planilha da equipe (2026-09-28) aponta este indicador para o cartão "Óbitos por causas evitáveis"; ficam as taxas de menores de 1 ano acima e a taxa de evitáveis de menores de 5 anos (`taxa_mortalidade_evitaveis_menores_5_ano`) no item anterior. A taxa de 1 a 4 anos (todas as causas) ainda não existe (specs/2026-09-28_nova_estrutura §4, S3)
 ### Óbitos maternos durante a gravidez
 - nota: título ajustado em 2026-09-25 (revisão de unidades, specs/2026-09-25_website_graficos): o catálogo pede a razão de mortalidade materna (por 100 mil nascidos vivos), mas o dado publicado é a contagem de óbitos
 - fonte: DataSUS/Tabnet (SIM)
@@ -155,19 +176,6 @@
 - tabela: `taxa_mortalidade_evitaveis_menores_5_municipio_ano.csv`
 - nota: as 4 figuras "menores de 5 anos" (série e percentual por CAP, mapas de óbitos e de percentual de 2025) ganham a nota "agrega os recortes de menores de 1 ano e de 1 a 4 anos" na legenda (observação da curadoria, specs/2026-09-28_nova_estrutura §6)
 
-### Taxa de mortalidade na primeira infância (menores de 1, 1-4, 0-5 anos)
-- fonte: DataSUS/Tabnet municipal
-- visualização: `taxa_mortalidade_infantil_ano.png`
-- visualização: `taxa_mortalidade_pos_neonatal_ano.png`
-- mapa: `mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png`
-- tabela: `mortalidade_infantil_pos_neonatal_total_por_ano.csv`
-- tabela: `mortalidade_infantil_pos_neonatal_total_bairro_ano.csv`
-- tabela: `tabela_mapa_mortalidade_infantil_2025.csv`
-
-- nota: `mapa_obitos_pos_neonatal_bairro_2025.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
-- nota: `mapa_taxa_mortalidade_infantil_bairro_2025.png` fora do relatório (specs/exclusoes.md, E13, 2026-09-29): idêntico ao mapa `mapa_taxa_obitos_raca_total_bairro_2025.png` do item "Mortalidade infantil por raça/cor", que fica
-- nota: mapa_mortalidade_infantil_bairro_2025.png fora do relatório (specs/exclusoes.md, E9, 2026-09-25): mapa de contagem ao lado do de taxa; no site vira alternância Taxa/Óbitos
-- nota: a planilha da equipe (2026-09-28) aponta este indicador para o cartão "Óbitos por causas evitáveis"; ficam as taxas de menores de 1 ano acima e a taxa de evitáveis de menores de 5 anos (`taxa_mortalidade_evitaveis_menores_5_ano`) no item anterior. A taxa de 1 a 4 anos (todas as causas) ainda não existe (specs/2026-09-28_nova_estrutura §4, S3)
 ### Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10)
 - fonte: DataSUS (SIM, grupo/subgrupo CID-10 de causas evitáveis)
 - visualização: `obitos_causas_evitaveis_grupo_ano.png`
@@ -195,16 +203,10 @@
 - tabela: `mortalidade_evitaveis_grupo_cap_faixa_ano.csv`
 - tabela: `mortalidade_evitaveis_subgrupo_cap_2025.csv`
 
-### Mortalidade infantil por causas evitáveis, por raça/cor
-- fonte: DataSUS (SIM)
-- eixo transversal: Proteção
-- status: pendente
-- nota: os 4 gráficos (`obitos_causas_evitaveis_raca_ano`, `…_sem_nao_informado_ano`, `percentual_mortalidade_causas_evitaveis_raca_ano`, `…_sem_nao_informado_ano`) e a tabela `mortalidade_causas_evitaveis_raca_municipio_ano.csv` foram removidos do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): as chamadas que os geravam estão comentadas em analise.py, então os arquivos no disco são antigos. Ver também a nota de analise.py: o cruzamento por raça/cor desse arquivo não é filtrado só para causas evitáveis
-- nota: continua pendente (decisão do usuário, 2026-09-28, specs/2026-09-28_nova_estrutura). Quando voltar: 1996 apresenta distorção associada à baixa completude de raça/cor (pico isolado de "não informado"), dizer isso na legenda ou começar a série em 1997
-
 ### Mortalidade infantil por causas evitáveis, por sexo
 - fonte: DataSUS (SIM)
 - status: pendente
+- motivo: O recorte por sexo ainda não foi extraído do Sistema de Informações sobre Mortalidade (SIM).
 - nota: recorte por sexo ainda não extraído do SIM (antes o item sumia do relatório em silêncio, sem arquivo e sem status)
 
 ### Crianças de 0 a 5 anos no CadÚnico em relação à população do município
@@ -212,6 +214,7 @@
 - tabela: `cadunico_razao_populacao_0_a_5_2026.csv`
 - nota: razão municipal (194.138 ÷ 393.073 ≈ 49,4% na partição 2026-06-12). Cadastro de 2026 sobre estimativa de 2025; não é a cobertura exata do cadastro. Item novo da rodada `populacao-referencia` (A4), fora do catálogo original
 - nota: movido de Inclusão para Prioridade (specs/2026-09-28_nova_estrutura)
+- tabela_no_texto: `cadunico_razao_populacao_0_a_5_2026.csv`
 
 ### Crianças até 72 meses no Cadastro Único (número)
 - nota: nome no catálogo da equipe: "Crianças até 6 anos no Cadastro Único (número)"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
@@ -271,16 +274,19 @@
 ### Crianças no CadÚnico com alguma deficiência
 - fonte: Cadastro Único
 - status: pendente
+- motivo: Os dados de deficiência dependem de uma nova extração do Cadastro Único, ainda não disponível.
 - nota: baixar dados — Léo
 
 ### Famílias no CadÚnico com criança com deficiência
 - fonte: Cadastro Único
 - status: pendente
+- motivo: Os dados de deficiência dependem de uma nova extração do Cadastro Único, ainda não disponível.
 - nota: baixar dados — Léo
 
 ### Crianças no CadÚnico por tipo de deficiência
 - fonte: Cadastro Único
 - status: pendente
+- motivo: Os dados de deficiência dependem de uma nova extração do Cadastro Único, ainda não disponível.
 - nota: baixar dados — Léo
 
 ## 👨‍👩‍👧 Família e Cuidados
@@ -335,8 +341,10 @@
 
 ### Cobertura vacinal de rotina em crianças até 2 anos
 - fonte: Epi Rio
+- visualização: `cobertura_vacinal_epi_ano.png`
 - tabela: `cobertura_vacinal_epi_por_ano.csv`
 - nota: posta depois do bloco de educação, que antes ela interrompia (sugestão S4 de specs/2026-09-28_nova_estrutura)
+- nota: `cobertura_vacinal_epi_ano.png` de volta em 2026-09-29 (specs/2026-09-29_alinhamento_pdf_site D2): chamada descomentada em analise.py, figura regerada
 
 - nota: `cobertura_vacinal_epi_ano.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 - nota: cobertura_vacinal_epi_comparativo_anos.png, cobertura_vacinal_epi_comparativo_anos.csv fora do relatório (specs/exclusoes.md, E7, 2026-09-25): repete 4 anos da série anual
@@ -396,6 +404,7 @@
 - fonte: Sinan NET/Tabnet (SMS-Rio); população 0 a 4 anos do Censo 2022
 - tabela: `violencia_familiar_por_cap.csv`
 - nota: casos somados por CAP e taxa por 1.000 recalculada depois de somar casos e população (nunca média de taxas)
+- tabela_no_texto: `violencia_familiar_por_cap.csv`
 
 ### Notificações de violência interpessoal/autoprovocada (menores de 1 ano, 1 a 5 anos)
 - fonte: Sinan NET/Tabnet (SMS-Rio)
@@ -409,11 +418,13 @@
 - fonte: Sinan NET/Tabnet (SMS-Rio)
 - eixo transversal: Direito ao Brincar
 - status: pendente
+- motivo: A taxa de notificações de violência em geral, não apenas familiar, ainda não foi extraída do Sinan.
 - nota: a planilha da equipe (2026-09-28) deixa este item sem visualização: as taxas de violência FAMILIAR (antes aqui) foram para "Violência familiar ... por vínculo" e "bairros com mais notificações". Fica pendente a taxa de notificações de violência em geral (não só familiar), que ainda não foi extraída (specs/2026-09-28_nova_estrutura §4)
 
 ### Crianças que sofrem violência, por tipificação (sexo e idade)
 - fonte: Tabnet municipal
 - status: pendente
+- motivo: Os dados por tipo de violência, sexo e idade ainda não foram extraídos do Tabnet municipal.
 - nota: dado ainda não extraído do Tabnet
 
 ## 🧸 Direito ao Brincar
@@ -470,14 +481,17 @@
 ### Crianças no CadÚnico em domicílios com inadequação habitacional
 - fonte: Cadastro Único
 - status: pendente
+- motivo: As características do domicílio dependem de uma nova extração do Cadastro Único, prevista para uma próxima edição.
 - nota: Posterior
 
 ### Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)
 - fonte: Cadastro Único
 - status: pendente
+- motivo: As características do domicílio dependem de uma nova extração do Cadastro Único, prevista para uma próxima edição.
 - nota: Posterior
 
 ### Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)
 - fonte: (não informada no catálogo)
 - status: pendente
+- motivo: Previsto para uma próxima edição, a partir do Cadastro Único.
 - nota: Posterior (apenas cad)

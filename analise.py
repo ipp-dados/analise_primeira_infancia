@@ -2279,17 +2279,18 @@ df_cobertura_vacinal_wide.to_csv('tabelas_finais//cobertura_vacinal_epi_por_ano.
 df_cobertura_vacinal_wide.head()
 
 # %%
-# colunas_vacinas = {c: c for c in df_cobertura_vacinal_wide.columns if c != 'ano'}
-# serie_temporal_multipla(
-#     df_cobertura_vacinal_wide,
-#     tempo='ano',
-#     colunas=colunas_vacinas,
-#     titulo='Cobertura vacinal por imunobiológico - Rio de Janeiro (2016-2026)',
-#     nome_arquivo='cobertura_vacinal_epi_ano',
-#     ylabel='Cobertura (%)',
-#     legend_title='Imunobiológico',
-#     figsize=(14,7), fonte_dados=fonte_cobertura_vacinal,
-# )
+# De volta em 2026-09-29 (specs/2026-09-29_alinhamento_pdf_site D2; antes comentada, E1): o site já desenhava a série
+colunas_vacinas = {c: c for c in df_cobertura_vacinal_wide.columns if c != 'ano'}
+serie_temporal_multipla(
+    df_cobertura_vacinal_wide,
+    tempo='ano',
+    colunas=colunas_vacinas,
+    titulo='Cobertura vacinal por imunobiológico - Rio de Janeiro (2016-2026)',
+    nome_arquivo='cobertura_vacinal_epi_ano',
+    ylabel='Cobertura (%)',
+    legend_title='Imunobiológico',
+    figsize=(14,7), fonte_dados=fonte_cobertura_vacinal,
+)
 
 # %% [markdown]
 # <!-- nota-curadoria:cobertura_vacinal_epi_ano -->
