@@ -9,7 +9,8 @@ Extraído de analise.py sem mudança de código (specs/2026-09-28_organizacao, f
 """
 import matplotlib.pyplot as plt
 import seaborn as sns
-from .estilo import (_COR_FONTE_RODAPE, _COR_SERIE_APAGADA, _FONTE_TITULO, _LIMIAR_DESTAQUE_SERIES, _N_SERIES_DESTACADAS, _PALETA_CATEGORICA)
+from .estilo import (_COR_FONTE_RODAPE, _COR_SERIE_APAGADA, _FONTE_TITULO, _LIMIAR_DESTAQUE_SERIES, _N_SERIES_DESTACADAS, _NOTA_EIXO_CORTADO,
+                     _PALETA_CATEGORICA, _marca_corte_eixo_y)
 from .impressao import _a4_barras, _a4_barras_agrupadas, _a4_serie_unica, _a4_series
 
 __all__ = [
@@ -28,10 +29,16 @@ def _rodape_fonte(fonte_dados):
         plt.figtext(0.99, 0.01, f'Fonte: {fonte_dados}', ha='right', va='bottom',
                     fontsize=7, style='italic', color=_COR_FONTE_RODAPE)
 
-def serie_temporal(df,tempo,valor,titulo,nome_arquivo=None, formato='png', fonte_dados=None):
+def serie_temporal(df,tempo,valor,titulo,nome_arquivo=None, formato='png', fonte_dados=None, base_zero=True):
+    """`base_zero=False` (specs/2026-09-29_pendencias D3/D12, só o baixo peso ao nascer): eixo y cortado, com a marca de
+    corte e a nota na fonte, na tela e na variante A4. Com o padrão, nada muda."""
     nome_arquivo = nome_arquivo or f"{valor}_{tempo}"
+    if not base_zero:
+        fonte_dados = f'{fonte_dados}. {_NOTA_EIXO_CORTADO}' if fonte_dados else _NOTA_EIXO_CORTADO
     plt.figure(figsize=(12,6))
     sns.lineplot(x=tempo,y=valor,data=df, color=_PALETA_CATEGORICA[0], marker='o')
+    if not base_zero:
+        _marca_corte_eixo_y(plt.gca())
     plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
     plt.xlabel(tempo,fontsize=12)
     plt.ylabel(valor,fontsize=12)
@@ -40,7 +47,7 @@ def serie_temporal(df,tempo,valor,titulo,nome_arquivo=None, formato='png', fonte
     _rodape_fonte(fonte_dados)
     plt.tight_layout()
     plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
-    _a4_serie_unica(df, tempo, valor, titulo, nome_arquivo=nome_arquivo, fonte_dados=fonte_dados)
+    _a4_serie_unica(df, tempo, valor, titulo, nome_arquivo=nome_arquivo, fonte_dados=fonte_dados, base_zero=base_zero)
     # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
     plt.show()
 

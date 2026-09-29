@@ -1,6 +1,6 @@
 # Roadmap
 
-Estado em 2026-09-29 (reorganizado no início da rodada de pendências). Arquivo único do projeto: substitui
+Estado em 2026-09-29 (rodada de pendências implementada; falta a publicação, com OK do usuário). Arquivo único do projeto: substitui
 `specs/roadmap.md` e `website/ROADMAP.md` (fundidos aqui em 2026-09-25). As decisões e o *porquê* de cada item ficam
 na pasta da rodada em `specs/` (`specs/<AAAA-MM-DD>_<nome>/`); aqui fica só o que falta fazer, onde procurar e o
 histórico resumido.
@@ -14,47 +14,21 @@ Organização em duas partes:
 
 # A fazer
 
-## 1. Rodada atual — pendências (aberta em 2026-09-29, branch `planning`)
+## 1. Rodada atual — pendências (`specs/2026-09-29_pendencias`, branch `spec/pendencias`)
 
-Escopo decidido pelo usuário em 2026-09-29: resolver nesta rodada todas as pendências que dependem só de nós.
-A pasta da rodada (`specs/2026-09-29_pendencias`) é aberta junto com a execução.
+**Implementada em 2026-09-29** (decisões D1-D18, validação V1-V14 em `validation.md`): mapa duplicado fora (E13),
+"Não informada" fora da taxa (E14), baixo peso com eixo cortado (única exceção à base zero), **faixa padrão 0 a 5 anos**
+(Censo, Ripsa, taxas de frequência do IBGE agregadas por taxa × população; títulos "até 72 meses"; deck com 393 mil),
+amarela e indígena só no total (E12), gráfico "PNAD" que era o Censo 2022 substituído (E15), tablet com alvos de 44 px e
+gráficos na largura real, unidade do IPS confirmada, Centro como outlier só no deck, rodadas anteriores fechadas.
 
-**Correções de conteúdo (site, PDF e, quando couber, `analise.py`)**
-1. **Mapa de taxa de mortalidade infantil por bairro duplicado** no eixo Prioridade (cartão de raça/cor e "Total" do
-   cartão neonatal, mesmos valores). Decisão: **fica no cartão de raça/cor**; sai o "Total" do cartão neonatal.
-2. **Série "Não informada" na taxa de mortalidade infantil por raça/cor** (`percentual_mortalidade_raca_ano`): chega
-   a 89‰ porque divide óbitos sem raça (SIM) por nascidos sem raça (SINASC), taxa não comparável. Decisão: **sai do
-   gráfico de taxa, fica no de contagem**.
-3. **Base zero nas taxas** (decisão P1 de `specs/2026-09-25_website_graficos`). Decisão: mantém a base zero em todas,
-   **exceto o baixo peso ao nascer** (9%-11%), com eixo cortado e o corte visível no gráfico.
-4. **E12 — amarela + indígena na frequência escolar por raça/cor** (`sidra_taxa_frequencia_0_6_raca_2022`,
-   `specs/exclusoes.md`): somar os absolutos (frequentam / população) e recalcular a taxa, como em E5; no gráfico de
-   `analise.py` (tela e impressão), na tabela do PDF e no site.
-
-**Site**
-5. **Extras de tablet** adiados pela rodada mobile (`specs/2026-09-28_website_mobile`): alvos de toque de 44 px e
-   texto dos gráficos de viewBox fixo entre 9,5 e 11 px. O desktop (≥ 1100 px) continua idêntico pixel a pixel.
-
-**Registro de decisões (só documentação)**
-6. **Unidade do IPS (violência territorial)**: confirmada "por 100 mil habitantes" (convenção do IPS Rio) — registrar
-   na spec e tirar a ressalva.
-7. **Centro como outlier no mapa do IPS**: fica **só na apresentação**; site e PDF mantêm o teto P95.
-
-**Fechamento de rodadas anteriores**
-8. Marcar as tarefas já cumpridas: `specs/2026-09-28_nova_estrutura` T6.3 (merge feito em 2026-09-29; falta só a
-   publicação do PDF) e `specs/2026-09-28_apresentacao` T5.2 (merge feito). Em `specs/2026-09-25_relatorio_latex/tasks.md`
-   há caixas desmarcadas de trabalho já feito (T2.7, T3.6, T4.1, T4.2, T7.1): registrar o fechamento numa nota, sem
-   reescrever o histórico; as duas realmente não feitas (T3.3 remissões "ver Tabela X.n"; T4.3 `tabela_no_texto:`)
-   vão para o backlog do PDF, abaixo.
-9. **Tags e limpeza de branches** (`specs/constitution.md` §7) — **só com o OK do usuário** (pedido de 2026-09-29: não
-   apagar agora): `rodada/nova_estrutura` e `rodada/apresentacao`; a branch `waleska-analise-primeira-infancia` foi
-   **dada como superada** (2 commits de conteúdo de 2026-09-22 não serão mesclados) — guardar numa tag antes de
-   apagar.
-
-**Publicação — só com o OK do usuário, ao fim da rodada**
-10. Regerar e publicar o PDF (`gera_latex.py --publicar`; o publicado ainda é o de `specs/2026-09-28_melhorias_site`,
-    anterior à nova estrutura) e fazer o deploy do site (`deploy-relatorio.yml`), ainda com a marca "em
-    desenvolvimento". Atualizar `CHANGELOG.md`, `docs/especificacao_projeto.md` (§11) e este arquivo.
+Falta só o que depende do **OK do usuário**:
+1. Publicar o PDF (`gera_latex.py --publicar`; o publicado ainda é o de `specs/2026-09-28_melhorias_site`), fazer o
+   deploy do site (`deploy-relatorio.yml`) e publicar o deck (`gera_apresentacao.py --publicar`), ainda com a marca
+   "em desenvolvimento".
+2. Tags `rodada/nova_estrutura`, `rodada/apresentacao`, `rodada/pendencias`, e tag de arquivo da branch
+   `waleska-analise-primeira-infancia` (superada, D7) antes de apagá-la; apagar as branches mescladas
+   (pedido de 2026-09-29: não apagar agora).
 
 ## 2. Aguardando equipe/usuário
 
@@ -69,10 +43,11 @@ Não dependem de código; entram no projeto quando chegarem.
   - alertas para a equipe decidir (não corrigidos no texto): mapa de taxa de mortalidade infantil cita os números da
     taxa pós-neonatal; frase das Considerações finais possivelmente sem "não" ("deve atuar de forma isolada"); texto
     da cobertura vacinal anual pronto, mas a figura está fora do relatório (E1); subgrupos < 5 anos cita 198 óbitos
-    por atenção ao recém-nascido em 2006 (a tabela tem 204); taxa de frequência escolar por raça/cor e por sexo lê a
-    linha "Total" da SIDRA 10056 como "conjunto de 0 a 6 anos" (é o total de todas as idades);
-  - 2 textos com a unidade convertida (`percentual_mortalidade_raca_ano`, `mapa_taxa_obitos_raca_total_bairro_2025`:
-    percentual → por mil) em `ajustes_manuais`, a revisar — o primeiro muda de novo com o item 2 da rodada atual;
+    por atenção ao recém-nascido em 2006 (a tabela tem 204) (o alerta da linha "Total" da SIDRA 10056 foi resolvido
+    pela faixa 0 a 5, `specs/2026-09-29_pendencias`);
+  - textos marcados `revisar` em `ajustes_manuais`: os 2 com a unidade convertida (2026-09-25) e os 6 ajustados em
+    2026-09-29 (faixa 0 a 5, "Não informada", texto herdado do gráfico "PNAD") — lista em
+    `specs/2026-09-29_pendencias/validation.md` V13;
   - nota editorial no subgrupo 28-364 dias: "opção de texto que junte tudo por conta da repetição".
 - **Apresentação**: os 6 trechos propostos pelo IPP marcados `<!-- revisar -->` em `apresentacao/apresentacao.md`
   (lista em `specs/2026-09-28_apresentacao/validation.md`).
@@ -186,6 +161,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-09-29 | Pendências: faixa padrão 0 a 5 anos (até 72 meses), exclusões E12-E15, eixo cortado no baixo peso, tablet com as metas do celular, decisões registradas; correção do esquema do banco do CadÚnico | `specs/2026-09-29_pendencias` |
 | 2026-09-29 | Decisões de pendências (escopo da rodada atual, mapa duplicado, série "Não informada", base zero, unidade do IPS, Centro só no deck, branch da Waleska superada); regra de perguntas agrupadas pela ferramenta interativa na constituição | este arquivo, `specs/constitution.md` §5 |
 | 2026-09-29 | Merge de `spec/nova_estrutura` e `spec/apresentacao` em `planning` e `staging_main` (`ab9f803`) e deploy do site | `.github/workflows/deploy-relatorio.yml` |
 | 2026-09-28 | Apresentação: deck de 30 slides em Marp com fonte única em Markdown, números calculados de `tabelas_finais/`, variantes por secretaria, PPTX e PDF em `apresentacao/`; mapas com teto P95, Centro como outlier no IPS | `specs/2026-09-28_apresentacao` |

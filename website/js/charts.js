@@ -67,6 +67,13 @@
     svgEl('text', {x:x, y:y, class:'axis-title', 'text-anchor':'start'}, svg).textContent = texto;
   }
 
+  // marca de corte do eixo y (duas barras inclinadas sobre um recorte da linha de base), specs/2026-09-29_pendencias D12
+  function marcaCorte(svg, x, y){
+    const g = svgEl('g', {class:'axis-break', 'aria-hidden':'true'}, svg);
+    svgEl('rect', {x:x - 2, y:y - 7, width:9, height:10, fill:'var(--surface)'}, g);
+    [0, 5].forEach(dx=>svgEl('line', {x1:x - 3 + dx, y1:y + 3, x2:x + 1 + dx, y2:y - 7, stroke:'var(--ink-3)', 'stroke-width':1.2, 'stroke-linecap':'round'}, g));
+  }
+
   // ctx: null = desenho de desktop (viewBox fixo, escala com o cartão -- inalterado); {mob:true, w} = "largura real"
   // (specs/2026-09-28_website_mobile M3): viewBox = largura do contêiner em px, então 1 unidade = 1 px e as fontes do
   // CSS (.chart-svg--real) saem no tamanho escrito; menos rótulos e paddings medidos pelo texto
@@ -89,11 +96,14 @@
     refLines.forEach(r=>allVals.push(r.value));
     let vMin = Math.min.apply(null, allVals), vMax = Math.max.apply(null, allVals);
     if (opts.yMax != null) vMax = opts.yMax;
-    // B8 (P1): base zero em toda série, taxas inclusive (regra do PDF) -- zeroBase:false só para dados com negativos
-    if (opts.zeroBase !== false) vMin = Math.min(0, vMin);
+    // B8 (P1): base zero em toda série, taxas inclusive (regra do PDF) -- zeroBase:false só para dados com negativos.
+    // eixoCortado (specs/2026-09-29_pendencias D3/D12): exceção à P1, só no baixo peso ao nascer -- o eixo começa perto
+    // do mínimo e ganha a marca de corte no pé (a nota "eixo não começa em zero" vai na fonte, pelo gerador)
+    const cortado = !!opts.eixoCortado;
+    if (opts.zeroBase !== false && !cortado) vMin = Math.min(0, vMin);
     const span = (vMax - vMin) || 1;
     vMax += span * 0.06;   // folga para o rótulo do máximo
-    if (opts.zeroBase === false) vMin -= span * 0.06;
+    if (opts.zeroBase === false || cortado) vMin -= span * 0.06;
     const esc = escalaRedonda(vMin, vMax, opts.painel ? 2 : (mob ? 3 : 4));
     vMin = esc[0]; vMax = esc[1];
     const gridN = esc[2];
@@ -138,6 +148,7 @@
       svgEl('line', {x1:padL, x2:W-padR, y1:y, y2:y, class:'grid-line'}, svg);
       svgEl('text', {x:padL-7, y:y+(mob ? 4 : 3.5), class:'axis-label', 'text-anchor':'end'}, svg).textContent = fmtY(v);
     }
+    if (cortado) marcaCorte(svg, padL, padT + plotH);
     const maxLabels = mob ? Math.min(opts.maxXLabels || 7, opts.painel ? 3 : (W < 420 ? 4 : 5)) : (opts.maxXLabels || 7);
     const step = Math.max(1, Math.ceil(n/maxLabels));
     x.forEach((lab,i)=>{
@@ -584,11 +595,11 @@
 
   // ================= largura real e redesenho (specs/2026-09-28_website_mobile M3) =================
   // Desktop (>= 1100 px) nunca entra aqui: o desenho de viewBox fixo continua o mesmo, pixel a pixel. Em telas
-  // estreitas, contêiner < 640 px -> desenho na largura real. Os gráficos nascem uma vez no carregamento, muitos em
+  // estreitas (tablet e celular), sempre desenho na largura real -- até 2026-09-29 só com contêiner < 640 px, e o
+  // tablet ficava com o desenho do desktop escalado, texto entre 9,5 e 11 px (specs/2026-09-29_pendencias D5). Os gráficos nascem uma vez no carregamento, muitos em
   // painéis ocultos (largura 0): esses são desenhados com uma estimativa e redesenhados quando aparecem (pill, select,
   // aba, Taxa|Óbitos); girar a tela redesenha se a largura mudar >= 40 px.
   const TELA_ESTREITA = window.matchMedia('(max-width:1099.98px)');
-  const LIMITE_REAL = 640;
   function larguraUtil(el){
     for (let e = el; e && e !== document.documentElement; e = e.parentElement){
       const w = e.clientWidth;
@@ -600,7 +611,7 @@
     }
     return {w: document.documentElement.clientWidth - 60, visivel: false};
   }
-  function modoReal(w){ return TELA_ESTREITA.matches && w < LIMITE_REAL; }
+  function modoReal(w){ return TELA_ESTREITA.matches && w > 0; }
   function desenha(c){
     const reg = c._grafico; if (!reg) return;
     const med = larguraUtil(c), mob = modoReal(med.w);

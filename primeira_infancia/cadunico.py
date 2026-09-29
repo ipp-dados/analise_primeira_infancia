@@ -80,8 +80,8 @@ def carrega_cadunico_familias_0_6(engine):
     consulta = """
         SELECT id_pessoa, id_familia, idade, grupo_idade, sexo, raca_cor, grupo_renda_pct,
                n_pessoas_familia, cep, data_particao
-        FROM ctpe.silver_cadunico_geral
-        WHERE id_familia IN (SELECT id_familia FROM ctpe.silver_cadunico_geral WHERE grupo_idade = '0-6')
+        FROM silver_cadunico_geral
+        WHERE id_familia IN (SELECT id_familia FROM silver_cadunico_geral WHERE grupo_idade = '0-6')
     """
     return pd.read_sql(consulta, engine)
 
