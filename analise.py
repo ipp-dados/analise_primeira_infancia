@@ -501,7 +501,7 @@ grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Famílias',
 
 # %% [markdown]
 # <!-- nota-curadoria:cadunico_familias_por_faixa_renda -->
-# **Nota de curadoria:** A partir do dado de famílias com crianças de 0 a 5 anos no CadÚnico é possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R$218, um dos critérios de extrema pobreza, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade. No que diz respeito às rendas mais altas a tendência é diminuindo conforme aumenta-se a renda, chegando a patamares estatisticamente irrelevantes.
+# **Nota de curadoria:** A partir do dado de famílias com crianças de 0 a 5 anos no CadÚnico é possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R$218, a linha de pobreza do Bolsa Família, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade. No que diz respeito às rendas mais altas a tendência é diminuindo conforme aumenta-se a renda, chegando a patamares estatisticamente irrelevantes.
 
 # %%
 grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Crianças',
