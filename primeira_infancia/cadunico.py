@@ -35,12 +35,13 @@ __all__ = [
 
 
 # faixas de renda per capita do CTPE (`grupo_renda_pct`) -> rótulo para público não técnico.
-# R$ 218 = linha de extrema pobreza; R$ 810,50 = 1/2 salário mínimo de 2026 (R$ 1.621)
+# R$ 218 = linha de pobreza do Bolsa Família (desde 2023; specs/2026-09-29_slide_revision D1); até R$ 810,50
+# (1/2 SM) = baixa renda do CadÚnico. R$ 810,50 = 1/2 salário mínimo de 2026 (R$ 1.621)
 _ORDEM_RENDA_CADUNICO = ['0-218', '219-810', '811-1621', '1621-3242', '3242+']
 
 _ROTULOS_RENDA_CADUNICO = {
-    '0-218': 'Extrema pobreza\n(até R$ 218)',
-    '219-810': 'Pobreza/baixa renda\n(R$ 218 a 810)',
+    '0-218': 'Pobreza\n(até R$ 218)',
+    '219-810': 'Baixa renda\n(R$ 218 a 810)',
     '811-1621': '1/2 a 1 SM\n(R$ 810 a 1.621)',
     '1621-3242': '1 a 2 SM\n(R$ 1.621 a 3.242)',
     '3242+': 'Acima de 2 SM\n(mais de R$ 3.242)',

@@ -36,6 +36,7 @@ RAIZ = APRES.parent
 BUILD = APRES / "_build"
 IMG = BUILD / "img"
 sys.path.insert(0, str(AQUI))
+import graficos_apresentacao  # noqa: E402
 import mapas_apresentacao  # noqa: E402
 import numeros  # noqa: E402
 
@@ -75,9 +76,12 @@ _MANIFESTO = None
 
 
 def pdf_mapa(nome):
-    """PDF do mapa: próprio da apresentação (build/mapas_apresentacao.py) ou a versão de impressão do analise.py."""
+    """PDF do mapa/gráfico: próprio da apresentação (build/mapas_apresentacao.py, build/graficos_apresentacao.py) ou a
+    versão de impressão do analise.py."""
     if nome in mapas_apresentacao.MAPAS:
         return mapas_apresentacao.gera(nome)[0]
+    if nome in graficos_apresentacao.GRAFICOS:
+        return graficos_apresentacao.gera(nome)[0]
     a4 = RAIZ / "mapas/a4" / f"{nome}.pdf"
     return a4 if a4.exists() else None
 
@@ -87,6 +91,8 @@ def fonte_mapa(nome):
     global _MANIFESTO
     if nome in mapas_apresentacao.MAPAS:
         return mapas_apresentacao.gera(nome)[1].replace("'", "’")
+    if nome in graficos_apresentacao.GRAFICOS:
+        return graficos_apresentacao.gera(nome)[1].replace("'", "’")
     if _MANIFESTO is None:
         import pandas as pd
         arq = RAIZ / "visualizacoes/a4/_manifesto.csv"

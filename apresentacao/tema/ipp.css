@@ -88,6 +88,7 @@ section.numero { justify-content: center; }
 .fig img { max-height: 500px; }
 .dois { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; flex: 1; align-items: center; }
 .dois img { width: 100%; max-height: 430px; object-fit: contain; }
+.dois.baixo img { max-height: 270px; }   /* figuras mais baixas quando o slide tem uma nota abaixo */
 .dois .rotulo { font-size: 17px; color: var(--ink-3); text-align: center; margin-top: 6px; }
 
 /* ---- diagrama do hub (slide 3) */
@@ -111,3 +112,18 @@ section.qr .lado { grid-template-columns: 1fr 1fr 0.8fr; }
 .qrcode { width: 300px; height: 300px; }
 .celular { max-height: 540px; border-radius: 22px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
 .url { font-family: 'IBM Plex Sans', sans-serif; font-size: 20px; color: var(--accent); word-break: break-all; }
+
+/* ---- destaques (specs/2026-09-29_slide_revision B5) */
+/* caixa em destaque numa fileira .stats: <div class="destaque" style="--c:..."> */
+.stats > div.destaque { background: #fff; border: 2px solid var(--c, var(--navy)); border-top-width: 8px;
+  box-shadow: 0 8px 22px rgba(0, 74, 128, .16); transform: scale(1.05); }
+.stats > div.destaque b { font-size: 66px; }
+/* caixas agrupadas sob um título comum: <div class="grupo"><div class="grupo-titulo">...</div><div class="stats">... */
+.grupo { border: 2px solid var(--hair); border-radius: 18px; padding: 14px 22px 22px; margin-top: 10px; }
+.grupo-titulo { font-family: 'Fraunces', serif; font-weight: 600; font-size: 28px; color: var(--navy); }
+.grupo .stats { margin-top: 10px; }
+.grupo .stats b { font-size: 42px; }   /* palavras longas (Periodicidade) não estouram a moldura */
+/* nota que precisa ser lida (não um rodapé discreto) */
+.nota.forte { font-size: 20px; color: var(--ink); background: #fbeee4; border-left: 6px solid var(--c2);
+  border-radius: 8px; padding: 10px 16px; margin-top: 14px; }
+.nota.forte strong { color: var(--ink); }

@@ -1,7 +1,8 @@
 # Apresentação — Diagnóstico da Primeira Infância Carioca
 
-Deck de 30 slides (Marp) gerado a partir de **um arquivo Markdown**: `apresentacao.md`.
-Decisões e roteiro em `specs/2026-09-28_apresentacao/`.
+Deck de 33 slides (Marp) gerado a partir de **um arquivo Markdown**: `apresentacao.md`.
+Decisões e roteiro em `specs/2026-09-28_apresentacao/`; estrutura atual (33 slides) em
+`specs/2026-09-29_slide_revision/`.
 
 ## Gerar
 
@@ -25,7 +26,7 @@ Tudo em `apresentacao.md`. Slides separados por `---`. Além do Markdown do Marp
 |---|---|
 | `{{n:chave}}` | número calculado de `tabelas_finais/` (`build/numeros.py`; `python apresentacao/build/numeros.py` lista todos) |
 | `{{campo}}` | campo do cabeçalho do arquivo (`titulo`, `data`, `secretaria`, `url_site`...) |
-| `![](fig:nome)` | figura de `visualizacoes/` ou `mapas/` (a PNG do `analise.py`) |
+| `![](fig:nome)` | figura de `visualizacoes/` ou `mapas/` (a PNG do `analise.py`); `fig:apres_*` = mapa/gráfico só do deck (`build/mapas_apresentacao.py`, `build/graficos_apresentacao.py`) |
 | `![](captura:site_desktop)` | captura do site ou do PDF (`site_desktop`, `site_celular`, `pdf_capa`, `pdf_pagina`) |
 | `{{qr:url_site}}` | QR code da URL |
 | `{{tabela:pendentes}}` | tabela de indicadores sem dado por eixo (de `specs/estrutura_eixos.md`) |
@@ -35,7 +36,12 @@ Tudo em `apresentacao.md`. Slides separados por `---`. Além do Markdown do Marp
 | `<!-- texto livre -->` | nota do apresentador (vai para o PPTX) |
 
 Classes de slide (`<!-- _class: x -->`): `capa`, `secao`, `numero`, `qr`, `encerramento`; blocos HTML `stats`, `lado`,
-`dois`, `hub`, `kicker`, `nota` (ver `tema/ipp.css`).
+`dois` (`dois baixo`: figuras mais baixas), `hub`, `kicker`, `nota` (`nota forte`: nota em destaque), `grupo` +
+`grupo-titulo` (caixas sob um título comum), `destaque` numa caixa de `stats` (ver `tema/ipp.css`).
+
+Regras do texto (`specs/2026-09-29_slide_revision` §3): "até 72 meses" (nunca "0 a 5 anos" fora da nota de
+equivalência), "primeira infância", "Zika de 2015-2016", 393 mil (Ripsa 2025) como população de referência, nenhum
+mapa com terra azul, nota explicando todo tratamento de valores extremos.
 
 ## Variantes (outro público ou secretaria)
 
