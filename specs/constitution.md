@@ -124,6 +124,10 @@ gerado.
   arquivo deve morar, o que fazer com conteúdo conflitante), **pergunte** —
   agrupando várias perguntas relacionadas numa única rodada em vez de
   parar a cada dúvida individual — em vez de assumir e seguir em frente.
+  As perguntas vão pela ferramenta de pergunta interativa (`AskUserQuestion`,
+  até 4 perguntas por chamada, com opções e a recomendada marcada), não
+  soltas no texto; se houver mais de 4, fazer rodadas sucessivas agrupadas
+  por tema (reforçado pelo usuário em 2026-09-29).
 
 ## 6. Privacidade e dados sensíveis
 
