@@ -4,7 +4,8 @@
      tablet   720-1099 px -> @media (max-width:1099.98px)
      celular  < 720 px    -> @media (max-width:719.98px)
    Faixa intermediária de conteúdo: < 900 px empilha mapa/gráfico e texto (antes em components.css, website_bugfix).
-   Desktop intocado: validado por captura pixel a pixel a 1280/1400 px (validation.md V0.3). */
+   Desktop intocado: validado por captura pixel a pixel a 1280/1400 px (validation.md V0.3).
+   Tablet com as metas do celular (alvos >= 44 px, texto de gráfico >= 11 px) desde specs/2026-09-29_pendencias D5. */
 
 /* elementos só de telas estreitas: ocultos no desktop */
 .nav-progress, .outline-mobile, .pill-select, .rotulo-curto{display:none;}
@@ -58,6 +59,16 @@
   }
   .outline-mobile-lista[hidden]{display:none;}
   .outline-mobile-lista .outline-nav a{display:flex; align-items:center; min-height:44px; padding-top:4px; padding-bottom:4px;}
+
+  /* alvos de toque de 44 px no tablet e no celular (specs/2026-09-29_pendencias D5; antes só no celular) */
+  .tab{min-height:44px;}
+  .banner-links a{min-height:44px;}
+  .pill{min-height:44px; padding:8px 14px;}
+  .alterna-btn{min-height:44px; padding:0 18px;}
+  .outlier-btn, .dl-btn{min-height:44px; min-width:44px; padding:0 12px; justify-content:center;}
+  details.data-table summary{display:flex; align-items:center; min-height:44px;}
+  .eixo-card{min-height:44px;}
+  .footer-col a{display:inline-flex; align-items:center; min-height:44px;}
 }
 
 /* ======================= mapa/gráfico e texto empilhados (< 900 px) ======================= */
@@ -93,7 +104,7 @@
   /* GitHub e PDF lado a lado, com rótulo curto (pedido do usuário); a data na linha de baixo */
   .banner-links{display:grid; grid-template-columns:repeat(2, max-content); gap:6px 8px; align-items:center;}
   .banner-links .banner-date{grid-column:1 / -1;}
-  .banner-links a{min-height:44px; padding:0 14px; font-size:.7rem; gap:7px;}
+  .banner-links a{padding:0 14px; font-size:.7rem; gap:7px;}
   .rotulo-longo{display:none;}
   .rotulo-curto{display:inline;}
   .banner-links .icon{width:15px; height:15px;}
@@ -101,7 +112,7 @@
 
   /* abas e barra fixa */
   .tabbar-inner{padding-top:4px; padding-bottom:4px; gap:4px;}
-  .tab{min-height:44px; padding:0 14px; font-size:.74rem;}
+  .tab{padding:0 14px; font-size:.74rem;}
   .tab .icon{width:17px; height:17px;}
 
   .page-grid{padding-top:20px; padding-bottom:64px;}
@@ -109,12 +120,7 @@
   .panel-icon{width:44px; height:44px;}
   .panel-icon .icon{width:22px; height:22px;}
 
-  /* alvos de toque de 44 px */
-  .pill{min-height:44px; padding:8px 14px;}
-  .alterna-btn{min-height:44px; padding:0 18px;}
-  .outlier-btn, .dl-btn{min-height:44px; min-width:44px; padding:0 12px; justify-content:center;}
-  details.data-table summary{display:flex; align-items:center; min-height:44px;}
-  .eixo-card{min-height:44px;}
+  /* alvos de toque de 44 px: desde 2026-09-29 no bloco do tablet (< 1100 px), que também vale aqui */
 
   /* cartões: botões CSV/outliers numa faixa própria acima do título (antes, absolutos por cima dele) */
   .out{padding:14px 14px 12px;}
@@ -170,7 +176,6 @@
   .conclusao{padding:22px 18px 24px;}
   .overview-intro{padding:22px 18px;}
   .footer-cols{flex-direction:column; gap:24px;}
-  .footer-col a{display:inline-flex; align-items:center; min-height:44px;}
 }
 @media (max-width:479.98px){
   .sm-grid{grid-template-columns:minmax(0,1fr);}

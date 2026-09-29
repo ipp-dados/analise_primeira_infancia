@@ -2,9 +2,10 @@
 # # 🏛️ Análise Primeira Infância Carioca
 #
 # Notebook de extração, limpeza e visualização dos indicadores de primeira infância
-# (0 a 6 anos) do município do Rio de Janeiro: Censo, CadÚnico, DataSus/Tabnet
+# (0 a 5 anos, até 72 meses -- faixa padrão do projeto, `specs/2026-09-29_pendencias` D9; a política municipal fala
+# em "até 6 anos") do município do Rio de Janeiro: Censo, CadÚnico, DataSus/Tabnet
 # (nascidos vivos, mortalidade, causas evitáveis, cobertura vacinal) e educação
-# (PNAD/Censo Escolar).
+# (Censo 2022/SIDRA e Censo Escolar/INEP).
 
 # %% [markdown]
 # ---
@@ -171,9 +172,10 @@ df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4'
 df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).head(20)
 
 # %% [markdown]
-# #### 👶 População 0-6 por idade/raça/sexo (IBGE SIDRA, 2022)
+# #### 👶 População de 0 a 5 anos por idade/raça/sexo (IBGE SIDRA, 2022)
 #
-# Complementa o Censo por bairro acima com o detalhe por idade simples (0 a 6 anos) e por
+# Complementa o Censo por bairro acima com o detalhe por idade simples (0 a 5 anos, faixa padrão do projeto --
+# `specs/2026-09-29_pendencias` D9; a tabela 9606 traz também os 6 anos, que ficam de fora) e por
 # raça/sexo, direto das tabelas do IBGE SIDRA (Censo 2022, tabela 9606). **Só existe no nível
 # município** -- as exportações do SIDRA não trazem recorte por bairro/AP/RP/CAP, então não
 # há mapa aqui, só tabelas e gráficos comparativos.
@@ -184,37 +186,47 @@ df_censo_sidra_sexo = carrega_sidra_longo('dados_locais//ibge_sidra//Censo//tabe
 
 fonte_sidra_censo = 'Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)'
 
-df_censo_sidra_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//censo_sidra_populacao_0_6_raca_2022.csv')
-df_censo_sidra_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//censo_sidra_populacao_0_6_sexo_2022.csv')
+# D9 (specs/2026-09-29_pendencias): 0 a 5 anos; a linha "Total" da 9606 (todas as idades) vira o total de 0 a 5 anos.
+# Nomes de arquivo mantidos (`_0_6_`): são chaves do texto curado, do crosswalk e da apresentação
+_ORDEM_IDADE_SIDRA_0_5_POP = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
+
+def _populacao_sidra_0_a_5(df_longo, coluna_corte):
+    tabela = (df_longo[df_longo['idade'].isin(_ORDEM_IDADE_SIDRA_0_5_POP)]
+              .pivot(index='idade', columns=coluna_corte, values='valor').reindex(_ORDEM_IDADE_SIDRA_0_5_POP))
+    tabela.loc['Total 0 a 5 anos'] = tabela.sum()
+    tabela.columns.name = None
+    return tabela
+
+_populacao_sidra_0_a_5(df_censo_sidra_raca, 'Cor ou raça').to_csv('tabelas_finais//censo_sidra_populacao_0_6_raca_2022.csv')
+_populacao_sidra_0_a_5(df_censo_sidra_sexo, 'Sexo').to_csv('tabelas_finais//censo_sidra_populacao_0_6_sexo_2022.csv')
 df_censo_sidra_raca.head()
 
 # %%
-_ORDEM_IDADE_SIDRA_0_6 = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
 
 grafico_barra_agrupado(
     df_censo_sidra_raca[df_censo_sidra_raca['Cor ou raça'] != 'Total'],
     categoria='idade', valor='valor', agrupador='Cor ou raça',
-    titulo='População residente de 0 a 6 anos por idade e raça/cor - Rio de Janeiro (Censo 2022)',
+    titulo='População residente de 0 a 5 anos por idade e raça/cor - Rio de Janeiro (Censo 2022)',
     nome_arquivo='censo_sidra_populacao_0_6_raca_2022', ylabel='Pessoas', legend_title='Raça/cor',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6, fonte_dados=fonte_sidra_censo,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5_POP, fonte_dados=fonte_sidra_censo,
 )
 
 # %% [markdown]
 # <!-- nota-curadoria:censo_sidra_populacao_0_6_raca_2022 -->
-# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem comparar a composição da população de 0 a 6 anos por raça/cor e idade. Entre menores de 1 ano, foram registrados 26.909 crianças brancas, 21.576 pardas e 5.762 pretas. Aos 6 anos, esses números passam para 31.345, 32.416 e 9.863, respectivamente. A comparação entre as idades permite observar mudanças na distribuição dos grupos de raça/cor ao longo da primeira infância. Os dados também possibilitam relacionar essa composição a outros indicadores do relatório que utilizem raça/cor e idade como dimensões de análise.
+# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem comparar a composição da população de 0 a 5 anos por raça/cor e idade. Entre menores de 1 ano, foram registrados 26.909 crianças brancas, 21.576 pardas e 5.762 pretas. Aos 5 anos, esses números passam para 29.746, 29.837 e 9.252, respectivamente. A comparação entre as idades permite observar mudanças na distribuição dos grupos de raça/cor ao longo da primeira infância. Os dados também possibilitam relacionar essa composição a outros indicadores do relatório que utilizem raça/cor e idade como dimensões de análise.
 
 # %%
 grafico_barra_agrupado(
     df_censo_sidra_sexo[df_censo_sidra_sexo['Sexo'] != 'Total'],
     categoria='idade', valor='valor', agrupador='Sexo',
-    titulo='População residente de 0 a 6 anos por idade e sexo - Rio de Janeiro (Censo 2022)',
+    titulo='População residente de 0 a 5 anos por idade e sexo - Rio de Janeiro (Censo 2022)',
     nome_arquivo='censo_sidra_populacao_0_6_sexo_2022', ylabel='Pessoas', legend_title='Sexo',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6, fonte_dados=fonte_sidra_censo,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5_POP, fonte_dados=fonte_sidra_censo,
 )
 
 # %% [markdown]
 # <!-- nota-curadoria:censo_sidra_populacao_0_6_sexo_2022 -->
-# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem detalhar a população de crianças até 6 anos no município do Rio de Janeiro por idade, raça/cor e sexo. A distribuição por idade possibilita observar a composição desse grupo ao longo dos primeiros anos de vida, enquanto os recortes por raça/cor e sexo ampliam a caracterização demográfica da primeira infância. Os dados são apresentados para o conjunto do município e complementam o recorte territorial de crianças de 0 a 4 anos analisado anteriormente. Essa caracterização é importante para contextualizar os indicadores de saúde, educação, proteção social e demais dimensões analisadas no relatório.
+# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem detalhar a população de crianças de 0 a 5 anos no município do Rio de Janeiro por idade, raça/cor e sexo. A distribuição por idade possibilita observar a composição desse grupo ao longo dos primeiros anos de vida, enquanto os recortes por raça/cor e sexo ampliam a caracterização demográfica da primeira infância. Os dados são apresentados para o conjunto do município e complementam o recorte territorial de crianças de 0 a 4 anos analisado anteriormente. Essa caracterização é importante para contextualizar os indicadores de saúde, educação, proteção social e demais dimensões analisadas no relatório.
 
 # %% [markdown]
 # #### 🗺️ Mapa coroplético (bairros)
@@ -370,37 +382,39 @@ serie_temporal(
 # **Nota de curadoria:** A participação das crianças de 0 a 4 anos na população total do município diminuiu entre os Censos de 2000, 2010 e 2022. A proporção passou de aproximadamente 7,6% em 2000 para 5,8% em 2010 e 5,0% em 2022. O mapa complementa essa tendência ao mostrar diferenças na participação dessa faixa etária entre os bairros. A análise percentual permite comparar territórios de diferentes tamanhos populacionais, evidenciando o peso relativo das crianças de 0 a 4 anos em cada localidade. Esse indicador contribui para caracterizar a estrutura etária do município e contextualizar as demandas relacionadas à primeira infância.
 
 # %% [markdown]
-# #### 👶 População de 0 a 6 anos por ano (estimativas Ripsa/MS, 2000-2025)
+# #### 👶 População de 0 a 5 anos por ano (estimativas Ripsa/MS, 2000-2025)
 #
-# Série anual da população de 0 a 6 anos do município (idade simples), com o total de 0 a 5 anos (faixa
-# das taxas municipais do projeto) e a participação de 0 a 6 anos no total da população
+# Série anual da população de 0 a 5 anos do município (idade simples; faixa padrão do projeto desde
+# `specs/2026-09-29_pendencias` D9 -- antes a série ia a 6 anos) e a participação de 0 a 5 anos no total da população
 # (`specs/2026-09-24_populacao-referencia`, A2). Fonte e ressalvas na nota de população de referência, no início
 # desta seção: **os valores não se comparam com os dos Censos acima** (a Ripsa corrige a subcontagem do
-# Censo 2022). A participação é recalculada da soma (0 a 6 anos ÷ total), nunca média de anos.
+# Censo 2022). A participação é recalculada da soma (0 a 5 anos ÷ total), nunca média de anos. Nome do arquivo mantido
+# (`populacao_ripsa_0_a_6_*`: chave do crosswalk, do texto curado e da apresentação).
 
 # %%
 fonte_ripsa = 'Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025)'
 
 df_ripsa = carrega_populacao_ripsa()
-df_pop_infantil = (df_ripsa[(df_ripsa['idade'] != 'total')]
+df_pop_infantil = (df_ripsa[(df_ripsa['idade'] != 'total') & (df_ripsa['idade'] != '6')]   # D9: 0 a 5 anos
                    .assign(idade=lambda d: 'populacao_idade_' + d['idade'])
                    .pivot_table(index='ano', columns='idade', values='populacao', aggfunc='sum'))
 df_pop_infantil.columns.name = None
 df_pop_infantil['populacao_0_a_5'] = populacao_ripsa(df_ripsa, 0, 5).set_index('ano')['populacao']
+# 0 a 6 anos só como total, para a nota "a política fala em até 6 anos" da apresentação (D17); fora dos gráficos e tabelas
 df_pop_infantil['populacao_0_a_6'] = populacao_ripsa(df_ripsa, 0, 6).set_index('ano')['populacao']
 df_pop_infantil['populacao_total'] = populacao_ripsa(df_ripsa, None, None).set_index('ano')['populacao']
-df_pop_infantil['percentual_0_a_6'] = df_pop_infantil['populacao_0_a_6'] / df_pop_infantil['populacao_total'] * 100
+df_pop_infantil['percentual_0_a_5'] = df_pop_infantil['populacao_0_a_5'] / df_pop_infantil['populacao_total'] * 100
 df_pop_infantil = df_pop_infantil.reset_index()
 assert len(df_pop_infantil) == 26 and df_pop_infantil.loc[df_pop_infantil['ano'] == 2025, 'populacao_0_a_5'].item() == 393073
 df_pop_infantil.to_csv('tabelas_finais//populacao_ripsa_0_a_6_por_ano.csv', index=False)
-df_pop_infantil[['ano', 'populacao_0_a_5', 'populacao_0_a_6', 'populacao_total', 'percentual_0_a_6']]
+df_pop_infantil[['ano', 'populacao_0_a_5', 'populacao_total', 'percentual_0_a_5']]
 
 # %%
-serie_temporal(df_pop_infantil, 'ano', 'populacao_0_a_6', 'População de 0 a 6 anos por ano (estimativas Ripsa/MS)',
+serie_temporal(df_pop_infantil, 'ano', 'populacao_0_a_5', 'População de 0 a 5 anos por ano (estimativas Ripsa/MS)',
                nome_arquivo='populacao_ripsa_0_a_6_por_ano', fonte_dados=fonte_ripsa)
 
 # %%
-serie_temporal(df_pop_infantil, 'ano', 'percentual_0_a_6', 'Participação de 0 a 6 anos na população total (%, estimativas Ripsa/MS)',
+serie_temporal(df_pop_infantil, 'ano', 'percentual_0_a_5', 'Participação de 0 a 5 anos na população total (%, estimativas Ripsa/MS)',
                nome_arquivo='populacao_ripsa_0_a_6_percentual_por_ano', fonte_dados=fonte_ripsa)
 
 # %% [markdown]
@@ -990,8 +1004,9 @@ df_baixo_ano.to_csv('tabelas_finais/nascidos_abaixo_peso_por_ano.csv')
 df_baixo_ano.head(25)
 
 # %%
+# D3/D12 (specs/2026-09-29_pendencias): única exceção à base zero -- eixo cortado, com a marca e a nota na fonte
 serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titulo='Percentual Nascidos com baixo peso por ano',
-               nome_arquivo='nascidos_abaixo_peso_percentual_por_ano', fonte_dados=fonte_datasus_bairro)
+               nome_arquivo='nascidos_abaixo_peso_percentual_por_ano', fonte_dados=fonte_datasus_bairro, base_zero=False)
 
 # %% [markdown]
 # <!-- nota-curadoria:nascidos_abaixo_peso_percentual_por_ano -->
@@ -1133,18 +1148,23 @@ serie_temporal_multipla(
 # percentual só existe a partir de 2011 (início da série de nascidos vivos por raça/cor da mãe)
 df_percentual_raca_municipio = df_mortalidade_raca_municipio[df_mortalidade_raca_municipio['ano'] >= 2011]
 
+# E14 (specs/exclusoes.md, specs/2026-09-29_pendencias D2): "Não informada" fica só no gráfico de óbitos -- óbitos sem
+# raça (SIM) ÷ nascidos sem raça (SINASC) não é taxa comparável
+rotulos_raca_taxa = {rotulo: raca for rotulo, raca in rotulos_raca.items() if raca != 'nao_informado'}
+
 serie_temporal_multipla(
     df_percentual_raca_municipio,
     tempo='ano',
-    colunas={rotulo: f'taxa_mortalidade_{raca}' for rotulo, raca in rotulos_raca.items()},
+    colunas={rotulo: f'taxa_mortalidade_{raca}' for rotulo, raca in rotulos_raca_taxa.items()},
     titulo='Taxa de mortalidade infantil (0-364 dias) por raça/cor, por mil nascidos vivos - Rio de Janeiro (2011-2025)',
     nome_arquivo='percentual_mortalidade_raca_ano',   # nome do arquivo mantido (chave do texto curado e do crosswalk)
-    ylabel='Óbitos por mil nascidos vivos', fonte_dados=fonte_datasus_bairro,
+    ylabel='Óbitos por mil nascidos vivos',
+    fonte_dados=f'{fonte_datasus_bairro}. Nota: a categoria "Não informada" aparece só no gráfico de óbitos',
 )
 
 # %% [markdown]
 # <!-- nota-curadoria:percentual_mortalidade_raca_ano -->
-# **Nota de curadoria:** A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, as taxas de crianças brancas e pardas permaneceram próximas, variando de 17,6 a 11,3 e de 19,8 a 14,3 óbitos por mil nascidos vivos, respectivamente. Para crianças pretas, a taxa variou entre 5,0 e 14,3 por mil, enquanto a categoria amarela e indígena, agrupada por ter poucos registros, apresenta oscilações maiores associadas ao pequeno número de casos. A categoria “não informada” também apresenta forte variação, relacionada à quantidade de nascidos classificados nessa categoria. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
+# **Nota de curadoria:** A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, as taxas de crianças brancas e pardas permaneceram próximas, variando de 17,6 a 11,3 e de 19,8 a 14,3 óbitos por mil nascidos vivos, respectivamente. Para crianças pretas, a taxa variou entre 5,0 e 14,3 por mil, enquanto a categoria amarela e indígena, agrupada por ter poucos registros, apresenta oscilações maiores associadas ao pequeno número de casos. A categoria “não informada” aparece só no gráfico de óbitos: a razão entre óbitos e nascidos sem raça/cor informada não é uma taxa comparável às demais. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
 
 # %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025) — total de óbitos, todas as raças
@@ -2311,16 +2331,17 @@ grafico_barra_agrupado(
 # ### 🎓 PNAD Contínua, Censo Escolar e INEP
 
 # %% [markdown]
-# Frequência escolar (PNAD Contínua, até 6 anos) e matrículas (Censo Escolar/INEP, 0 a 5 anos) de crianças pequenas.
+# Frequência e taxa de frequência escolar (Censo 2022, IBGE/SIDRA) e matrículas (Censo Escolar/INEP), 0 a 5 anos.
 
 # %% [markdown]
-# #### Frequência escolar de 0 a 5 anos e taxa de frequência de 0 a 6 anos (IBGE SIDRA, Censo 2022)
+# #### Frequência escolar e taxa de frequência de 0 a 5 anos (IBGE SIDRA, Censo 2022)
 #
-# Comparativo mais recente e granular (idade simples, por raça/sexo) que a série PNAD abaixo
-# -- mas de fonte e desenho diferentes: o Censo é enumeração completa (não amostral) de um
-# único ano (2022), enquanto a PNAD Contínua é uma pesquisa amostral com série histórica e
-# recorte estadual/nacional (não municipal). Não são diretamente comparáveis ano a ano; usar
-# o SIDRA para o retrato mais fino de 2022, a PNAD para tendência ao longo do tempo.
+# Idade simples, por raça/cor e sexo. Faixa 0 a 5 anos (`specs/2026-09-29_pendencias` D9): a tabela 10056 (taxa) vai
+# até 6 anos, que fica de fora. **Taxa (D14):** a publicada pelo IBGE (10056) para cada grupo e idade; os agregados --
+# "Total 0 a 5 anos" e "Amarela e indígena" (E12/D15) -- somam taxa × população (9606) e dividem pela população. Não
+# se divide frequentam (10057) por população (9606): as tabelas vêm de bases diferentes do Censo e a razão passa de
+# 100% em alguns grupos. Até 2026-09-29 havia aqui também um gráfico rotulado "PNAD Contínua" que trazia, na verdade,
+# a coluna Total da 10056 (D16, E15) -- substituído pela taxa total por idade abaixo.
 
 # %%
 fonte_sidra_educacao = 'Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)'
@@ -2332,13 +2353,18 @@ df_sidra_taxa_sexo = carrega_sidra_longo('dados_locais//ibge_sidra//Educacao_fre
 
 df_sidra_freq_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//sidra_frequencia_escola_0_5_raca_2022.csv')
 df_sidra_freq_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//sidra_frequencia_escola_0_5_sexo_2022.csv')
-df_sidra_taxa_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//sidra_taxa_frequencia_0_6_raca_2022.csv')
-df_sidra_taxa_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//sidra_taxa_frequencia_0_6_sexo_2022.csv')
-df_sidra_taxa_raca.head()
+# D14/D15: taxa 0 a 5 anos, com "Total 0 a 5 anos" e "Amarela e indígena" agregados de taxa × população (9606).
+# Nomes de arquivo mantidos (`_0_6_`: chaves do texto curado, do crosswalk e do site)
+df_taxa_freq_raca = taxa_frequencia_0_a_5(df_sidra_taxa_raca, df_censo_sidra_raca, 'Cor ou raça',
+                                          agrupa={'Amarela e indígena': ['Amarela', 'Indígena']})
+df_taxa_freq_sexo = taxa_frequencia_0_a_5(df_sidra_taxa_sexo, df_censo_sidra_sexo, 'Sexo')
+assert (df_taxa_freq_raca.drop(columns='idade').max() <= 100).all() and (df_taxa_freq_sexo.drop(columns='idade').max() <= 100).all()
+df_taxa_freq_raca.to_csv('tabelas_finais//sidra_taxa_frequencia_0_6_raca_2022.csv', index=False)
+df_taxa_freq_sexo.to_csv('tabelas_finais//sidra_taxa_frequencia_0_6_sexo_2022.csv', index=False)
+df_taxa_freq_raca
 
 # %%
 _ORDEM_IDADE_SIDRA_0_5 = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
-_ORDEM_IDADE_SIDRA_0_6_EDU = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
 
 grafico_barra_agrupado(
     df_sidra_freq_raca[df_sidra_freq_raca['Cor ou raça'] != 'Total'],
@@ -2378,51 +2404,55 @@ grafico_barra(df_sidra_freq_total, categoria='idade', valor='Crianças',
               nome_arquivo='sidra_frequencia_escola_0_5_total_2022', fonte_dados=fonte_sidra_educacao)
 
 # %%
+# D15: amarela e indígena (89 a 125 crianças por idade, somadas) fora das barras por idade; o agregado de 0 a 5 anos
+# vai na nota da fonte e na tabela
+_taxa_amarela_indigena = df_taxa_freq_raca.set_index('idade').loc['Total 0 a 5 anos', 'Amarela e indígena']
+_taxa_amarela_indigena_txt = f'{_taxa_amarela_indigena:.1f}'.replace('.', ',')
 grafico_barra_agrupado(
-    df_sidra_taxa_raca[df_sidra_taxa_raca['Cor ou raça'] != 'Total'],
+    df_taxa_freq_raca[df_taxa_freq_raca['idade'] != 'Total 0 a 5 anos']
+        .melt(id_vars='idade', value_vars=['Branca', 'Parda', 'Preta'], var_name='Cor ou raça', value_name='valor'),
     categoria='idade', valor='valor', agrupador='Cor ou raça',
-    titulo='Taxa de frequência escolar bruta (0-6 anos), por idade e raça/cor - Rio de Janeiro (Censo 2022)',
+    titulo='Taxa de frequência escolar bruta (0 a 5 anos), por idade e raça/cor - Rio de Janeiro (Censo 2022)',
     nome_arquivo='sidra_taxa_frequencia_0_6_raca_2022', ylabel='Taxa (%)', legend_title='Raça/cor',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU, fonte_dados=fonte_sidra_educacao,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5,
+    fonte_dados=f'{fonte_sidra_educacao}. Nota: amarela e indígena (grupos pequenos) só no total de 0 a 5 anos: '
+                f'{_taxa_amarela_indigena_txt}%',
 )
 
 # %% [markdown]
 # <!-- nota-curadoria:sidra_taxa_frequencia_0_6_raca_2022 -->
-# **Nota de curadoria:** A taxa de frequência escolar bruta aumenta conforme a idade, passando de 8,04% entre crianças de 0 ano para 97,01% aos 6 anos. No conjunto de 0 a 6 anos, a taxa foi de 25,32%, com diferenças entre os grupos de raça/cor: 26,81% entre crianças pardas, 24,48% entre pretas e 24,36% entre brancas. A comparação por idade permite analisar como a frequência escolar se modifica ao longo da primeira infância e como esse comportamento varia entre os grupos de raça/cor. Os dados podem ser relacionados ao número absoluto de crianças frequentando escola/creche para complementar a análise.
+# **Nota de curadoria:** A taxa de frequência escolar bruta aumenta conforme a idade, passando de 8,04% entre crianças de 0 ano para 90,57% aos 5 anos. No conjunto de 0 a 5 anos, a taxa foi de 59,30%, com diferenças entre os grupos de raça/cor: 62,26% entre crianças pretas, 59,10% entre pardas e 58,70% entre brancas. A comparação por idade permite analisar como a frequência escolar se modifica ao longo da primeira infância e como esse comportamento varia entre os grupos de raça/cor. Os dados podem ser relacionados ao número absoluto de crianças frequentando escola/creche para complementar a análise.
 
 # %%
 grafico_barra_agrupado(
-    df_sidra_taxa_sexo[df_sidra_taxa_sexo['Sexo'] != 'Total'],
+    df_taxa_freq_sexo[df_taxa_freq_sexo['idade'] != 'Total 0 a 5 anos']
+        .melt(id_vars='idade', value_vars=['Homens', 'Mulheres'], var_name='Sexo', value_name='valor'),
     categoria='idade', valor='valor', agrupador='Sexo',
-    titulo='Taxa de frequência escolar bruta (0-6 anos), por idade e sexo - Rio de Janeiro (Censo 2022)',
+    titulo='Taxa de frequência escolar bruta (0 a 5 anos), por idade e sexo - Rio de Janeiro (Censo 2022)',
     nome_arquivo='sidra_taxa_frequencia_0_6_sexo_2022', ylabel='Taxa (%)', legend_title='Sexo',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU, fonte_dados=fonte_sidra_educacao,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5, fonte_dados=fonte_sidra_educacao,
 )
 
 # %% [markdown]
 # <!-- nota-curadoria:sidra_taxa_frequencia_0_6_sexo_2022 -->
-# **Nota de curadoria:** A taxa de frequência escolar bruta aumenta conforme a idade, passando de 8,04% aos 0 anos para 97,01% aos 6 anos. No conjunto de 0 a 6 anos, a taxa foi de 26,76% entre os meninos e 24,07% entre as meninas. A diferença entre os sexos varia ao longo das idades: aos 4 anos, a taxa foi de 82,51% entre meninos e 83,35% entre meninas, enquanto aos 6 anos os valores foram praticamente iguais, 97,06% e 96,96%, respectivamente. A comparação por idade e sexo permite analisar como a frequência escolar se modifica ao longo da primeira infância.
+# **Nota de curadoria:** A taxa de frequência escolar bruta aumenta conforme a idade, passando de 8,04% aos 0 anos para 90,57% aos 5 anos. No conjunto de 0 a 5 anos, a taxa foi de 59,81% entre os meninos e 58,78% entre as meninas. A diferença entre os sexos varia ao longo das idades: aos 4 anos, a taxa foi de 82,51% entre meninos e 83,35% entre meninas, enquanto aos 5 anos foi de 91,56% entre meninos e 89,49% entre meninas. A comparação por idade e sexo permite analisar como a frequência escolar se modifica ao longo da primeira infância.
 
 # %% [markdown]
-# #### Taxa de frequência escolar
+# #### Taxa de frequência escolar por idade (total, Censo 2022)
+#
+# D16 (`specs/2026-09-29_pendencias`, E15): substitui o gráfico "PNAD Contínua" (`pnad_frequencia_escolar_por_idade`,
+# lido de `dados_locais/educacao/pnad_taxa_frequencia_escolar_ate_6_anos.csv`), que trazia exatamente a coluna Total
+# da tabela 10056 do Censo 2022 com a fonte errada. Mesmo dado, fonte certa, 0 a 5 anos.
 
 # %%
-fonte_pnad = 'PNAD Contínua (IBGE)'
-
-df_freq_escolar = pd.read_csv('dados_locais//educacao//pnad_taxa_frequencia_escolar_ate_6_anos.csv', sep=';')
-df_freq_escolar = df_freq_escolar[(df_freq_escolar['Idade'] != '0 a 3 anos')
-                                  & (df_freq_escolar['Idade'] != '4 a 5 anos')
-                                  & (df_freq_escolar['Idade'] != '6 anos')]
-df_freq_escolar['Total'] = df_freq_escolar['Total'].str.replace(',','.').astype('Float64')/100
-df_freq_escolar.to_csv('tabelas_finais//frequencia_escolar_pnad_por_idade.csv', index=False)
-df_freq_escolar
-
-# %%
-grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequência escolar por idade, 0 a 6 anos (PNAD Contínua)",
-              nome_arquivo='pnad_frequencia_escolar_por_idade', fonte_dados=fonte_pnad)
+df_taxa_freq_total = (df_taxa_freq_sexo[['idade', 'Total']].rename(columns={'Total': 'Taxa (%)'}))
+df_taxa_freq_total.to_csv('tabelas_finais//sidra_taxa_frequencia_0_5_total_2022.csv', index=False)
+grafico_barra(df=df_taxa_freq_total[df_taxa_freq_total['idade'] != 'Total 0 a 5 anos'], categoria='idade', valor='Taxa (%)',
+              titulo='Taxa de frequência escolar bruta por idade, 0 a 5 anos - Rio de Janeiro (Censo 2022)',
+              nome_arquivo='sidra_taxa_frequencia_0_5_total_2022', fonte_dados=fonte_sidra_educacao)
 
 # %% [markdown]
-# <!-- nota-curadoria:pnad_frequencia_escolar_por_idade -->
+# <!-- nota-curadoria:sidra_taxa_frequencia_0_5_total_2022 -->
 # **Nota de curadoria:** A frequência escolar na primeira infância apresenta uma trajetória de crescimento acelerado à medida que a idade da criança vai aumentando. Esse movimento pode ser explicado pela necessidade de retorno dos pais, em especial das mães, ao mercado de trabalho e garantia do direito constitucional ao desenvolvimento para as crianças. A partir dos 4 anos, quando há a obrigatoriedade legal da pré-escola a taxa sobe para cerca de 83%, atingindo 90% aos 5 anos. A despeito do alto percentual, é um ponto de atenção ter uma déficit de 17% e 10% de crianças em idade escolar obrigatória que não a estejam frequentando.
 
 # %% [markdown]
@@ -2493,8 +2523,9 @@ serie_temporal_multipla(
 #    em outros municípios; o denominador são os residentes. As datas de referência diferem (fim de maio e 1º
 #    de julho).
 # 4. **Revisões:** a Ripsa revisa as estimativas todo ano, então uma consulta nova pode mudar anos passados.
-# 5. **Diferença com a PNAD** (taxa de frequência escolar, acima): aquela é declarada no domicílio; esta é
-#    registro administrativo ÷ estimativa. Ordem de grandeza coerente (PNAD ~83% aos 4 anos e ~90% aos 5).
+# 5. **Diferença com a taxa de frequência do Censo 2022** (acima; até 2026-09-29 rotulada "PNAD" por engano, D16): aquela
+#    é declarada no domicílio; esta é registro administrativo ÷ estimativa. Ordem de grandeza coerente (~83% aos 4 anos
+#    e ~91% aos 5).
 # 6. **Metas do PNE** (Lei 13.005/2014, Meta 1): 50% de atendimento em creche (0-3) e universalização da
 #    pré-escola (4-5), como linhas de referência no gráfico.
 

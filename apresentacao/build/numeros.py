@@ -41,19 +41,16 @@ def _ultimo(df, col="ano"):
 
 
 # ---------------------------------------------------------------- população
-@numero
-def pop_0_6_ripsa_2025():
-    return fmt_int(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["populacao_0_a_6"])
-
-
+# specs/2026-09-29_pendencias D9/D17: a âncora é 0 a 5 anos (faixa padrão do projeto); 0 a 6 anos só na nota
+# "a política fala em até 6 anos" (`pop_0_6_ripsa_mil`)
 @numero
 def pop_0_6_ripsa_mil():
     return fmt_int(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["populacao_0_a_6"] / 1000) + " mil"
 
 
 @numero
-def pct_0_6_ripsa_2025():
-    return fmt_pct(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["percentual_0_a_6"])
+def pct_0_5_ripsa_2025():
+    return fmt_pct(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["percentual_0_a_5"])
 
 
 def _ripsa_ano(ano):
@@ -62,20 +59,20 @@ def _ripsa_ano(ano):
 
 
 @numero
-def pop_0_6_ripsa_2000_mil():
-    return fmt_int(_ripsa_ano(2000)["populacao_0_a_6"] / 1000) + " mil"
+def pop_0_5_ripsa_2000_mil():
+    return fmt_int(_ripsa_ano(2000)["populacao_0_a_5"] / 1000) + " mil"
 
 
 @numero
-def pct_0_6_ripsa_2000():
-    return fmt_pct(_ripsa_ano(2000)["percentual_0_a_6"])
+def pct_0_5_ripsa_2000():
+    return fmt_pct(_ripsa_ano(2000)["percentual_0_a_5"])
 
 
 @numero
-def queda_0_6_ripsa_2000():
-    """Queda da população de 0 a 6 anos entre 2000 e o último ano da série (mesma fonte, Ripsa)."""
+def queda_0_5_ripsa_2000():
+    """Queda da população de 0 a 5 anos entre 2000 e o último ano da série (mesma fonte, Ripsa)."""
     ult = _ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))
-    return fmt_pct((1 - ult["populacao_0_a_6"] / _ripsa_ano(2000)["populacao_0_a_6"]) * 100, 0)
+    return fmt_pct((1 - ult["populacao_0_a_5"] / _ripsa_ano(2000)["populacao_0_a_5"]) * 100, 0)
 
 
 @numero
@@ -148,9 +145,11 @@ def top1_bairro_0_4_n():
 
 
 @numero
-def pct_negras_0_6_censo():
-    d = _csv("censo_sidra_populacao_0_6_raca_2022.csv")
-    return fmt_pct((d["Parda"].sum() + d["Preta"].sum()) / d["Total"].sum() * 100, 0)
+def pct_negras_0_5_censo():
+    """Pardas + pretas na linha "Total 0 a 5 anos" (specs/2026-09-29_pendencias D9). Antes somava todas as linhas, inclusive
+    o "Total" de todas as idades da tabela 9606 -- efeito mínimo (54,3% contra 54,4% corretos), mas errado."""
+    d = _csv("censo_sidra_populacao_0_6_raca_2022.csv").set_index("idade").loc["Total 0 a 5 anos"]
+    return fmt_pct((d["Parda"] + d["Preta"]) / d["Total"] * 100, 0)
 
 
 # ---------------------------------------------------------------- nascimentos e mortalidade

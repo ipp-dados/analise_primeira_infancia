@@ -128,6 +128,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.30.0 | 2026-09-29 | Faixa padrão 0 a 5 anos (até 72 meses) em site, PDF e deck; mapa duplicado, série "Não informada" e gráfico "PNAD" (era o Censo 2022) fora; amarela e indígena só no total; baixo peso com eixo cortado; tablet com alvos de 44 px (`specs/2026-09-29_pendencias`). |
 | 0.29.0 | 2026-09-28 | Apresentação de 30 slides para gestores (Marp, gerada de `apresentacao/apresentacao.md` com números calculados das tabelas e variantes por público); mapas dos slides sem distorção por valores extremos (`specs/2026-09-28_apresentacao`). |
 | 0.28.0 | 2026-09-28 | Nova estrutura do site e do PDF: panorama da primeira infância (população e nascimentos) na Visão geral e no capítulo de Introdução, 7º eixo "Direito ao Brincar", indicadores reordenados pela planilha da equipe sem remover nenhum conteúdo; nota "agrega os recortes" nas figuras de menores de 5 anos (`specs/2026-09-28_nova_estrutura`). |
 | 0.27.1 | 2026-09-28 | Especificação funcional e técnica do projeto (`docs/especificacao_projeto.md`), documentação alinhada ao estado real, `.env.example` (`specs/2026-09-28_documentacao`). |

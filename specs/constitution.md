@@ -60,6 +60,18 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   RA, CAP) usa o Censo 2022, fixo, e diz isso na fonte ou na legenda. Nunca comparar uma com a outra
   sem dizer (o Censo 2022 subconta crianças pequenas). A faixa etária do rótulo é a faixa real do dado
   (`specs/2026-09-24_populacao-referencia/auditoria_faixas.md`), não a do catálogo.
+- **Faixa etária padrão: 0 a 5 anos (até 72 meses)** (regra do usuário, 2026-09-29, `specs/2026-09-29_pendencias` D9).
+  Toda saída publicada (site, PDF, DOCX, apresentação) trabalha com 0 a 5 anos completos; se uma fonte traz 6 anos,
+  eles ficam fora dos gráficos e dos números citados. Quando os 6 anos forem mesmo necessários, **com nota explícita**.
+  Títulos do crosswalk que vêm do catálogo ("até 6 anos") dizem "até 72 meses", com o nome do catálogo na `nota` (D18).
+  Onde a fonte só tem outra faixa (Censo 2022 por bairro: 0 a 4 anos), o rótulo diz a faixa real.
+- **Base zero nos gráficos de taxa/percentual** (decisão P1, `specs/2026-09-25_website_graficos`), com **uma exceção**:
+  o percentual de baixo peso ao nascer, de eixo cortado, com a marca de corte desenhada e "eixo não começa em zero"
+  na fonte (`specs/2026-09-29_pendencias` D3/D12; `serie_temporal(base_zero=False)`, `eixoCortado` no site). Outra
+  exceção só com decisão do usuário.
+- **Agregar taxas publicadas** (quando não há numerador e denominador da mesma base): somar taxa × população e dividir
+  pela soma da população — nunca média simples. Não dividir contagens de tabelas de bases diferentes (ex.: SIDRA
+  10057 ÷ 9606 passa de 100%; `specs/2026-09-29_pendencias` D14).
 - `dados_locais/` **não é gitignorado** — arquivos colocados ali (inclusive
   camadas geo) são versionados. Confirme com `git status` antes de assumir o
   contrário; não versione dado bruto sensível sem checar antes se deveria
