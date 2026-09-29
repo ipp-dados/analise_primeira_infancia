@@ -1,0 +1,5 @@
+{
+  "_nota": "Chave única do estado de publicação (specs/2026-09-28_website_mobile). Com em_desenvolvimento = true, o site mostra a faixa 'EM DESENVOLVIMENTO / TEMPORÁRIO' (website/build/build_site.py) e o PDF sai com a marca d'água (relatorio/latex/build/gera_latex.py -> gerado/aviso.tex). Para a versão final: false, e regerar os dois (python website/build/build_site.py; python relatorio/latex/build/gera_latex.py --publicar).",
+  "em_desenvolvimento": true,
+  "marca_dagua_pdf": "EM DESENVOLVIMENTO"
+}
