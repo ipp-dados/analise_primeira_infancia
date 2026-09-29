@@ -128,3 +128,12 @@ section.qr .lado { grid-template-columns: 1fr 1fr 0.8fr; }
 .nota.forte { font-size: 20px; color: var(--ink); background: #fbeee4; border-left: 6px solid var(--c2);
   border-radius: 8px; padding: 10px 16px; margin-top: 14px; }
 .nota.forte strong { color: var(--ink); }
+
+/* dois eixos -> uma solução comum (slide "Eixos ausentes"): <div class="conecta"></div> liga o centro das duas caixas
+   de uma .stats de 2 colunas à caixa .solucao, que ocupa a largura toda */
+.conecta { position: relative; width: 50%; height: 46px; margin: 0 auto; border: 3px solid var(--cyan); border-top: none;
+  border-radius: 0 0 14px 14px; }
+.conecta::after { content: ''; position: absolute; left: 50%; bottom: -30px; height: 30px; border-left: 3px solid var(--cyan); }
+.solucao { margin-top: 30px; background: var(--navy); color: #fff; border-radius: 14px; padding: 20px 28px; text-align: center; }
+.solucao b { display: block; font-family: 'Fraunces', serif; font-weight: 600; font-size: 44px; line-height: 1.1; }
+.solucao span { display: block; font-size: 20px; color: #cfe8f7; margin-top: 6px; }

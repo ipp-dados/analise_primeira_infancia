@@ -23,6 +23,7 @@ seguindo as regras globais e a matriz do pedido, com as decisões D1-D8 abaixo. 
 | D7 | Violência familiar | Slide 25: título genérico, **soma de todos os vínculos (mãe + pai + outros)** em destaque, vínculos separados como linhas secundárias. Novo slide 26: mapa por bairro 2025 da **soma mãe + pai + outros** (contagem → classes discretas, convenção do projeto). |
 | D8 | "Mapa sem outliers" (slides 16 e 28) | **Teto de Tukey** (1,5 × IIQ), igual ao mapa de homicídios do deck e ao site: escala até o maior valor não extremo, extremos com a cor máxima e nomeados na nota do rodapé. |
 | D9 | Violência familiar (revisão de D7, usuário, 2026-09-29) | **Sem soma de vínculos** ("não contar em dobro"): a mesma notificação pode citar mais de um provável autor (`2026-09-23_inclusao_dados_protecao` D6). Slide 25: título genérico, mãe, pai e outros com número e taxa próprios, gráfico por vínculo do relatório. Slide 26: mapas de mãe e de pai por bairro (2025) lado a lado, com a nota "os mapas não se somam". |
+| D10 | Slide 09 e slide 30 (usuário, 2026-09-29, revisão de D5 e R6) | Slide 09: a 3ª caixa passa a ser a **Ripsa 2025 de 0 a 6 anos (469 mil)** -- a faixa da política municipal, dita "0 a 6 anos" na caixa -- no lugar do Censo 2022 0-5; o 469 mil volta só nessa caixa. Slide 30: Direito à Cidade e Participação são **dois eixos distintos**, e a pesquisa primária é a solução comum aos dois (caixas separadas ligadas a uma caixa única de solução). |
 
 ## 3. Regras globais no deck
 

@@ -169,12 +169,12 @@ Os números de gráficos e mapas saem da estrutura do relatório (estrutura_eixo
 <div class="stats" style="margin-top:22px">
 <div style="--c:var(--c1)"><b>{{n:censo_0_4_2022_mil}}</b><span>0 a 4 anos, <strong>Censo 2022</strong> — a única contagem por bairro, usada nos mapas</span></div>
 <div class="destaque" style="--c:var(--c2)"><b>{{n:pop_0_5_ripsa_mil}}</b><span>até 72 meses, <strong>estimativa Ripsa/Ministério da Saúde</strong> ({{n:ano_ripsa}}) — a referência da cidade</span></div>
-<div style="--c:var(--c7)"><b>{{n:censo_0_5_2022_mil}}</b><span>até 72 meses, <strong>Censo 2022</strong> (IBGE/SIDRA 9606) — só para a cidade inteira</span></div>
+<div style="--c:var(--c7)"><b>{{n:pop_0_6_ripsa_mil}}</b><span>0 a 6 anos, <strong>estimativa Ripsa</strong> ({{n:ano_ripsa}}) — a faixa da política municipal ("até 6 anos"), com as crianças de 6 anos</span></div>
 </div>
 
 <p class="nota" style="font-size:18px; margin-top:26px">O Censo conta menos crianças pequenas do que existem; a estimativa corrige isso, mas só para a cidade inteira. Por isso: taxas <strong>do município</strong> usam a estimativa do mesmo ano; taxas <strong>por bairro ou região</strong> usam o Censo 2022 e servem para comparar territórios entre si. Até 72 meses = 0 a 5 anos completos.</p>
 
-<!-- fonte: Ripsa/Ministério da Saúde, estimativas populacionais; IBGE, Censo Demográfico 2022 (SIDRA 9606) -->
+<!-- fonte: Ripsa/Ministério da Saúde, estimativas populacionais; IBGE, Censo Demográfico 2022 -->
 
 ---
 
@@ -581,15 +581,19 @@ Slide novo (slide_revision). Retoma o antigo slide de indicadores pendentes: o q
 
 # Eixos ausentes
 
-<div class="stats" style="--n:2; margin-top:26px">
-<div style="--c:var(--c7)"><b>Direito à Cidade e Participação</b><span>não há dado público: precisamos de soluções construídas em colaboração com as secretarias</span></div>
-<div style="--c:var(--c5)"><b>Pesquisa primária</b><span>é o caminho para cobrir o que o registro administrativo não alcança</span></div>
+<div class="stats" style="--n:2; margin-top:18px">
+<div style="--c:var(--c7)"><b>Direito à Cidade</b><span>eixo sem dado público</span></div>
+<div style="--c:var(--c5)"><b>Participação</b><span>eixo sem dado público</span></div>
 </div>
+
+<div class="conecta"></div>
+
+<div class="solucao"><b>Pesquisa primária</b><span>a solução para os dois eixos: construída em colaboração com as secretarias, cobre o que o registro administrativo não alcança</span></div>
 
 <!-- revisar -->
 
 <!--
-Slide novo (slide_revision). Convite: quem já coleta algo sobre esses temas? Que pesquisa faria sentido?
+Slide novo (slide_revision). Dois eixos distintos, uma mesma solução: pesquisa primária. Convite: quem já coleta algo sobre esses temas? Que pesquisa faria sentido?
 -->
 
 ---
