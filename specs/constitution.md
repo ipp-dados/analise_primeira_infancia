@@ -204,6 +204,15 @@ limpeza do histórico está no `ROADMAP.md` e depende de decisão com a equipe (
   a `demo` nunca é mesclada de volta. O texto provisório nunca vai para o PDF, para `relatorio/textos_curados.json`
   nem para o DOCX de curadoria, que seguem mostrando lorem e pendentes. Enquanto a demonstração estiver no ar, o
   GitHub Pages publica só a partir da `demo`.
+- **Direção dos merges** (regra do usuário, 2026-09-29): o trabalho sobe das branches de rodada para a integração, e
+  a integração desce para as derivadas. Nunca no sentido contrário:
+  - `spec/<nome>` → `staging_main` (merge `--no-ff` ao fim da rodada);
+  - `staging_main` → `main` (publicação);
+  - `staging_main` → `demo` (para atualizar a demonstração). Depois do merge, regere o site e o PDF na `demo` e
+    confira que o build não parou por falta de texto provisório.
+  - **Proibido**: `demo` → `staging_main`/`main`/`spec/*`, e `staging_main` ← qualquer branch que tenha a `demo` na
+    história. Uma correção feita na `demo` que valha para todos é refeita numa `spec/<nome>` a partir de
+    `staging_main` (ou por `cherry-pick` de um commit que não traga nada da demonstração), nunca por merge.
 - Nunca force-push, nunca reescreva commits já publicados, nunca pule hooks
   — pedir confirmação explícita antes de qualquer operação destrutiva
   (`reset --hard`, `checkout --`, deletar branch).
