@@ -381,6 +381,19 @@ def vf_taxa_outros_2025():
     return fmt_dec(_vf_2025()["taxa_por_mil_outros"])
 
 
+# pedido do usuário (2026-09-29): nos slides de Proteção, mãe e pai numa só linha -- a soma dos dois vínculos (uma
+# notificação que cite os dois conta duas vezes; o Tabnet não deduplica). O slide diz isso na nota.
+@numero
+def vf_notif_mae_pai_2025():
+    return fmt_int(_vf_2025()["mae"] + _vf_2025()["pai"])
+
+
+@numero
+def vf_taxa_mae_pai_2025():
+    d = _vf_2025()
+    return fmt_dec((d["mae"] + d["pai"]) / d["populacao_0_a_5"] * 1000)
+
+
 @numero
 def vf_ano():
     return str(int(_vf_2025()["ano"]))
@@ -397,14 +410,14 @@ def baixo_peso_n_2025():
 
 
 @numero
-def ips_homicidios_max_ra():
+def homicidios_max_ra():
     d = _csv("tabela_mapa_violencia_territorial_ra_2024.csv").dropna(subset=["taxa_homicidios"])
     r = d.loc[d["taxa_homicidios"].idxmax()]
     return f"{fmt_dec(r['taxa_homicidios'], 0)} ({r['regiao_adm'].title()})"
 
 
 @numero
-def ips_homicidios_2a_ra():
+def homicidios_2a_ra():
     """Maior taxa entre as RAs depois da primeira (o Centro, outlier no mapa do slide)."""
     d = _csv("tabela_mapa_violencia_territorial_ra_2024.csv").dropna(subset=["taxa_homicidios"])
     r = d.sort_values("taxa_homicidios", ascending=False).iloc[1]
@@ -412,7 +425,7 @@ def ips_homicidios_2a_ra():
 
 
 @numero
-def ips_homicidios_min_ra():
+def homicidios_min_ra():
     d = _csv("tabela_mapa_violencia_territorial_ra_2024.csv").dropna(subset=["taxa_homicidios"])
     r = d.loc[d["taxa_homicidios"].idxmin()]
     return f"{fmt_dec(r['taxa_homicidios'], 0)} ({r['regiao_adm'].title()})"

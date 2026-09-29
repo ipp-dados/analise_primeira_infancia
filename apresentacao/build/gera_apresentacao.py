@@ -78,7 +78,7 @@ def pdf_mapa(nome):
     """PDF da figura: mapa próprio da apresentação (build/mapas_apresentacao.py) ou a versão de impressão do analise.py
     -- mapas/a4/ ou, para gráficos, visualizacoes/a4/ (specs/2026-09-29_slide_revision: sem título embutido, que dizia
     "0 a 5 anos", e com a legenda fora das barras)."""
-    if nome in mapas_apresentacao.MAPAS:
+    if nome in mapas_apresentacao.MAPAS or nome in mapas_apresentacao.GRAFICOS:
         return mapas_apresentacao.gera(nome)[0]
     for pasta in ("mapas/a4", "visualizacoes/a4"):
         a4 = RAIZ / pasta / f"{nome}.pdf"
@@ -90,7 +90,7 @@ def pdf_mapa(nome):
 def fonte_mapa(nome):
     """Fonte (e nota do teto de cor) do mapa A4, do manifesto gravado pelo analise.py -- vai para o rodapé do slide."""
     global _MANIFESTO
-    if nome in mapas_apresentacao.MAPAS:
+    if nome in mapas_apresentacao.MAPAS or nome in mapas_apresentacao.GRAFICOS:
         return mapas_apresentacao.gera(nome)[1].replace("'", "’")
     if _MANIFESTO is None:
         import pandas as pd
@@ -167,7 +167,8 @@ def capturas(url_site):
                 if nav is None:
                     raise RuntimeError("nenhum navegador para o Playwright")
                 pg = nav.new_page(viewport={"width": 1440, "height": 900})
-                pg.goto(site + "#visao-geral"); pg.wait_for_timeout(1200)
+                # topo da página, com o banner (pedido do usuário, 2026-09-29; o hash #visao-geral rolava para as abas)
+                pg.goto(site); pg.wait_for_timeout(1500); pg.evaluate("window.scrollTo(0, 0)"); pg.wait_for_timeout(300)
                 pg.screenshot(path=str(alvos["site_desktop"]))
                 pg = nav.new_page(viewport={"width": 390, "height": 780}, device_scale_factor=2)
                 pg.goto(site + "#prioridade/mortalidade-infantil-por-bairro"); pg.wait_for_timeout(1500)

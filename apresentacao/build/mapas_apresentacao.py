@@ -9,6 +9,9 @@ Parâmetros de cada entrada de MAPAS (os opcionais têm padrão):
   outlier           escala contínua com teto de Tukey (padrão True); False = escala até o máximo
   zero_branco       zero em branco nas classes discretas ("0 (sem casos)")
   rotulo            coluna com o nome da região para a nota dos outliers (nível bairro: o nome vem do geojson)
+  prepara           função df -> df aplicada à tabela antes do mapa (coluna derivada só do deck)
+
+GRAFICOS: séries só da apresentação, no desenho de impressão do analise.py (`_a4_series`); mesma chave `fig:<nome>`.
 
 Regra de outlier: a mesma do site (cercas de Tukey, 1,5 x IQR, `remove_outliers_tukey` em website/build/build_site.py).
 A escala de cor vai até o maior valor que NÃO é outlier; as regiões acima ficam com a cor máxima e são nomeadas na nota
@@ -29,7 +32,24 @@ SAIDA = AQUI.parent / "_build" / "mapas"
 TERRACOTA = LinearSegmentedColormap.from_list("terracota", ["#fbf6ef", "#f1dcc4", "#e3b48f", "#cf8a63", "#a4452c"])
 _CMAPS = {"terracota": TERRACOTA}
 
-_FONTE_CENSO = "IBGE, Censo Demográfico 2022 (Data.Rio), por bairro"
+_FONTE_SINAN = "Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos"
+
+
+def _vf_mae_pai_bairro_2025(df):
+    """Pedido do usuário (2026-09-29): mãe e pai numa só contagem. É a SOMA dos dois vínculos -- a notificação que cita
+    os dois conta duas vezes (o Tabnet não permite deduplicar); a nota do slide diz isso."""
+    d = df[df["ano"] == 2025].copy()
+    d["mae_pai"] = d["mae"] + d["pai"]
+    return d
+
+
+def _vf_mae_pai_municipio(df):
+    d = df.copy()
+    d["taxa_por_mil_mae_pai"] = (d["mae"] + d["pai"]) / d["populacao_0_a_5"] * 1000
+    return d
+
+
+_FONTE_CENSO ="IBGE, Censo Demográfico 2022 (Data.Rio), por bairro"
 _FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro, por bairro (2025)"
 MAPAS = {
     # pedido do usuário (2026-09-28): no slide "O território onde a criança brinca" o Centro enviesava a escala
@@ -57,6 +77,22 @@ MAPAS = {
         tabela="tabela_mapa_nascidos_baixo_peso_2025.csv", coluna="percentual abaixo do peso", chave="codigo",
         nivel="bairro", titulo="% de nascidos com baixo peso por bairro (2025)", tema="natalidade",
         legenda="% baixo peso", fonte=_FONTE_DATASUS.replace("óbitos e nascimentos", "nascimentos")),
+    # pedido do usuário (2026-09-29): um mapa só, mãe + pai somados (no lugar dos dois mapas por vínculo)
+    "apres_violencia_familiar_mae_pai_bairro_2025": dict(
+        tabela="violencia_familiar_por_bairro.csv", prepara=_vf_mae_pai_bairro_2025, coluna="mae_pai",
+        chave="codbairro", nivel="bairro", titulo="Notificações de violência familiar por bairro — mãe ou pai (2025)",
+        tema="protecao", bins=[10, 30, 60, 120], zero_branco=True, legenda="Notificações\n(mãe + pai)",
+        fonte=_FONTE_SINAN + ", por bairro de residência (2025); soma dos vínculos mãe e pai"),
+}
+
+GRAFICOS = {
+    # pedido do usuário (2026-09-29): uma linha só, mãe + pai somados
+    "apres_violencia_familiar_mae_pai_taxa_ano": dict(
+        tabela="violencia_familiar_taxa_municipio_ano.csv", prepara=_vf_mae_pai_municipio, tempo="ano",
+        colunas={"Mãe ou pai": "taxa_por_mil_mae_pai"}, marcos={2017: "possível quebra de série (2017)"},
+        titulo="Notificações de violência familiar com mãe ou pai como provável autor, por 1.000 crianças (2011-2025)",
+        ylabel="Notificações por 1.000 crianças",
+        fonte=_FONTE_SINAN + "; população 0 a 5 anos: estimativas Ripsa/Ministério da Saúde; soma dos vínculos mãe e pai"),
 }
 
 
@@ -79,11 +115,15 @@ def _nomes_bairros():
 
 
 def gera(nome):
-    """Gera (se faltar ou estiver velho) o PDF do mapa; devolve (caminho, fonte para o rodapé)."""
+    """Gera (se faltar ou estiver velho) o PDF do mapa ou do gráfico; devolve (caminho, fonte para o rodapé)."""
+    if nome in GRAFICOS:
+        return gera_grafico(nome)
     cfg = MAPAS[nome]
     destino = SAIDA / f"{nome}.pdf"
     tabela = RAIZ / "tabelas_finais" / cfg["tabela"]
     df = pd.read_csv(tabela)
+    if cfg.get("prepara"):
+        df = cfg["prepara"](df)
     fonte = cfg["fonte"]
     teto = None
     if not cfg.get("bins") and cfg.get("outlier", True):
@@ -131,7 +171,29 @@ def gera(nome):
     return destino, fonte
 
 
+def gera_grafico(nome):
+    cfg = GRAFICOS[nome]
+    destino = SAIDA / f"{nome}.pdf"
+    tabela = RAIZ / "tabelas_finais" / cfg["tabela"]
+    fresco = max(tabela.stat().st_mtime, Path(__file__).stat().st_mtime)
+    if destino.exists() and destino.stat().st_mtime >= fresco:
+        return destino, cfg["fonte"]
+    sys.path.insert(0, str(RAIZ))
+    import primeira_infancia.impressao as imp
+    SAIDA.mkdir(parents=True, exist_ok=True)
+    imp._PASTA_A4 = {"grafico": str(SAIDA), "mapa": str(SAIDA)}          # nada vai para visualizacoes/a4/
+    imp._MANIFESTO_A4 = str(SAIDA / "_manifesto.csv")
+    df = pd.read_csv(tabela)
+    if cfg.get("prepara"):
+        df = cfg["prepara"](df)
+    imp._a4_series(df, cfg["tempo"], cfg["colunas"], cfg["titulo"], nome_arquivo=nome, ylabel=cfg["ylabel"],
+                   fonte_dados=cfg["fonte"], marcos=cfg.get("marcos"))
+    if not destino.exists():
+        raise RuntimeError(f"gráfico {nome} não foi gerado (ver aviso acima)")
+    return destino, cfg["fonte"]
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
-    for n in MAPAS:
+    for n in [*MAPAS, *GRAFICOS]:
         print(n, *gera(n))
