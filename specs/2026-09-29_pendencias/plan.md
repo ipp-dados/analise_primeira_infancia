@@ -54,7 +54,7 @@ Decisões do usuário (2026-09-29, perguntas agrupadas): ver `ROADMAP.md` → Co
 ## Blocos
 
 **B0 — Abertura.** Branch `spec/pendencias` a partir de `planning`; `specification.md` (decisões + respostas Q1-Q4),
-`tasks.md`, `validation.md`. Linha de base: screenshots do site (desktop ≥ 1100 px, tablet 800 px, celular 390 px,
+`tasks.md`, `validation.md` (os quatro já escritos no planejamento, `specs/constitution.md` §5). Linha de base: screenshots do site (desktop ≥ 1100 px, tablet 800 px, celular 390 px,
 Playwright) e contagem de figuras/tabelas do PDF (hoje 94 figuras, 43 tabelas).
 
 **B1 — Mapa duplicado (D1).** Tirar a pill "Total" dos dois modos do cartão neonatal no site; tirar o `- mapa:` do
@@ -95,7 +95,10 @@ ressalva); Centro "só no deck" registrado em `specs/2026-09-28_apresentacao`. F
 `apresentacao` T5.2 (merge feito; tags ficam para o OK de D7); nota de fechamento em
 `specs/2026-09-25_relatorio_latex/tasks.md` (caixas de trabalho feito; T3.3/T4.3 → backlog do PDF, já no ROADMAP).
 
-**B7 — Regerar e validar.** Rodar as células afetadas de `analise.py` (DataSUS e SIDRA são arquivos locais; não precisa
+**B7 — Textos (D11).** Ajustar só o trecho afetado em `relatorio/textos_curados.json` e nas notas espelhadas de
+`analise.py`; marcar `revisar` em `relatorio/controle_revisao.json` (lista em `specification.md` R8).
+
+**B8 — Regerar e validar.** Rodar as células afetadas de `analise.py` (DataSUS e SIDRA são arquivos locais; não precisa
 do banco do CadÚnico), com `GERA_VARIANTE_A4`; `build_site.py`; `gera_latex.py` **sem** `--publicar`; DOCX de
 curadoria. Validação em `validation.md`:
 - desktop do site idêntico fora dos 4 gráficos/cartões alterados; tablet e celular sem regressão;
@@ -105,7 +108,7 @@ curadoria. Validação em `validation.md`:
   `organizacao`);
 - textos: lista dos textos curados afetados (Q3) com o status em `controle_revisao.json`.
 
-**B8 — Fechamento.** `CHANGELOG.md`, `docs/especificacao_projeto.md` (§11), `ROADMAP.md`, `CLAUDE.md` se a regra de
+**B9 — Fechamento.** `CHANGELOG.md`, `docs/especificacao_projeto.md` (§11), `ROADMAP.md`, `CLAUDE.md` se a regra de
 base zero mudar lá; merge `spec/pendencias` → `planning` → `staging_main`. **Publicação do PDF, deploy do site, tags e
 limpeza de branches só com OK do usuário (D7, D8).**
 
