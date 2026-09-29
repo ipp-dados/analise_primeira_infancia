@@ -115,3 +115,12 @@ Decisões do usuário (2026-09-24): **C-D2 ✅** (subtítulos do crosswalk com o
   chave de `relatorio/textos_curados.json`. No DOCX, os 8 bookmarks das imagens renomeadas foram migrados
   para os nomes novos (texto preservado; "Textos órfãos" continua com 6 itens).
 - **Lista C:** notas de curadoria não editadas; ficam com o usuário.
+
+## 8. Faixa padrão 0 a 5 anos (2026-09-29, `specs/2026-09-29_pendencias` D9, D14-D18)
+
+Regra do usuário: o projeto trabalha sempre com **0 a 5 anos (até 72 meses)**; quando os 6 anos forem necessários, com
+nota. Aplicado às saídas que ainda iam a 6 anos: população Censo 2022 por sexo e raça/cor (SIDRA 9606; linha de total
+passa a ser 0 a 5), série Ripsa (0 a 5; o total de 0 a 6 fica só como coluna para a nota da apresentação), taxas de
+frequência escolar (IBGE 10056 até 5 anos; agregados por taxa × população, D14). **C-D2 substituída por D18:** os
+subtítulos do crosswalk que diziam "até 6 anos" dizem "até 72 meses", com o nome do catálogo na `nota`. Nomes de arquivo
+`*_0_6_*` mantidos (chaves).

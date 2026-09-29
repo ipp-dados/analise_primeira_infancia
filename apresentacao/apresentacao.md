@@ -209,9 +209,11 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 
 <div class="kicker">Parte II · Quantas crianças</div>
 
-<div class="grande">{{n:pop_0_6_ripsa_mil}}</div>
+<div class="grande">{{n:pop_0_5_ripsa_mil}}</div>
 
-<div class="legenda-grande">crianças de 0 a 6 anos vivem no Rio — <strong>{{n:pct_0_6_ripsa_2025}}</strong> da população em {{n:ano_ripsa}}. E são cada vez menos: eram {{n:pop_0_6_ripsa_2000_mil}} em 2000 ({{n:pct_0_6_ripsa_2000}} da população), <strong>{{n:queda_0_6_ripsa_2000}} a menos</strong>.</div>
+<div class="legenda-grande">crianças de 0 a 5 anos vivem no Rio — <strong>{{n:pct_0_5_ripsa_2025}}</strong> da população em {{n:ano_ripsa}}. E são cada vez menos: eram {{n:pop_0_5_ripsa_2000_mil}} em 2000 ({{n:pct_0_5_ripsa_2000}} da população), <strong>{{n:queda_0_5_ripsa_2000}} a menos</strong>.</div>
+
+<p class="nota">A política municipal fala em crianças até 6 anos: {{n:pop_0_6_ripsa_mil}} em {{n:ano_ripsa}}. Aqui, como em todo o painel, a faixa é de 0 a 5 anos (até 72 meses).</p>
 
 <!-- fonte: Ripsa/Ministério da Saúde, estimativas populacionais 2000-2025 -->
 
@@ -219,11 +221,10 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 
 <div class="kicker">Parte II · Quantas crianças</div>
 
-# {{n:pop_0_6_ripsa_mil}} na cidade; outras réguas no bairro e no cadastro
+# {{n:pop_0_5_ripsa_mil}} na cidade; outra régua no bairro
 
 <div class="stats">
-<div style="--c:var(--c2)"><b>{{n:pop_0_6_ripsa_mil}}</b><span>0 a 6 anos, <strong>estimativa Ripsa/Ministério da Saúde</strong> ({{n:ano_ripsa}}) — a faixa da política, só para a cidade inteira</span></div>
-<div style="--c:var(--c3)"><b>{{n:pop_0_5_ripsa_mil}}</b><span>0 a 5 anos, mesma estimativa — a base de comparação do Cadastro Único, que vai até 5 anos</span></div>
+<div style="--c:var(--c2)"><b>{{n:pop_0_5_ripsa_mil}}</b><span>0 a 5 anos, <strong>estimativa Ripsa/Ministério da Saúde</strong> ({{n:ano_ripsa}}) — a faixa do painel e do Cadastro Único, só para a cidade inteira</span></div>
 <div style="--c:var(--c1)"><b>{{n:censo_0_4_2022_mil}}</b><span>0 a 4 anos, <strong>Censo 2022</strong> — a única contagem por bairro, usada nos mapas</span></div>
 </div>
 
@@ -291,7 +292,7 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 
 <div class="kicker">Parte II · Quem são</div>
 
-# {{n:pct_negras_0_6_censo}} das crianças de 0 a 6 anos são negras
+# {{n:pct_negras_0_5_censo}} das crianças de 0 a 5 anos são negras
 
 <div class="fig">
 
@@ -333,7 +334,7 @@ Eram **{{n:nascidos_pico}}** em {{n:nascidos_pico_ano}}. Os nascimentos se conce
 
 </div>
 
-![](fig:mapa_taxa_mortalidade_infantil_bairro_2025)
+![](fig:mapa_taxa_obitos_raca_total_bairro_2025)
 
 </div>
 

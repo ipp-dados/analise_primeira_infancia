@@ -96,3 +96,9 @@
 - [x] Tirar os ícones dos eixos da abertura de capítulo ("we will update later"; o código fica comentado em `estilo.sty`)
 - [ ] Próxima rodada: E12 (amarela + indígena na frequência escolar por raça/cor)
 
+## Nota de fechamento (2026-09-29, `specs/2026-09-29_pendencias` R9)
+Caixas desmarcadas acima que foram feitas (conferido no repositório): T2.7 (páginas revistas; tabelas longas → T4.4),
+T3.6 (`gera_latex.py --publicar` existe e publicou), T4.1 e T4.2 (`relatorio/latex/build/tabelas.py`), T7.1
+(`validation.md` V1-V20) e a "Próxima rodada: E12" (aplicada em `specs/2026-09-29_pendencias`, D14/D15). **Não feitas**,
+levadas ao backlog do PDF no `ROADMAP.md`: T3.3 (legendas pelo manifesto e remissões "ver Tabela X.n") e T4.3
+(`tabela_no_texto:`). T5.3 perdeu o objeto (`regen_missing_pngs.py` foi aposentado).

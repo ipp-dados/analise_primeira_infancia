@@ -5,12 +5,15 @@ Extraído de analise.py sem mudança de código (specs/2026-09-28_organizacao, f
 """
 import contextily as ctx
 import geopandas as gpd
+import matplotlib.patches as mpatches
 import matplotlib.patheffects as pe
 import xyzservices
 from shapely.geometry import box
 
 __all__ = [
     '_PALETA_CATEGORICA',
+    '_NOTA_EIXO_CORTADO',
+    '_marca_corte_eixo_y',
     '_CORES_TEMA_MAPA',
     '_LIMIAR_DESTAQUE_SERIES',
     '_N_SERIES_DESTACADAS',
@@ -111,3 +114,19 @@ def _adiciona_rotulos_municipios_vizinhos(ax, xlim, ylim, cor='#262626', tamanho
             fontsize=tamanho, color=cor, fontweight='medium', zorder=4,
             path_effects=[pe.withStroke(linewidth=2.5, foreground='white')],
         )
+
+
+# ------------------------------------------------------------------ eixo y cortado (specs/2026-09-29_pendencias D3/D12)
+# Única exceção à base zero (P1): percentual de baixo peso ao nascer. O corte é desenhado (duas barras inclinadas no pé
+# do eixo y) e dito por escrito na fonte, no gráfico de tela, na variante A4 (PDF) e no site (js/charts.js).
+_NOTA_EIXO_CORTADO = 'Nota: eixo não começa em zero'
+
+def _marca_corte_eixo_y(ax, cor='#5a6570', tamanho=0.018):
+    """Duas barras inclinadas sobre a base do eixo y, em coordenadas do eixo (independe da escala dos dados)."""
+    fundo = ax.get_facecolor()
+    ax.add_patch(mpatches.Rectangle(
+        (-tamanho, -tamanho * 0.2), tamanho * 2.2, tamanho * 2.4, transform=ax.transAxes, facecolor=fundo,
+        edgecolor='none', clip_on=False, zorder=5))
+    for dy in (0, tamanho):
+        ax.plot([-tamanho, tamanho], [dy - tamanho * 0.3, dy + tamanho * 0.9], transform=ax.transAxes, color=cor,
+                linewidth=1.0, clip_on=False, zorder=6, solid_capstyle='round')

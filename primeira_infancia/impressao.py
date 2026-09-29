@@ -29,7 +29,7 @@ from matplotlib.ticker import MaxNLocator as _MaxNLocator
 from matplotlib_scalebar.scalebar import ScaleBar
 from pathlib import Path
 from shapely.geometry import box
-from .estilo import (_LIMIAR_DESTAQUE_SERIES, _PROVEDORES_FUNDO, _adiciona_rotulos_municipios_vizinhos, _numero_ptbr)
+from .estilo import (_LIMIAR_DESTAQUE_SERIES, _PROVEDORES_FUNDO, _adiciona_rotulos_municipios_vizinhos, _marca_corte_eixo_y, _numero_ptbr)
 
 __all__ = [
     'GERA_VARIANTE_A4',
@@ -238,14 +238,19 @@ def _a4_seguro(funcao):
 
 # ------------------------------------------------------------------ séries temporais
 @_a4_seguro
-def _a4_serie_unica(df, tempo, valor, titulo, nome_arquivo, fonte_dados):
+def _a4_serie_unica(df, tempo, valor, titulo, nome_arquivo, fonte_dados, base_zero=True):
     d = df[[tempo, valor]].dropna().sort_values(tempo)
     x, y = d[tempo].astype(float), d[valor].astype(float)
     dec = _decimais_a4(y)
     fig, ax = plt.subplots(figsize=(_LARGURA_A4, 6.0 * _CM))
     cor = _PALETA_IMPRESSAO[0]
     ax.plot(x, y, color=cor)
-    ax.set_ylim(0, y.max() * 1.2 if y.max() > 0 else 1)
+    if base_zero:
+        ax.set_ylim(0, y.max() * 1.2 if y.max() > 0 else 1)
+    else:   # D3/D12 (specs/2026-09-29_pendencias): eixo cortado; a nota já vem em fonte_dados (serie_temporal)
+        folga = (y.max() - y.min()) or 1
+        ax.set_ylim(y.min() - folga * 0.35, y.max() + folga * 0.35)
+        _marca_corte_eixo_y(ax)
     ax.yaxis.set_major_locator(_MaxNLocator(nbins=5, integer=y.max() >= 5))
     ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0 if y.max() >= 5 else 1)))
     _eixo_x_anos_a4(ax, x, rotulo_extra=0.07)

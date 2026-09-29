@@ -179,3 +179,12 @@ Números entre `{{ }}`: valores atuais calculados em 2026-09-28, só para planej
 | Q6 | Os dois: demonstração ao vivo e QR + captura | slide 27 com QR + captura (plano B sem rede); roteiro de demonstração em notas do apresentador (`<!-- notas -->` do Marp) |
 
 Termo confirmado pelo usuário: **"Direito ao Brincar"**.
+
+## Adendos de 2026-09-29 (`specs/2026-09-29_pendencias`)
+- **D6** — o Centro como outlier no mapa do IPS (mapa próprio, cerca de Tukey) fica **só na apresentação**; site e
+  PDF mantêm o teto P95.
+- **D10** — o slide de mortalidade infantil por bairro passa a usar `mapa_taxa_obitos_raca_total_bairro_2025` (mesmos
+  valores do mapa anterior, que saiu do site e do PDF por duplicado, E13).
+- **D17** — a âncora de população passa a ser 0 a 5 anos (Ripsa, faixa padrão do projeto, D9); os 469 mil de 0 a 6
+  anos ficam só numa nota. `pct_negras_0_6_censo` virou `pct_negras_0_5_censo` e lê a linha de total 0 a 5 (antes
+  somava também o total de todas as idades: 54,3% contra 54,4% corretos).

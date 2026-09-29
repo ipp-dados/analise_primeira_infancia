@@ -49,3 +49,5 @@ Legenda: [x] feito · [ ] a fazer
 - [x] T6.1 `validation.md`
 - [x] T6.2 Documentação (especificação do projeto, CLAUDE.md, ROADMAP, README, relatorio/specs.md)
 - [ ] T6.3 Regenerar site e PDF; publicar com o OK do usuário; merge; tag `rodada/nova_estrutura`
+  - 2026-09-29: merge em `planning`/`staging_main` feito (`ab9f803`) e site publicado; PDF e tag seguem em
+    `specs/2026-09-29_pendencias` (T9.3, com OK do usuário)

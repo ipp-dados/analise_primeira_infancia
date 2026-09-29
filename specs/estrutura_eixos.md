@@ -43,26 +43,31 @@
 - tabela: `censo_0_a_4_anos_por_ano.csv`
 - nota: movido de Prioridade para a Introdução (specs/2026-09-28_nova_estrutura)
 
-### Crianças até 6 anos (número)
+### Crianças até 72 meses (número)
+- nota: nome no catálogo da equipe: "Crianças até 6 anos (número)"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025)
 - visualização: `populacao_ripsa_0_a_6_por_ano.png`
 - visualização: `populacao_ripsa_0_a_6_percentual_por_ano.png`
 - tabela: `populacao_ripsa_0_a_6_por_ano.csv`
-- nota: série anual 2000-2025, nível município, idade simples 0 a 6 (a tabela traz também o total 0 a 5). Estimativa corrigida da subcontagem do Censo 2022: não se compara diretamente com os números do Censo. Ligado em `specs/2026-09-24_populacao-referencia` (A2/D2)
+- nota: série anual 2000-2025, nível município, idade simples 0 a 5 (faixa padrão do projeto desde 2026-09-29, specs/2026-09-29_pendencias D9; antes 0 a 6). Estimativa corrigida da subcontagem do Censo 2022: não se compara diretamente com os números do Censo. Ligado em `specs/2026-09-24_populacao-referencia` (A2/D2)
 - nota: movido de Prioridade para a Introdução (specs/2026-09-28_nova_estrutura)
 
-### Crianças até 6 anos, por sexo
+### Crianças até 72 meses, por sexo
+- nota: nome no catálogo da equipe: "Crianças até 6 anos, por sexo"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Censo Demográfico 2022 (IBGE SIDRA)
 - eixo transversal: Proteção
 - visualização: `censo_sidra_populacao_0_6_sexo_2022.png`
 - tabela: `censo_sidra_populacao_0_6_sexo_2022.csv`
+- nota: faixa real 0 a 5 anos (specs/2026-09-29_pendencias D9; a tabela 9606 traz também os 6 anos, fora); a linha de total é de 0 a 5 anos
 - nota: movido de Inclusão para a Introdução (specs/2026-09-28_nova_estrutura)
 
-### Crianças até 6 anos, por raça/cor
+### Crianças até 72 meses, por raça/cor
+- nota: nome no catálogo da equipe: "Crianças até 6 anos, por raça/cor"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Censo Demográfico 2022 (IBGE SIDRA)
 - eixo transversal: Proteção
 - visualização: `censo_sidra_populacao_0_6_raca_2022.png`
 - tabela: `censo_sidra_populacao_0_6_raca_2022.csv`
+- nota: faixa real 0 a 5 anos (specs/2026-09-29_pendencias D9; a tabela 9606 traz também os 6 anos, fora); a linha de total é de 0 a 5 anos
 - nota: movido de Inclusão para a Introdução (specs/2026-09-28_nova_estrutura)
 
 ### Nascidos vivos por bairro de residência da mãe (número)
@@ -154,13 +159,13 @@
 - fonte: DataSUS/Tabnet municipal
 - visualização: `taxa_mortalidade_infantil_ano.png`
 - visualização: `taxa_mortalidade_pos_neonatal_ano.png`
-- mapa: `mapa_taxa_mortalidade_infantil_bairro_2025.png`
 - mapa: `mapa_taxa_mortalidade_pos_neonatal_bairro_2025.png`
 - tabela: `mortalidade_infantil_pos_neonatal_total_por_ano.csv`
 - tabela: `mortalidade_infantil_pos_neonatal_total_bairro_ano.csv`
 - tabela: `tabela_mapa_mortalidade_infantil_2025.csv`
 
 - nota: `mapa_obitos_pos_neonatal_bairro_2025.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
+- nota: `mapa_taxa_mortalidade_infantil_bairro_2025.png` fora do relatório (specs/exclusoes.md, E13, 2026-09-29): idêntico ao mapa `mapa_taxa_obitos_raca_total_bairro_2025.png` do item "Mortalidade infantil por raça/cor", que fica
 - nota: mapa_mortalidade_infantil_bairro_2025.png fora do relatório (specs/exclusoes.md, E9, 2026-09-25): mapa de contagem ao lado do de taxa; no site vira alternância Taxa/Óbitos
 - nota: a planilha da equipe (2026-09-28) aponta este indicador para o cartão "Óbitos por causas evitáveis"; ficam as taxas de menores de 1 ano acima e a taxa de evitáveis de menores de 5 anos (`taxa_mortalidade_evitaveis_menores_5_ano`) no item anterior. A taxa de 1 a 4 anos (todas as causas) ainda não existe (specs/2026-09-28_nova_estrutura §4, S3)
 ### Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10)
@@ -208,7 +213,8 @@
 - nota: razão municipal (194.138 ÷ 393.073 ≈ 49,4% na partição 2026-06-12). Cadastro de 2026 sobre estimativa de 2025; não é a cobertura exata do cadastro. Item novo da rodada `populacao-referencia` (A4), fora do catálogo original
 - nota: movido de Inclusão para Prioridade (specs/2026-09-28_nova_estrutura)
 
-### Crianças até 6 anos no Cadastro Único (número)
+### Crianças até 72 meses no Cadastro Único (número)
+- nota: nome no catálogo da equipe: "Crianças até 6 anos no Cadastro Único (número)"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Cadastro Único (extração CTPE)
 - visualização: `cadunico_criancas_por_idade.png`
 - mapa: `mapa_cadunico_criancas_bairro_2026.png`
@@ -221,7 +227,8 @@
 - nota: faixa real 0 a 5 anos completos (grupo "0-6" do CTPE); os arquivos `_0_a_4`/`ate_4` são o recorte de 0 a 4 anos
 - nota: movido de Família e Cuidados para Prioridade (specs/2026-09-28_nova_estrutura); posto logo depois da razão CadÚnico/população, antes dos recortes de famílias (sugestão S2 da rodada: a contagem-base vem antes dos cortes)
 
-### Famílias com crianças até 6 anos no Cadastro Único (número)
+### Famílias com crianças até 72 meses no Cadastro Único (número)
+- nota: nome no catálogo da equipe: "Famílias com crianças até 6 anos no Cadastro Único (número)"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Cadastro Único (extração CTPE)
 - visualização: `cadunico_familias_por_idade.png`
 - tabela: `cadunico_por_idade_2026.csv`
@@ -229,14 +236,16 @@
 - nota: faixa real 0 a 5 anos completos (grupo "0-6" do CTPE)
 - nota: movido de Família e Cuidados para Prioridade (specs/2026-09-28_nova_estrutura)
 
-### Famílias com crianças até 6 anos no Cadastro Único, por renda
+### Famílias com crianças até 72 meses no Cadastro Único, por renda
+- nota: nome no catálogo da equipe: "Famílias com crianças até 6 anos no Cadastro Único, por renda"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Cadastro Único (extração CTPE)
 - visualização: `cadunico_familias_por_faixa_renda.png`
 - visualização: `cadunico_criancas_por_faixa_renda.png`
 - tabela: `cadunico_por_faixa_renda_2026.csv`
 - nota: movido de Família e Cuidados para Prioridade (specs/2026-09-28_nova_estrutura)
 
-### Famílias no CadÚnico com crianças até 6 anos, por sexo
+### Famílias no CadÚnico com crianças até 72 meses, por sexo
+- nota: nome no catálogo da equipe: "Famílias no CadÚnico com crianças até 6 anos, por sexo"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Cadastro Único (extração CTPE)
 - visualização: `cadunico_criancas_por_sexo.png`
 - visualização: `cadunico_familias_por_sexo_criancas.png`
@@ -245,7 +254,8 @@
 - nota: sexo da criança; famílias pela composição de sexo das crianças (só meninas / só meninos / ambos); 0 a 5 anos completos; bairros com menos de 20 famílias suprimidos
 - nota: movido de Inclusão para Prioridade (specs/2026-09-28_nova_estrutura)
 
-### Famílias no CadÚnico com crianças até 6 anos, por raça/cor
+### Famílias no CadÚnico com crianças até 72 meses, por raça/cor
+- nota: nome no catálogo da equipe: "Famílias no CadÚnico com crianças até 6 anos, por raça/cor"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Cadastro Único (extração CTPE)
 - eixo transversal: Proteção
 - visualização: `cadunico_criancas_por_raca_cor.png`
@@ -275,34 +285,39 @@
 
 ## 👨‍👩‍👧 Família e Cuidados
 
-### Crianças até 6 anos frequentando escola/creche (geral)
+### Crianças até 72 meses frequentando escola/creche (geral)
+- nota: nome no catálogo da equipe: "Crianças até 6 anos frequentando escola/creche (geral)"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Censo Demográfico 2022 (IBGE SIDRA, tabela 10057)
 - visualização: `sidra_frequencia_escola_0_5_total_2022.png`
 - tabela: `sidra_frequencia_escola_0_5_total_2022.csv`
 - nota: faixa real 0 a 5 anos (a tabela 10057 vai só até 5 anos); total de todas as raças e sexos, por idade (`specs/2026-09-24_populacao-referencia`, D3)
 - nota: posto no início do bloco de educação, antes dos recortes por raça/cor e sexo (sugestão S4 de specs/2026-09-28_nova_estrutura)
 
-### Crianças até 6 anos frequentando escola/creche, por raça/cor
+### Crianças até 72 meses frequentando escola/creche, por raça/cor
+- nota: nome no catálogo da equipe: "Crianças até 6 anos frequentando escola/creche, por raça/cor"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Censo Demográfico 2022 (IBGE SIDRA)
 - eixo transversal: Proteção
 - visualização: `sidra_taxa_frequencia_0_6_raca_2022.png`
 - tabela: `sidra_taxa_frequencia_0_6_raca_2022.csv`
-- nota: faixa real: frequência de 0 a 5 anos (tabela 10057) e taxa de frequência de 0 a 6 anos (tabela 10056)
+- nota: faixa real 0 a 5 anos: taxa publicada pelo IBGE (tabela 10056, os 6 anos ficam de fora); total de 0 a 5 anos e "Amarela e indígena" agregados de taxa × população (tabela 9606); amarela e indígena só no total, fora das barras por idade (specs/2026-09-29_pendencias D9, D14, D15; specs/exclusoes.md E12)
 
 - nota: sidra_frequencia_escola_0_5_raca_2022.png, sidra_frequencia_escola_0_5_raca_2022.csv fora do relatório (specs/exclusoes.md, E8, 2026-09-25): número absoluto; fica a taxa por idade
 - nota: movido de Inclusão para Família e Cuidados (specs/2026-09-28_nova_estrutura)
-### Crianças até 6 anos frequentando escola/creche, por sexo
+### Crianças até 72 meses frequentando escola/creche, por sexo
+- nota: nome no catálogo da equipe: "Crianças até 6 anos frequentando escola/creche, por sexo"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Censo Demográfico 2022 (IBGE SIDRA)
 - visualização: `sidra_taxa_frequencia_0_6_sexo_2022.png`
 - tabela: `sidra_taxa_frequencia_0_6_sexo_2022.csv`
-- nota: faixa real: frequência de 0 a 5 anos (tabela 10057) e taxa de frequência de 0 a 6 anos (tabela 10056)
+- nota: faixa real 0 a 5 anos: taxa publicada pelo IBGE (tabela 10056, os 6 anos ficam de fora); total de 0 a 5 anos agregado de taxa × população (tabela 9606) (specs/2026-09-29_pendencias D9, D14)
 
 - nota: sidra_frequencia_escola_0_5_sexo_2022.png, sidra_frequencia_escola_0_5_sexo_2022.csv fora do relatório (specs/exclusoes.md, E8, 2026-09-25): número absoluto; fica a taxa por idade
 - nota: movido de Inclusão para Família e Cuidados (specs/2026-09-28_nova_estrutura)
-### Taxa bruta de frequência escolar da população até 6 anos
-- fonte: PNAD Contínua
-- visualização: `pnad_frequencia_escolar_por_idade.png`
-- tabela: `frequencia_escolar_pnad_por_idade.csv`
+### Taxa bruta de frequência escolar da população até 72 meses
+- nota: nome no catálogo da equipe: "Taxa bruta de frequência escolar da população até 6 anos"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
+- fonte: Censo Demográfico 2022 (IBGE SIDRA, tabela 10056)
+- visualização: `sidra_taxa_frequencia_0_5_total_2022.png`
+- tabela: `sidra_taxa_frequencia_0_5_total_2022.csv`
+- nota: faixa real 0 a 5 anos. Até 2026-09-29 este item usava `pnad_frequencia_escolar_por_idade.png`, rotulado "PNAD Contínua", mas com exatamente a coluna Total da tabela 10056 do Censo 2022: fonte corrigida e duplicata tirada (specs/exclusoes.md E15; specs/2026-09-29_pendencias D16)
 
 ### Matrículas na educação básica de crianças de 0 a 5 anos
 - fonte: Censo Escolar da Educação Básica (INEP), microdados
@@ -325,7 +340,8 @@
 
 - nota: `cobertura_vacinal_epi_ano.png` removido do relatório em 2026-09-25 (specs/2026-09-25_relatorio_latex, D6): a chamada que gerava o arquivo está comentada em analise.py, então o PNG no disco é antigo
 - nota: cobertura_vacinal_epi_comparativo_anos.png, cobertura_vacinal_epi_comparativo_anos.csv fora do relatório (specs/exclusoes.md, E7, 2026-09-25): repete 4 anos da série anual
-### Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar
+### Famílias no CadÚnico com crianças até 72 meses, por renda e arranjo familiar
+- nota: nome no catálogo da equipe: "Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar"; título com "até 72 meses" (0 a 5 anos completos, faixa padrão do projeto) desde 2026-09-29 (specs/2026-09-29_pendencias D9, D18; substitui a decisão C-D2 de specs/2026-09-24_populacao-referencia)
 - fonte: Cadastro Único (extração CTPE)
 - visualização: `cadunico_familias_por_arranjo.png`
 - visualização: `cadunico_familias_arranjo_renda.png`
