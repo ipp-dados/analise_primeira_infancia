@@ -526,3 +526,10 @@ com deficiência e cobertura do BPC (Inclusão), domicílios sem banheiro/sem á
 de escoamento fora da rede geral (Moradia). Os quadros de pendente continuam. Aviso público "Dado pontual" (manifesto
 `dados_locais/cadunico/adhoc_2026_08.json`, campo novo `- dado_pontual:` no crosswalk) e nota da faixa 4 a 6 anos (inclui
 os 6 anos). Substituição pela extração automatizada no 4º tri de 2026 no `ROADMAP.md`.
+
+## 2026-09-29 — regra: dado pontual fora do relatório e bloqueio da versão final do site
+
+Dado pontual (`- dado_pontual:`) nunca entra no PDF (o gerador o descarta; PDF de novo igual ao publicado) e bloqueia a
+versão final do site: sem a faixa "em desenvolvimento", `build_site.py` e o deploy param (constituição §3,
+`specs/2026-09-29_dados_adhoc` D7). Deck: um slide para Inclusão e outro para Moradia; site com crianças de 0 a 6 e
+faixas em destaque (D5, D6).

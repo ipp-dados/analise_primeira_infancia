@@ -36,8 +36,9 @@
 > **Campo novo (`specs/2026-09-29_dados_adhoc`, 2026-09-29):**
 > - `- dado_pontual: <id>` — o item usa uma extração pontual, fora da rotina automatizada. `<id>` aponta para o
 >   manifesto `dados_locais/cadunico/adhoc_<id>.json`, fonte única do **aviso público** (`aviso` + `nota_faixa`), que o
->   PDF imprime num quadro abaixo do título do item (o site mostra o mesmo texto). Itens "(dado pontual, …)" entram só
->   por acréscimo e saem quando a extração automatizada os substituir (ROADMAP).
+>   site mostra num quadro abaixo do título. Itens "(dado pontual, …)" entram só por acréscimo e saem quando a
+>   extração automatizada os substituir (ROADMAP). **Regra (D7, constituição §3): nunca vão para o PDF** (o gerador os
+>   descarta) **e bloqueiam a versão final do site** (sem a faixa "em desenvolvimento").
 
 ## 🧭 Introdução
 

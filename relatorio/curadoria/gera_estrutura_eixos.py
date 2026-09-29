@@ -57,6 +57,17 @@ def manifesto_dado_pontual(ident, raiz=None):
     return json.loads((base / "dados_locais/cadunico" / f"adhoc_{ident.strip()}.json").read_text(encoding="utf-8"))
 
 
+def sem_dados_pontuais(estrutura):
+    """Estrutura sem os itens `- dado_pontual:` -- regra do usuário (2026-09-29, constituição §3): dado pontual
+    **nunca** entra no relatório em PDF (só no site em desenvolvimento). Usada pelo gerador do PDF e pelo inventário."""
+    return [{**e, "subsecoes": [s for s in e["subsecoes"] if not s["campos"].get("dado_pontual")]} for e in estrutura]
+
+
+def tem_dados_pontuais(estrutura):
+    """Títulos dos itens `- dado_pontual:` do crosswalk (bloqueio da versão final do site)."""
+    return [s["titulo"] for e in estrutura for s in e["subsecoes"] if s["campos"].get("dado_pontual")]
+
+
 def aviso_dado_pontual(ident, raiz=None):
     """Texto público do quadro "Dado pontual": aviso + nota da faixa etária (D1/D4 de specs/2026-09-29_dados_adhoc)."""
     m = manifesto_dado_pontual(ident, raiz)

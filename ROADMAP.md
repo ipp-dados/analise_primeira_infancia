@@ -84,7 +84,9 @@ Não dependem de código; entram no projeto quando chegarem.
    identidade visual, relatório ABNT em LaTeX a partir de um crosswalk `.md`, round-trip de curadoria em DOCX,
    deck Marp com números calculados. Definir fronteiras, nomes, versionamento e onde publicar (repositório
    próprio, pip via git).
-4. **Substituir os dados pontuais do CadÚnico (ref. 08/2026) pela extração automatizada — 4º tri de 2026**
+4. **Substituir os dados pontuais do CadÚnico (ref. 08/2026) pela extração automatizada — 4º tri de 2026.
+   Bloqueia a versão final do site** (regra D7, constituição §3: sem a faixa "em desenvolvimento" o build e o deploy
+   param enquanto houver dado pontual; no PDF ele nunca entra)
    (`specs/2026-09-29_dados_adhoc`, implementada em 2026-09-29 na branch `spec/dados-adhoc`). Hoje Inclusão e Moradia
    mostram, por acréscimo, uma extração pontual (fora do banco CTPE) com o aviso "Dado pontual". Ao substituir:
    levar as mesmas medidas para `analise.py` a partir do banco (com faixa 0 a 5 anos), recalcular, e apagar
