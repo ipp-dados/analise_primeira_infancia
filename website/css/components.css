@@ -219,6 +219,9 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.76rem;}
 .overview-intro{background:var(--surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-1); padding:32px 36px; margin:0 0 40px;}
 .overview-intro h2{margin:0 0 12px;}
 .overview-intro .lede{color:var(--ink-2); font-size:.94rem; line-height:1.75; max-width:72ch; margin:0;}
+/* panorama da Visão geral (specs/2026-09-28_nova_estrutura): cartões de população e nascimentos antes da grade dos eixos */
+.overview-panorama{margin:0 0 48px;}
+.overview-panorama > h2{margin:0 0 8px;}
 .eixo-grid-label{color:var(--ink-3); margin:0 0 14px;}
 .eixo-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px;}
 .eixo-card{

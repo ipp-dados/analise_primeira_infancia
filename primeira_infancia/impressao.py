@@ -491,7 +491,9 @@ _TETO_PERCENTIL_A4 = 0.95   # D5: teto de cor dos mapas contínuos por bairro na
 
 @_a4_seguro
 def _a4_mapa(gdf, coluna_valor, titulo, nome_arquivo, nivel, bins, cmap, legenda_titulo, fonte_dados, zero_branco,
-             caminho_uf, caminho_municipios):
+             caminho_uf, caminho_municipios, teto=None):
+    # teto (opcional, specs/2026-09-28_apresentacao): limite explícito da escala contínua -- usado pelos mapas da
+    # apresentação (ex. RA Centro como outlier no IPS); sem ele, o comportamento de sempre (percentil 95 por bairro)
     gdf = gdf.to_crs(epsg=3857) if gdf.crs is not None and gdf.crs.to_epsg() != 3857 else gdf
     minx, miny, maxx, maxy = gdf.total_bounds
     padx, pady = (maxx - minx) * 0.02, (maxy - miny) * 0.06
@@ -530,7 +532,10 @@ def _a4_mapa(gdf, coluna_valor, titulo, nome_arquivo, nivel, bins, cmap, legenda
     else:
         valores = gdf[coluna_valor].dropna()
         vmax = float(valores.max()) if len(valores) else 1.0
-        if nivel == 'bairro' and len(valores):
+        if teto is not None and vmax > teto:
+            vmax = float(teto)
+            nota_teto = f'escala de cor limitada a {_num_a4(vmax, 1)} (valores acima com a cor máxima)'
+        elif nivel == 'bairro' and len(valores):
             p = float(valores.quantile(_TETO_PERCENTIL_A4))
             if p > 0 and vmax > p * 1.05:
                 vmax = p
