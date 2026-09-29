@@ -31,4 +31,4 @@ Legenda: [x] feito · [ ] a fazer
 ## B6 — Fechamento
 - [x] T6.1 `controle_revisao.json` (alerta da vacinação resolvido), CHANGELOG, README, ROADMAP, especificação do projeto,
   `relatorio/specs.md`
-- [ ] T6.2 Merge `spec/alinhamento-pdf-site` → `planning` → `staging_main`; push
+- [x] T6.2 Merge `spec/alinhamento-pdf-site` → `planning` → `staging_main`; push (2026-09-29)
