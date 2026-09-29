@@ -183,3 +183,11 @@
 @media (prefers-reduced-motion:reduce){
   .nav-progress span, .outline-mobile-seta{transition:none;}
 }
+
+/* dados pontuais (specs/2026-09-29_dados_adhoc): no celular, cartões em 2 colunas e número menor */
+@media (max-width:719.98px){
+  .kpi-grid{grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;}
+  .kpi{padding:14px 14px;}
+  .kpi-valor{font-size:1.5rem;}
+  .kpi-contexto .kpi-valor{font-size:1.3rem;}
+}

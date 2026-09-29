@@ -560,6 +560,28 @@ Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:ip
 
 ---
 
+<div class="kicker">Parte III · O que falta · Dado pontual</div>
+
+# Primeiros números de Inclusão e Moradia
+
+<div class="stats" style="--n:3; margin-top:22px">
+<div style="--c:var(--c2)"><b>{{n:adhoc_criancas_deficiencia_0_6}}</b><span>crianças com deficiência no Cadastro Único; recebem o BPC {{n:adhoc_bpc_pct_0_3}} das de 0 a 3 anos e {{n:adhoc_bpc_pct_4_6}} das de 4 a 6</span></div>
+<div style="--c:var(--c7)"><b>{{n:adhoc_criancas_sem_agua}}</b><span>crianças no Cadastro Único vivem em domicílio sem água canalizada</span></div>
+<div style="--c:var(--c3)"><b>{{n:adhoc_criancas_vala_ceu_aberto}}</b><span>crianças no Cadastro Único vivem com esgoto em vala a céu aberto</span></div>
+</div>
+
+<p class="nota" style="margin-top:28px">Crianças de 0 a 6 anos. Dado pontual do Cadastro Único (agosto de 2026), a ser substituído pela extração automatizada no 4º trimestre de 2026. Faixas da extração: 0 a 3 e 4 a 6 anos — a de 4 a 6 inclui os 6 anos, fora do padrão de 0 a 5 anos do diagnóstico.</p>
+
+<!-- revisar -->
+
+<!--
+Slide novo (specs/2026-09-29_dados_adhoc, só acréscimo). Primeiros números da extração pontual do CadÚnico; os eixos seguem
+incompletos (próximo slide). BPC = Benefício de Prestação Continuada. Números de tabelas_finais/cadunico_adhoc_*.
+Sai quando a extração automatizada substituir a pontual (ROADMAP).
+-->
+
+---
+
 <div class="kicker">Parte III · O que falta</div>
 
 # Eixos incompletos
