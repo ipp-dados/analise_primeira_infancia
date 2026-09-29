@@ -531,6 +531,36 @@ def adhoc_criancas_vala_ceu_aberto():
     return _criancas_0_6("Vala a céu aberto")
 
 
+@numero
+def adhoc_criancas_rio_mar():
+    return _criancas_0_6("Jogado em rio ou mar")
+
+
+@numero
+def adhoc_criancas_fossa_rudimentar():
+    return _criancas_0_6("Fossa rudimentar")
+
+
+@numero
+def adhoc_deficiencia_0_3():
+    return fmt_int(_deficiencia_adhoc().loc["0 a 3 anos", "Crianças com deficiência"])
+
+
+@numero
+def adhoc_deficiencia_4_6():
+    return fmt_int(_deficiencia_adhoc().loc["4 a 6 anos", "Crianças com deficiência"])
+
+
+@numero
+def adhoc_bpc_n_0_3():
+    return fmt_int(_deficiencia_adhoc().loc["0 a 3 anos", "Com BPC"])
+
+
+@numero
+def adhoc_bpc_n_4_6():
+    return fmt_int(_deficiencia_adhoc().loc["4 a 6 anos", "Com BPC"])
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     for k in _NUMEROS:
