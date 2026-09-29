@@ -588,12 +588,12 @@ Slide novo (slide_revision). Retoma o antigo slide de indicadores pendentes: o q
 
 <div class="conecta"></div>
 
-<div class="solucao"><b>Pesquisa primária</b><span>a solução para os dois eixos: construída em colaboração com as secretarias, cobre o que o registro administrativo não alcança</span></div>
+<div class="solucao"><b>Nossa sugestão: pesquisa primária</b><span>uma proposta para os dois eixos, a decidir com as secretarias: construída em conjunto, cobriria o que o registro administrativo não alcança</span></div>
 
 <!-- revisar -->
 
 <!--
-Slide novo (slide_revision). Dois eixos distintos, uma mesma solução: pesquisa primária. Convite: quem já coleta algo sobre esses temas? Que pesquisa faria sentido?
+Slide novo (slide_revision). Dois eixos distintos, uma mesma sugestão: pesquisa primária. É proposta, não compromisso -- apresentar como pergunta às secretarias. Convite: quem já coleta algo sobre esses temas? Que pesquisa faria sentido?
 -->
 
 ---
