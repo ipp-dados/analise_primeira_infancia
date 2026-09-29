@@ -82,6 +82,7 @@ section.numero { justify-content: center; }
 /* ---- figura com texto ao lado: <div class="lado"><div>texto</div><img></div> */
 .lado { display: grid; grid-template-columns: 1fr 1.9fr; gap: 34px; align-items: center; flex: 1; min-height: 0; }
 .lado.largo { grid-template-columns: 1fr 2.4fr; }
+.lado.baixo img { max-height: 430px; }   /* figura com legenda longa: não encosta no rodapé */
 .lado img, .fig img { width: 100%; max-height: 520px; object-fit: contain; }
 .lado p, .lado li { font-size: 22px; }
 .fig { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }

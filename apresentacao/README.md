@@ -26,7 +26,7 @@ Tudo em `apresentacao.md`. Slides separados por `---`. Além do Markdown do Marp
 |---|---|
 | `{{n:chave}}` | número calculado de `tabelas_finais/` (`build/numeros.py`; `python apresentacao/build/numeros.py` lista todos) |
 | `{{campo}}` | campo do cabeçalho do arquivo (`titulo`, `data`, `secretaria`, `url_site`...) |
-| `![](fig:nome)` | figura de `visualizacoes/` ou `mapas/` (a PNG do `analise.py`); `fig:apres_*` = mapa/gráfico só do deck (`build/mapas_apresentacao.py`, `build/graficos_apresentacao.py`) |
+| `![](fig:nome)` | figura do `analise.py`: a versão de impressão (`mapas/a4/`, `visualizacoes/a4/`, sem título embutido) ou, se faltar, a PNG; `fig:apres_*` = mapa só do deck (`build/mapas_apresentacao.py`) |
 | `![](captura:site_desktop)` | captura do site ou do PDF (`site_desktop`, `site_celular`, `pdf_capa`, `pdf_pagina`) |
 | `{{qr:url_site}}` | QR code da URL |
 | `{{tabela:pendentes}}` | tabela de indicadores sem dado por eixo (de `specs/estrutura_eixos.md`) |

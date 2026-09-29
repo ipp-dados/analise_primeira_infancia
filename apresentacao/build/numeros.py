@@ -355,23 +355,10 @@ def vf_taxa_mae_2025():
     return fmt_dec(_ultimo(_csv("violencia_familiar_taxa_municipio_ano.csv"))["taxa_por_mil_mae"])
 
 
-# specs/2026-09-29_slide_revision D7: soma dos vínculos mãe + pai + outros. Os vínculos não são excludentes (a mesma
-# notificação pode citar mais de um provável autor), então a soma conta notificações-vínculo; o slide diz isso.
-# Taxa = soma dos absolutos ÷ população do mesmo ano (constituição §3), nunca soma das taxas.
+# specs/2026-09-29_slide_revision D7 revista (2026-09-29): os vínculos NÃO se somam -- a mesma notificação pode citar
+# mais de um provável autor (specs/2026-09-23_inclusao_dados_protecao D6); cada vínculo com o seu número e a sua taxa.
 def _vf_2025():
     return _ultimo(_csv("violencia_familiar_taxa_municipio_ano.csv"))
-
-
-@numero
-def vf_notif_total_2025():
-    r = _vf_2025()
-    return fmt_int(r["mae"] + r["pai"] + r["outros"])
-
-
-@numero
-def vf_taxa_total_2025():
-    r = _vf_2025()
-    return fmt_dec((r["mae"] + r["pai"] + r["outros"]) / r["populacao_0_a_5"] * 1000)
 
 
 @numero
@@ -385,15 +372,18 @@ def vf_notif_outros_2025():
 
 
 @numero
-def vf_ano():
-    return str(int(_vf_2025()["ano"]))
+def vf_taxa_pai_2025():
+    return fmt_dec(_vf_2025()["taxa_por_mil_pai"])
 
 
 @numero
-def vf_bairros_com_notif_2025():
-    d = _csv("violencia_familiar_por_bairro.csv")
-    d = d[d["ano"] == 2025]
-    return str(int(((d["mae"] + d["pai"] + d["outros"]) > 0).sum()))
+def vf_taxa_outros_2025():
+    return fmt_dec(_vf_2025()["taxa_por_mil_outros"])
+
+
+@numero
+def vf_ano():
+    return str(int(_vf_2025()["ano"]))
 
 
 @numero

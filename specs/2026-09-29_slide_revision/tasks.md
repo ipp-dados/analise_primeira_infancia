@@ -19,15 +19,15 @@ Legenda: [x] feito · [ ] a fazer
 
 ## B2 — Números
 - [x] T2.1 Renomear chaves de pobreza; filtro pela faixa `0-218`
-- [x] T2.2 `censo_0_5_2022_mil`, `vf_notif_total_2025`, `vf_taxa_total_2025`
+- [x] T2.2 `censo_0_5_2022_mil`; vínculos de violência separados (`vf_*_pai/outros_2025`) — a soma (`vf_*_total_2025`) saiu com D9
 
 ## B3 — Mapas do deck
 - [x] T3.1 `cmap`, `bins`, `outlier` opcionais em `MAPAS`; rampa terracota
-- [x] T3.2 Mapas `apres_censo_0_4_*`, `apres_taxa_mortalidade_infantil_bairro_2025`, `apres_baixo_peso_bairro_2025`, `apres_violencia_familiar_total_bairro_2025`
+- [x] T3.2 Mapas `apres_censo_0_4_*`, `apres_taxa_mortalidade_infantil_bairro_2025`, `apres_baixo_peso_bairro_2025` (o de violência somada saiu com D9: o deck usa os mapas de mãe e pai do relatório)
 - [x] T3.3 Conferir cor de todos os mapas do deck (nenhuma terra azul)
 
 ## B4 — Gráfico do deck
-- [x] T4.1 `graficos_apresentacao.py` + `apres_violencia_familiar_total_ano`; `figura()` resolve os dois módulos
+- [x] T4.1 ~~`graficos_apresentacao.py`~~ retirado com D9; `figura()` usa a versão de impressão dos gráficos (`visualizacoes/a4/`)
 
 ## B5 — Tema
 - [x] T5.1 `.stats .destaque`, `.grupo`, `.nota.forte` em `tema/ipp.css`
@@ -39,4 +39,5 @@ Legenda: [x] feito · [ ] a fazer
 ## B7 — Gerar e registrar
 - [x] T7.1 `gera_apresentacao.py --png`; revisão slide a slide; `validation.md`
 - [x] T7.2 `apresentacao/README.md`, especificação do projeto, ROADMAP, CHANGELOG
-- [ ] T7.3 Merge em `planning`/`staging_main`; `--publicar` só com OK do usuário — aguardando o usuário (ver a ressalva da soma dos vínculos em `validation.md`)
+- [ ] T7.3 Merge em `planning`/`staging_main`; `--publicar` só com OK do usuário — usuário: ver o PDF do deck antes; merge autorizado depois de corrigir os achados
+- [x] T7.4 D9: sem soma de vínculos; achados corrigidos (legenda do gráfico de raça, fonte "0 a 5 anos" no rodapé, títulos embutidos dos gráficos)
