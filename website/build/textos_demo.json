@@ -1,6 +1,5 @@
 {
   "_nota": "Texto provisório da branch demo (specs/2026-09-29_demo D5/D6) -- só o site lê; nunca copiar para relatorio/textos_curados.json nem para o DOCX. Descritivo, sem interpretação; números de tabelas_finais/ (2026-09-29). Texto curado, quando existir, tem precedência.",
-
   "Top 10 bairros por população 0-4 anos": "Os dez bairros com mais crianças de 0 a 4 anos no Censo 2022. Campo Grande (18.505) e Santa Cruz (16.093) lideram, seguidos de Jacarepaguá, Bangu e Guaratiba. A última coluna mostra quanto essas crianças representam na população de cada bairro.",
   "Área de Planejamento · Absoluto": "Crianças de 0 a 4 anos por Área de Planejamento (Censo 2022). As AP 5 (103.779) e AP 3 (103.747) concentram cerca de dois terços das 310 mil crianças dessa idade no município; a AP 1 tem 13.699.",
   "Região de Planejamento · Absoluto": "Crianças de 0 a 4 anos por Região de Planejamento (Censo 2022). As regiões 4.1 (37.533), 5.1 (33.685) e 5.2 (32.782) têm os maiores números; a 3.7 tem o menor (8.476).",
@@ -8,7 +7,6 @@
   "Região de Planejamento · %": "Peso das crianças de 0 a 4 anos na população de cada Região de Planejamento (Censo 2022). Vai de 3,6% (região 2.2) a 6,3% (regiões 5.3 e 5.4).",
   "populacao_ripsa_0_a_6_por_ano": "Estimativa anual de crianças de 0 a 5 anos no município, de 2000 a 2025. O número passa de 598.322 em 2000 para 393.073 em 2025, com queda contínua desde 2016.",
   "populacao_ripsa_0_a_6_percentual_por_ano": "Crianças de 0 a 5 anos como percentual da população do município, de 2000 a 2025. A participação cai de 9,5% em 2000 para 5,8% em 2025.",
-
   "Gestação (menores de 1 ano)": "Óbitos de menores de 1 ano reduzíveis pela atenção à mulher na gestação, por CAP, de 2006 a 2025. É o subgrupo com mais óbitos entre os bebês; em 2025, a CAP 4.0 registrou o maior número (47).",
   "Parto (menores de 1 ano)": "Óbitos de menores de 1 ano reduzíveis pela atenção à mulher no parto, por CAP, de 2006 a 2025. No município foram 67 em 2025; a CAP 5.3 teve o maior número (10).",
   "Menores de 1 ano · Gestação": "Óbitos de menores de 1 ano reduzíveis pela atenção à mulher na gestação, uma linha por CAP (2006-2025). No município, o total passou de 315 em 2006 para 264 em 2025; a CAP 4.0 teve o maior número em 2025 (47).",
@@ -23,16 +21,13 @@
   "Menores de 5 anos · Recém-nascido": "Óbitos de menores de 5 anos reduzíveis pela atenção ao recém-nascido, uma linha por CAP (2006-2025). No município, o total passou de 198 em 2006 para 55 em 2025; a CAP 3.3 teve o maior número em 2025 (16).",
   "Menores de 5 anos · Diagnóstico e tratamento": "Óbitos de menores de 5 anos reduzíveis por diagnóstico e tratamento adequados, uma linha por CAP (2006-2025). No município foram 157 em 2006 e 75 em 2025; a CAP 3.3 teve o maior número em 2025 (18).",
   "Menores de 5 anos · Promoção da saúde": "Óbitos de menores de 5 anos reduzíveis por ações de promoção da saúde, uma linha por CAP (2006-2025). No município foram 97 em 2006 e 92 em 2025; a CAP 4.0 teve o maior número em 2025 (19).",
-
   "cadunico_razao_populacao_0_a_5_2026": "Compara as crianças de 0 a 5 anos no CadÚnico (194.019, em junho de 2026) com a população estimada dessa idade no município (393.073, em 2025). São cerca de 49 crianças cadastradas para cada 100 crianças estimadas, em 173.680 famílias.",
   "mapa_cadunico_criancas_bairro_2026": "Número de crianças de 0 a 5 anos no CadÚnico por bairro (junho de 2026). Santa Cruz (11.313), Campo Grande (10.456) e Bangu (7.701) têm os maiores números. Bairros com poucas crianças aparecem somados aos vizinhos da mesma região.",
   "cadunico_criancas_por_sexo": "Crianças de 0 a 5 anos no CadÚnico por sexo e famílias pelo sexo das suas crianças. São 94.718 meninas (48,8%) e 99.301 meninos (51,2%). Entre as famílias, 46,0% têm só meninas, 48,5% só meninos e 5,4% meninas e meninos.",
   "cadunico_criancas_por_raca_cor": "Crianças de 0 a 5 anos no CadÚnico por raça/cor e famílias com ao menos uma criança de cada grupo. Pardas são 53,6% das crianças, brancas 35,1% e pretas 10,6%; somadas, pretas e pardas são 64,2%.",
   "mapa_percentual_cadunico_criancas_negras_bairro_2026": "Percentual de crianças negras (pretas e pardas) entre as crianças de 0 a 5 anos no CadÚnico, por bairro. A mediana dos bairros é de 61%, com valores de 37% no Catete a 77% na Cidade de Deus.",
-
   "cadunico_adhoc_deficiencia_2026_08": "Crianças de 0 a 6 anos com deficiência no CadÚnico e quantas recebem o BPC, por faixa etária (dado pontual, agosto de 2026). São 25.995 crianças, das quais 10.300 (39,6%) recebem o benefício: 33,3% entre as de 0 a 3 anos e 43,1% entre as de 4 a 6 anos.",
   "cadunico_adhoc_deficiencia_contexto_2026_08": "Contexto do cadastro para todas as idades (dado pontual, agosto de 2026): 210.241 famílias têm ao menos uma pessoa com deficiência, e 401.074 pessoas cadastradas têm deficiência.",
-
   "sidra_frequencia_escola_0_5_total_2022": "Número de crianças que frequentam escola ou creche, por idade (Censo 2022). O número cresce com a idade: 4.358 com menos de 1 ano, 49.278 aos 3 anos e 66.163 aos 5 anos.",
   "matriculas_0_a_5_por_ano": "Matrículas de crianças de 0 a 5 anos em creche e pré-escola no município, de 2007 a 2025. O total foi de 170.650 em 2007 a 258.868 em 2019, o maior valor da série, e ficou em 230.284 em 2025.",
   "matriculas_0_a_5_creche_pre_por_ano": "Matrículas separadas em creche (0 a 3 anos) e pré-escola (4 e 5 anos), de 2007 a 2025. Em 2025 foram 110.097 matrículas em creche e 120.187 na pré-escola.",
@@ -41,7 +36,6 @@
   "cadunico_familias_por_arranjo": "Famílias com crianças de 0 a 5 anos no CadÚnico, pelo arranjo de adultos no cadastro. A maioria (140.976 famílias, 81,2%) tem uma só adulta; 18.161 (10,5%) têm um homem e uma mulher adultos.",
   "cadunico_familias_arranjo_renda": "Distribuição de renda per capita dentro de cada arranjo familiar. Nas famílias com uma só adulta, 79,7% estão na faixa de pobreza (até R$ 218); nas com um homem e uma mulher adultos, 54,1%.",
   "mapa_percentual_cadunico_familias_uma_adulta_bairro_2026": "Percentual de famílias com crianças de 0 a 5 anos no CadÚnico que têm uma só adulta, por bairro. A mediana dos bairros é de 80%, com valores de 63% em Vista Alegre a 88% na Gamboa.",
-
   "violencia_familiar_serie_vinculos": "Notificações de violência familiar contra crianças de 0 a 5 anos, pelo vínculo do provável autor, de 2011 a 2025. Em 2025 foram 1.756 notificações com a mãe como provável autora, 1.404 com o pai e 110 com outros vínculos. As linhas não se somam.",
   "violencia_familiar_outros_serie": "Detalhe do grupo \"outros vínculos\" (padrasto, irmão(ã), cônjuge, ex-cônjuge e filho(a)), de 2011 a 2025. O padrasto responde pela maior parte: 73 das notificações em 2025.",
   "violencia_familiar_taxa_municipio_ano": "Notificações de violência familiar por mil crianças de 0 a 5 anos no município, de 2011 a 2025. Em 2025, a taxa foi de 4,5 por mil para a mãe, 3,6 para o pai e 0,3 para outros vínculos.",
@@ -56,39 +50,33 @@
   "violencia_familiar_por_cap": "Notificações de violência familiar e taxas por mil crianças de 0 a 4 anos, por CAP, em 2025. A CAP 5.2 tem os maiores números (531 com a mãe e 472 com o pai) e as maiores taxas (12,1 e 10,7 por mil).",
   "notif_autoprovocada_antes_2026_vs_2026": "Notificações de lesão autoprovocada em crianças de 0 a 5 anos: 7 em todo o período de 2018 a 2025 e 33 em 2026, ano ainda parcial.",
   "mapa_notif_autoprovocada_bairro_2026": "Notificações de lesão autoprovocada em crianças de 0 a 5 anos por bairro, em 2026 (ano parcial). As 33 notificações se distribuem por 21 bairros; Parque Colúmbia tem o maior número (5).",
-
   "mapa_violencia_territorial_homicidios_ra_2024": "Taxa de homicídios por 100 mil habitantes, de todas as idades, por Região Administrativa (2024). Centro (76,3) e Madureira (33,5) têm as maiores taxas; Rocinha (2,8) e Complexo do Alemão (3,7), as menores.",
   "mapa_violencia_territorial_homicidios_acao_policial_ra_2024": "Homicídios por ação policial por 100 mil habitantes, de todas as idades, por Região Administrativa (2024). Cidade de Deus (19,6) e Penha (15,0) têm as maiores taxas; em quatro regiões a taxa é zero.",
   "mapa_violencia_territorial_homicidios_jovens_negros_ra_2024": "Homicídios de jovens negros por 100 mil habitantes da população geral, por Região Administrativa (2024). Madureira (9,2), Pavuna (6,8) e Cidade de Deus (6,5) têm as maiores taxas.",
-
   "cadunico_adhoc_moradia_domicilio_2026_08": "Famílias, pessoas e crianças de 0 a 6 anos no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, agosto de 2026). São 792 crianças em domicílios sem banheiro e 1.425 em domicílios sem água canalizada.",
   "cadunico_adhoc_moradia_territorio_2026_08": "Famílias, pessoas e crianças de 0 a 6 anos no CadÚnico por forma de abastecimento de água e de escoamento sanitário fora da rede geral (dado pontual, agosto de 2026). A vala a céu aberto reúne 2.226 crianças, e o esgoto jogado em rio ou mar, 1.247.",
-
   "achados_prioridade": "Em 2025, a taxa de mortalidade infantil foi de 13,1 óbitos por mil nascidos vivos.\nA atenção à mulher na gestação é o subgrupo de causas evitáveis com mais óbitos de menores de 1 ano (264 em 2025).\nO CadÚnico reúne 194.019 crianças de 0 a 5 anos, cerca de metade da população estimada dessa idade.",
   "introducao_prioridade": "Este eixo reúne indicadores de mortalidade infantil e materna, das causas de óbito evitáveis e do perfil das crianças de 0 a 5 anos no Cadastro Único. Os dados aparecem para o município, por bairro, por CAP e por raça/cor, conforme a fonte.",
   "sintese_prioridade": "Os gráficos deste eixo mostram a evolução da mortalidade infantil e das suas causas evitáveis desde 2006 e a distribuição territorial dos óbitos. Mostram também quem são as crianças do CadÚnico por renda, idade, sexo e raça/cor.",
-
   "achados_inclusao": "25.995 crianças de 0 a 6 anos com deficiência estão no CadÚnico (dado pontual, agosto de 2026).\n39,6% delas recebem o Benefício de Prestação Continuada (BPC).\nA cobertura do BPC é de 33,3% entre as crianças de 0 a 3 anos e de 43,1% entre as de 4 a 6 anos.",
   "introducao_inclusao": "Este eixo trata das crianças com deficiência. Por enquanto, traz uma extração pontual do Cadastro Único (agosto de 2026) com o número de crianças com deficiência e o acesso ao BPC; os demais indicadores do eixo entram na versão final.",
   "sintese_inclusao": "Os números deste eixo mostram quantas crianças com deficiência estão no CadÚnico e quantas recebem o BPC, por faixa etária, além do contexto das famílias e pessoas com deficiência de todas as idades.",
-
   "achados_familia_e_cuidados": "Em 2025, a taxa bruta de atendimento foi de 43,7% na creche e 85,2% na pré-escola.\nAs matrículas de 0 a 5 anos somaram 230.284 em 2025.\n81,2% das famílias com crianças de 0 a 5 anos no CadÚnico têm uma só adulta no cadastro.",
   "introducao_familia_e_cuidados": "Este eixo reúne a frequência a escola ou creche, as matrículas e a taxa de atendimento na educação infantil, a cobertura vacinal e o arranjo familiar das famílias com crianças no Cadastro Único.",
   "sintese_familia_e_cuidados": "Os gráficos deste eixo mostram a frequência escolar por idade, raça/cor e sexo no Censo 2022, a série de matrículas e de atendimento desde 2007, a cobertura por vacina e a composição e a renda das famílias do CadÚnico.",
-
   "achados_protecao": "Em 2025, houve 1.756 notificações de violência familiar com a mãe como provável autora e 1.404 com o pai.\nA taxa municipal foi de 4,5 notificações por mil crianças de 0 a 5 anos para a mãe e 3,6 para o pai.\nA CAP 5.2 tem os maiores números e as maiores taxas de notificação em 2025.",
   "introducao_protecao": "Este eixo reúne as notificações de violência contra crianças de 0 a 5 anos registradas no Sinan: violência familiar, pelo vínculo do provável autor, e lesão autoprovocada, com séries, taxas e recortes por território.",
   "sintese_protecao": "Os gráficos e mapas deste eixo mostram a evolução das notificações de violência familiar desde 2011, as taxas por mil crianças no município e por Região Administrativa, e os bairros e CAP com mais notificações.",
-
   "achados_direito_ao_brincar": "Em 2024, a taxa de homicídios foi maior no Centro (76,3 por 100 mil habitantes) e em Madureira (33,5).\nCidade de Deus teve a maior taxa de homicídios por ação policial (19,6 por 100 mil).\nOs indicadores se referem à população geral, não só às crianças.",
   "introducao_direito_ao_brincar": "Este eixo traz indicadores do território onde as crianças vivem. Por enquanto, apresenta a violência territorial por Região Administrativa, do Índice de Progresso Social (2024), para a população de todas as idades.",
   "sintese_direito_ao_brincar": "Os mapas deste eixo mostram as taxas de homicídios, de homicídios por ação policial e de homicídios de jovens negros por Região Administrativa em 2024, para a população geral.",
-
   "achados_alimentacao": "Em 2025, 10,3% dos nascidos vivos tiveram menos de 2.500 g.\nEntre as crianças acompanhadas pelo SISVAN em 2025, 7,5% tinham peso baixo ou muito baixo para a idade.\nNo mesmo ano, 16,9% tinham sobrepeso ou obesidade.",
   "introducao_alimentacao": "Este eixo reúne o baixo peso ao nascer, no município e por bairro, e o estado nutricional das crianças acompanhadas pela atenção primária (SISVAN): baixo peso, sobrepeso e obesidade.",
   "sintese_alimentacao": "Os gráficos e mapas deste eixo mostram a série do baixo peso ao nascer, sua distribuição por bairro em 2025 e a evolução dos indicadores nutricionais das crianças acompanhadas pelo SISVAN.",
-
   "achados_moradia": "792 crianças de 0 a 6 anos no CadÚnico vivem em domicílios sem banheiro (dado pontual, agosto de 2026).\n1.425 vivem em domicílios sem água canalizada.\n2.226 vivem em domicílios com esgoto em vala a céu aberto.",
   "introducao_moradia": "Este eixo trata das condições de moradia das crianças. Por enquanto, traz uma extração pontual do Cadastro Único (agosto de 2026) sobre banheiro, água canalizada, abastecimento de água e escoamento sanitário; os demais indicadores entram na versão final.",
-  "sintese_moradia": "Os números deste eixo mostram quantas famílias, pessoas e crianças do CadÚnico vivem em domicílios sem banheiro ou sem água canalizada, ou com água e esgoto fora da rede geral."
+  "sintese_moradia": "Os números deste eixo mostram quantas famílias, pessoas e crianças do CadÚnico vivem em domicílios sem banheiro ou sem água canalizada, ou com água e esgoto fora da rede geral.",
+  "introducao_demo": "O Diagnóstico da Primeira Infância é um produto da Coordenadoria de Pesquisa, Avaliação e Política Pública do Instituto Pereira Passos, em parceria com a Casa Civil, para apoiar o desenho, a implementação e o monitoramento da nova Política Integrada da Primeira Infância. Por isso, sua estrutura segue, quando possível, os eixos da política. Os dados vêm de fontes secundárias de diferentes instituições e da cooperação de vários órgãos da Prefeitura, em especial da Secretaria Municipal de Saúde.\nEste é um produto vivo: será atualizado à medida que surgirem novos dados e novas necessidades, e sugestões dos gestores de políticas públicas são bem-vindas pelo contato no rodapé desta página. Cada gráfico, mapa e tabela permite baixar os dados, e o código usado para extraí-los e processá-los está no GitHub (link no topo desta página). O relatório também tem uma versão em PDF.",
+  "conclusao_introducao_demo": "Produzir estatísticas e análises dentro do município é sempre um desafio. A maior parte da produção estatística brasileira tem o município como menor unidade, e as exceções, como os Censos Demográficos, são esporádicas. Por isso, muitos dos dados aqui reunidos vêm de fontes distintas, que não foram concebidas para comparação, ou de registros administrativos criados para outros fins, e passaram por mudanças de coleta e registro ao longo do tempo.\nOs dados, por si mesmos, também não permitem identificar causas: os processos sociais descritos são, ao mesmo tempo, causa e consequência de fatores econômicos, tecnológicos e demográficos. O período coberto inclui a emergência da Zika (2016), a Covid-19 (2020-2021) e a recessão de 2015-2016. Assim, a principal recomendação é usar estes dados como um mapa, que oriente a construção de indicadores sensíveis aos diversos contextos, e não como metas em si mesmos.",
+  "_nota_introducao": "introducao_demo e conclusao_introducao_demo: na demo, SUBSTITUEM o texto curado 'introducao' (resumo pedido pelo usuário em 2026-09-29, sem as referências faltantes) -- exceção à precedência do curado, só no site da demo; textos_curados.json, DOCX e PDF continuam com o texto integral."
 }

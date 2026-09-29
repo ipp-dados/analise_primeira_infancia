@@ -44,3 +44,4 @@ Legenda: [x] feito · [ ] a fazer
       que também cita "Mapa 1 –" e "18" -- a conferência dupla não bastava sozinha
 - [x] X2 Marcadores do PDF refeitos por número de página: o `select` do PyMuPDF perde os destinos nomeados (ficavam -1)
 - [x] X3 Texto provisório também para os rótulos de pill que servem de semente (causas evitáveis por CAP, AP/RP do Censo)
+- [x] X4 D12: introdução resumida (1/3) + box de Conclusões (1/3) no panorama, sem referências faltantes (só site da demo)

@@ -1272,7 +1272,8 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
 # sumário lateral são montados no fim (ASSEMBLE), quando todos os h2/h3 já existem. Aqui só o
 # texto da Introdução (curado sob o bookmark "introducao" do DOCX, senão lorem de 250 palavras --
 # specs/2026-09-22_ajuste_eixos §7), que vai para o painel Visão geral.
-INTRO_HTML = (_texto_analise("introducao") if demo.ATIVO else
+# demo: introdução resumida, sem as referências faltantes; a outra parte vai para o box de conclusão (textos_demo.json)
+INTRO_HTML = (demo.texto("introducao_demo") if demo.ATIVO else
               _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 150))
 
 # ============================================================== INTRODUÇÃO ==
@@ -2322,6 +2323,11 @@ for i, (start, titulo, sid) in enumerate(_SECOES_EIXO):
     _cartoes.append(f'<a class="eixo-card" href="#{sid}"><span class="panel-icon">{icone(ic)}</span>'
                     f'<span class="eyebrow eixo-card-num">Eixo {i + 1}</span><span class="eixo-card-title">{titulo}</span>'
                     f'<span class="eixo-card-meta">{meta}</span></a>')
+# demo: box de conclusão da introdução, no formato das Conclusões dos eixos (textos_demo.json)
+_CONCLUSAO_INTRO = ('<div class="overview-conclusao"><h3 id="conclusoes-introducao" class="h3-conclusao">Conclusões</h3>'
+                    f'<div class="conclusao"><div class="conclusao-head">{icone("flag")}'
+                    '<span class="eyebrow">Síntese · Introdução</span></div>'
+                    f'<p>{demo.texto("conclusao_introducao_demo")}</p></div></div>') if demo.ATIVO else ''
 # panorama: corpo da seção h2(..., panorama=True), com a sua caixa de fontes; o <h2> original sai (título abaixo)
 _PANORAMA_HTML = ""
 if _PANORAMA_SID:
@@ -2329,7 +2335,7 @@ if _PANORAMA_SID:
     _tit_pan = next(t for _, t, sd in section_starts if sd == _PANORAMA_SID)
     _PANORAMA_HTML = (f'<div class="overview-panorama" id="{_PANORAMA_SID}"><div class="eyebrow panel-eyebrow">Introdução</div>'
                       f'<h2>{_tit_pan}</h2>' + "".join(parts[_ini + 1:_FIM_SECAO[_PANORAMA_SID]])
-                      + _caixa_fontes(_PANORAMA_SID) + '</div>')
+                      + _CONCLUSAO_INTRO + _caixa_fontes(_PANORAMA_SID) + '</div>')   # como nos eixos: conclusão antes das fontes
 paineis.insert(0,
     '<section class="tab-panel" id="visao-geral" role="tabpanel" aria-labelledby="tab-visao-geral" hidden>'
     f'<div class="overview-intro" id="introducao"><div class="eyebrow panel-eyebrow">Apresentação</div><h2>Introdução</h2>'
@@ -2342,6 +2348,7 @@ navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-l
                     '<a href="#visao-geral/introducao" data-alvo="introducao">Introdução</a>'
                     + "".join(f'<a href="#visao-geral/{h3id}" data-alvo="{h3id}">{_esc(h3t)}</a>'
                               for h3t, h3id in _h3_por_secao.get(_PANORAMA_SID, []))
+                    + ('<a href="#visao-geral/conclusoes-introducao" data-alvo="conclusoes-introducao">Conclusões</a>' if demo.ATIVO else '')
                     + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in _SECOES_EIXO) + '</nav>')
 
 # faixa de aviso: controlada por relatorio/publicacao.json (em_desenvolvimento), a mesma chave da marca d'água do PDF
