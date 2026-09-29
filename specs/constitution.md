@@ -197,6 +197,13 @@ limpeza do histórico está no `ROADMAP.md` e depende de decisão com a equipe (
   `SPEC-<Nome>: Bloco N -- descrição curta` (visto no histórico); fora
   desse contexto, uma mensagem direta em português descrevendo o *porquê*
   basta.
+- **Branch `demo` — versão de demonstração** (regra do usuário, 2026-09-29, `specs/2026-09-29_demo`): texto
+  provisório no lugar do lorem (`website/build/textos_demo.json`), blocos pendentes ocultos, faixa maior com a data
+  da V.1 e PDF só até a página impressa 18 com página de aviso. Tudo isso é **exclusivo da `demo`**: não entra em
+  `staging_main`, em `main` nem em outra branch. O fluxo é **só de ida** (`staging_main` → `demo`, para atualizar);
+  a `demo` nunca é mesclada de volta. O texto provisório nunca vai para o PDF, para `relatorio/textos_curados.json`
+  nem para o DOCX de curadoria, que seguem mostrando lorem e pendentes. Enquanto a demonstração estiver no ar, o
+  GitHub Pages publica só a partir da `demo`.
 - Nunca force-push, nunca reescreva commits já publicados, nunca pule hooks
   — pedir confirmação explícita antes de qualquer operação destrutiva
   (`reset --hard`, `checkout --`, deletar branch).
