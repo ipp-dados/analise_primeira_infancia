@@ -28,6 +28,9 @@ __all__ = [
     'agrega_cadunico_criancas',
     'atribui_bairro_por_cep',
     'suprime_celulas_pequenas',
+    '_regioes_dos_bairros',
+    'agrega_bairros_pequenos',
+    'tabela_publicada_por_bairro',
 ]
 
 
@@ -175,3 +178,123 @@ def suprime_celulas_pequenas(df, colunas_denominador, colunas, limiar=_LIMIAR_SU
     out[inteiras] = out[inteiras].astype('Int64')  # contagens seguem inteiras (vazio, não '15809.0')
     out['suprimido'] = mascara
     return out
+
+
+# ------------------------------------------------------------------ agregação de bairros pequenos
+_MINUSCULAS_NOME = {'da', 'das', 'de', 'do', 'dos', 'e'}
+
+
+def _nome_ra(bruto):
+    """'BARRA DA TIJUCA         ' -> 'Barra da Tijuca' (campo `regiao_adm` da camada de bairros)."""
+    palavras = str(bruto).strip().lower().split()
+    return ' '.join(p if (i and p in _MINUSCULAS_NOME) else p[:1].upper() + p[1:] for i, p in enumerate(palavras))
+
+
+def _regioes_dos_bairros(caminho='dados_locais/geo/limite_bairros_rio.geojson'):
+    """codbairro -> (codra, nome da RA, AP), da camada oficial de bairros (sem geometria)."""
+    import json
+    feats = json.load(open(caminho, encoding='utf-8'))['features']
+    return pd.DataFrame([{'codbairro': int(f['properties']['codbairro']), 'codra': int(f['properties']['codra']),
+                          'ra': _nome_ra(f['properties']['regiao_adm']), 'ap': str(f['properties']['area_plane']).strip()}
+                         for f in feats])
+
+
+def agrega_bairros_pequenos(df, contagens, minimos, pares=(), taxas=None, limiar=_LIMIAR_SUPRESSAO_CADUNICO,
+                            nome='bairro', regioes=None):
+    """Regra de privacidade do CadÚnico por agregação (specs/2026-09-29_privacidade_cadunico, D1/D2): em vez de deixar
+    vazio o bairro pequeno, soma-o com os outros bairros pequenos da mesma RA ("Demais bairros da RA X"); se o conjunto
+    ainda não passa no teste, com os da mesma AP; depois, no município ("Demais bairros"). Conjunto que não passa nem
+    assim fica vazio (último recurso).
+
+    `df`: uma linha por bairro, com `codbairro` e as contagens COMPLETAS (sem supressão). Um bairro (ou conjunto) passa
+    quando toda coluna de `minimos` é >= `limiar` e, para cada par (numerador, denominador) de `pares`, o numerador e o
+    complemento (denominador - numerador) também são -- senão o percentual publicado devolveria uma contagem pequena.
+    `taxas`: {coluna: (numerador, denominador, fator)} recalculadas das somas (nunca média de percentuais).
+
+    Devolve uma cópia com: as linhas dos bairros (os agregados com `contagens` vazias, as `taxas` do conjunto e
+    `agregado_em` = nome do conjunto) e, no fim, uma linha por conjunto (`nome` = nome do conjunto, `codbairro` vazio,
+    `bairros agregados`, contagens somadas e taxas). A coluna booleana `suprimido` marca o que ficou vazio.
+    Usar só no que é gravado ou publicado -- cálculos usam o dado completo."""
+    regioes = _regioes_dos_bairros() if regioes is None else regioes
+    taxas = taxas or {}
+    base = df.copy()
+    base['codbairro'] = base['codbairro'].astype(int)
+    for col, (num, den, fator) in taxas.items():   # taxa de cada bairro, dos absolutos
+        base[col] = base[num] / base[den].where(base[den] > 0) * fator
+    base = base.merge(regioes, on='codbairro', how='left', validate='many_to_one')
+    if base['codra'].isna().any():
+        raise ValueError(f"bairros sem RA na camada oficial: {sorted(base.loc[base['codra'].isna(), nome])}")
+
+    def passa(linha):
+        return (all(linha[c] >= limiar for c in minimos)
+                and all(linha[n] >= limiar and linha[d] - linha[n] >= limiar for n, d in pares))
+
+    base['agregado_em'] = None
+    pendentes = base.index[~base.apply(passa, axis=1)]
+    conjuntos = []   # (rótulo, índices)
+    for nivel, rotulo in (('codra', lambda g: f"Demais bairros da RA {g['ra'].iloc[0]}"),
+                          ('ap', lambda g: f"Demais bairros da AP {g['ap'].iloc[0]}"),
+                          (None, lambda g: 'Demais bairros')):
+        restantes = []
+        grupos = [base.loc[pendentes]] if nivel is None else [g for _, g in base.loc[pendentes].groupby(nivel)]
+        for g in grupos:
+            if len(g) == 0:
+                continue
+            if passa(g[contagens].sum()):
+                conjuntos.append((rotulo(g), list(g.index)))
+            else:
+                restantes += list(g.index)
+        pendentes = restantes
+    # sobra que não passa nem no município: junta aos conjuntos já formados, do menor para o maior, num único "Demais
+    # bairros" -- deixar vazio abriria a conta Total - publicado = sobra (< 20)
+    while pendentes and conjuntos:
+        menor = min(range(len(conjuntos)), key=lambda k: base.loc[conjuntos[k][1], minimos[0]].sum())
+        _, idx = conjuntos.pop(menor)
+        pendentes = pendentes + idx
+        if passa(base.loc[pendentes, contagens].sum()):
+            conjuntos.append(('Demais bairros', pendentes))
+            pendentes = []
+
+    out = base.drop(columns=['codra', 'ra', 'ap'])
+    out['suprimido'] = False
+    linhas_conjunto = []
+    for rotulo, idx in conjuntos:
+        soma = out.loc[idx, contagens].sum()
+        linha = {nome: rotulo, 'codbairro': pd.NA, 'bairros agregados': ', '.join(sorted(out.loc[idx, nome])),
+                 **soma.to_dict(), 'agregado_em': None, 'suprimido': False}
+        for col, (num, den, fator) in taxas.items():
+            linha[col] = soma[num] / soma[den] * fator if soma[den] else np.nan
+            out.loc[idx, col] = linha[col]
+        out.loc[idx, contagens] = np.nan
+        out.loc[idx, 'agregado_em'] = rotulo
+        linhas_conjunto.append(linha)
+    if pendentes:   # nem no município: vazio
+        out.loc[pendentes, contagens + list(taxas)] = np.nan
+        out.loc[pendentes, 'suprimido'] = True
+    out = pd.concat([out, pd.DataFrame(linhas_conjunto)], ignore_index=True)
+    out['codbairro'] = out['codbairro'].astype('Int64')
+    for c in contagens:
+        out[c] = out[c].round().astype('Int64')
+    return out
+
+
+def tabela_publicada_por_bairro(agregada, extras, contagens, nome='bairro', limiar=_LIMIAR_SUPRESSAO_CADUNICO,
+                                rotulo_localidades='Localidades sem bairro oficial',
+                                rotulo_sem_bairro=_ROTULO_SEM_BAIRRO_CADUNICO):
+    """Tabela publicada por bairro = saída de `agrega_bairros_pequenos` + linhas extras, na ordem de `extras`
+    ({rótulo: {coluna: contagem}}, ex. localidades dos Correios sem bairro oficial, "Sem bairro identificado",
+    "Total"). A linha de localidades que não passa no limiar é somada à de "Sem bairro identificado" (não se publica
+    um conjunto pequeno). "Total" é o município (sem limiar)."""
+    extras = {k: dict(v) for k, v in extras.items()}
+    loc = extras.get(rotulo_localidades)
+    if loc is not None and any(loc[c] < limiar for c in contagens) and rotulo_sem_bairro in extras:
+        for c in contagens:
+            extras[rotulo_sem_bairro][c] += loc[c]
+        extras[rotulo_sem_bairro]['bairros agregados'] = rotulo_localidades
+        del extras[rotulo_localidades]
+    linhas = [{nome: k, **v} for k, v in extras.items()]
+    out = pd.concat([agregada, pd.DataFrame(linhas)], ignore_index=True)
+    for c in contagens:
+        out[c] = out[c].astype('Int64')
+    return out
+
