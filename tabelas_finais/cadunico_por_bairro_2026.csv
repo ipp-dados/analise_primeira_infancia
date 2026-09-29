@@ -1,169 +1,170 @@
-bairro,Crianças,Famílias
-Abolição,177,161
-Acari,1596,1396
-Alto da Boa Vista,187,159
-Anchieta,2317,2050
-Andaraí,451,411
-Anil,3285,2953
-Argentino,3,2
-Bancários,438,382
-Bangu,7705,6942
-Barra Olímpica,141,126
-Barra da Tijuca,333,305
-Barra de Guaratiba,127,116
-Barros Filho,688,614
-Benfica,1144,1046
-Bento Ribeiro,895,798
-Bonsucesso,2936,2598
-Botafogo,312,283
-Brás de Pina,1229,1097
-Cachambi,401,358
-Cacuia,219,199
-Caju,1160,1035
-Camorim,556,504
-Campinho,254,231
-Campo Grande,10459,9354
-Campo dos Afonsos,4,4
-Cascadura,910,816
-Catete,175,171
-Catumbi,507,460
-Cavalcanti,595,528
-Centro,535,480
-Cidade Nova,112,105
-Cidade Universitária,31,26
-Cidade de Deus,2639,2317
-Cocotá,88,83
-Coelho Neto,1414,1253
-Colégio,984,896
-Complexo do Alemão,1363,1216
-Copacabana,1227,1127
-Cordovil,1279,1147
-Cosme Velho,180,160
-Cosmos,3228,2867
-Costa Barros,1781,1580
-Curicica,1141,1020
-Del Castilho,610,557
-Dendê,64,61
-Deodoro,521,468
-Dumas,98,90
-Encantado,274,251
-Engenheiro Leal,254,232
-Engenho Novo,1317,1177
-Engenho da Rainha,738,661
-Engenho de Dentro,1096,967
-Estácio,853,749
-Flamengo,99,91
-Freguesia (Ilha do Governador),525,472
-Freguesia (Jacarepaguá),939,850
-Galeão,734,650
-Gamboa,502,454
-Gardênia Azul,1654,1473
-Glória,163,146
-Grajaú,377,336
-Grumari,12,11
-Guadalupe,1211,1097
-Guarabu,39,35
-Guaratiba,6960,6244
-Gávea,1858,1690
-Higienópolis,215,198
-Honório Gurgel,663,595
-Humaitá,16,14
-Inhaúma,1874,1692
-Inhoaíba,2895,2572
-Ipanema,13,12
-Irajá,1542,1379
-Itacolomi,62,59
-Itanhangá,1917,1706
-Jacarepaguá,3427,3054
-Jacarezinho,277,253
-Jacaré,1409,1260
-Jardim América,1096,989
-Jardim Botânico,38,37
-Jardim Carioca,473,426
-Jardim Guanabara,42,37
-Jardim Sulacap,206,186
-Joá,6,5
-Lagoa,5,5
-Laranjeiras,112,102
-Leblon,49,47
-Leme,172,159
-Lins de Vasconcelos,947,840
-Madureira,1435,1283
-Magalhães Bastos,571,518
-Mangueira,821,738
-Manguinhos,1927,1689
-Maracanã,67,56
-Marechal Hermes,1084,977
-Maria da Graça,85,79
-Maré,3405,3042
-Moneró,12,11
-Méier,398,362
-Nossa Senhora das Graças,25,24
-Olaria,1231,1118
-Oswaldo Cruz,688,614
-Paciência,4702,4202
-Padre Miguel,1525,1377
-Paquetá,101,85
-Parada de Lucas,594,529
-Parque Anchieta,448,401
-Parque Colúmbia,123,109
-Pavuna,2786,2508
-Pechincha,366,334
-Pedra de Guaratiba,742,676
-Penha,2007,1799
-Penha Circular,1275,1172
-Piedade,1206,1078
-Pilares,748,664
-Pitangueiras,135,123
-Portuguesa,262,241
-Praia da Bandeira,21,20
-Praça Seca,1833,1634
-Praça da Bandeira,69,64
-Quintino Bocaiúva,708,631
-Ramos,2661,2393
-Realengo,5498,4941
-Recreio dos Bandeirantes,1028,931
-Riachuelo,126,109
-Ribeira,26,25
-Ricardo de Albuquerque,1191,1034
-Rio Comprido,947,855
-Rocha,433,398
-Rocha Miranda,1244,1092
-Rocinha,1237,1125
-Sampaio,525,479
-Santa Cruz,11321,10099
-Santa Teresa,889,825
-Santo Cristo,557,499
-Santíssimo,1981,1785
-Saúde,53,48
-Senador Camará,3520,3123
-Senador Vasconcelos,1154,1011
-Sepetiba,2937,2608
-São Conrado,76,68
-São Cristóvão,1561,1407
-São Francisco Xavier,127,113
-Tanque,1501,1314
-Taquara,2502,2212
-Tauá,615,556
-Tijuca,1313,1166
-Todos os Santos,91,85
-Tomás Coelho,725,654
-Tubiacanga,92,83
-Turiaçu,566,495
-Urca,6,6
-Vargem Grande,764,686
-Vargem Pequena,625,572
-Vasco da Gama,56,49
-Vaz Lobo,580,487
-Vicente de Carvalho,760,679
-Vidigal,481,440
-Vigário Geral,1264,1134
-Vila Isabel,960,864
-Vila Kosmos,314,275
-Vila Militar,106,99
-Vila Valqueire,496,438
-Vila da Penha,171,158
-Vista Alegre,128,117
-Zumbi,7,7
-Água Santa,154,142
-Total,178329,159609
+bairro,Crianças,Famílias,suprimido
+Abolição,177,161,False
+Acari,1596,1396,False
+Alto da Boa Vista,187,159,False
+Anchieta,2317,2050,False
+Andaraí,451,411,False
+Anil,3285,2953,False
+Argentino,,,True
+Bancários,438,382,False
+Bangu,7705,6942,False
+Barra Olímpica,141,126,False
+Barra da Tijuca,333,305,False
+Barra de Guaratiba,127,116,False
+Barros Filho,688,614,False
+Benfica,1144,1046,False
+Bento Ribeiro,895,798,False
+Bonsucesso,2936,2598,False
+Botafogo,312,283,False
+Brás de Pina,1229,1097,False
+Cachambi,401,358,False
+Cacuia,219,199,False
+Caju,1160,1035,False
+Camorim,556,504,False
+Campinho,254,231,False
+Campo Grande,10459,9354,False
+Campo dos Afonsos,,,True
+Cascadura,910,816,False
+Catete,175,171,False
+Catumbi,507,460,False
+Cavalcanti,595,528,False
+Centro,535,480,False
+Cidade Nova,112,105,False
+Cidade Universitária,31,26,False
+Cidade de Deus,2639,2317,False
+Cocotá,88,83,False
+Coelho Neto,1414,1253,False
+Colégio,984,896,False
+Complexo do Alemão,1363,1216,False
+Copacabana,1227,1127,False
+Cordovil,1279,1147,False
+Cosme Velho,180,160,False
+Cosmos,3228,2867,False
+Costa Barros,1781,1580,False
+Curicica,1141,1020,False
+Del Castilho,610,557,False
+Dendê,64,61,False
+Deodoro,521,468,False
+Dumas,98,90,False
+Encantado,274,251,False
+Engenheiro Leal,254,232,False
+Engenho Novo,1317,1177,False
+Engenho da Rainha,738,661,False
+Engenho de Dentro,1096,967,False
+Estácio,853,749,False
+Flamengo,99,91,False
+Freguesia (Ilha do Governador),525,472,False
+Freguesia (Jacarepaguá),939,850,False
+Galeão,734,650,False
+Gamboa,502,454,False
+Gardênia Azul,1654,1473,False
+Glória,163,146,False
+Grajaú,377,336,False
+Grumari,,,True
+Guadalupe,1211,1097,False
+Guarabu,39,35,False
+Guaratiba,6960,6244,False
+Gávea,1858,1690,False
+Higienópolis,215,198,False
+Honório Gurgel,663,595,False
+Humaitá,,,True
+Inhaúma,1874,1692,False
+Inhoaíba,2895,2572,False
+Ipanema,,,True
+Irajá,1542,1379,False
+Itacolomi,62,59,False
+Itanhangá,1917,1706,False
+Jacarepaguá,3427,3054,False
+Jacarezinho,277,253,False
+Jacaré,1409,1260,False
+Jardim América,1096,989,False
+Jardim Botânico,38,37,False
+Jardim Carioca,473,426,False
+Jardim Guanabara,42,37,False
+Jardim Sulacap,206,186,False
+Joá,,,True
+Lagoa,,,True
+Laranjeiras,112,102,False
+Leblon,49,47,False
+Leme,172,159,False
+Lins de Vasconcelos,947,840,False
+Madureira,1435,1283,False
+Magalhães Bastos,571,518,False
+Mangueira,821,738,False
+Manguinhos,1927,1689,False
+Maracanã,67,56,False
+Marechal Hermes,1084,977,False
+Maria da Graça,85,79,False
+Maré,3405,3042,False
+Moneró,,,True
+Méier,398,362,False
+Nossa Senhora das Graças,25,24,False
+Olaria,1231,1118,False
+Oswaldo Cruz,688,614,False
+Paciência,4702,4202,False
+Padre Miguel,1525,1377,False
+Paquetá,101,85,False
+Parada de Lucas,594,529,False
+Parque Anchieta,448,401,False
+Parque Colúmbia,123,109,False
+Pavuna,2786,2508,False
+Pechincha,366,334,False
+Pedra de Guaratiba,742,676,False
+Penha,2007,1799,False
+Penha Circular,1275,1172,False
+Piedade,1206,1078,False
+Pilares,748,664,False
+Pitangueiras,135,123,False
+Portuguesa,262,241,False
+Praia da Bandeira,21,20,False
+Praça Seca,1833,1634,False
+Praça da Bandeira,69,64,False
+Quintino Bocaiúva,708,631,False
+Ramos,2661,2393,False
+Realengo,5498,4941,False
+Recreio dos Bandeirantes,1028,931,False
+Riachuelo,126,109,False
+Ribeira,26,25,False
+Ricardo de Albuquerque,1191,1034,False
+Rio Comprido,947,855,False
+Rocha,433,398,False
+Rocha Miranda,1244,1092,False
+Rocinha,1237,1125,False
+Sampaio,525,479,False
+Santa Cruz,11321,10099,False
+Santa Teresa,889,825,False
+Santo Cristo,557,499,False
+Santíssimo,1981,1785,False
+Saúde,53,48,False
+Senador Camará,3520,3123,False
+Senador Vasconcelos,1154,1011,False
+Sepetiba,2937,2608,False
+São Conrado,76,68,False
+São Cristóvão,1561,1407,False
+São Francisco Xavier,127,113,False
+Tanque,1501,1314,False
+Taquara,2502,2212,False
+Tauá,615,556,False
+Tijuca,1313,1166,False
+Todos os Santos,91,85,False
+Tomás Coelho,725,654,False
+Tubiacanga,92,83,False
+Turiaçu,566,495,False
+Urca,,,True
+Vargem Grande,764,686,False
+Vargem Pequena,625,572,False
+Vasco da Gama,56,49,False
+Vaz Lobo,580,487,False
+Vicente de Carvalho,760,679,False
+Vidigal,481,440,False
+Vigário Geral,1264,1134,False
+Vila Isabel,960,864,False
+Vila Kosmos,314,275,False
+Vila Militar,106,99,False
+Vila Valqueire,496,438,False
+Vila da Penha,171,158,False
+Vista Alegre,128,117,False
+Zumbi,,,True
+Água Santa,154,142,False
+Sem bairro identificado (CEP fora da lista),15809,14159,False
+Total,194138,173768,False
