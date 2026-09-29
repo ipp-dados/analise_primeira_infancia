@@ -49,6 +49,9 @@ Não dependem de código; entram no projeto quando chegarem.
     2026-09-29 (faixa 0 a 5, "Não informada", texto herdado do gráfico "PNAD") — lista em
     `specs/2026-09-29_pendencias/validation.md` V13;
   - nota editorial no subgrupo 28-364 dias: "opção de texto que junte tudo por conta da repetição".
+  - **tabelas no corpo sem bloco no DOCX** (achado de `specs/2026-09-29_dados_adhoc`): os textos das tabelas
+    `tabela_no_texto` (`cadunico_razao_populacao_0_a_5_2026` e as 4 `cadunico_adhoc_*`) saem em lorem no site e no PDF,
+    mas `gera_docx_curadoria.py` só cria bloco de texto para figuras — a equipe não tem onde escrevê-los.
 - **Apresentação**: os 6 trechos propostos pelo IPP marcados `<!-- revisar -->` em `apresentacao/apresentacao.md`
   (lista em `specs/2026-09-28_apresentacao/validation.md`).
 - **Teste do site num iPhone e num Android** (usuário; roteiro em `specs/2026-09-28_website_mobile/validation.md` V7).
@@ -81,9 +84,18 @@ Não dependem de código; entram no projeto quando chegarem.
    identidade visual, relatório ABNT em LaTeX a partir de um crosswalk `.md`, round-trip de curadoria em DOCX,
    deck Marp com números calculados. Definir fronteiras, nomes, versionamento e onde publicar (repositório
    próprio, pip via git).
-4. **Dados pontuais do CadÚnico em Moradia e Inclusão** (`specs/2026-09-29_dados_adhoc`, **planejada** em 2026-09-29;
-   implementação em `spec/dados-adhoc` aguardando o OK do usuário): extração de ago/2026 entra só por acréscimo no
-   site, PDF e deck, com aviso público de dado pontual; substituição pela extração automatizada no 4º tri de 2026.
+4. **Substituir os dados pontuais do CadÚnico (ref. 08/2026) pela extração automatizada — 4º tri de 2026**
+   (`specs/2026-09-29_dados_adhoc`, implementada em 2026-09-29 na branch `spec/dados-adhoc`). Hoje Inclusão e Moradia
+   mostram, por acréscimo, uma extração pontual (fora do banco CTPE) com o aviso "Dado pontual". Ao substituir:
+   levar as mesmas medidas para `analise.py` a partir do banco (com faixa 0 a 5 anos), recalcular, e apagar
+   `dados_locais/cadunico/` (planilha, CSV e manifesto `adhoc_2026_08.json` — a lista de tabelas geradas está nele),
+   as funções `*_cadunico_adhoc` de `primeira_infancia/cadunico.py`, a célula "📌 Dados pontuais" do `analise.py`, os
+   3 itens "(dado pontual, ago/2026)" de `specs/estrutura_eixos.md`, os blocos marcados `dados_adhoc` em
+   `website/build/build_site.py`, o slide "Primeiros números de Inclusão e Moradia" do deck, as entradas
+   `cadunico_adhoc_*` de `relatorio/latex/build/tabelas.py` e `mds_cadunico_adhoc` de `fontes.bib` (com a
+   exclusão `(?!…extração pontual)` do padrão de `mds_cadunico`). Os itens pendentes de Inclusão e Moradia saem de
+   pendente quando o dado automatizado cobrir o que o catálogo pede (famílias **com criança** com deficiência, tipo de
+   deficiência, inadequação e adensamento).
 5. **Tirar a menção ao IPS do site e do relatório** (pedido do usuário, 2026-09-29; no deck já feito — D12 de
    `specs/2026-09-29_slide_revision`): na violência territorial (Direito ao Brincar), a fonte passa a citar só o
    Data.Rio, como no deck — `fonte:` em `specs/estrutura_eixos.md`, `fonte_dados` dos 3 mapas em `analise.py` (e as
