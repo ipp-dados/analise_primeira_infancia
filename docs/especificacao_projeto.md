@@ -42,7 +42,7 @@ textos e mantém o pipeline; e quem quiser reproduzir os números (código e dad
 | Relatório técnico em PDF | `relatorio/analise_primeira_infancia.pdf` (157 páginas, ABNT NBR 10719) | leitura, impressão e citação; todas as tabelas no apêndice |
 | Tabelas finais | `tabelas_finais/*.csv` (87) | os números por trás de cada figura |
 | DOCX de curadoria | `relatorio/curadoria_textos.docx` | a equipe escreve e revisa os textos que acompanham as figuras |
-| Apresentação | `apresentacao/apresentacao_primeira_infancia.pptx` e `.pdf` (30 slides) | apresentar o diagnóstico a gestores das secretarias; gerada de um único Markdown, com variantes por público |
+| Apresentação | `apresentacao/apresentacao_primeira_infancia.pptx` e `.pdf` (33 slides) | apresentar o diagnóstico a gestores das secretarias; gerada de um único Markdown, com variantes por público |
 | Código | `analise.py` + `primeira_infancia/` | reprodução completa, da fonte bruta à figura |
 
 **Estado.** Em desenvolvimento: o site mostra uma faixa "EM DESENVOLVIMENTO / TEMPORÁRIO" e o PDF sai com marca
@@ -171,7 +171,11 @@ Google Drive de acesso restrito do IPP.
   números calculados de `tabelas_finais/` (nunca digitados), figuras do `analise.py` e blocos ligados/desligados pelo
   cabeçalho, para derivar versões por público ou secretaria (`apresentacao/variantes/`).
 - **RF21** Mapas dos slides sem distorção por valores extremos: versão de impressão (teto de cor no percentil 95 por
-  bairro) ou, por pedido, mapa próprio com a regra de outlier do site (cercas de Tukey), sempre dito no rodapé.
+  bairro) ou, por pedido, mapa próprio com a regra de outlier do site (cercas de Tukey), sempre dito no rodapé, com
+  os bairros extremos nomeados (`specs/2026-09-29_slide_revision` D8).
+- **RF22** No deck, nenhuma terra em azul (rampa terracota nos mapas de população, `mapas_apresentacao.TERRACOTA`),
+  faixa etária escrita "até 72 meses" com a nota "= 0 a 5 anos completos", e mapas/gráficos próprios do deck
+  (`apresentacao/build/mapas_apresentacao.py`, `graficos_apresentacao.py`) gravados só em `apresentacao/_build/`.
 
 ---
 
