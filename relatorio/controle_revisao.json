@@ -679,7 +679,6 @@
  "alertas": {
   "mapa_taxa_mortalidade_infantil_bairro_2025": "Os números do texto são os da taxa PÓS-NEONATAL, não da infantil: na tabela_mapa_mortalidade_infantil_2025.csv, Cidade Nova tem 3 óbitos infantis/42 NV = 71,43‰ (47,62‰ é a pós-neonatal, 2 óbitos); Camorim e Pitangueiras coincidem nas duas taxas. Texto não corrigido: decisão da equipe. | 2026-09-29: figura fora do site e do PDF (duplicada, E13); o texto fica órfão no DOCX.",
   "consideracoes_finais": "Frase 'o poder público deve atuar de forma isolada e integrar...' — provavelmente falta um 'não' (não deve atuar de forma isolada). Não corrigido: decisão da equipe. Veio colado depois do texto de obesidade SISVAN no update 4 (título 'Conclusão').",
-  "cobertura_vacinal_epi_ano": "Texto curado existe, mas a figura está fora do relatório (specs/exclusoes.md E1: chamada comentada em analise.py). Para publicar, descomentar a chamada e devolver a linha em estrutura_eixos.md.",
   "obitos_evitaveis_menores_5_subgrupo_ano": "Conferir número: o texto diz que os óbitos por atenção ao recém-nascido passaram de 198 em 2006 para 55 em 2025; em obitos_evitaveis_menores_5_subgrupo_municipio_ano.csv o valor de 2006 é 204 (55 em 2025 confere). Texto não corrigido: decisão da equipe."
  },
  "alertas_resolvidos": {
@@ -726,6 +725,10 @@
   "sidra_taxa_frequencia_0_6_raca_2022": [
    "Conferir leitura: 'No conjunto de 0 a 6 anos, a taxa foi de 25,32% (26,81% pardas, 24,48% pretas, 24,36% brancas)' usa a linha 'Total' da tabela SIDRA 10056, que é o total de TODAS as idades (não 0 a 6 anos): com taxas de 8% a 97% por idade, a de 0 a 6 anos não pode ser ~25%. Texto não corrigido: decisão da equipe.",
    "Resolvido em 2026-09-29 (specs/2026-09-29_pendencias D9/D14): faixa 0 a 5 anos e total 0-5 calculado por taxa × população; texto ajustado e marcado revisar."
+  ],
+  "cobertura_vacinal_epi_ano": [
+   "Texto curado existe, mas a figura está fora do relatório (specs/exclusoes.md E1: chamada comentada em analise.py). Para publicar, descomentar a chamada e devolver a linha em estrutura_eixos.md.",
+   "Resolvido em 2026-09-29 (specs/2026-09-29_alinhamento_pdf_site D2): chamada descomentada; figura de volta no PDF e no DOCX, com o texto curado."
   ]
  },
  "ajustes_manuais": {

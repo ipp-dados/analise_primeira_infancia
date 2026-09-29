@@ -115,7 +115,6 @@ Não dependem de código; entram no projeto quando chegarem.
 
 ### PDF (`relatorio/latex/`)
 - Legendas a partir do inventário/manifesto e remissões "ver Tabela X.n" (T3.3 de `specs/2026-09-25_relatorio_latex`).
-- Chave opcional `tabela_no_texto:` em `specs/estrutura_eixos.md` para pôr uma tabela no corpo do capítulo (T4.3).
 
 ### Site (`website/`)
 - **Página "Fale Conosco"** (pedido do usuário, 2026-09-24): rota por hash (`#fale-conosco`) como uma aba,
@@ -161,6 +160,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-09-29 | PDF alinhado ao site (ordem de Prioridade, vacinação de volta, tabelas no corpo com `tabela_no_texto:`, seção vazia fora — E16); quadros de pendente formais com `motivo:` | `specs/2026-09-29_alinhamento_pdf_site` |
 | 2026-09-29 | Pendências: faixa padrão 0 a 5 anos (até 72 meses), exclusões E12-E15, eixo cortado no baixo peso, tablet com as metas do celular, decisões registradas; correção do esquema do banco do CadÚnico | `specs/2026-09-29_pendencias` |
 | 2026-09-29 | Decisões de pendências (escopo da rodada atual, mapa duplicado, série "Não informada", base zero, unidade do IPS, Centro só no deck, branch da Waleska superada); regra de perguntas agrupadas pela ferramenta interativa na constituição | este arquivo, `specs/constitution.md` §5 |
 | 2026-09-29 | Merge de `spec/nova_estrutura` e `spec/apresentacao` em `planning` e `staging_main` (`ab9f803`) e deploy do site | `.github/workflows/deploy-relatorio.yml` |
