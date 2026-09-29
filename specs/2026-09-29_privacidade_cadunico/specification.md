@@ -40,7 +40,10 @@ Detalhe de implementação decidido na planificação (registrado aqui para revi
 denominador cujo complemento também precisa ser ≥ 20); devolve (a) a **tabela publicada**, com os bairros grandes e uma
 linha por conjunto agregado (nome, bairros que o compõem, contagens somadas, taxas recalculadas das somas) e (b) a
 **tabela do mapa**, uma linha por bairro, com `agregado_em` (nome do conjunto ou vazio) e as taxas do conjunto nos
-bairros agregados. Conjunto que não chega a 20 nem no município fica vazio (supressão, último recurso).
+bairros agregados. **Sobra que não chega a 20 nem no município** (achado na implementação: 9 bairros de 0 a 4 anos,
+21 crianças, entre eles os 5 que o CEP dos Correios não atribui): junta-se ao menor conjunto já formado (e ao seguinte,
+se precisar) num único "Demais bairros" — deixá-la vazia abriria a conta Total − publicado = sobra (< 20). Vazio só se
+não houver conjunto nenhum.
 
 **R2 — Onde aplica.** Toda saída do CadÚnico por bairro de `analise.py`: `cadunico_por_bairro_2026`,
 `cadunico_por_bairro_ate_4_2026`, `tabela_mapa_cadunico_criancas_2026`, `tabela_mapa_cadunico_criancas_0_a_4_2026`,

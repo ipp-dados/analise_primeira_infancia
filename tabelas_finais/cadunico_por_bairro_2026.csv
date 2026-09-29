@@ -1,170 +1,168 @@
-bairro,Crianças,Famílias,suprimido
-Abolição,177,161,False
-Acari,1594,1395,False
-Alto da Boa Vista,187,159,False
-Anchieta,2315,2048,False
-Andaraí,451,411,False
-Anil,3283,2952,False
-Argentino,,,True
-Bancários,437,382,False
-Bangu,7701,6939,False
-Barra Olímpica,141,126,False
-Barra da Tijuca,333,305,False
-Barra de Guaratiba,127,116,False
-Barros Filho,687,613,False
-Benfica,1143,1045,False
-Bento Ribeiro,895,798,False
-Bonsucesso,2934,2597,False
-Botafogo,311,282,False
-Brás de Pina,1228,1097,False
-Cachambi,401,358,False
-Cacuia,219,199,False
-Caju,1160,1035,False
-Camorim,556,504,False
-Campinho,254,231,False
-Campo Grande,10456,9352,False
-Campo dos Afonsos,,,True
-Cascadura,909,815,False
-Catete,175,171,False
-Catumbi,506,459,False
-Cavalcanti,595,528,False
-Centro,535,480,False
-Cidade Nova,112,105,False
-Cidade Universitária,31,26,False
-Cidade de Deus,2638,2316,False
-Cocotá,88,83,False
-Coelho Neto,1414,1253,False
-Colégio,984,896,False
-Complexo do Alemão,1363,1216,False
-Copacabana,1226,1127,False
-Cordovil,1279,1147,False
-Cosme Velho,180,160,False
-Cosmos,3227,2867,False
-Costa Barros,1781,1580,False
-Curicica,1141,1020,False
-Del Castilho,610,557,False
-Dendê,64,61,False
-Deodoro,521,468,False
-Dumas,98,90,False
-Encantado,274,251,False
-Engenheiro Leal,253,231,False
-Engenho Novo,1316,1176,False
-Engenho da Rainha,738,661,False
-Engenho de Dentro,1096,967,False
-Estácio,853,749,False
-Flamengo,99,91,False
-Freguesia (Ilha do Governador),525,472,False
-Freguesia (Jacarepaguá),939,850,False
-Galeão,734,650,False
-Gamboa,502,454,False
-Gardênia Azul,1653,1472,False
-Glória,163,146,False
-Grajaú,377,336,False
-Grumari,,,True
-Guadalupe,1210,1096,False
-Guarabu,39,35,False
-Guaratiba,6959,6243,False
-Gávea,1857,1689,False
-Higienópolis,215,198,False
-Honório Gurgel,662,594,False
-Humaitá,,,True
-Inhaúma,1873,1692,False
-Inhoaíba,2892,2570,False
-Ipanema,,,True
-Irajá,1542,1379,False
-Itacolomi,62,59,False
-Itanhangá,1915,1704,False
-Jacarepaguá,3424,3053,False
-Jacarezinho,277,253,False
-Jacaré,1409,1260,False
-Jardim América,1096,989,False
-Jardim Botânico,38,37,False
-Jardim Carioca,473,426,False
-Jardim Guanabara,42,37,False
-Jardim Sulacap,206,186,False
-Joá,,,True
-Lagoa,,,True
-Laranjeiras,112,102,False
-Leblon,49,47,False
-Leme,172,159,False
-Lins de Vasconcelos,947,840,False
-Madureira,1432,1283,False
-Magalhães Bastos,570,517,False
-Mangueira,819,737,False
-Manguinhos,1926,1688,False
-Maracanã,67,56,False
-Marechal Hermes,1083,976,False
-Maria da Graça,84,78,False
-Maré,3402,3040,False
-Moneró,,,True
-Méier,398,362,False
-Nossa Senhora das Graças,25,24,False
-Olaria,1230,1117,False
-Oswaldo Cruz,688,614,False
-Paciência,4696,4198,False
-Padre Miguel,1524,1377,False
-Paquetá,101,85,False
-Parada de Lucas,594,529,False
-Parque Anchieta,448,401,False
-Parque Colúmbia,123,109,False
-Pavuna,2785,2507,False
-Pechincha,366,334,False
-Pedra de Guaratiba,742,676,False
-Penha,2006,1798,False
-Penha Circular,1274,1172,False
-Piedade,1204,1077,False
-Pilares,748,664,False
-Pitangueiras,135,123,False
-Portuguesa,262,241,False
-Praia da Bandeira,21,20,False
-Praça Seca,1832,1634,False
-Praça da Bandeira,69,64,False
-Quintino Bocaiúva,707,630,False
-Ramos,2659,2391,False
-Realengo,5495,4938,False
-Recreio dos Bandeirantes,1026,930,False
-Riachuelo,126,109,False
-Ribeira,26,25,False
-Ricardo de Albuquerque,1190,1033,False
-Rio Comprido,945,853,False
-Rocha,433,398,False
-Rocha Miranda,1243,1091,False
-Rocinha,1236,1124,False
-Sampaio,524,478,False
-Santa Cruz,11313,10093,False
-Santa Teresa,888,824,False
-Santo Cristo,556,498,False
-Santíssimo,1981,1785,False
-Saúde,53,48,False
-Senador Camará,3517,3121,False
-Senador Vasconcelos,1153,1010,False
-Sepetiba,2934,2606,False
-São Conrado,76,68,False
-São Cristóvão,1560,1406,False
-São Francisco Xavier,127,113,False
-Tanque,1500,1313,False
-Taquara,2502,2212,False
-Tauá,615,556,False
-Tijuca,1310,1164,False
-Todos os Santos,91,85,False
-Tomás Coelho,724,653,False
-Tubiacanga,92,83,False
-Turiaçu,566,495,False
-Urca,,,True
-Vargem Grande,764,686,False
-Vargem Pequena,625,572,False
-Vasco da Gama,56,49,False
-Vaz Lobo,580,487,False
-Vicente de Carvalho,760,679,False
-Vidigal,480,439,False
-Vigário Geral,1264,1134,False
-Vila Isabel,960,864,False
-Vila Kosmos,313,274,False
-Vila Militar,106,99,False
-Vila Valqueire,496,438,False
-Vila da Penha,171,158,False
-Vista Alegre,128,117,False
-Zumbi,,,True
-Água Santa,154,142,False
-Sem bairro identificado (CEP fora da lista),15796,14147,False
-Total,194019,173680,False
+bairro,Crianças,Famílias,codbairro,agregado_em,suprimido,bairros agregados
+Abolição,177,161,70,,False,
+Acari,1594,1395,111,,False,
+Alto da Boa Vista,187,159,34,,False,
+Anchieta,2315,2048,107,,False,
+Andaraí,451,411,37,,False,
+Anil,3283,2952,116,,False,
+Argentino,,,166,Demais bairros da AP 3,False,
+Bancários,437,382,97,,False,
+Bangu,7701,6939,141,,False,
+Barra Olímpica,141,126,165,,False,
+Barra da Tijuca,333,305,128,,False,
+Barra de Guaratiba,127,116,152,,False,
+Barros Filho,687,613,112,,False,
+Benfica,1143,1045,12,,False,
+Bento Ribeiro,895,798,89,,False,
+Bonsucesso,2934,2597,40,,False,
+Botafogo,311,282,20,,False,
+Brás de Pina,1228,1097,45,,False,
+Cachambi,401,358,65,,False,
+Cacuia,219,199,93,,False,
+Caju,1160,1035,4,,False,
+Camorim,556,504,129,,False,
+Campinho,254,231,78,,False,
+Campo Grande,10456,9352,144,,False,
+Campo dos Afonsos,,,136,Demais bairros,False,
+Cascadura,909,815,82,,False,
+Catete,175,171,18,,False,
+Catumbi,506,459,6,,False,
+Cavalcanti,595,528,80,,False,
+Centro,535,480,5,,False,
+Cidade Nova,112,105,8,,False,
+Cidade Universitária,31,26,105,,False,
+Cidade de Deus,2638,2316,118,,False,
+Cocotá,88,83,96,,False,
+Coelho Neto,1414,1253,110,,False,
+Colégio,984,896,77,,False,
+Complexo do Alemão,1363,1216,156,,False,
+Copacabana,1226,1127,24,,False,
+Cordovil,1279,1147,46,,False,
+Cosme Velho,180,160,19,,False,
+Cosmos,3227,2867,147,,False,
+Costa Barros,1781,1580,113,,False,
+Curicica,1141,1020,119,,False,
+Del Castilho,610,557,53,,False,
+Deodoro,521,468,134,,False,
+Encantado,274,251,68,,False,
+Engenheiro Leal,253,231,81,,False,
+Engenho Novo,1316,1176,61,,False,
+Engenho da Rainha,738,661,55,,False,
+Engenho de Dentro,1096,967,66,,False,
+Estácio,853,749,9,,False,
+Flamengo,99,91,15,,False,
+Freguesia (Ilha),525,472,98,,False,
+Freguesia (Jacarepaguá),939,850,120,,False,
+Galeão,734,650,104,,False,
+Gamboa,502,454,2,,False,
+Gardênia Azul,1653,1472,117,,False,
+Glória,163,146,16,,False,
+Grajaú,377,336,38,,False,
+Grumari,,,133,Demais bairros,False,
+Guadalupe,1210,1096,106,,False,
+Guaratiba,6959,6243,151,,False,
+Gávea,1857,1689,29,,False,
+Higienópolis,215,198,50,,False,
+Honório Gurgel,662,594,87,,False,
+Humaitá,,,21,Demais bairros da RA Botafogo,False,
+Inhaúma,1873,1692,54,,False,
+Inhoaíba,2892,2570,146,,False,
+Ipanema,,,25,Demais bairros,False,
+Irajá,1542,1379,76,,False,
+Itanhangá,1915,1704,127,,False,
+Jacarepaguá,3424,3053,115,,False,
+Jacarezinho,277,253,155,,False,
+Jacaré,1409,1260,51,,False,
+Jardim América,1096,989,49,,False,
+Jardim Botânico,38,37,28,,False,
+Jardim Carioca,473,426,100,,False,
+Jardim Guanabara,42,37,99,,False,
+Jardim Sulacap,206,186,137,,False,
+Joá,,,126,Demais bairros,False,
+Lagoa,,,27,Demais bairros,False,
+Laranjeiras,112,102,17,,False,
+Leblon,49,47,26,,False,
+Leme,172,159,23,,False,
+Lins de Vasconcelos,947,840,62,,False,
+Madureira,1432,1283,83,,False,
+Magalhães Bastos,570,517,138,,False,
+Mangueira,819,737,11,,False,
+Manguinhos,1926,1688,39,,False,
+Maracanã,67,56,35,,False,
+Marechal Hermes,1083,976,90,,False,
+Maria da Graça,84,78,52,,False,
+Maré,3402,3040,157,,False,
+Moneró,,,102,Demais bairros da AP 3,False,
+Méier,398,362,63,,False,
+Olaria,1230,1117,42,,False,
+Osvaldo Cruz,688,614,88,,False,
+Paciência,4696,4198,148,,False,
+Padre Miguel,1524,1377,140,,False,
+Paquetá,101,85,13,,False,
+Parada de Lucas,594,529,47,,False,
+Parque Anchieta,448,401,108,,False,
+Parque Colúmbia,123,109,159,,False,
+Pavuna,2785,2507,114,,False,
+Pechincha,366,334,121,,False,
+Pedra de Guaratiba,742,676,153,,False,
+Penha,2006,1798,43,,False,
+Penha Circular,1274,1172,44,,False,
+Piedade,1204,1077,69,,False,
+Pilares,748,664,71,,False,
+Pitangueiras,135,123,94,,False,
+Portuguesa,262,241,103,,False,
+Praia da Bandeira,21,20,95,,False,
+Praça Seca,1832,1634,124,,False,
+Praça da Bandeira,69,64,32,,False,
+Quintino Bocaiúva,707,630,79,,False,
+Ramos,2659,2391,41,,False,
+Realengo,5495,4938,139,,False,
+Recreio dos Bandeirantes,1026,930,132,,False,
+Riachuelo,126,109,59,,False,
+Ribeira,26,25,91,,False,
+Ricardo de Albuquerque,1190,1033,109,,False,
+Rio Comprido,945,853,7,,False,
+Rocha,433,398,58,,False,
+Rocha Miranda,1243,1091,86,,False,
+Rocinha,1236,1124,154,,False,
+Sampaio,524,478,60,,False,
+Santa Cruz,11313,10093,149,,False,
+Santa Teresa,888,824,14,,False,
+Santo Cristo,556,498,3,,False,
+Santíssimo,1981,1785,143,,False,
+Saúde,53,48,1,,False,
+Senador Camará,3517,3121,142,,False,
+Senador Vasconcelos,1153,1010,145,,False,
+Sepetiba,2934,2606,150,,False,
+São Conrado,76,68,31,,False,
+Imperial de São Cristóvão,1560,1406,10,,False,
+São Francisco Xavier,127,113,57,,False,
+Tanque,1500,1313,123,,False,
+Taquara,2502,2212,122,,False,
+Tauá,615,556,101,,False,
+Tijuca,1310,1164,33,,False,
+Todos os Santos,91,85,64,,False,
+Tomás Coelho,724,653,56,,False,
+Turiaçú,566,495,85,,False,
+Urca,,,22,Demais bairros da RA Botafogo,False,
+Vargem Grande,764,686,131,,False,
+Vargem Pequena,625,572,130,,False,
+Vasco da Gama,56,49,158,,False,
+Vaz Lobo,580,487,84,,False,
+Vicente de Carvalho,760,679,73,,False,
+Vidigal,480,439,30,,False,
+Vigário Geral,1264,1134,48,,False,
+Vila Isabel,960,864,36,,False,
+Vila Kosmos,313,274,72,,False,
+Vila Militar,106,99,135,,False,
+Vila Valqueire,496,438,125,,False,
+Vila da Penha,171,158,74,,False,
+Vista Alegre,128,117,75,,False,
+Zumbi,,,92,Demais bairros da AP 3,False,
+Água Santa,154,142,67,,False,
+Demais bairros da RA Botafogo,22,20,,,False,"Humaitá, Urca"
+Demais bairros da AP 3,22,20,,,False,"Argentino, Moneró, Zumbi"
+Demais bairros,40,37,,,False,"Campo dos Afonsos, Grumari, Ipanema, Joá, Lagoa"
+Localidades sem bairro oficial,380,352,,,,
+Sem bairro identificado (CEP fora da lista),15796,14147,,,,
+Total,194019,173680,,,,

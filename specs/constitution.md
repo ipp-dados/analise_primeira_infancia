@@ -165,6 +165,17 @@ dado completo). Grupos pequenos na cidade inteira (ex. raça/cor amarela e
 indígena) só aparecem no total do município. Microdados de pessoa ou
 família nunca são gravados em disco.
 
+**Agregação no lugar do vazio (pedido do usuário, 2026-09-29, `specs/2026-09-29_privacidade_cadunico`):** por bairro,
+a célula pequena não fica vazia — o bairro é somado aos outros bairros pequenos da mesma **Região Administrativa**
+("Demais bairros da RA X"); se o conjunto ainda ficar abaixo de 20, aos da mesma **AP**; depois, ao município
+("Demais bairros"). Só o que não fecha nem assim fica vazio. Função única: `agrega_bairros_pequenos`
+(`primeira_infancia/cadunico.py`), aplicada a toda saída do CadÚnico por bairro, inclusive as versionadas no git.
+**Percentual por bairro:** o bairro também entra no conjunto quando o **numerador ou o complemento** (total −
+numerador) é menor que 20 — percentual × total publicado devolveria a contagem. Em mapa de percentual, o bairro do
+conjunto mostra a taxa do conjunto; em mapa de contagem, fica sem cor, e o total do conjunto está na tabela.
+**Histórico:** o commit `cdfacd2` (2026-09-09, antes da regra) tem contagens por bairro abaixo de 20 no GitHub; a
+limpeza do histórico está no `ROADMAP.md` e depende de decisão com a equipe (§7).
+
 ## 7. Git
 
 - Branch de integração: `staging_main`. Branches de trabalho seguem
