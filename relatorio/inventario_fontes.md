@@ -10,7 +10,7 @@
 | | Gráficos | Mapas | Tabelas |
 | :--- | ---: | ---: | ---: |
 | No disco | 68 | 37 | 92 |
-| No relatório (estrutura_eixos.md) | 64 | 29 | 79 |
+| No relatório (estrutura_eixos.md) | 64 | 29 | 75 |
 | Com fonte ligada ao fontes.bib | 67 | 37 | 91 |
 
 ## 1. Por fonte
@@ -295,12 +295,7 @@ Cada entrada de `fontes.bib` (lista **Fontes** do relatório) e o que ela gera. 
 `mds_cadunico_adhoc` — Brasil}. Ministério do Desenvolvimento e Assistência Social, Família e Combate à Fome  
 ⚠️ **Conferir:** órgão que fez a extração pontual e forma de citação (specs/2026-09-29_dados_adhoc)
 
-| Tipo | Arquivo | Eixo › subseção |
-| :--- | :--- | :--- |
-| tabela | `cadunico_adhoc_deficiencia_2026_08.csv` | Inclusão › Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026) |
-| tabela | `cadunico_adhoc_deficiencia_contexto_2026_08.csv` | Inclusão › Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026) |
-| tabela | `cadunico_adhoc_moradia_domicilio_2026_08.csv` | Moradia › Famílias e crianças no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, ago/2026) |
-| tabela | `cadunico_adhoc_moradia_territorio_2026_08.csv` | Moradia › Famílias e crianças no CadÚnico por forma de abastecimento de água e de escoamento sanitário (dado pontual, ago/2026) |
+_Nenhum arquivo do relatório._
 
 ### Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD Contínua): educação
 
@@ -493,10 +488,10 @@ Todos os gráficos, mapas e tabelas no disco. **Fonte (analise.py)** é o `fonte
 
 | Arquivo | No relatório | Eixo › subseção | Fonte (analise.py) | Fonte (.md) | Fontes.bib | Origem | Observação |
 | :--- | :---: | :--- | :--- | :--- | :--- | :--- | :--- |
-| `cadunico_adhoc_deficiencia_2026_08.csv` | sim | Inclusão › Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026) | — | Cadastro Único — extração pontual, referência 08/2026 | mds_cadunico_adhoc | `to_csv` l.941 (estrutura_eixos.md) |  |
-| `cadunico_adhoc_deficiencia_contexto_2026_08.csv` | sim | Inclusão › Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026) | — | Cadastro Único — extração pontual, referência 08/2026 | mds_cadunico_adhoc | `to_csv` l.941 (estrutura_eixos.md) |  |
-| `cadunico_adhoc_moradia_domicilio_2026_08.csv` | sim | Moradia › Famílias e crianças no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, ago/2026) | — | Cadastro Único — extração pontual, referência 08/2026 | mds_cadunico_adhoc | `to_csv` l.941 (estrutura_eixos.md) |  |
-| `cadunico_adhoc_moradia_territorio_2026_08.csv` | sim | Moradia › Famílias e crianças no CadÚnico por forma de abastecimento de água e de escoamento sanitário (dado pontual, ago/2026) | — | Cadastro Único — extração pontual, referência 08/2026 | mds_cadunico_adhoc | `to_csv` l.941 (estrutura_eixos.md) |  |
+| `cadunico_adhoc_deficiencia_2026_08.csv` | só site (dado pontual) | Inclusão › Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026) | — | Cadastro Único — extração pontual, referência 08/2026 | mds_cadunico_adhoc | `to_csv` l.941 (estrutura_eixos.md) |  |
+| `cadunico_adhoc_deficiencia_contexto_2026_08.csv` | só site (dado pontual) | Inclusão › Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026) | — | Cadastro Único — extração pontual, referência 08/2026 | mds_cadunico_adhoc | `to_csv` l.941 (estrutura_eixos.md) |  |
+| `cadunico_adhoc_moradia_domicilio_2026_08.csv` | só site (dado pontual) | Moradia › Famílias e crianças no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, ago/2026) | — | Cadastro Único — extração pontual, referência 08/2026 | mds_cadunico_adhoc | `to_csv` l.941 (estrutura_eixos.md) |  |
+| `cadunico_adhoc_moradia_territorio_2026_08.csv` | só site (dado pontual) | Moradia › Famílias e crianças no CadÚnico por forma de abastecimento de água e de escoamento sanitário (dado pontual, ago/2026) | — | Cadastro Único — extração pontual, referência 08/2026 | mds_cadunico_adhoc | `to_csv` l.941 (estrutura_eixos.md) |  |
 | `cadunico_familias_arranjo_renda_2026.csv` | sim | Família e Cuidados › Famílias no CadÚnico com crianças até 72 meses, por renda e arranjo familiar | — | Cadastro Único (extração CTPE) | mds_cadunico | `to_csv` l.849 (estrutura_eixos.md) |  |
 | `cadunico_familias_por_arranjo_2026.csv` | sim | Família e Cuidados › Famílias no CadÚnico com crianças até 72 meses, por renda e arranjo familiar | — | Cadastro Único (extração CTPE) | mds_cadunico | `to_csv` l.824 (estrutura_eixos.md) |  |
 | `cadunico_por_bairro_2026.csv` | sim | Prioridade › Crianças até 72 meses no Cadastro Único (número) \| Famílias com crianças até 72 meses no Cadastro Único (número) | — | Cadastro Único (extração CTPE) | mds_cadunico | `to_csv` l.629 (estrutura_eixos.md) |  |

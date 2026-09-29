@@ -560,24 +560,51 @@ Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:ip
 
 ---
 
-<div class="kicker">Parte III · O que falta · Dado pontual</div>
+<div class="kicker">Eixo Inclusão · Dado pontual</div>
 
-# Primeiros números de Inclusão e Moradia
+# Crianças com deficiência no Cadastro Único e o BPC
 
 <div class="stats" style="--n:3; margin-top:22px">
-<div style="--c:var(--c2)"><b>{{n:adhoc_criancas_deficiencia_0_6}}</b><span>crianças com deficiência no Cadastro Único; recebem o BPC {{n:adhoc_bpc_pct_0_3}} das de 0 a 3 anos e {{n:adhoc_bpc_pct_4_6}} das de 4 a 6</span></div>
-<div style="--c:var(--c7)"><b>{{n:adhoc_criancas_sem_agua}}</b><span>crianças no Cadastro Único vivem em domicílio sem água canalizada</span></div>
-<div style="--c:var(--c3)"><b>{{n:adhoc_criancas_vala_ceu_aberto}}</b><span>crianças no Cadastro Único vivem com esgoto em vala a céu aberto</span></div>
+<div class="destaque" style="--c:var(--c2)"><b>{{n:adhoc_criancas_deficiencia_0_6}}</b><span>crianças de 0 a 6 anos com deficiência no Cadastro Único</span></div>
+<div style="--c:var(--c2)"><b>{{n:adhoc_bpc_pct_0_3}}</b><span>das crianças de 0 a 3 anos com deficiência recebem o BPC ({{n:adhoc_bpc_n_0_3}} de {{n:adhoc_deficiencia_0_3}})</span></div>
+<div style="--c:var(--c2)"><b>{{n:adhoc_bpc_pct_4_6}}</b><span>das crianças de 4 a 6 anos com deficiência recebem o BPC ({{n:adhoc_bpc_n_4_6}} de {{n:adhoc_deficiencia_4_6}})</span></div>
 </div>
 
-<p class="nota" style="margin-top:28px">Crianças de 0 a 6 anos. Dado pontual do Cadastro Único (agosto de 2026), a ser substituído pela extração automatizada no 4º trimestre de 2026. Faixas da extração: 0 a 3 e 4 a 6 anos — a de 4 a 6 inclui os 6 anos, fora do padrão de 0 a 5 anos do diagnóstico.</p>
+<p class="nota" style="margin-top:28px">BPC: Benefício de Prestação Continuada. Dado pontual do Cadastro Único (agosto de 2026), a ser substituído pela extração automatizada no 4º trimestre de 2026. Faixas da extração: 0 a 3 e 4 a 6 anos — a de 4 a 6 inclui os 6 anos, fora do padrão de 0 a 5 anos do diagnóstico.</p>
 
 <!-- revisar -->
 
 <!--
-Slide novo (specs/2026-09-29_dados_adhoc, só acréscimo). Primeiros números da extração pontual do CadÚnico; os eixos seguem
-incompletos (próximo slide). BPC = Benefício de Prestação Continuada. Números de tabelas_finais/cadunico_adhoc_*.
-Sai quando a extração automatizada substituir a pontual (ROADMAP).
+Slide novo (specs/2026-09-29_dados_adhoc, só acréscimo; o slide único de Inclusão e Moradia foi dividido em dois a
+pedido do usuário). Cobertura do BPC = crianças com BPC ÷ crianças com deficiência, mesma extração. Os indicadores do
+catálogo (famílias com criança com deficiência, tipo de deficiência) seguem pendentes. Sai quando a extração
+automatizada substituir a pontual (ROADMAP).
+-->
+
+---
+
+<div class="kicker">Eixo Moradia · Dado pontual</div>
+
+# Saneamento nos domicílios das crianças do Cadastro Único
+
+<div class="stats" style="--n:2; margin-top:18px">
+<div style="--c:var(--c7)"><b>{{n:adhoc_criancas_sem_banheiro}}</b><span>crianças em domicílio sem banheiro</span></div>
+<div style="--c:var(--c7)"><b>{{n:adhoc_criancas_sem_agua}}</b><span>crianças em domicílio sem água canalizada</span></div>
+</div>
+
+<div class="stats" style="--n:3; margin-top:18px">
+<div style="--c:var(--c3)"><b>{{n:adhoc_criancas_vala_ceu_aberto}}</b><span>crianças com esgoto em vala a céu aberto</span></div>
+<div style="--c:var(--c3)"><b>{{n:adhoc_criancas_rio_mar}}</b><span>crianças com esgoto jogado em rio ou mar</span></div>
+<div style="--c:var(--c3)"><b>{{n:adhoc_criancas_fossa_rudimentar}}</b><span>crianças com esgoto em fossa rudimentar</span></div>
+</div>
+
+<p class="nota" style="margin-top:20px">Crianças de 0 a 6 anos no Cadastro Único; os números não se somam (a mesma criança pode estar em mais de uma situação). Dado pontual (agosto de 2026), a ser substituído pela extração automatizada no 4º trimestre de 2026; a faixa de 4 a 6 anos inclui os 6 anos, fora do padrão de 0 a 5 anos do diagnóstico.</p>
+
+<!-- revisar -->
+
+<!--
+Slide novo (specs/2026-09-29_dados_adhoc): os 5 destaques do site (cartões de Moradia), só as crianças de 0 a 6 anos
+(0 a 3 + 4 a 6 da mesma extração). Sai quando a extração automatizada substituir a pontual (ROADMAP).
 -->
 
 ---

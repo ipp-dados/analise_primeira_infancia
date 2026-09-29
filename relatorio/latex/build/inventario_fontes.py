@@ -270,18 +270,24 @@ def chaves_da_fonte(texto, bib):
     return [k for k, e in bib.items() if any(p.search(texto) for p in e["padroes"])]
 
 
+SO_SITE = set()   # arquivos de itens `- dado_pontual:` -- nunca entram no PDF (specs/2026-09-29_dados_adhoc D7)
+
+
 def mapa_estrutura():
     """arquivo -> lista de (eixo, subseção, fonte do .md, campo)."""
     usos = defaultdict(list)
     for eixo in parse_estrutura_eixos(str(RAIZ / "specs/estrutura_eixos.md")):
         for sub in eixo["subsecoes"]:
             campos = sub["campos"]
+            so_site = bool(campos.get("dado_pontual"))
             for campo in ("visualização", "mapa", "tabela"):
                 vals = campos.get(campo) or []
                 for v in ([vals] if isinstance(vals, str) else vals):
                     arq = v.strip().strip("`").strip()
                     if arq:
                         usos[arq].append((eixo["eixo"], sub["titulo"], campos.get("fonte"), campo))
+                        if so_site:
+                            SO_SITE.add(arq)
     return usos
 
 
@@ -342,7 +348,7 @@ def coleta():
         linhas.append(dict(
             arquivo=arq, tipo=tipo,
             eixo=" | ".join(dict.fromkeys(u[0] for u in uso)), subsecao=" | ".join(dict.fromkeys(u[1] for u in uso)),
-            no_relatorio="sim" if uso else "não",
+            no_relatorio=("só site (dado pontual)" if nome in SO_SITE else "sim") if uso else "não",
             titulo=(r or {}).get("titulo") or "", fonte_analise=(fonte_py or "").replace(CORINGA, "…"),
             fonte_estrutura=fonte_md or "", chaves_bib=", ".join(chaves),
             funcao=(r or {}).get("funcao") or "", linha=(r or {}).get("linha") or "",

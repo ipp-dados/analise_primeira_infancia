@@ -86,7 +86,7 @@ os.chdir(ROOT)
 sys.path.insert(0, str(ROOT / "relatorio" / "curadoria"))
 
 from gera_estrutura_eixos import TEXTO_PENDENTE, avisa_itens_sem_arquivo, chave_eixo, motivos_pendentes
-from gera_estrutura_eixos import aviso_dado_pontual as aviso_dado_pontual_texto
+from gera_estrutura_eixos import aviso_dado_pontual as aviso_dado_pontual_texto, parse_estrutura_eixos, tem_dados_pontuais
 # D5 (specs/2026-09-29_alinhamento_pdf_site): quadro de pendente = frase fixa + `motivo:` do crosswalk, igual no PDF
 _MOTIVOS_PENDENTES = motivos_pendentes()
 # populacao-referencia D4: avisa (sem mudar a saída) itens do crosswalk que o relatório pularia em silêncio
@@ -715,16 +715,24 @@ def nota_metodologica(texto):
 # ---- dados pontuais (specs/2026-09-29_dados_adhoc): aviso, cartões de indicador e barras de proporção ----------
 # Blocos marcados "dados_adhoc" saem quando a extração automatizada substituir a pontual (ROADMAP).
 
+_DADOS_PONTUAIS = []   # títulos dos blocos com dado pontual emitidos -- bloqueiam a versão final (ver _EM_DESENVOLVIMENTO)
+
 def aviso_dado_pontual(ident):
-    """Mesmo texto do quadro "Dado pontual" do PDF: aviso + nota da faixa, do manifesto `adhoc_<ident>.json`."""
-    parts.append(callout("note", "calendar", "Dado pontual", f"<p>{_esc(aviso_dado_pontual_texto(ident))}</p>"))
+    """Quadro "Dado pontual": aviso + nota da faixa, do manifesto `adhoc_<ident>.json`. O atributo `data-dado-pontual`
+    marca o HTML para a checagem do deploy (.github/workflows/deploy-relatorio.yml)."""
+    _DADOS_PONTUAIS.append(toc[-1][1] if toc else ident)
+    parts.append(callout("note", "calendar", "Dado pontual", f"<p>{_esc(aviso_dado_pontual_texto(ident))}</p>",
+                         extra=f' data-dado-pontual="{_esc(ident)}"'))
 
 def cartoes_indicador(itens):
-    """Cartões de indicador (número grande + rótulo + detalhe). `itens`: dicts com valor, rotulo, detalhe e
-    contexto (True = número de contexto, visualmente mais discreto)."""
+    """Cartões de indicador (número grande + rótulo + detalhe). `itens`: dicts com valor, rotulo, faixas (lista de
+    (rótulo, valor), em destaque logo abaixo do número -- as faixas etárias), detalhe (dado secundário) e contexto
+    (True = número de contexto, visualmente mais discreto)."""
     cards = "".join(
         f'<div class="kpi{" kpi-contexto" if i.get("contexto") else ""}">'
         f'<div class="kpi-valor">{_fmt_ptbr(i["valor"])}</div><div class="kpi-rotulo">{_esc(i["rotulo"])}</div>'
+        + ('<div class="kpi-faixas">' + "".join(f'<div><b>{_fmt_ptbr(v)}</b><span>{_esc(r)}</span></div>'
+                                                for r, v in i["faixas"]) + '</div>' if i.get("faixas") else "")
         + (f'<div class="kpi-detalhe">{_esc(i["detalhe"])}</div>' if i.get("detalhe") else "") + '</div>'
         for i in itens)
     parts.append(f'<div class="kpi-grid">{cards}</div>')
@@ -1802,11 +1810,14 @@ aviso_dado_pontual("2026_08")
 _def = read("cadunico_adhoc_deficiencia_2026_08.csv").set_index("Faixa etária")
 _def_ctx = read("cadunico_adhoc_deficiencia_contexto_2026_08.csv").set_index("Medida")["Valor"]
 _def_tot = _def.loc["Total (0 a 6 anos)"]
+# pedido do usuário (2026-09-29): crianças de 0 a 6 e as faixas 0 a 3 / 4 a 6 em destaque; famílias e pessoas (todas as
+# idades) como dado secundário
+_faixas_def = lambda col: [(f, _def.loc[f, col]) for f in ("0 a 3 anos", "4 a 6 anos")]
 cartoes_indicador([
     {"valor": _def_tot["Crianças com deficiência"], "rotulo": "crianças de 0 a 6 anos com deficiência",
-     "detalhe": f'{_fmt_ptbr(_def.loc["0 a 3 anos", "Crianças com deficiência"])} de 0 a 3 anos · '
-                f'{_fmt_ptbr(_def.loc["4 a 6 anos", "Crianças com deficiência"])} de 4 a 6 anos'},
+     "faixas": _faixas_def("Crianças com deficiência")},
     {"valor": _def_tot["Com BPC"], "rotulo": "delas recebem o Benefício de Prestação Continuada (BPC)",
+     "faixas": _faixas_def("Com BPC"),
      "detalhe": f'{_fmt_ptbr(_def_tot["% com BPC"], 1)}% das crianças com deficiência'},
     {"valor": _def_ctx["Famílias com pessoa com deficiência"], "rotulo": "famílias com pessoa com deficiência",
      "detalhe": "todas as idades — contexto", "contexto": True},
@@ -2119,28 +2130,35 @@ emite_bloco_pendente("Indicadores agregados de moradia (inadequação, saneament
 _C03, _C46 = "Crianças de 0 a 3 anos", "Crianças de 4 a 6 anos"
 
 def _cartao_moradia(linha, rotulo):
-    """Famílias em destaque; crianças de 0 a 6 (0-3 + 4-6, mesma extração) no detalhe."""
-    return {"valor": linha["Famílias"], "rotulo": rotulo,
-            "detalhe": f'{_fmt_ptbr(linha[_C03] + linha[_C46])} crianças de 0 a 6 anos '
-                       f'({_fmt_ptbr(linha[_C03])} de 0 a 3 · {_fmt_ptbr(linha[_C46])} de 4 a 6)'}
+    """Crianças de 0 a 6 (0 a 3 + 4 a 6, mesma extração) em destaque, com as faixas; famílias e pessoas como dado
+    secundário (pedido do usuário, 2026-09-29)."""
+    return {"valor": linha[_C03] + linha[_C46], "rotulo": rotulo,
+            "faixas": [("0 a 3 anos", linha[_C03]), ("4 a 6 anos", linha[_C46])],
+            "detalhe": f'{_fmt_ptbr(linha["Famílias"])} famílias · {_fmt_ptbr(linha["Pessoas"])} pessoas'}
+
+def _tabela_moradia(df):
+    """Crianças primeiro (0 a 6 = 0 a 3 + 4 a 6), famílias e pessoas no fim."""
+    df = df.copy()
+    df.insert(1, "Crianças de 0 a 6 anos", df[_C03] + df[_C46])
+    return df[[df.columns[0], "Crianças de 0 a 6 anos", _C03, _C46, "Famílias", "Pessoas"]]
 
 h3('Famílias e crianças no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, ago/2026)')
 aviso_dado_pontual("2026_08")
 _dom = read("cadunico_adhoc_moradia_domicilio_2026_08.csv").set_index("Situação do domicílio")
-cartoes_indicador([_cartao_moradia(_dom.loc["Sem banheiro"], "famílias em domicílio sem banheiro"),
-                   _cartao_moradia(_dom.loc["Sem água canalizada"], "famílias em domicílio sem água canalizada")])
-tabela_com_texto(lambda: plain_table(_fmt_tabela(_dom.reset_index()), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_domicilio_2026_08")
+cartoes_indicador([_cartao_moradia(_dom.loc["Sem banheiro"], "crianças de 0 a 6 anos em domicílio sem banheiro"),
+                   _cartao_moradia(_dom.loc["Sem água canalizada"], "crianças de 0 a 6 anos em domicílio sem água canalizada")])
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_tabela_moradia(_dom.reset_index())), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_domicilio_2026_08")
 
 h3('Famílias e crianças no CadÚnico por forma de abastecimento de água e de escoamento sanitário (dado pontual, ago/2026)')
 aviso_dado_pontual("2026_08")
 _ter = read("cadunico_adhoc_moradia_territorio_2026_08.csv")
 _esg = _ter[_ter["Serviço"] == "Escoamento sanitário"].set_index("Forma")
-cartoes_indicador([_cartao_moradia(_esg.loc["Vala a céu aberto"], "famílias com esgoto em vala a céu aberto"),
-                   _cartao_moradia(_esg.loc["Jogado em rio ou mar"], "famílias com esgoto jogado em rio ou mar"),
-                   _cartao_moradia(_esg.loc["Fossa rudimentar"], "famílias com esgoto em fossa rudimentar")])
+cartoes_indicador([_cartao_moradia(_esg.loc["Vala a céu aberto"], "crianças de 0 a 6 anos com esgoto em vala a céu aberto"),
+                   _cartao_moradia(_esg.loc["Jogado em rio ou mar"], "crianças de 0 a 6 anos com esgoto jogado em rio ou mar"),
+                   _cartao_moradia(_esg.loc["Fossa rudimentar"], "crianças de 0 a 6 anos com esgoto em fossa rudimentar")])
 # uma coluna de texto só (a tabela alinha à direita toda coluna depois da 1ª)
 _ter_site = _ter.assign(Forma=_ter["Serviço"] + ": " + _ter["Forma"].str.lower()).drop(columns="Serviço")
-tabela_com_texto(lambda: plain_table(_fmt_tabela(_ter_site), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_territorio_2026_08")
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_tabela_moradia(_ter_site)), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_territorio_2026_08")
 nota_metodologica("Só as formas fora da rede geral (a extração não trouxe a rede geral). Cisterna: a extração registra "
                   "0 crianças em 1.323 famílias, valor tratado como não informado (—).")
 
@@ -2321,6 +2339,14 @@ navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-l
 # faixa de aviso: controlada por relatorio/publicacao.json (em_desenvolvimento), a mesma chave da marca d'água do PDF
 # (relatorio/latex/build/gera_latex.py) -- as duas saem juntas na versão final (specs/2026-09-28_website_mobile)
 _EM_DESENVOLVIMENTO = json.loads(Path("relatorio/publicacao.json").read_text(encoding="utf-8")).get("em_desenvolvimento", False)
+# regra do usuário (2026-09-29, constituição §3; specs/2026-09-29_dados_adhoc D7): dado pontual só existe no site EM
+# DESENVOLVIMENTO. A versão final (sem a faixa) não é gerada enquanto houver bloco ou item `- dado_pontual:`.
+_PONTUAIS_MD = tem_dados_pontuais(parse_estrutura_eixos("specs/estrutura_eixos.md"))
+if not _EM_DESENVOLVIMENTO and (_DADOS_PONTUAIS or _PONTUAIS_MD):
+    raise SystemExit(
+        "BLOQUEADO: relatorio/publicacao.json diz em_desenvolvimento = false, mas o site ainda tem dado pontual "
+        f"(blocos: {_DADOS_PONTUAIS or '-'}; itens do crosswalk: {_PONTUAIS_MD or '-'}). Dado pontual não vai para a "
+        "versão final: substitua pela extração automatizada ou retire os blocos `dados_adhoc` (ROADMAP) antes de publicar.")
 banner = (
     ('<div class="dev-banner" role="alert">'
      '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
