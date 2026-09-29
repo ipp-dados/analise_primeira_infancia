@@ -39,5 +39,5 @@ Legenda: [x] feito · [ ] a fazer
 ## B7 — Gerar e registrar
 - [x] T7.1 `gera_apresentacao.py --png`; revisão slide a slide; `validation.md`
 - [x] T7.2 `apresentacao/README.md`, especificação do projeto, ROADMAP, CHANGELOG
-- [ ] T7.3 Merge em `planning`/`staging_main`; `--publicar` só com OK do usuário — usuário: ver o PDF do deck antes; merge autorizado depois de corrigir os achados
+- [x] T7.3 Merge em `planning`/`staging_main`, push e `--publicar` do deck e do PDF (OK do usuário, 2026-09-29; ainda com a marca "em desenvolvimento"); deploy do site pelo `deploy-relatorio.yml` (manual)
 - [x] T7.4 D9: sem soma de vínculos; achados corrigidos (legenda do gráfico de raça, fonte "0 a 5 anos" no rodapé, títulos embutidos dos gráficos)
