@@ -86,6 +86,7 @@ os.chdir(ROOT)
 sys.path.insert(0, str(ROOT / "relatorio" / "curadoria"))
 
 from gera_estrutura_eixos import TEXTO_PENDENTE, avisa_itens_sem_arquivo, chave_eixo, motivos_pendentes
+from gera_estrutura_eixos import aviso_dado_pontual as aviso_dado_pontual_texto
 # D5 (specs/2026-09-29_alinhamento_pdf_site): quadro de pendente = frase fixa + `motivo:` do crosswalk, igual no PDF
 _MOTIVOS_PENDENTES = motivos_pendentes()
 # populacao-referencia D4: avisa (sem mudar a saída) itens do crosswalk que o relatório pularia em silêncio
@@ -710,6 +711,45 @@ def nota_metodologica(texto):
     """Nota de limitação/qualidade de dado sob o h3 (ex.: quebra de série, denominador). Callout
     próprio (ícone de informação, sai o emoji ℹ️) -- não é indicador pendente, é ressalva sobre um dado real."""
     parts.append(callout("note", "info", "Nota metodológica", f"<p>{_esc(texto)}</p>"))
+
+# ---- dados pontuais (specs/2026-09-29_dados_adhoc): aviso, cartões de indicador e barras de proporção ----------
+# Blocos marcados "dados_adhoc" saem quando a extração automatizada substituir a pontual (ROADMAP).
+
+def aviso_dado_pontual(ident):
+    """Mesmo texto do quadro "Dado pontual" do PDF: aviso + nota da faixa, do manifesto `adhoc_<ident>.json`."""
+    parts.append(callout("note", "calendar", "Dado pontual", f"<p>{_esc(aviso_dado_pontual_texto(ident))}</p>"))
+
+def cartoes_indicador(itens):
+    """Cartões de indicador (número grande + rótulo + detalhe). `itens`: dicts com valor, rotulo, detalhe e
+    contexto (True = número de contexto, visualmente mais discreto)."""
+    cards = "".join(
+        f'<div class="kpi{" kpi-contexto" if i.get("contexto") else ""}">'
+        f'<div class="kpi-valor">{_fmt_ptbr(i["valor"])}</div><div class="kpi-rotulo">{_esc(i["rotulo"])}</div>'
+        + (f'<div class="kpi-detalhe">{_esc(i["detalhe"])}</div>' if i.get("detalhe") else "") + '</div>'
+        for i in itens)
+    parts.append(f'<div class="kpi-grid">{cards}</div>')
+
+def _fmt_tabela(df, pct=()):
+    """Números no formato pt-BR para `plain_table` (milhar com ponto; colunas em `pct` com 1 casa e %; vazio = —)."""
+    out = df.copy()
+    for c in out.columns:
+        if pd.api.types.is_numeric_dtype(out[c]):
+            out[c] = out[c].map(lambda v: "—" if pd.isna(v) else (_fmt_ptbr(v, 1) + "%" if c in pct else _fmt_ptbr(v)))
+    return out
+
+def barras_razao(itens, titulo, fonte):
+    """Proporção numerador/denominador em barra horizontal, com os dois números escritos (lê-se sem a cor).
+    `itens`: (rótulo, numerador, denominador)."""
+    _registra_fonte(fonte)
+    linhas = "".join(
+        f'<div class="razao-item"><div class="razao-cab"><span class="razao-rotulo">{_esc(r)}</span>'
+        f'<span class="razao-valor">{_fmt_ptbr(100 * n / d, 1)}%</span></div>'
+        f'<div class="razao-trilho" role="img" aria-label="{_esc(r)}: {_fmt_ptbr(100 * n / d, 1)}%">'
+        f'<div class="razao-barra" style="width:{100 * n / d:.1f}%"></div></div>'
+        f'<div class="razao-detalhe">{_fmt_ptbr(n)} de {_fmt_ptbr(d)}</div></div>'
+        for r, n, d in itens)
+    parts.append(f'<div class="out"><div class="chart-subtitle">{_esc(titulo)}</div>'
+                 f'<div class="razao-lista">{linhas}</div><div class="out-src">{fonte}</div></div>')
 
 # ---- institutional logo (embedded once, reused in navbar + footer) --------
 
@@ -1755,6 +1795,29 @@ emite_bloco_pendente("Crianças no CadÚnico com alguma deficiência")
 emite_bloco_pendente("Famílias no CadÚnico com criança com deficiência")
 emite_bloco_pendente("Crianças no CadÚnico por tipo de deficiência")
 
+# dados_adhoc (specs/2026-09-29_dados_adhoc): extração pontual de ago/2026, só acréscimo -- os pendentes acima ficam (D2/D3)
+FONTE_CADUNICO_ADHOC = "Cadastro Único — extração pontual, referência 08/2026"
+h3('Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026)')
+aviso_dado_pontual("2026_08")
+_def = read("cadunico_adhoc_deficiencia_2026_08.csv").set_index("Faixa etária")
+_def_ctx = read("cadunico_adhoc_deficiencia_contexto_2026_08.csv").set_index("Medida")["Valor"]
+_def_tot = _def.loc["Total (0 a 6 anos)"]
+cartoes_indicador([
+    {"valor": _def_tot["Crianças com deficiência"], "rotulo": "crianças de 0 a 6 anos com deficiência",
+     "detalhe": f'{_fmt_ptbr(_def.loc["0 a 3 anos", "Crianças com deficiência"])} de 0 a 3 anos · '
+                f'{_fmt_ptbr(_def.loc["4 a 6 anos", "Crianças com deficiência"])} de 4 a 6 anos'},
+    {"valor": _def_tot["Com BPC"], "rotulo": "delas recebem o Benefício de Prestação Continuada (BPC)",
+     "detalhe": f'{_fmt_ptbr(_def_tot["% com BPC"], 1)}% das crianças com deficiência'},
+    {"valor": _def_ctx["Famílias com pessoa com deficiência"], "rotulo": "famílias com pessoa com deficiência",
+     "detalhe": "todas as idades — contexto", "contexto": True},
+    {"valor": _def_ctx["Pessoas com deficiência (todas as idades)"], "rotulo": "pessoas com deficiência",
+     "detalhe": "todas as idades — contexto", "contexto": True},
+])
+barras_razao([(f, _def.loc[f, "Com BPC"], _def.loc[f, "Crianças com deficiência"]) for f in ("0 a 3 anos", "4 a 6 anos")],
+             "Cobertura do BPC entre as crianças com deficiência no CadÚnico, por faixa etária", FONTE_CADUNICO_ADHOC)
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_def.reset_index(), pct=("% com BPC",)), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_deficiencia_2026_08")
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_def_ctx.reset_index()), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_deficiencia_contexto_2026_08")
+
 # ===================================================== FAMILIA E CUIDADOS ==
 
 h2('👨‍👩‍👧 Família e Cuidados')
@@ -2051,6 +2114,35 @@ h2('🏠 Moradia')
 emite_bloco_pendente("Crianças no CadÚnico em domicílios com inadequação habitacional")
 emite_bloco_pendente("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)")
 emite_bloco_pendente("Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)")
+
+# dados_adhoc (specs/2026-09-29_dados_adhoc): extração pontual de ago/2026, só acréscimo -- os pendentes acima ficam (D3)
+_C03, _C46 = "Crianças de 0 a 3 anos", "Crianças de 4 a 6 anos"
+
+def _cartao_moradia(linha, rotulo):
+    """Famílias em destaque; crianças de 0 a 6 (0-3 + 4-6, mesma extração) no detalhe."""
+    return {"valor": linha["Famílias"], "rotulo": rotulo,
+            "detalhe": f'{_fmt_ptbr(linha[_C03] + linha[_C46])} crianças de 0 a 6 anos '
+                       f'({_fmt_ptbr(linha[_C03])} de 0 a 3 · {_fmt_ptbr(linha[_C46])} de 4 a 6)'}
+
+h3('Famílias e crianças no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, ago/2026)')
+aviso_dado_pontual("2026_08")
+_dom = read("cadunico_adhoc_moradia_domicilio_2026_08.csv").set_index("Situação do domicílio")
+cartoes_indicador([_cartao_moradia(_dom.loc["Sem banheiro"], "famílias em domicílio sem banheiro"),
+                   _cartao_moradia(_dom.loc["Sem água canalizada"], "famílias em domicílio sem água canalizada")])
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_dom.reset_index()), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_domicilio_2026_08")
+
+h3('Famílias e crianças no CadÚnico por forma de abastecimento de água e de escoamento sanitário (dado pontual, ago/2026)')
+aviso_dado_pontual("2026_08")
+_ter = read("cadunico_adhoc_moradia_territorio_2026_08.csv")
+_esg = _ter[_ter["Serviço"] == "Escoamento sanitário"].set_index("Forma")
+cartoes_indicador([_cartao_moradia(_esg.loc["Vala a céu aberto"], "famílias com esgoto em vala a céu aberto"),
+                   _cartao_moradia(_esg.loc["Jogado em rio ou mar"], "famílias com esgoto jogado em rio ou mar"),
+                   _cartao_moradia(_esg.loc["Fossa rudimentar"], "famílias com esgoto em fossa rudimentar")])
+# uma coluna de texto só (a tabela alinha à direita toda coluna depois da 1ª)
+_ter_site = _ter.assign(Forma=_ter["Serviço"] + ": " + _ter["Forma"].str.lower()).drop(columns="Serviço")
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_ter_site), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_territorio_2026_08")
+nota_metodologica("Só as formas fora da rede geral (a extração não trouxe a rede geral). Cisterna: a extração registra "
+                  "0 crianças em 1.323 famílias, valor tratado como não informado (—).")
 
 # ============================================================== ASSEMBLE ==
 
