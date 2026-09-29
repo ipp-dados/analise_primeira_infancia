@@ -20,6 +20,7 @@ from pathlib import Path
 _PUB = json.loads(Path("relatorio/publicacao.json").read_text(encoding="utf-8"))
 ATIVO = bool(_PUB.get("demo"))
 _CFG = _PUB.get("demo_textos", {})
+CONTATO = _PUB.get("contato", "")   # e-mail do rodapé na demo (D13)
 
 _CAMINHO = Path("website/build/textos_demo.json")
 _TEXTOS = {k: v for k, v in json.loads(_CAMINHO.read_text(encoding="utf-8")).items() if not k.startswith("_")} \
