@@ -74,6 +74,6 @@ Legenda: [x] feito · [ ] a fazer
 
 ## B9 — Fechamento
 - [x] T9.1 `CHANGELOG.md`, `docs/especificacao_projeto.md` (§11), `ROADMAP.md`
-- [ ] T9.2 Merge `spec/pendencias` → `planning` → `staging_main`; push
+- [x] T9.2 Merge `spec/pendencias` → `planning` → `staging_main`; push (2026-09-29)
 - [ ] T9.3 Com OK do usuário: `gera_latex.py --publicar`, deploy do site, deck `--publicar`, tags `rodada/*`,
   limpeza de branches (D7, D8)
