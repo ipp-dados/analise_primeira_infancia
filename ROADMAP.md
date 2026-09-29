@@ -138,6 +138,13 @@ Não dependem de código; entram no projeto quando chegarem.
   dia for preciso colorir o mar por conta própria (`relatorio/specs.md` v6.4-v6.6).
 
 ### Repositório (git)
+- **Dado do CadÚnico abaixo de 20 no histórico** (achado de 2026-09-29, `specs/2026-09-29_privacidade_cadunico` D3):
+  o commit `cdfacd2` (2026-09-09, antes da regra de 2026-09-23) tem contagens de crianças/famílias por bairro de 1 a 19
+  em `cadunico_por_bairro_2026.csv`, `cadunico_por_bairro_ate_4_2026.csv`, `tabela_mapa_cadunico_criancas_2026.csv` e
+  `tabela_mapa_cadunico_primeira_infancia_2026.csv`, publicado no GitHub. As versões atuais estão conformes. Limpar exige
+  reescrever o histórico (`git filter-repo` só nesses arquivos, force-push em todas as branches, todos reclonam; muda
+  os hashes citados nas specs) — **decisão do usuário com a equipe**; pode ser feita junto com a limpeza de binários
+  do item abaixo.
 - **Tamanho do histórico** — o pack tem ~178 MB, quase tudo binário com muitas versões: o PDF (19 versões, 644 MB
   sem compactar), o antigo `relatorio/index.html` (308 MB) e o DOCX de curadoria (87 MB); agora também o PPTX/PDF da
   apresentação (~17 MB por versão). **Não reescrever o histórico por ora**: mudaria o identificador de todos os

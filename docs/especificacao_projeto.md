@@ -125,7 +125,10 @@ Google Drive de acesso restrito do IPP.
 - **RF4** Gerar a **variante de impressão** de cada figura (`visualizacoes/a4/`, `mapas/a4/`, PDF vetorial no tamanho
   final do A4, sem título nem fonte embutidos) e o manifesto `visualizacoes/a4/_manifesto.csv` (título, fonte,
   unidade) lido pelo PDF. Uma falha numa variante vira aviso, não interrompe o notebook.
-- **RF5** Aplicar a **supressão de células pequenas** do CadÚnico (< 20) antes de gravar qualquer saída sub-municipal.
+- **RF5** Proteger toda saída sub-municipal do CadÚnico antes de gravá-la: nenhuma contagem < 20. Por bairro, o bairro
+  pequeno é **somado aos outros bairros pequenos da RA** (depois AP, depois município), também quando um percentual
+  publicado revelaria numerador ou complemento < 20 (`agrega_bairros_pequenos`, `specs/2026-09-29_privacidade_cadunico`);
+  demais células pequenas ficam vazias (`suprime_celulas_pequenas`).
 
 ### 4.2 Site interativo (`website/`)
 
@@ -177,7 +180,7 @@ Google Drive de acesso restrito do IPP.
 | # | Requisito | Como é garantido |
 |---|---|---|
 | RNF1 | **Reprodutibilidade**: o mesmo código e os mesmos dados dão as mesmas saídas | geradores determinísticos (duas gerações seguidas do site com md5 idêntico); refatorações validadas por hash de todas as saídas (`specs/2026-09-28_organizacao`: 431/431) |
-| RNF2 | **Privacidade**: nenhuma célula sub-municipal do CadÚnico < 20 publicada; nenhum microdado de pessoa; credenciais fora do git | `suprime_celulas_pequenas`; `.env` no `.gitignore` (modelo em `.env.example`); `specs/constitution.md` §6 |
+| RNF2 | **Privacidade**: nenhuma célula sub-municipal do CadÚnico < 20 publicada; nenhum microdado de pessoa; credenciais fora do git | `agrega_bairros_pequenos` (bairro) e `suprime_celulas_pequenas`; `.env` no `.gitignore` (modelo em `.env.example`); `specs/constitution.md` §6 |
 | RNF3 | **Site estático**: só html/css/js/svg/png/jpg/ico, caminhos relativos, rotas por hash, sem `fetch`, sem build no deploy | workflow de deploy com lista de inclusão e checagem de extensões; `website/README.md` |
 | RNF4 | **Tamanho**: `index.html` ≤ 1 MB, site ≤ 2 MB (hoje 343 KB e 1,05 MB); PDF < 20 MB (hoje 14,2 MB) | o gerador do site imprime o tamanho e avisa no estouro |
 | RNF5 | **Cache**: o navegador nunca mistura HTML novo com CSS/JS antigos | `?v=<md5 do conteúdo>` em todo recurso |

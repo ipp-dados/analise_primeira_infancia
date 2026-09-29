@@ -1065,10 +1065,13 @@ _MAPAS = {}
 _OVERLAYS_MAPA = []
 
 def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro", teto=None, zero_branco=False,
-             col_suprimido=None, rotulo_suprimido="suprimido (< 20)", col_extra=None, rotulo_extra=""):
+             col_suprimido=None, rotulo_suprimido="suprimido (< 20)", col_extra=None, rotulo_extra="", col_agregado=None):
     """`col_extra` (populacao-referencia D1): coluna percentual opcional de `df` mostrada no tooltip ao lado do
     valor, como "1.234 (1,9% do município)" com `rotulo_extra`; None (padrão) não muda nada.
     `teto`: limite superior só da escala de cor contínua (valores acima usam a cor máxima; o tooltip mostra o real).
+    `col_agregado` (specs/2026-09-29_privacidade_cadunico): coluna de `df` com o nome do conjunto em que o bairro pequeno
+    foi somado ("Demais bairros da RA X"); o tooltip e o CSV mostram o conjunto, e a legenda explica. Em taxa, o bairro
+    vem com a taxa do conjunto; em contagem, sem valor (sem cor).
     `col_suprimido` (specs/2026-09-23_recortes_cadunico §5): coluna booleana de `df` marcando regiões suprimidas por
     privacidade (valor já vazio na tabela) -- o tooltip mostra `rotulo_suprimido` em vez de "—" e a legenda
     ganha uma linha própria. None (padrão) = comportamento anterior, usado pelos demais mapas.
@@ -1085,6 +1088,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
     valores = {}
     suprimidas = set()
     extras = {}
+    agregados = {}
     for _, r in df.iterrows():
         try:
             chave = _chave_norm(r[chave_col], nivel)
@@ -1096,6 +1100,8 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
             extras[chave] = float(r[col_extra])
         if col_suprimido is not None and bool(r[col_suprimido]):
             suprimidas.add(chave)
+        if col_agregado is not None and isinstance(r[col_agregado], str) and r[col_agregado]:
+            agregados[chave] = r[col_agregado]
     brutos = list(valores.values())
     # outliers so em percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
     limpos = remove_outliers_tukey(brutos) if _eh_taxa_ou_percentual(fmt) else brutos
@@ -1135,6 +1141,9 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 val_txt += f" ({_fmt_ptbr(extras[chave], 1)}% {rotulo_extra})".replace(" )", ")")
             if chave in suprimidas:
                 val_txt = rotulo_suprimido
+            if chave in agregados:   # bairro pequeno somado no conjunto da RA (privacidade_cadunico)
+                # só no tooltip: o rótulo da região é compartilhado com a geometria (data/geo.js) e com o CSV
+                val_txt = (f"{val_txt} ({agregados[chave]})" if v is not None else f"somado em {agregados[chave]}")
             # geometria em data/geo.js (<path id>), nome da região em window.GEO_NOMES;
             # stroke/fill-opacity no CSS (`.map-svg use`) -- aqui só o que muda por mapa
             if fill not in cores:
@@ -1159,6 +1168,11 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 v = vmin + (vmax - vmin) * frac
                 sw = _cor_sequencial(tema, frac)
                 legend_bits.append(f'<div class="map-legend-row"><span class="map-legend-sw" style="background:{sw}"></span>{"≥ " if acima_do_teto and i == steps - 1 else ""}{_fmt_ptbr(v, 1)}{_SUFIXO_FMT.get(fmt, "")}</div>')
+        if agregados:
+            _txt_ag = ("Bairros pequenos: taxa do conjunto da RA" if any(valor_por_regiao.get(k) is not None for k in agregados)
+                       else "Sem cor: bairro pequeno, somado aos da RA (ver tabela)")
+            legend_bits.append('<div class="map-legend-row"><span class="map-legend-sw" style="background:var(--surface-2);'
+                               f'border:1px dashed var(--ink-3, #888)"></span>{_esc(_txt_ag)}</div>')
         if suprimidas:
             legend_bits.append('<div class="map-legend-row"><span class="map-legend-sw" style="background:var(--surface-2);border:1px solid var(--ink-3, #888)"></span>'
                                f'Sem dado / {_esc(rotulo_suprimido)}</div>')
@@ -1633,7 +1647,8 @@ emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo")
 # ---- CadÚnico: recortes por sexo, raça/cor, arranjo familiar e renda (specs/2026-09-23_recortes_cadunico) ----
 FONTE_CADUNICO = "CadÚnico (extração CTPE, jun/2026)"
 FONTE_MAPA_CADUNICO = (FONTE_CADUNICO + ". Bairro atribuído pelo CEP (Correios), pode divergir do bairro oficial; "
-                       "bairros com menos de 20 famílias suprimidos")
+                       "bairros com menos de 20 crianças ou famílias somados aos da mesma Região Administrativa "
+                       "(proteção de dados do Cadastro Único)")
 df_cad_sexo = read("cadunico_por_sexo_2026.csv")
 df_cad_raca = read("cadunico_por_raca_cor_2026.csv")
 df_cad_arranjo = read("cadunico_familias_por_arranjo_2026.csv")
@@ -1643,7 +1658,7 @@ _ORDEM_RACA_CAD = ["Parda", "Branca", "Preta", "Amarela", "Indígena"]
 
 def _mapa_cadunico_pct(col, titulo, legenda):
     return mapa_svg(df_cad_recortes_mapa, "codbairro", col, "cadunico", titulo, legenda, FONTE_MAPA_CADUNICO,
-                    fmt="pct1", col_suprimido="suprimido")
+                    fmt="pct1", col_suprimido="suprimido", col_agregado="agregado_em")
 
 # populacao-referencia A4: razão municipal CadÚnico / população Ripsa
 h3("Crianças de 0 a 5 anos no CadÚnico em relação à população do município")
@@ -1689,10 +1704,10 @@ df_map_cadunico_0_4 = read("tabela_mapa_cadunico_criancas_0_a_4_2026.csv")
 option_card([
     ("Crianças 0-5", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
         "Crianças (0 a 5 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[250, 750, 1500, 3000],
-        col_suprimido="suprimido"), "mapa_cadunico_criancas_bairro_2026"),
+        col_suprimido="suprimido", col_agregado="agregado_em"), "mapa_cadunico_criancas_bairro_2026"),
     ("Crianças 0-4", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
         "Crianças (0 a 4 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[200, 500, 1000, 2000],
-        col_suprimido="suprimido"), "mapa_cadunico_criancas_0_a_4_bairro_2026"),
+        col_suprimido="suprimido", col_agregado="agregado_em"), "mapa_cadunico_criancas_0_a_4_bairro_2026"),
     # recortes_cadunico D6: mapa "% s/ Censo" retirado do relatório (até 510% por viés CEP -> bairro; fica só no notebook)
 ], 'mapa')
 
