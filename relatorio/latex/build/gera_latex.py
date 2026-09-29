@@ -36,7 +36,7 @@ GERADO = LATEX / "gerado"
 CACHE = LATEX / "_build/img"
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(RAIZ / "relatorio/curadoria"))
-from gera_estrutura_eixos import (TEXTO_PENDENTE, chave_eixo, eixos_politica, motivos_pendentes,  # noqa: E402
+from gera_estrutura_eixos import (TEXTO_PENDENTE, aviso_dado_pontual, chave_eixo, eixos_politica, motivos_pendentes,  # noqa: E402
                                   panorama, parse_estrutura_eixos, valida_estrutura)
 import inventario_fontes  # noqa: E402
 import tabelas  # noqa: E402
@@ -222,6 +222,9 @@ def secoes_indicadores(subsecoes, info_por_arquivo, tabs, rotulo_ap, cmd="sectio
             tex.append(r"\begin{pendente}" + TEXTO_PENDENTE + (" " + esc(motivo) if motivo else "")
                        + r"\end{pendente}")
             continue
+        # `dado_pontual:` (specs/2026-09-29_dados_adhoc): aviso público do manifesto da extração pontual
+        if c.get("dado_pontual"):
+            tex.append(r"\begin{dadopontual}" + esc(aviso_dado_pontual(c["dado_pontual"])) + r"\end{dadopontual}")
         for campo, tipo in (("visualização", "grafico"), ("mapa", "mapa")):
             for nome in lista(c.get(campo)):
                 info = info_por_arquivo.get(("visualizacoes" if tipo == "grafico" else "mapas") + "/" + nome, {})
