@@ -186,8 +186,8 @@ de execução, se D1 = B.
   → **Decidido: substituir** (mesmo caminho; `build_notebook_report.py` sai depois da validação).
 - **D3 — Autoria na capa/folha de rosto**: só a instituição (Prefeitura do Rio / IPP) ou equipe nomeada;
   uso do logo (autorização ainda pendente, `specs/roadmap.md`).
-  → **Decidido: equipe nomeada** (informada em 2026-09-25): Leonardo Aucar, Bianca Medina, Caroline Lima,
-  Waleska Marques, Maria Norbert — em `pretextual/folha_rosto.tex` (editado à mão, não gerado), sem funções
+  → **Decidido: equipe nomeada** (informada em 2026-09-25): Leonardo Aucar, Bianca Medina, Caroline Sampaio,
+  Waleska Marques, Maria Norbert, Gustavo Simão, Lucas Martins (nomes corrigidos e equipe ampliada em 2026-09-29) — em `pretextual/folha_rosto.tex` (editado à mão, não gerado), sem funções
   por enquanto. Logo segue condicionado à autorização.
 - **D4 — Texto ainda não curado** (resumo, aberturas, sínteses, considerações finais, indicadores sem
   texto): caixa "Texto em curadoria" (recomendado), omitir, ou lorem ipsum como hoje.
