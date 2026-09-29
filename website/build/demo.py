@@ -55,7 +55,7 @@ def itens(chave):
             for l in _bruto(chave).split("\n") if l.strip()]
 
 def banner_html():
-    return ('<div class="dev-banner dev-banner-demo" role="alert">'
+    return ('<div class="dev-banner" data-demo role="alert">'   # class exata: o deploy procura class="dev-banner"
             f'<span class="dev-banner-linha">⚠️ {_html.escape(_CFG["faixa"])}</span>'
             f'<span class="dev-banner-data">Versão 1.0 prevista para {data_v1_extenso()}</span>'
             '</div>')
