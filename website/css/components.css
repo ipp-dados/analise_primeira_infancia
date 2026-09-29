@@ -256,3 +256,9 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.76rem;}
 .razao-trilho{height:12px; margin-top:6px; background:var(--surface-3); border-radius:var(--radius-pill); overflow:hidden;}
 .razao-barra{height:100%; background:var(--accent); border-radius:var(--radius-pill);}
 .razao-detalhe{font-size:.78rem; color:var(--ink-3); margin-top:4px; font-variant-numeric:tabular-nums;}
+/* faixas etárias em destaque logo abaixo do número (crianças de 0 a 3 e de 4 a 6); famílias/pessoas ficam no detalhe */
+.kpi-faixas{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; margin-top:12px; padding-top:10px;
+  border-top:1px solid var(--hairline-2);}
+.kpi-faixas b{display:block; font-family:var(--font-display); font-weight:600; font-size:1.25rem; line-height:1.15;
+  color:var(--accent-ink); font-variant-numeric:tabular-nums;}
+.kpi-faixas span{display:block; font-size:.78rem; color:var(--ink-2); margin-top:2px;}

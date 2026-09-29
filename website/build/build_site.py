@@ -720,11 +720,14 @@ def aviso_dado_pontual(ident):
     parts.append(callout("note", "calendar", "Dado pontual", f"<p>{_esc(aviso_dado_pontual_texto(ident))}</p>"))
 
 def cartoes_indicador(itens):
-    """Cartões de indicador (número grande + rótulo + detalhe). `itens`: dicts com valor, rotulo, detalhe e
-    contexto (True = número de contexto, visualmente mais discreto)."""
+    """Cartões de indicador (número grande + rótulo + detalhe). `itens`: dicts com valor, rotulo, faixas (lista de
+    (rótulo, valor), em destaque logo abaixo do número -- as faixas etárias), detalhe (dado secundário) e contexto
+    (True = número de contexto, visualmente mais discreto)."""
     cards = "".join(
         f'<div class="kpi{" kpi-contexto" if i.get("contexto") else ""}">'
         f'<div class="kpi-valor">{_fmt_ptbr(i["valor"])}</div><div class="kpi-rotulo">{_esc(i["rotulo"])}</div>'
+        + ('<div class="kpi-faixas">' + "".join(f'<div><b>{_fmt_ptbr(v)}</b><span>{_esc(r)}</span></div>'
+                                                for r, v in i["faixas"]) + '</div>' if i.get("faixas") else "")
         + (f'<div class="kpi-detalhe">{_esc(i["detalhe"])}</div>' if i.get("detalhe") else "") + '</div>'
         for i in itens)
     parts.append(f'<div class="kpi-grid">{cards}</div>')
@@ -1802,11 +1805,14 @@ aviso_dado_pontual("2026_08")
 _def = read("cadunico_adhoc_deficiencia_2026_08.csv").set_index("Faixa etária")
 _def_ctx = read("cadunico_adhoc_deficiencia_contexto_2026_08.csv").set_index("Medida")["Valor"]
 _def_tot = _def.loc["Total (0 a 6 anos)"]
+# pedido do usuário (2026-09-29): crianças de 0 a 6 e as faixas 0 a 3 / 4 a 6 em destaque; famílias e pessoas (todas as
+# idades) como dado secundário
+_faixas_def = lambda col: [(f, _def.loc[f, col]) for f in ("0 a 3 anos", "4 a 6 anos")]
 cartoes_indicador([
     {"valor": _def_tot["Crianças com deficiência"], "rotulo": "crianças de 0 a 6 anos com deficiência",
-     "detalhe": f'{_fmt_ptbr(_def.loc["0 a 3 anos", "Crianças com deficiência"])} de 0 a 3 anos · '
-                f'{_fmt_ptbr(_def.loc["4 a 6 anos", "Crianças com deficiência"])} de 4 a 6 anos'},
+     "faixas": _faixas_def("Crianças com deficiência")},
     {"valor": _def_tot["Com BPC"], "rotulo": "delas recebem o Benefício de Prestação Continuada (BPC)",
+     "faixas": _faixas_def("Com BPC"),
      "detalhe": f'{_fmt_ptbr(_def_tot["% com BPC"], 1)}% das crianças com deficiência'},
     {"valor": _def_ctx["Famílias com pessoa com deficiência"], "rotulo": "famílias com pessoa com deficiência",
      "detalhe": "todas as idades — contexto", "contexto": True},
@@ -2119,28 +2125,35 @@ emite_bloco_pendente("Indicadores agregados de moradia (inadequação, saneament
 _C03, _C46 = "Crianças de 0 a 3 anos", "Crianças de 4 a 6 anos"
 
 def _cartao_moradia(linha, rotulo):
-    """Famílias em destaque; crianças de 0 a 6 (0-3 + 4-6, mesma extração) no detalhe."""
-    return {"valor": linha["Famílias"], "rotulo": rotulo,
-            "detalhe": f'{_fmt_ptbr(linha[_C03] + linha[_C46])} crianças de 0 a 6 anos '
-                       f'({_fmt_ptbr(linha[_C03])} de 0 a 3 · {_fmt_ptbr(linha[_C46])} de 4 a 6)'}
+    """Crianças de 0 a 6 (0 a 3 + 4 a 6, mesma extração) em destaque, com as faixas; famílias e pessoas como dado
+    secundário (pedido do usuário, 2026-09-29)."""
+    return {"valor": linha[_C03] + linha[_C46], "rotulo": rotulo,
+            "faixas": [("0 a 3 anos", linha[_C03]), ("4 a 6 anos", linha[_C46])],
+            "detalhe": f'{_fmt_ptbr(linha["Famílias"])} famílias · {_fmt_ptbr(linha["Pessoas"])} pessoas'}
+
+def _tabela_moradia(df):
+    """Crianças primeiro (0 a 6 = 0 a 3 + 4 a 6), famílias e pessoas no fim."""
+    df = df.copy()
+    df.insert(1, "Crianças de 0 a 6 anos", df[_C03] + df[_C46])
+    return df[[df.columns[0], "Crianças de 0 a 6 anos", _C03, _C46, "Famílias", "Pessoas"]]
 
 h3('Famílias e crianças no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, ago/2026)')
 aviso_dado_pontual("2026_08")
 _dom = read("cadunico_adhoc_moradia_domicilio_2026_08.csv").set_index("Situação do domicílio")
-cartoes_indicador([_cartao_moradia(_dom.loc["Sem banheiro"], "famílias em domicílio sem banheiro"),
-                   _cartao_moradia(_dom.loc["Sem água canalizada"], "famílias em domicílio sem água canalizada")])
-tabela_com_texto(lambda: plain_table(_fmt_tabela(_dom.reset_index()), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_domicilio_2026_08")
+cartoes_indicador([_cartao_moradia(_dom.loc["Sem banheiro"], "crianças de 0 a 6 anos em domicílio sem banheiro"),
+                   _cartao_moradia(_dom.loc["Sem água canalizada"], "crianças de 0 a 6 anos em domicílio sem água canalizada")])
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_tabela_moradia(_dom.reset_index())), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_domicilio_2026_08")
 
 h3('Famílias e crianças no CadÚnico por forma de abastecimento de água e de escoamento sanitário (dado pontual, ago/2026)')
 aviso_dado_pontual("2026_08")
 _ter = read("cadunico_adhoc_moradia_territorio_2026_08.csv")
 _esg = _ter[_ter["Serviço"] == "Escoamento sanitário"].set_index("Forma")
-cartoes_indicador([_cartao_moradia(_esg.loc["Vala a céu aberto"], "famílias com esgoto em vala a céu aberto"),
-                   _cartao_moradia(_esg.loc["Jogado em rio ou mar"], "famílias com esgoto jogado em rio ou mar"),
-                   _cartao_moradia(_esg.loc["Fossa rudimentar"], "famílias com esgoto em fossa rudimentar")])
+cartoes_indicador([_cartao_moradia(_esg.loc["Vala a céu aberto"], "crianças de 0 a 6 anos com esgoto em vala a céu aberto"),
+                   _cartao_moradia(_esg.loc["Jogado em rio ou mar"], "crianças de 0 a 6 anos com esgoto jogado em rio ou mar"),
+                   _cartao_moradia(_esg.loc["Fossa rudimentar"], "crianças de 0 a 6 anos com esgoto em fossa rudimentar")])
 # uma coluna de texto só (a tabela alinha à direita toda coluna depois da 1ª)
 _ter_site = _ter.assign(Forma=_ter["Serviço"] + ": " + _ter["Forma"].str.lower()).drop(columns="Serviço")
-tabela_com_texto(lambda: plain_table(_fmt_tabela(_ter_site), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_territorio_2026_08")
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_tabela_moradia(_ter_site)), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_territorio_2026_08")
 nota_metodologica("Só as formas fora da rede geral (a extração não trouxe a rede geral). Cisterna: a extração registra "
                   "0 crianças em 1.323 famílias, valor tratado como não informado (—).")
 

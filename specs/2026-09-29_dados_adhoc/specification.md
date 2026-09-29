@@ -98,3 +98,10 @@ Registro em `specs/exclusoes.md` não se aplica (nada é excluído).
 - Texto curado dos itens novos: sai com o texto provisório (lorem) até a próxima rodada de curadoria, como os demais.
 - Publicar (`--publicar`, deploy do site): depende do OK do usuário, como nas outras rodadas.
 - A integração automatizada com o banco (é a substituição planejada em R7).
+
+## 5. Ajustes depois do merge (usuário, 2026-09-29)
+
+| # | Pedido | Feito |
+| :-- | :--- | :--- |
+| D5 | Deck: dividir o slide único em dois, depois do slide 28 | slide 29 **Inclusão** (25.995 crianças com deficiência; BPC 33% de 0 a 3 = 3.086 de 9.258, 43% de 4 a 6 = 7.214 de 16.737) e slide 30 **Moradia** (os 5 destaques do site, só crianças de 0 a 6: sem banheiro 792, sem água canalizada 1.425, vala a céu aberto 2.226, rio ou mar 1.247, fossa rudimentar 1.411; nota "os números não se somam"). Deck com 35 slides |
+| D6 | Site: crianças de 0 a 6 e as faixas 0 a 3 / 4 a 6 em destaque; totais (famílias, pessoas) como dado secundário | cartões com o número de crianças de 0 a 6, as duas faixas logo abaixo (`kpi-faixas`) e famílias · pessoas no rodapé do cartão; tabelas de Moradia com "Crianças de 0 a 6 anos" e as faixas primeiro, famílias e pessoas no fim. PDF e CSVs inalterados |
