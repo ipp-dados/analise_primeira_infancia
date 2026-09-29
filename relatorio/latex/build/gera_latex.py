@@ -36,8 +36,8 @@ GERADO = LATEX / "gerado"
 CACHE = LATEX / "_build/img"
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(RAIZ / "relatorio/curadoria"))
-from gera_estrutura_eixos import (TEXTO_PENDENTE, aviso_dado_pontual, chave_eixo, eixos_politica, motivos_pendentes,  # noqa: E402
-                                  panorama, parse_estrutura_eixos, valida_estrutura)
+from gera_estrutura_eixos import (TEXTO_PENDENTE, chave_eixo, eixos_politica, motivos_pendentes,  # noqa: E402
+                                  panorama, parse_estrutura_eixos, sem_dados_pontuais, valida_estrutura)
 import inventario_fontes  # noqa: E402
 import tabelas  # noqa: E402
 
@@ -222,9 +222,6 @@ def secoes_indicadores(subsecoes, info_por_arquivo, tabs, rotulo_ap, cmd="sectio
             tex.append(r"\begin{pendente}" + TEXTO_PENDENTE + (" " + esc(motivo) if motivo else "")
                        + r"\end{pendente}")
             continue
-        # `dado_pontual:` (specs/2026-09-29_dados_adhoc): aviso público do manifesto da extração pontual
-        if c.get("dado_pontual"):
-            tex.append(r"\begin{dadopontual}" + esc(aviso_dado_pontual(c["dado_pontual"])) + r"\end{dadopontual}")
         for campo, tipo in (("visualização", "grafico"), ("mapa", "mapa")):
             for nome in lista(c.get(campo)):
                 info = info_por_arquivo.get(("visualizacoes" if tipo == "grafico" else "mapas") + "/" + nome, {})
@@ -414,6 +411,8 @@ def main():
     estrutura = parse_estrutura_eixos(str(RAIZ / "specs/estrutura_eixos.md"))
     valida_estrutura(estrutura, base_dir=str(RAIZ))
     motivos_pendentes(str(RAIZ / "specs/estrutura_eixos.md"))   # erro se algum pendente não tiver `motivo:` (D5)
+    # regra do usuário (2026-09-29, constituição §3; specs/2026-09-29_dados_adhoc D7): dado pontual NUNCA entra no PDF
+    estrutura = sem_dados_pontuais(estrutura)
     linhas, _, _ = inventario_fontes.coleta()
     info = {l["arquivo"]: l for l in linhas}
 
@@ -426,7 +425,10 @@ def main():
         apends = [a if a[1] == alvo else (a[0], a[1], []) for a in apends]
     (GERADO / "apendices.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n" + apendices(apends, info),
                                            encoding="utf-8")
-    chaves = re.findall(r"^@\w+\{(\w+),", (LATEX / "fontes.bib").read_text(encoding="utf-8"), re.M)
+    # entradas `so_site = {sim}` (fonte de dado pontual, D7) ficam fora da lista Fontes do PDF
+    _bib = (LATEX / "fontes.bib").read_text(encoding="utf-8")
+    chaves = [m.group(1) for m in re.finditer(r"^@\w+\{(\w+),(.*?)\n\}", _bib, re.M | re.S)
+              if not re.search(r"^\s*so_site\s*=\s*\{sim\}", m.group(2), re.M)]
     (GERADO / "nocite.tex").write_text("% Gerado por gera_latex.py.\n\\nocite{" + ",".join(chaves) + "}\n",
                                        encoding="utf-8")
     (GERADO / "resumo.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n" + resumo(), encoding="utf-8")

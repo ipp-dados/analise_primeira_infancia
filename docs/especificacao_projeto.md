@@ -416,6 +416,7 @@ componente (6-7), uma regra (8) ou um processo (9-10). A data no topo diz a que 
   lista sai no build do PDF. Alertas abertos em `relatorio/controle_revisao.json`.
 - **Dados pontuais** (`specs/2026-09-29_dados_adhoc`): Inclusão e Moradia têm itens "(dado pontual, ago/2026)" de uma
   extração fora da rotina, com aviso público (`- dado_pontual:` no crosswalk); saem com a extração automatizada (ROADMAP).
+  **Nunca vão para o PDF** e **bloqueiam a versão final do site** (build e deploy param sem a faixa; constituição §3).
 - **Indicadores pendentes**: 9 (os 3 de Moradia, os 3 de deficiência, 2 de violência e 1 de mortalidade).
 - **Denominador sub-municipal**: o Censo 2022 fixo subconta crianças pequenas; a estimativa por bairro a partir da
   Ripsa está no `ROADMAP.md` (Próximas features, item 2).

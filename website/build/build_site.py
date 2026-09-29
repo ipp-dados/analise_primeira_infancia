@@ -86,7 +86,7 @@ os.chdir(ROOT)
 sys.path.insert(0, str(ROOT / "relatorio" / "curadoria"))
 
 from gera_estrutura_eixos import TEXTO_PENDENTE, avisa_itens_sem_arquivo, chave_eixo, motivos_pendentes
-from gera_estrutura_eixos import aviso_dado_pontual as aviso_dado_pontual_texto
+from gera_estrutura_eixos import aviso_dado_pontual as aviso_dado_pontual_texto, parse_estrutura_eixos, tem_dados_pontuais
 # D5 (specs/2026-09-29_alinhamento_pdf_site): quadro de pendente = frase fixa + `motivo:` do crosswalk, igual no PDF
 _MOTIVOS_PENDENTES = motivos_pendentes()
 # populacao-referencia D4: avisa (sem mudar a saída) itens do crosswalk que o relatório pularia em silêncio
@@ -715,9 +715,14 @@ def nota_metodologica(texto):
 # ---- dados pontuais (specs/2026-09-29_dados_adhoc): aviso, cartões de indicador e barras de proporção ----------
 # Blocos marcados "dados_adhoc" saem quando a extração automatizada substituir a pontual (ROADMAP).
 
+_DADOS_PONTUAIS = []   # títulos dos blocos com dado pontual emitidos -- bloqueiam a versão final (ver _EM_DESENVOLVIMENTO)
+
 def aviso_dado_pontual(ident):
-    """Mesmo texto do quadro "Dado pontual" do PDF: aviso + nota da faixa, do manifesto `adhoc_<ident>.json`."""
-    parts.append(callout("note", "calendar", "Dado pontual", f"<p>{_esc(aviso_dado_pontual_texto(ident))}</p>"))
+    """Quadro "Dado pontual": aviso + nota da faixa, do manifesto `adhoc_<ident>.json`. O atributo `data-dado-pontual`
+    marca o HTML para a checagem do deploy (.github/workflows/deploy-relatorio.yml)."""
+    _DADOS_PONTUAIS.append(toc[-1][1] if toc else ident)
+    parts.append(callout("note", "calendar", "Dado pontual", f"<p>{_esc(aviso_dado_pontual_texto(ident))}</p>",
+                         extra=f' data-dado-pontual="{_esc(ident)}"'))
 
 def cartoes_indicador(itens):
     """Cartões de indicador (número grande + rótulo + detalhe). `itens`: dicts com valor, rotulo, faixas (lista de
@@ -2334,6 +2339,14 @@ navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-l
 # faixa de aviso: controlada por relatorio/publicacao.json (em_desenvolvimento), a mesma chave da marca d'água do PDF
 # (relatorio/latex/build/gera_latex.py) -- as duas saem juntas na versão final (specs/2026-09-28_website_mobile)
 _EM_DESENVOLVIMENTO = json.loads(Path("relatorio/publicacao.json").read_text(encoding="utf-8")).get("em_desenvolvimento", False)
+# regra do usuário (2026-09-29, constituição §3; specs/2026-09-29_dados_adhoc D7): dado pontual só existe no site EM
+# DESENVOLVIMENTO. A versão final (sem a faixa) não é gerada enquanto houver bloco ou item `- dado_pontual:`.
+_PONTUAIS_MD = tem_dados_pontuais(parse_estrutura_eixos("specs/estrutura_eixos.md"))
+if not _EM_DESENVOLVIMENTO and (_DADOS_PONTUAIS or _PONTUAIS_MD):
+    raise SystemExit(
+        "BLOQUEADO: relatorio/publicacao.json diz em_desenvolvimento = false, mas o site ainda tem dado pontual "
+        f"(blocos: {_DADOS_PONTUAIS or '-'}; itens do crosswalk: {_PONTUAIS_MD or '-'}). Dado pontual não vai para a "
+        "versão final: substitua pela extração automatizada ou retire os blocos `dados_adhoc` (ROADMAP) antes de publicar.")
 banner = (
     ('<div class="dev-banner" role="alert">'
      '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
