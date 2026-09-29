@@ -105,9 +105,13 @@ gerado.
 - Toda mudança não-trivial (nova seção de análise, nova convenção visual,
   merge de um branch externo, refatoração) ganha uma pasta
   `specs/<AAAA-MM-DD>_<nome-da-rodada>/` (data de abertura da rodada, para
-  que `specs/` liste as rodadas em ordem cronológica) **antes** da implementação, com o subconjunto
-  relevante de `plan.md`, `specification.md`/`specs.md`, `tasks.md`,
-  `validation.md`. Ver as pastas existentes (`specs/2026-09-08_mortalidade-ap`,
+  que `specs/` liste as rodadas em ordem cronológica) **antes** da implementação, com os **quatro**
+  documentos do desenvolvimento orientado a spec (regra do usuário, 2026-09-29; antes bastava um
+  subconjunto): `specification.md` (o quê e por quê: contexto, decisões, requisitos, fora do escopo),
+  `plan.md` (como: levantamento do código, blocos, riscos), `tasks.md` (tarefas numeradas por bloco,
+  com caixas marcadas durante a execução) e `validation.md` (critérios de aceite verificáveis,
+  preenchidos com o resultado ao fim). O planejamento só termina — e a implementação só começa —
+  com os quatro commitados na branch de planejamento. Ver as pastas existentes (`specs/2026-09-08_mortalidade-ap`,
   `specs/2026-09-09_maps-and-ibge`, `specs/2026-09-09_visual-identity`, `specs/2026-09-14_relatorio-interativo`)
   para o formato — não é rígido, mas todo spec documenta contexto, decisões
   tomadas (com o *porquê*) e o que foi validado.
