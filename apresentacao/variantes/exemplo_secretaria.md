@@ -97,10 +97,10 @@ Mensagem central: o projeto é COM as secretarias, não SOBRE elas. Convidar des
 <div class="hub">
 <div class="col">
 <div class="caixa" style="--c:var(--c1)">Censo e estimativas (IBGE, Ripsa/MS)</div>
-<div class="caixa" style="--c:var(--c2)">Cadastro Único</div>
+<div class="caixa" style="--c:var(--c2)">Inclusão: Cadastro Único</div>
 <div class="caixa" style="--c:var(--c3)">Saúde: nascimentos, óbitos, violência, nutrição, vacinação</div>
 <div class="caixa" style="--c:var(--c4)">Educação: Censo Escolar, PNAD</div>
-<div class="caixa" style="--c:var(--c7)">Território: IPS, limites de bairro, AP, RA, CAP</div>
+<div class="caixa" style="--c:var(--c7)">Território: limites de bairro, AP, RA, CAP</div>
 </div>
 <div class="seta">→</div>
 <div class="centro"><b>Um processamento único</b>aberto, com as mesmas regras para todas as fontes</div>
@@ -212,7 +212,7 @@ Os números de gráficos e mapas saem da estrutura do relatório (estrutura_eixo
 
 ![](fig:mapa_violencia_familiar_mae_taxa_ra_2025)
 
-<div class="rotulo">Violência familiar e IPS: 33 Regiões Administrativas</div>
+<div class="rotulo">Violência familiar e homicídios: 33 Regiões Administrativas</div>
 </div>
 </div>
 
@@ -531,7 +531,7 @@ Contagem absoluta -> classes discretas (convenção do projeto). "Outros víncul
 
 Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:ips_homicidios_max_ra}} é um valor extremo e fica com a cor máxima; entre as demais RAs, lidera {{n:ips_homicidios_2a_ra}}.
 
-<p class="nota">Dado da população geral, de todas as idades (IPS 2024) — não é específico de crianças.</p>
+<p class="nota">Dado da população geral, de todas as idades (2024) — não é específico de crianças.</p>
 
 </div>
 
