@@ -529,7 +529,7 @@ Contagem absoluta -> classes discretas (convenção do projeto). "Outros víncul
 <div class="lado">
 <div>
 
-Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:ips_homicidios_max_ra}} é um valor extremo e fica com a cor máxima; entre as demais RAs, lidera {{n:ips_homicidios_2a_ra}}.
+Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:homicidios_max_ra}} é um valor extremo e fica com a cor máxima; entre as demais RAs, lidera {{n:homicidios_2a_ra}}.
 
 <p class="nota">Dado da população geral, de todas as idades (2024) — não é específico de crianças.</p>
 
