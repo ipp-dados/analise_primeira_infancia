@@ -1,7 +1,7 @@
 # Diagnóstico da Primeira Infância Carioca — especificação funcional e técnica
 
 > Documento de referência do projeto: o que ele entrega, para quem, com que dados, como é construído e como se
-> mantém. Estado em **2026-09-29** (`spec/pendencias`: faixa padrão 0 a 5 anos, exclusões E12-E15, eixo cortado no baixo peso, tablet). As decisões
+> mantém. Estado em **2026-09-29** (`spec/pendencias`: faixa padrão 0 a 5 anos, exclusões E12-E15, eixo cortado no baixo peso, tablet; `spec/dados-adhoc`: dados pontuais do CadÚnico em Inclusão e Moradia). As decisões
 > de cada mudança, com o *porquê*, estão nas pastas de rodada em `specs/`; o que falta fazer está em `ROADMAP.md`.
 > Atualize este documento quando uma rodada mudar algo descrito aqui (seção 11).
 
@@ -102,6 +102,7 @@ site) com um padrão que liga o texto `fonte_dados` de cada figura à entrada. `
 | `ms_sisvan` | SISVAN (MS) | estado nutricional de crianças | `dados_locais/sisvan/` |
 | `sms_rio_epi_vacinal` | SI-PNI/EPI (SMS-Rio) | cobertura vacinal | `dados_locais/vacinacao/` |
 | `mds_cadunico` | Cadastro Único (extração CTPE) | famílias e crianças por renda, idade, sexo, raça/cor, arranjo, bairro | **banco PostgreSQL do CTPE** (não é arquivo) |
+| `mds_cadunico_adhoc` | Cadastro Único, extração pontual (ref. 08/2026) | crianças com deficiência e BPC; famílias, pessoas e crianças por banheiro, água e esgoto (município; faixas 0-3 e 4-6) — **temporário**, a substituir pela extração automatizada (4º tri de 2026) | `dados_locais/cadunico/` (planilha + manifesto `adhoc_2026_08.json`) |
 | `ibge_pnadc` | PNAD Contínua (IBGE) | **não usada desde 2026-09-29**: o arquivo "PNAD" trazia a taxa do Censo 2022 (E15) | `dados_locais/educacao/` |
 | `inep_censo_escolar` | Censo Escolar (INEP, microdados) | matrículas 0-5 anos, 2007-2025 | `dados_locais/educacao/` (extrato; ZIPs baixados só se faltarem) |
 | `ipp_ips2024` | Índice de Progresso Social 2024 (IPP) | violência territorial por RA | `dados_locais/protecao/` |
@@ -413,7 +414,9 @@ componente (6-7), uma regra (8) ou um processo (9-10). A data no topo diz a que 
   automaticamente, ao site só à mão.
 - **Textos**: blocos ainda em lorem ipsum (resumo, achados, aberturas e sínteses dos eixos, parte das figuras); a
   lista sai no build do PDF. Alertas abertos em `relatorio/controle_revisao.json`.
-- **Indicadores pendentes**: 9 (o eixo Moradia inteiro, os 3 de deficiência, 2 de violência e 1 de mortalidade).
+- **Dados pontuais** (`specs/2026-09-29_dados_adhoc`): Inclusão e Moradia têm itens "(dado pontual, ago/2026)" de uma
+  extração fora da rotina, com aviso público (`- dado_pontual:` no crosswalk); saem com a extração automatizada (ROADMAP).
+- **Indicadores pendentes**: 9 (os 3 de Moradia, os 3 de deficiência, 2 de violência e 1 de mortalidade).
 - **Denominador sub-municipal**: o Censo 2022 fixo subconta crianças pequenas; a estimativa por bairro a partir da
   Ripsa está no `ROADMAP.md` (Próximas features, item 2).
 - **Organização**: a reorganização das pastas de dados e saídas (fase 1c) e o empacotamento de scripts para outros

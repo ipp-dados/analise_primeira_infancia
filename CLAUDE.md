@@ -136,7 +136,9 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 
 - `dados_locais/` — raw input data by source (`censo/`, `mortalidade/`,
   `nascidos_vivos/`, `sisvan/`, `ibge_sidra/`, `vacinacao/`, `educacao/`, `populacao/`, `protecao/`; CadÚnico is not a
-  file — it is read from the CTPE database) and `dados_locais/geo/`
+  file — it is read from the CTPE database — except the **temporary** ad hoc extraction in `cadunico/` (ref. 08/2026,
+  manifest `adhoc_2026_08.json`, crosswalk field `- dado_pontual:`; `specs/2026-09-29_dados_adhoc`), added only
+  additively and to be replaced by the automated extraction in Q4 2026) and `dados_locais/geo/`
   (reference boundary geojsons). **`dados_locais/` is NOT gitignored** —
   files placed there, including geo layers, get committed; verify with `git
   status` before assuming otherwise. `dados_locais/tratados/` holds
