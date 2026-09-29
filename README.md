@@ -20,6 +20,7 @@ de Saúde, organizados em um panorama (população e nascimentos) e nos 7 eixos 
 |---|---|
 | **Site (relatório interativo)** | [ipp-dados.github.io/analise_primeira_infancia](https://ipp-dados.github.io/analise_primeira_infancia/) |
 | **Relatório em PDF** | [`relatorio/analise_primeira_infancia.pdf`](relatorio/analise_primeira_infancia.pdf) |
+| **Apresentação (30 slides)** | [`apresentacao/apresentacao_primeira_infancia.pptx`](apresentacao/apresentacao_primeira_infancia.pptx) · [PDF](apresentacao/apresentacao_primeira_infancia.pdf) — como gerar: [`apresentacao/README.md`](apresentacao/README.md) |
 | **Notebook fonte** | [`analise.py`](analise.py) (Jupytext, abre como notebook) |
 
 O site é gerado a partir das saídas do notebook por `website/build/build_site.py` (ver
@@ -127,6 +128,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.29.0 | 2026-09-28 | Apresentação de 30 slides para gestores (Marp, gerada de `apresentacao/apresentacao.md` com números calculados das tabelas e variantes por público); mapas dos slides sem distorção por valores extremos (`specs/2026-09-28_apresentacao`). |
 | 0.28.0 | 2026-09-28 | Nova estrutura do site e do PDF: panorama da primeira infância (população e nascimentos) na Visão geral e no capítulo de Introdução, 7º eixo "Direito ao Brincar", indicadores reordenados pela planilha da equipe sem remover nenhum conteúdo; nota "agrega os recortes" nas figuras de menores de 5 anos (`specs/2026-09-28_nova_estrutura`). |
 | 0.27.1 | 2026-09-28 | Especificação funcional e técnica do projeto (`docs/especificacao_projeto.md`), documentação alinhada ao estado real, `.env.example` (`specs/2026-09-28_documentacao`). |
 | 0.27.0 | 2026-09-28 | Funções do notebook no pacote `primeira_infancia/` (um módulo por tema), scripts de curadoria em `relatorio/curadoria/`, requisitos diretos fixados + `requirements-dev.txt`; mesmas saídas antes e depois (`specs/2026-09-28_organizacao`). |

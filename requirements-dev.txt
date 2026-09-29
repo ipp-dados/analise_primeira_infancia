@@ -7,3 +7,5 @@
 # website/build/confere_textos.py (conferência texto × figura), website/build/gera_favicon.py (favicon .ico/PNG) e
 # nas comparações de captura das rodadas do site.
 playwright==1.63.0
+# apresentação (apresentacao/build/gera_apresentacao.py, specs/2026-09-28_apresentacao): QR code do site
+segno==1.6.6

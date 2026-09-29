@@ -42,6 +42,7 @@ textos e mantém o pipeline; e quem quiser reproduzir os números (código e dad
 | Relatório técnico em PDF | `relatorio/analise_primeira_infancia.pdf` (157 páginas, ABNT NBR 10719) | leitura, impressão e citação; todas as tabelas no apêndice |
 | Tabelas finais | `tabelas_finais/*.csv` (87) | os números por trás de cada figura |
 | DOCX de curadoria | `relatorio/curadoria_textos.docx` | a equipe escreve e revisa os textos que acompanham as figuras |
+| Apresentação | `apresentacao/apresentacao_primeira_infancia.pptx` e `.pdf` (30 slides) | apresentar o diagnóstico a gestores das secretarias; gerada de um único Markdown, com variantes por público |
 | Código | `analise.py` + `primeira_infancia/` | reprodução completa, da fonte bruta à figura |
 
 **Estado.** Em desenvolvimento: o site mostra uma faixa "EM DESENVOLVIMENTO / TEMPORÁRIO" e o PDF sai com marca
@@ -158,6 +159,14 @@ Google Drive de acesso restrito do IPP.
 - **RF18** Incorporar rodadas de revisão feitas no Google Docs (que apaga bookmarks), casando os textos por título e
   posição, e registrar o status de cada texto (revisado, atualizado, a escrever) em `relatorio/controle_revisao.json`.
 - **RF19** Validar que todo texto curado está publicado no site e no PDF, frase a frase.
+
+### 4.5 Apresentação (`apresentacao/`, `specs/2026-09-28_apresentacao`)
+
+- **RF20** Gerar o deck (PPTX com notas do apresentador e PDF) a partir de um único Markdown (`apresentacao.md`), com
+  números calculados de `tabelas_finais/` (nunca digitados), figuras do `analise.py` e blocos ligados/desligados pelo
+  cabeçalho, para derivar versões por público ou secretaria (`apresentacao/variantes/`).
+- **RF21** Mapas dos slides sem distorção por valores extremos: versão de impressão (teto de cor no percentil 95 por
+  bairro) ou, por pedido, mapa próprio com a regra de outlier do site (cercas de Tukey), sempre dito no rodapé.
 
 ---
 
@@ -356,7 +365,10 @@ python website/build/build_site.py
 python relatorio/curadoria/gera_estrutura_eixos.py     # valida o crosswalk
 python relatorio/latex/build/gera_latex.py --publicar
 
-# 4. curadoria
+# 4. apresentação (Node + marp-cli: cd apresentacao && npm ci)
+python apresentacao/build/gera_apresentacao.py --publicar
+
+# 5. curadoria
 python relatorio/curadoria/gera_docx_curadoria.py relatorio/curadoria_textos.docx
 python relatorio/curadoria/sincroniza_docx.py relatorio/curadoria_textos.docx
 python relatorio/curadoria/valida_textos_publicados.py

@@ -446,3 +446,23 @@ diagrama do fluxo de dados, componentes, regras, processos de rodada/curadoria/p
 glossário). README, CLAUDE.md, tech-stack e constituição alinhados ao estado real (fontes do eixo Proteção, Ripsa e
 INEP; pastas de `dados_locais/`; PDF em LaTeX; geradores fora das skills); `relatorio/specs.md` marcado como
 documento histórico; `.env.example` criado (era citado e não existia).
+
+## 2026-09-28 — `specs/nova_estrutura` (panorama na Introdução e 7º eixo)
+
+Site, PDF e DOCX reorganizados pela planilha da equipe: a Introdução ganha um panorama da primeira infância carioca
+(população pelo Censo e pela Ripsa, sexo e raça/cor, nascidos vivos), na aba Visão geral do site e no capítulo de
+Introdução do PDF; novo eixo "Direito ao Brincar" (violência territorial); CadÚnico vai para Prioridade, frequência
+escolar por raça/cor e sexo e arranjo familiar para Família e Cuidados; Inclusão fica com os pendentes de deficiência.
+Regra do usuário: acrescentar o que falta, nunca remover o que sobra — conferido por inventário (113 seeds no site,
+94 figuras e 43 tabelas no PDF, 77 textos curados no DOCX, todos preservados). Nota "agrega os recortes de menores de
+1 ano e de 1 a 4 anos" nas figuras de menores de 5 anos por CAP (observação da curadoria).
+
+## 2026-09-28 — `specs/apresentacao` (deck de 30 slides)
+
+Apresentação para gestores das secretarias em `apresentacao/` (Marp): um único `apresentacao.md` com números
+calculados de `tabelas_finais/`, figuras do `analise.py`, blocos condicionais e variantes por público; PPTX (com
+notas do apresentador e roteiro da demonstração ao vivo) e PDF publicados em `apresentacao/`. Três revisões do
+usuário no mesmo dia: slide "produto vivo, construído com as secretarias" no início; mapas sem distorção por valores
+extremos (versão de impressão com teto no percentil 95 e, no mapa do IPS, o Centro tratado como outlier pela regra
+de Tukey do site); slides de matrículas por rede e de adultos por família no CadÚnico; população padronizada com
+469 mil (0 a 6 anos, Ripsa 2025) como número-âncora.
