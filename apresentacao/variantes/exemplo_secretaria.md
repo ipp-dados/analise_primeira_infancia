@@ -387,7 +387,7 @@ Ainda assim, **{{n:pct_evitaveis_menores5_2025}}** dos óbitos de menores de 5 a
 
 # Causas evitáveis por faixa etária
 
-<div class="lado largo">
+<div class="lado largo baixo">
 <div>
 
 Óbitos evitáveis em 2025, por subgrupo de causa, em três idades: **0 a 6 dias**, **7 a 27 dias** e **28 a 364 dias**.
@@ -472,44 +472,52 @@ A pública ainda responde por **{{n:pct_publica_2025}}** das matrículas.
 
 <div class="kicker">Eixo Proteção</div>
 
-# Violência familiar: {{n:vf_notif_total_2025}} notificações por vínculo em {{n:vf_ano}}
+# Violência familiar contra a primeira infância, por vínculo do provável autor
 
 <div class="lado largo">
 <div>
 
-**{{n:vf_taxa_total_2025}}** por mil crianças de até 72 meses — soma dos vínculos: mãe ({{n:vf_notif_mae_2025}}), pai ({{n:vf_notif_pai_2025}}) e outros ({{n:vf_notif_outros_2025}}).
+Em {{n:vf_ano}}, por mil crianças de até 72 meses: **{{n:vf_taxa_mae_2025}}** com a mãe ({{n:vf_notif_mae_2025}} notificações), **{{n:vf_taxa_pai_2025}}** com o pai ({{n:vf_notif_pai_2025}}) e **{{n:vf_taxa_outros_2025}}** com outros vínculos ({{n:vf_notif_outros_2025}}).
 
-<p class="nota">Notificação não é caso confirmado. Uma notificação pode citar mais de um vínculo e entra na soma mais de uma vez. A série muda de patamar em 2017, possivelmente por mudança na ficha.</p>
-
-</div>
-
-![](fig:apres_violencia_familiar_total_ano)
+<p class="nota">Os vínculos não se somam: a mesma notificação pode citar mais de um provável autor. Notificação não é caso confirmado; a série muda de patamar em 2017, possivelmente por mudança na ficha.</p>
 
 </div>
 
----
-
-<div class="kicker">Eixo Proteção</div>
-
-# Soma de notificações por bairro em {{n:vf_ano}}
-
-<div class="lado">
-<div>
-
-Mãe + pai + outros vínculos, por bairro de residência. **{{n:vf_bairros_com_notif_2025}} dos {{n:n_bairros}} bairros** tiveram ao menos uma notificação.
-
-<p class="nota">Contagem absoluta: bairros com mais crianças tendem a ter mais notificações. Notificação não é caso confirmado.</p>
-
-</div>
-
-![](fig:apres_violencia_familiar_total_bairro_2025)
+![](fig:violencia_familiar_taxa_municipio_ano)
 
 </div>
 
 <!-- revisar -->
 
+---
+
+<div class="kicker">Eixo Proteção</div>
+
+# Notificações por bairro em {{n:vf_ano}}, por vínculo
+
+<div class="dois">
+<div>
+
+![](fig:mapa_violencia_familiar_mae_bairro_2025)
+
+<div class="rotulo">Mãe como provável autora</div>
+</div>
+<div>
+
+![](fig:mapa_violencia_familiar_pai_bairro_2025)
+
+<div class="rotulo">Pai como provável autor</div>
+</div>
+</div>
+
+<p class="nota">Contagem absoluta: bairros com mais crianças tendem a ter mais notificações. Os mapas não se somam (uma notificação pode citar os dois). Notificação não é caso confirmado.</p>
+
+<!-- revisar -->
+
 <!--
-Slide novo (slide_revision D7). Contagem absoluta -> classes discretas (convenção do projeto). A taxa por bairro está no site.
+Slide novo (slide_revision D7, revista em 2026-09-29: sem soma de vínculos, que contaria notificações em dobro).
+Contagem absoluta -> classes discretas (convenção do projeto). "Outros vínculos" por bairro só existe acumulado em
+2021-2025 (poucos casos por ano); a taxa por bairro e por RA está no site.
 -->
 
 ---

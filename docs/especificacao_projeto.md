@@ -175,7 +175,8 @@ Google Drive de acesso restrito do IPP.
   os bairros extremos nomeados (`specs/2026-09-29_slide_revision` D8).
 - **RF22** No deck, nenhuma terra em azul (rampa terracota nos mapas de população, `mapas_apresentacao.TERRACOTA`),
   faixa etária escrita "até 72 meses" com a nota "= 0 a 5 anos completos", e mapas/gráficos próprios do deck
-  (`apresentacao/build/mapas_apresentacao.py`, `graficos_apresentacao.py`) gravados só em `apresentacao/_build/`.
+  (`apresentacao/build/mapas_apresentacao.py`) gravados só em `apresentacao/_build/`; gráficos pela versão de impressão
+  do `analise.py` (`visualizacoes/a4/`, sem título embutido).
 
 ---
 

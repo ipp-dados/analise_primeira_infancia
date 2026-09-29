@@ -120,8 +120,6 @@ Não dependem de código; entram no projeto quando chegarem.
 - **"Até 72 meses" e paleta sem azul no site e no PDF** (`specs/2026-09-29_slide_revision` D1, fora daquela rodada):
   o deck já usa "até 72 meses" e terra em terracota; no site/PDF os mapas do Censo seguem em `Blues` (tema `censo`)
   e vários títulos dizem "0 a 5 anos". Mudar exige decidir a nova cor do tema `censo` em `primeira_infancia/estilo.py`.
-- **Legenda do gráfico de raça/cor (Censo 2022) cobre a barra "Parda" de 5 anos** (`censo_sidra_populacao_0_6_raca_2022`,
-  achado de `specs/2026-09-29_slide_revision`): mover a legenda para fora da área do gráfico no `analise.py`.
 - **Página "Fale Conosco"** (pedido do usuário, 2026-09-24): rota por hash (`#fale-conosco`) como uma aba,
   acessível pela barra de navegação. Formulário exige backend, que o GitHub Pages não tem — `mailto:` + texto
   (estático) ou serviço externo (exige decisão sobre dados pessoais/LGPD).
@@ -172,7 +170,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
-| 2026-09-29 | Revisão do deck: 30 → 33 slides, "até 72 meses", 393 mil, mapas sem azul (terracota) e com teto de Tukey, violência familiar somada por vínculo, eixos incompletos/ausentes; faixas de renda do CadÚnico corrigidas para "Pobreza"/"Baixa renda" em todo o projeto | `specs/2026-09-29_slide_revision` |
+| 2026-09-29 | Revisão do deck: 30 → 33 slides, "até 72 meses", 393 mil, mapas sem azul (terracota) e com teto de Tukey, violência familiar por vínculo (sem soma), eixos incompletos/ausentes; faixas de renda do CadÚnico corrigidas para "Pobreza"/"Baixa renda" em todo o projeto | `specs/2026-09-29_slide_revision` |
 | 2026-09-29 | PDF alinhado ao site (ordem de Prioridade, vacinação de volta, tabelas no corpo com `tabela_no_texto:`, seção vazia fora — E16); quadros de pendente formais com `motivo:` | `specs/2026-09-29_alinhamento_pdf_site` |
 | 2026-09-29 | Pendências: faixa padrão 0 a 5 anos (até 72 meses), exclusões E12-E15, eixo cortado no baixo peso, tablet com as metas do celular, decisões registradas; correção do esquema do banco do CadÚnico | `specs/2026-09-29_pendencias` |
 | 2026-09-29 | Decisões de pendências (escopo da rodada atual, mapa duplicado, série "Não informada", base zero, unidade do IPS, Centro só no deck, branch da Waleska superada); regra de perguntas agrupadas pela ferramenta interativa na constituição | este arquivo, `specs/constitution.md` §5 |

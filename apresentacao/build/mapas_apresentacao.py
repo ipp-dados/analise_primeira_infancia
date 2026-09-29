@@ -7,7 +7,6 @@ Parâmetros de cada entrada de MAPAS (os opcionais têm padrão):
   tema | cmap        cor do tema do projeto (`_CORES_TEMA_MAPA`) ou um cmap próprio ("terracota" = TERRACOTA, abaixo)
   bins              contagens: classes discretas (convenção do projeto); sem bins = escala contínua (taxas e %)
   outlier           escala contínua com teto de Tukey (padrão True); False = escala até o máximo
-  filtro, soma      linhas a manter ({coluna: valor}) e colunas somadas para formar `coluna` (contagens absolutas)
   zero_branco       zero em branco nas classes discretas ("0 (sem casos)")
   rotulo            coluna com o nome da região para a nota dos outliers (nível bairro: o nome vem do geojson)
 
@@ -32,10 +31,6 @@ _CMAPS = {"terracota": TERRACOTA}
 
 _FONTE_CENSO = "IBGE, Censo Demográfico 2022 (Data.Rio), por bairro"
 _FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro, por bairro (2025)"
-_FONTE_SINAN = ("Sinan NET/Tabnet (SMS-Rio), notificações de violência familiar de residentes, 0 a 5 anos (até 72 meses), "
-                "2025, por bairro; soma dos vínculos mãe + pai + outros (uma notificação pode citar mais de um vínculo). "
-                "Notificação não é caso confirmado")
-
 MAPAS = {
     # pedido do usuário (2026-09-28): no slide "O território onde a criança brinca" o Centro enviesava a escala
     "apres_violencia_territorial_homicidios_ra_2024": dict(
@@ -61,12 +56,6 @@ MAPAS = {
         tabela="tabela_mapa_nascidos_baixo_peso_2025.csv", coluna="percentual abaixo do peso", chave="codigo",
         nivel="bairro", titulo="% de nascidos com baixo peso por bairro (2025)", tema="natalidade",
         legenda="% baixo peso", fonte=_FONTE_DATASUS.replace("óbitos e nascimentos", "nascimentos")),
-    # slide_revision D7: soma dos vínculos em 2025 -- contagem, então classes discretas
-    "apres_violencia_familiar_total_bairro_2025": dict(
-        tabela="violencia_familiar_por_bairro.csv", coluna="total_vinculos", chave="codbairro", nivel="bairro",
-        filtro={"ano": 2025}, soma=["mae", "pai", "outros"], zero_branco=True,
-        titulo="Notificações de violência familiar por bairro (2025)", tema="protecao", bins=[5, 20, 50, 100],
-        legenda="Notificações\n(mãe + pai + outros)", fonte=_FONTE_SINAN),
 }
 
 
@@ -82,15 +71,6 @@ def _num(v):
     return f"{v:.1f}".replace(".", ",")
 
 
-def _tabela(cfg):
-    df = pd.read_csv(RAIZ / "tabelas_finais" / cfg["tabela"])
-    for col, val in (cfg.get("filtro") or {}).items():
-        df = df[df[col] == val]
-    if cfg.get("soma"):
-        df = df.assign(**{cfg["coluna"]: df[cfg["soma"]].sum(axis=1)})
-    return df.reset_index(drop=True)
-
-
 def _nomes_bairros():
     import geopandas as gpd
     geo = gpd.read_file(RAIZ / "dados_locais/geo/limite_bairros_rio.geojson")
@@ -102,7 +82,7 @@ def gera(nome):
     cfg = MAPAS[nome]
     destino = SAIDA / f"{nome}.pdf"
     tabela = RAIZ / "tabelas_finais" / cfg["tabela"]
-    df = _tabela(cfg)
+    df = pd.read_csv(tabela)
     fonte = cfg["fonte"]
     teto = None
     if not cfg.get("bins") and cfg.get("outlier", True):
