@@ -31,6 +31,10 @@ __all__ = [
     '_regioes_dos_bairros',
     'agrega_bairros_pequenos',
     'tabela_publicada_por_bairro',
+    'manifesto_cadunico_adhoc',
+    'carrega_moradia_cadunico_adhoc',
+    'carrega_deficiencia_cadunico_adhoc',
+    'tabelas_cadunico_adhoc',
 ]
 
 
@@ -298,4 +302,124 @@ def tabela_publicada_por_bairro(agregada, extras, contagens, nome='bairro', limi
     for c in contagens:
         out[c] = out[c].astype('Int64')
     return out
+
+
+# ---- dados pontuais (extração fora da rotina, ref. 08/2026) -- specs/2026-09-29_dados_adhoc -----------------------
+# Entram só por acréscimo e serão substituídos pela extração automatizada (4º tri de 2026). Metadados e texto do
+# aviso público: dados_locais/cadunico/adhoc_2026_08.json. Faixas da extração: 0-3 e 4-6 anos (inclui os 6 anos, D1).
+
+_PASTA_CADUNICO_ADHOC = 'dados_locais/cadunico'
+
+# filtro do cabeçalho de cada aba -> (indicador, tipo, rótulos); categoria pelo valor do filtro em minúsculas
+_FILTROS_MORADIA_ADHOC = {
+    'tem banheiro': ('domicilio_sem_banheiro', 'domiciliar', {'não': 'Sem banheiro'}),
+    'água canalizada': ('domicilio_sem_agua_encanada', 'territorial', {'não': 'Sem água canalizada'}),
+    'forma de abastecimento de água': ('formas_abastecimento_agua', 'territorial',
+                                       {'poço ou nascente': 'Poço ou nascente', 'cisterna': 'Cisterna',
+                                        'outras formas': 'Outras formas'}),
+    'forma de escoamento sanitário': ('formas_escoamento_esgoto', 'territorial',
+                                      {'fossa séptica': 'Fossa séptica', 'fossa rudimentar': 'Fossa rudimentar',
+                                       'é jogado em rio ou mar': 'Jogado em rio ou mar',
+                                       'vala a céu aberto': 'Vala a céu aberto', 'outra forma': 'Outra forma'}),
+}
+_MEDIDAS_ADHOC = ['familias', 'pessoas_total', 'criancas_0_3', 'criancas_4_6']
+_ROTULOS_MEDIDAS_ADHOC = {'familias': 'Famílias', 'pessoas_total': 'Pessoas',
+                          'criancas_0_3': 'Crianças de 0 a 3 anos', 'criancas_4_6': 'Crianças de 4 a 6 anos'}
+
+
+def manifesto_cadunico_adhoc(pasta=_PASTA_CADUNICO_ADHOC, ref='2026_08'):
+    """Metadados dos dados pontuais (is_adhoc, ref_date, replacement_pending, aviso, nota_faixa, notas de qualidade)."""
+    import json
+    from pathlib import Path
+    return json.loads((Path(pasta) / f'adhoc_{ref}.json').read_text(encoding='utf-8'))
+
+
+def _numero_adhoc(v, onde):
+    """Célula numérica da planilha; aceita texto só no formato de milhar com pontos (o '17..149' de fossa séptica,
+    achado A1). Qualquer outro texto é erro -- nunca adivinhar."""
+    import re
+    if isinstance(v, (int, float)) and not isinstance(v, bool):
+        return int(v)
+    s = str(v).strip()
+    if re.fullmatch(r'\d{1,3}(\.+\d{3})+', s):
+        return int(re.sub(r'\D', '', s))
+    raise ValueError(f'{onde}: valor não numérico {v!r}')
+
+
+def carrega_moradia_cadunico_adhoc(caminho=f'{_PASTA_CADUNICO_ADHOC}/domicilios_cadunico_2026_08.xlsx',
+                                   min_familias_sem_criancas=500):
+    """Planilha da extração pontual (uma aba por filtro) -> formato longo: indicador, tipo, categoria, familias,
+    pessoas_total, criancas_0_3, criancas_4_6, criancas_nao_informado. A categoria vem do FILTRO escrito no cabeçalho,
+    não do nome da aba. Aba repetida (mesmo filtro e valores) sai uma vez (A2); mesmo filtro com valores diferentes
+    é erro. Crianças = 0 nas duas faixas com muitas famílias é tratado como não informado (A3)."""
+    import openpyxl
+    wb = openpyxl.load_workbook(caminho, data_only=True)
+    linhas = {}
+    for ws in wb.worksheets:
+        rows = [r for r in ws.iter_rows(values_only=True) if any(c is not None for c in r)]
+        i_cab = next(i for i, r in enumerate(rows) if any(str(c).strip() == 'Famílias' for c in r if c is not None))
+        cab = [str(c).strip() if c is not None else None for c in rows[i_cab]]
+        j0 = cab.index('Famílias')
+        valores = rows[i_cab + 1][j0:j0 + 4]
+        texto = '\n'.join(str(c) for r in rows[:i_cab] for c in r if isinstance(c, str))
+        filtros = {}
+        for parte in texto.splitlines():
+            if '=' in parte:
+                k, v = (s.strip() for s in parte.split('=', 1))
+                if k.lower() not in ('município', 'ano e mês de referência'):
+                    filtros[k.lower()] = v.lower()
+        if len(filtros) != 1:
+            raise ValueError(f'aba {ws.title!r}: esperado 1 filtro além de município/mês, achei {filtros}')
+        (k, v), = filtros.items()
+        indicador, tipo, rotulos = _FILTROS_MORADIA_ADHOC[k]
+        reg = dict(indicador=indicador, tipo=tipo, categoria=rotulos[v],
+                   **{m: _numero_adhoc(x, f'aba {ws.title!r}, {m}') for m, x in zip(_MEDIDAS_ADHOC, valores)})
+        chave = (indicador, reg['categoria'])
+        if chave in linhas:
+            if linhas[chave] != reg:
+                raise ValueError(f'filtro repetido com valores diferentes: {chave} (aba {ws.title!r})')
+            continue   # A2: aba duplicada
+        linhas[chave] = reg
+    df = pd.DataFrame(list(linhas.values()))
+    df['criancas_nao_informado'] = ((df['criancas_0_3'] == 0) & (df['criancas_4_6'] == 0)
+                                    & (df['familias'] >= min_familias_sem_criancas))
+    for c in ('criancas_0_3', 'criancas_4_6'):
+        df[c] = df[c].astype('Int64').mask(df['criancas_nao_informado'])
+    df.attrs = manifesto_cadunico_adhoc()
+    return df
+
+
+def carrega_deficiencia_cadunico_adhoc(caminho=f'{_PASTA_CADUNICO_ADHOC}/deficiencia_cadunico_2026_08.csv'):
+    """Valores da extração pontual de deficiência (vieram no próprio pedido, 2026-09-29) -> (crianças por faixa, com
+    total 0-6 e % com BPC -- numerador e denominador da mesma extração; contexto: famílias e pessoas com deficiência,
+    de todas as idades -- só contexto, D2)."""
+    v = pd.read_csv(caminho).set_index('medida')['valor'].astype(int)
+    faixas = [('0 a 3 anos', '0_3'), ('4 a 6 anos', '4_6')]
+    criancas = pd.DataFrame([{'Faixa etária': r, 'Crianças com deficiência': v[f'criancas_deficiencia_{s}_total'],
+                              'Com BPC': v[f'criancas_deficiencia_{s}_bpc']} for r, s in faixas])
+    tot = criancas[['Crianças com deficiência', 'Com BPC']].sum()
+    criancas.loc[len(criancas)] = {'Faixa etária': 'Total (0 a 6 anos)', **tot.to_dict()}
+    criancas['% com BPC'] = (100 * criancas['Com BPC'] / criancas['Crianças com deficiência']).round(1)
+    contexto = pd.DataFrame([{'Medida': 'Famílias com pessoa com deficiência', 'Valor': v['familias_com_deficiencia']},
+                             {'Medida': 'Pessoas com deficiência (todas as idades)',
+                              'Valor': v['pessoas_com_deficiencia_total']}])
+    criancas.attrs = manifesto_cadunico_adhoc()
+    contexto.attrs = manifesto_cadunico_adhoc()
+    return criancas, contexto
+
+
+def tabelas_cadunico_adhoc(df_moradia):
+    """Tabelas publicadas da moradia: (domicílio: sem banheiro, sem água canalizada; território: formas de
+    abastecimento e de escoamento). Crianças 'não informado' (A3) ficam vazias na CSV."""
+    rot = _ROTULOS_MEDIDAS_ADHOC
+    dom = df_moradia[df_moradia['indicador'].isin(['domicilio_sem_banheiro', 'domicilio_sem_agua_encanada'])]
+    dom = dom[['categoria'] + _MEDIDAS_ADHOC].rename(columns={'categoria': 'Situação do domicílio', **rot})
+    nomes = {'formas_abastecimento_agua': 'Abastecimento de água', 'formas_escoamento_esgoto': 'Escoamento sanitário'}
+    ordem = [r for _, _, rs in _FILTROS_MORADIA_ADHOC.values() for r in rs.values()]
+    ter = df_moradia[df_moradia['indicador'].isin(list(nomes))].copy()
+    ter = ter.sort_values('categoria', key=lambda s: s.map(ordem.index), kind='stable')
+    ter['indicador'] = ter['indicador'].map(nomes)
+    ter = ter[['indicador', 'categoria'] + _MEDIDAS_ADHOC].rename(
+        columns={'indicador': 'Serviço', 'categoria': 'Forma', **rot})
+    return dom.reset_index(drop=True), ter.reset_index(drop=True)
 

@@ -518,3 +518,11 @@ teto explícito.
 em `textos_curados.json`, e o site e o PDF não foram afetados). Regerado com os textos do JSON, já com as correções de
 0 a 5 anos e da linha de pobreza. `gera_docx_curadoria.py` passa a ler `textos_curados.json` sempre (precedência:
 `--textos` > JSON > DOCX anterior > placeholder) e avisa quando um texto do DOCX anterior difere do JSON.
+
+## 2026-09-29 — `specs/2026-09-29_dados_adhoc` (dados pontuais do CadÚnico em Moradia e Inclusão)
+
+Extração pontual do CadÚnico (ref. 08/2026, fora da rotina) entra **só por acréscimo** no site, no PDF e no deck: crianças
+com deficiência e cobertura do BPC (Inclusão), domicílios sem banheiro/sem água canalizada e formas de abastecimento e
+de escoamento fora da rede geral (Moradia). Os quadros de pendente continuam. Aviso público "Dado pontual" (manifesto
+`dados_locais/cadunico/adhoc_2026_08.json`, campo novo `- dado_pontual:` no crosswalk) e nota da faixa 4 a 6 anos (inclui
+os 6 anos). Substituição pela extração automatizada no 4º tri de 2026 no `ROADMAP.md`.

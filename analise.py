@@ -914,6 +914,35 @@ for _coluna, _titulo, _arquivo, _legenda in [
     )
 
 # %% [markdown]
+# #### 📌 Dados pontuais (ago/2026): moradia e deficiência
+#
+# Extração **pontual** do CadÚnico enviada pela equipe (município do Rio, referência 08/2026), feita fora da rotina —
+# não vem do banco CTPE, então esta célula roda sem `.env` (`specs/2026-09-29_dados_adhoc`). Entra só por acréscimo
+# (nenhuma outra saída muda) e será substituída pela extração automatizada no 4º trimestre de 2026 (ROADMAP).
+# Metadados (`is_adhoc`, `ref_date`, `replacement_pending`) e o aviso público: `dados_locais/cadunico/adhoc_2026_08.json`.
+#
+# - Faixas da extração: **0 a 3 e 4 a 6 anos** — a de 4 a 6 inclui os 6 anos, fora do padrão 0 a 5 (exceção com nota, D1).
+# - Correções na leitura (a planilha fica como veio): fossa séptica, pessoas `'17..149'` → 17.149 (A1); aba
+#   "FOSSA RUDIMENTA" era cópia da fossa séptica, descartada (A2); cisterna com 0 crianças e 1.323 famílias → crianças
+#   não informadas (A3).
+# - Nível município: sem supressão (a regra < 20 vale abaixo do município). Única taxa: % com BPC entre as crianças
+#   com deficiência (numerador e denominador da mesma extração).
+# - Famílias e pessoas com deficiência são de **todas as idades** (não "famílias com criança com deficiência"): só
+#   contexto; os itens do catálogo seguem pendentes (D2).
+
+# %%
+df_moradia_adhoc = carrega_moradia_cadunico_adhoc()
+df_moradia_adhoc_domicilio, df_moradia_adhoc_territorio = tabelas_cadunico_adhoc(df_moradia_adhoc)
+df_deficiencia_adhoc, df_deficiencia_adhoc_contexto = carrega_deficiencia_cadunico_adhoc()
+for _df, _nome in [(df_moradia_adhoc_domicilio, 'cadunico_adhoc_moradia_domicilio_2026_08'),
+                   (df_moradia_adhoc_territorio, 'cadunico_adhoc_moradia_territorio_2026_08'),
+                   (df_deficiencia_adhoc, 'cadunico_adhoc_deficiencia_2026_08'),
+                   (df_deficiencia_adhoc_contexto, 'cadunico_adhoc_deficiencia_contexto_2026_08')]:
+    _df.to_csv(f'tabelas_finais/{_nome}.csv', index=False)
+print(df_moradia_adhoc.attrs['aviso'])
+df_deficiencia_adhoc
+
+# %% [markdown]
 # ### 🏥 DataSus - tabnet
 
 # %% [markdown]

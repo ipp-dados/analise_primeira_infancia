@@ -128,6 +128,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.32.0 | 2026-09-29 | Dados pontuais do CadÚnico (ago/2026) em Inclusão (deficiência e BPC) e Moradia (banheiro, água, esgoto), só por acréscimo, com aviso de dado pontual até a extração automatizada (4º tri de 2026) (`specs/2026-09-29_dados_adhoc`). |
 | 0.31.0 | 2026-09-29 | Proteção de dados do CadÚnico: bairros com menos de 20 crianças ou famílias somados por Região Administrativa, também quando um percentual revelaria contagem pequena (`specs/2026-09-29_privacidade_cadunico`). |
 | 0.30.1 | 2026-09-29 | PDF alinhado ao site: ordem de Prioridade, cobertura vacinal de volta, tabelas no corpo da seção, seção vazia fora; quadros de pendente com texto formal no site e no PDF (`specs/2026-09-29_alinhamento_pdf_site`). |
 | 0.30.0 | 2026-09-29 | Faixa padrão 0 a 5 anos (até 72 meses) em site, PDF e deck; mapa duplicado, série "Não informada" e gráfico "PNAD" (era o Censo 2022) fora; amarela e indígena só no total; baixo peso com eixo cortado; tablet com alvos de 44 px (`specs/2026-09-29_pendencias`). |
