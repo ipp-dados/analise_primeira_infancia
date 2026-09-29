@@ -1,0 +1,25 @@
+{
+  "_nota": "Manifesto dos dados pontuais do CadÚnico (specs/2026-09-29_dados_adhoc). Extração feita fora da rotina (não vem do banco CTPE); entra só por acréscimo no site, PDF e deck. Fonte única do texto do aviso público. Ao substituir pela extração automatizada: apagar esta pasta, as tabelas de `arquivos_gerados`, os itens '(dado pontual, ago/2026)' de specs/estrutura_eixos.md e os blocos marcados 'dados_adhoc' em website/build/build_site.py e apresentacao/apresentacao.md.",
+  "is_adhoc": true,
+  "ref_date": "2026-08",
+  "replacement_pending": true,
+  "substituicao_prevista": "2026-Q4",
+  "fonte": "Cadastro Único — extração pontual, município do Rio de Janeiro, referência agosto de 2026",
+  "aviso": "Dado pontual do Cadastro Único (referência: agosto de 2026), extraído fora da rotina automatizada; será substituído pela extração automatizada prevista para o 4º trimestre de 2026.",
+  "nota_faixa": "Faixas da extração: 0 a 3 e 4 a 6 anos. A faixa de 4 a 6 anos inclui os 6 anos, fora do padrão de 0 a 5 anos (até 72 meses) usado no restante do diagnóstico.",
+  "arquivos_origem": [
+    "domicilios_cadunico_2026_08.xlsx",
+    "deficiencia_cadunico_2026_08.csv"
+  ],
+  "arquivos_gerados": [
+    "tabelas_finais/cadunico_adhoc_moradia_domicilio_2026_08.csv",
+    "tabelas_finais/cadunico_adhoc_moradia_territorio_2026_08.csv",
+    "tabelas_finais/cadunico_adhoc_deficiencia_2026_08.csv",
+    "tabelas_finais/cadunico_adhoc_deficiencia_contexto_2026_08.csv"
+  ],
+  "notas_qualidade": {
+    "A1": "Fossa séptica, pessoas: '17..149' na planilha, lido como 17.149.",
+    "A2": "Aba 'RJ - ESCOAMENTO_FOSSA RUDIMENTA' é cópia da de fossa séptica (mesmo filtro e valores): descartada.",
+    "A3": "Cisterna: 1.323 famílias com 0 crianças nas duas faixas, improvável: crianças publicadas como não informado."
+  }
+}
