@@ -88,6 +88,10 @@ a equipe cura (JSON, DOCX), no PDF das outras branches e no `staging_main`.
   a **única exceção** à precedência do texto curado (D5), e só no site da `demo`: `textos_curados.json`, o DOCX e o PDF
   continuam com o texto integral.
 
+- **D13 — Contato no rodapé da demo** (pedido do usuário, 2026-09-29): `pesquisaeavaliacao.ipp@prefeitura.rio`
+  (chave `contato` de `publicacao.json` da `demo`) no lugar de `ascom.ipp@prefeitura.rio`, que era o do site
+  institucional e estava marcado "a confirmar". É para onde a introdução resumida (D12) manda as sugestões. PDF sem mudança.
+
 ## 4. Requisitos
 
 - **R1** A branch `demo` existe, criada de `staging_main` depois do merge desta rodada de planejamento.

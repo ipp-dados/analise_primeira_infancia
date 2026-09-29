@@ -2189,6 +2189,8 @@ FOOTER_LINKS = [
     ("LGPD — Proteção de dados", "https://ipp.prefeitura.rio/lgpd/"),
 ]
 FOOTER_CONTATO = "ascom.ipp@prefeitura.rio"
+if demo.ATIVO:   # demo: contato da coordenadoria (pedido do usuário, 2026-09-29; specs/2026-09-29_demo D13)
+    FOOTER_CONTATO = demo.CONTATO
 
 _footer_cols = [
     f'<div class="footer-col footer-col-logo">{LOGO_IMG}<p>Relatório produzido a partir da análise de indicadores de primeira infância do Instituto Municipal de Urbanismo Pereira Passos (IPP).</p></div>',
