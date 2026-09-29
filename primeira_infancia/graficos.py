@@ -72,7 +72,9 @@ def grafico_barra_agrupado(df,categoria,valor,agrupador,titulo,nome_arquivo,ylab
     plt.ylabel(ylabel or valor, fontsize=12)
     plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
     plt.xticks(rotation=rotacao_x, ha='right' if rotacao_x else 'center')
-    plt.legend(title=legend_title or agrupador, fontsize=9)
+    # legenda fora da área de plotagem: dentro, cobria barras (ex. "Parda", 5 anos, no gráfico de raça do Censo --
+    # achado de specs/2026-09-29_slide_revision)
+    plt.legend(title=legend_title or agrupador, fontsize=9, loc='upper left', bbox_to_anchor=(1.01, 1), borderaxespad=0)
     _rodape_fonte(fonte_dados)
     plt.tight_layout()
     plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
