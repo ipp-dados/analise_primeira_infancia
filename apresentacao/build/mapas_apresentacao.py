@@ -33,11 +33,12 @@ _FONTE_CENSO = "IBGE, Censo Demográfico 2022 (Data.Rio), por bairro"
 _FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro, por bairro (2025)"
 MAPAS = {
     # pedido do usuário (2026-09-28): no slide "O território onde a criança brinca" o Centro enviesava a escala
+    # slide_revision D12 (2026-09-29): sem menção ao IPS no deck -- legenda e fonte citam só o Data.Rio
     "apres_violencia_territorial_homicidios_ra_2024": dict(
         tabela="tabela_mapa_violencia_territorial_ra_2024.csv", coluna="taxa_homicidios", chave="codra", nivel="ra",
         titulo="Taxa de homicídios por RA (2024) — população geral", tema="protecao",
-        legenda="Taxa (IPS)\ntodas as idades,\nnão só crianças", rotulo="regiao_adm",
-        fonte="Data.Rio / Índice de Progresso Social (IPS), 2024, por Região Administrativa (todas as idades)"),
+        legenda="Por 100 mil hab.\ntodas as idades,\nnão só crianças", rotulo="regiao_adm",
+        fonte="Data.Rio, 2024, por Região Administrativa (todas as idades)"),
     # slide_revision R3/D6: os mapas do Censo em terracota (o tema censo do projeto é Blues)
     "apres_censo_0_4_absoluto": dict(
         tabela="censo_por_bairro.csv", coluna="0 a 4 anos", chave="codbairro", nivel="bairro",

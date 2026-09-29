@@ -81,6 +81,14 @@ Não dependem de código; entram no projeto quando chegarem.
    identidade visual, relatório ABNT em LaTeX a partir de um crosswalk `.md`, round-trip de curadoria em DOCX,
    deck Marp com números calculados. Definir fronteiras, nomes, versionamento e onde publicar (repositório
    próprio, pip via git).
+4. **Dados pontuais do CadÚnico em Moradia e Inclusão** (`specs/2026-09-29_dados_adhoc`, **planejada** em 2026-09-29;
+   implementação em `spec/dados-adhoc` aguardando o OK do usuário): extração de ago/2026 entra só por acréscimo no
+   site, PDF e deck, com aviso público de dado pontual; substituição pela extração automatizada no 4º tri de 2026.
+5. **Tirar a menção ao IPS do site e do relatório** (pedido do usuário, 2026-09-29; no deck já feito — D12 de
+   `specs/2026-09-29_slide_revision`): na violência territorial (Direito ao Brincar), a fonte passa a citar só o
+   Data.Rio, como no deck — `fonte:` em `specs/estrutura_eixos.md`, `fonte_dados` dos 3 mapas em `analise.py` (e as
+   versões A4), o texto no `website/build/build_site.py`, a entrada/`padroes` em `relatorio/latex/fontes.bib` e os
+   textos curados que citem o IPS (decisão da equipe); depois regerar site, PDF e DOCX.
 
 ## 4. Backlog por tema
 
