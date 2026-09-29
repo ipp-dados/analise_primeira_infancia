@@ -6,7 +6,7 @@ do Rio de Janeiro. Reúne indicadores de população, assistência social, saúd
 espalhados por fontes diferentes — Censo, CadÚnico, DataSUS/Tabnet, SINAN, SISVAN, PNAD, Censo
 Escolar, IPS — em um único pipeline (`analise.py` + pacote `primeira_infancia/`) que limpa, cruza e
 visualiza os dados por bairro, Área e Região de Planejamento, Região Administrativa e Área Programática
-de Saúde, organizados pelos 6 eixos da política municipal de primeira infância.
+de Saúde, organizados em um panorama (população e nascimentos) e nos 7 eixos da política municipal de primeira infância.
 
 📘 **Especificação funcional e técnica do projeto** (o que entrega, dados, arquitetura, regras, processos):
 [`docs/especificacao_projeto.md`](docs/especificacao_projeto.md).
@@ -127,6 +127,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.28.0 | 2026-09-28 | Nova estrutura do site e do PDF: panorama da primeira infância (população e nascimentos) na Visão geral e no capítulo de Introdução, 7º eixo "Direito ao Brincar", indicadores reordenados pela planilha da equipe sem remover nenhum conteúdo; nota "agrega os recortes" nas figuras de menores de 5 anos (`specs/2026-09-28_nova_estrutura`). |
 | 0.27.1 | 2026-09-28 | Especificação funcional e técnica do projeto (`docs/especificacao_projeto.md`), documentação alinhada ao estado real, `.env.example` (`specs/2026-09-28_documentacao`). |
 | 0.27.0 | 2026-09-28 | Funções do notebook no pacote `primeira_infancia/` (um módulo por tema), scripts de curadoria em `relatorio/curadoria/`, requisitos diretos fixados + `requirements-dev.txt`; mesmas saídas antes e depois (`specs/2026-09-28_organizacao`). |
 | 0.26.0 | 2026-09-28 | Favicon novo; texto de abertura em cada eixo (site, PDF, DOCX); lorem ≤ 150 palavras; pequenos múltiplos só com Painéis; `index.html` 785 → 343 KB sem mudança visual (`specs/2026-09-28_melhorias_site`). |

@@ -51,20 +51,23 @@ d'água, controladas juntas por `relatorio/publicacao.json` (seção 9.4).
 
 ## 2. Escopo: eixos e indicadores
 
-A estrutura publicada segue os **6 eixos da política municipal de primeira infância**. O crosswalk entre o catálogo
+A estrutura publicada abre com um **panorama** (Introdução: população e nascimentos) e segue os **7 eixos da política
+municipal de primeira infância** (`specs/2026-09-28_nova_estrutura`; até então, 6 eixos, sem panorama). O crosswalk entre o catálogo
 de indicadores da Prefeitura (`dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx`) e os arquivos reais
 (gráficos, mapas, tabelas) é `specs/estrutura_eixos.md`, **editado à mão**: é ele que define o que entra no PDF e no
 DOCX, em que ordem e com que título.
 
 | Eixo | Foco da política | Indicadores | Pendentes | Gráficos | Mapas | Tabelas |
 |---|---|---:|---:|---:|---:|---:|
-| 🎯 Prioridade | gestantes e crianças em vulnerabilidade: população, natalidade, mortalidade materna, neonatal, infantil e por causas evitáveis | 15 | 2 | 33 | 15 | 40 |
-| 🤝 Inclusão | população por sexo e raça/cor, frequência escolar, CadÚnico por sexo, raça/cor, renda e arranjo familiar | 11 | 3 | 10 | 2 | 12 |
-| 👨‍👩‍👧 Família e Cuidados | CadÚnico por idade e renda, frequência escolar, matrículas e atendimento, cobertura vacinal | 8 | 0 | 10 | 2 | 13 |
-| 🛡️ Proteção | violência territorial e familiar (por vínculo do autor), notificações, taxas por mil crianças | 8 | 1 | 6 | 10 | 14 |
+| 🧭 Introdução (panorama, não é eixo) | quantas crianças há, onde vivem, quem são (sexo, raça/cor) e quantas nascem | 7 | 0 | 7 | 4 | 9 |
+| 🎯 Prioridade | gestantes e crianças em vulnerabilidade: mortalidade materna, neonatal, infantil e por causas evitáveis; CadÚnico (razão sobre a população, crianças, famílias, renda, sexo, raça/cor) | 16 | 2 | 36 | 14 | 46 |
+| 🤝 Inclusão | crianças com deficiência (CadÚnico) | 3 | 3 | 0 | 0 | 0 |
+| 👨‍👩‍👧 Família e Cuidados | frequência escolar (total, raça/cor, sexo, PNAD), matrículas e atendimento, cobertura vacinal, CadÚnico por renda e arranjo familiar | 8 | 0 | 10 | 1 | 10 |
+| 🛡️ Proteção | violência familiar (por vínculo do autor, taxas, bairros e CAP), notificações | 7 | 2 | 6 | 7 | 13 |
+| 🧸 Direito ao Brincar | violência territorial (IPS, por RA) | 1 | 0 | 0 | 3 | 1 |
 | 🍽️ Alimentação | baixo peso ao nascer, desnutrição e sobrepeso (SISVAN) | 6 | 0 | 4 | 2 | 6 |
 | 🏠 Moradia | inadequação e adensamento habitacional | 3 | 3 | 0 | 0 | 0 |
-| **Total** | | **51** | **9** | **63** | **31** | **85** |
+| **Total** | | **51** | **10** | **63** | **31** | **85** |
 
 "Pendente" (`status: pendente` no crosswalk) é indicador do catálogo ainda sem dado: aparece no site e no PDF como
 caixa "indicador em desenvolvimento", com uma frase pública fixa (as notas internas nunca são publicadas).

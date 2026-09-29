@@ -22,7 +22,7 @@ por entrada nova em `specs/exclusoes.md`, pedida pelo usuário.
 
 | # | Pergunta | Decisão |
 |---|---|---|
-| D1 | "direito a brincar" como eixo prioritário de Violência territorial | **Criar o 7º eixo, "Direito ao Brincar"** (🧸, depois de Proteção). Grafia "ao Brincar" (a planilha diz "a brincar"); confirmar na revisão |
+| D1 | "direito a brincar" como eixo prioritário de Violência territorial | **Criar o 7º eixo, "Direito ao Brincar"** (🧸, depois de Proteção). Grafia "ao Brincar" (a planilha diz "a brincar") confirmada pelo usuário (2026-09-28) |
 | D2 | Coluna "Eixo Transversal" | **Só registrar** em `estrutura_eixos.md` (`- eixo transversal: <eixo>`); sem efeito visível no site, PDF ou DOCX nesta rodada |
 | D3 | Evitáveis por raça/cor ("?" na planilha, nota de 1996 no .txt) | **Continua pendente**. A nota de 1996 fica registrada no item para quando ele voltar |
 | D4 | Regra de conteúdo | Acrescentar o que falta, nunca remover o que sobra (§1) |
@@ -108,6 +108,11 @@ código**, sem reescrevê-los, e manter todos os `antigo=` (links antigos) e tod
   naturezas)"; pendente de tipificação. O h3 "Taxa de notificações de violência familiar" deixa de existir como
   h3; o id antigo (`taxa-de-notificações-de-violência-por-1000-crianças` e o slug atual) continua abrindo o
   lugar novo (`antigo=` no h5 de destino, ou um alias).
+- **Proteção — como ficou na implementação (2026-09-28)**: em vez de dissolver o h3 "Taxa de notificações…" (o que
+  tiraria uma entrada do sumário lateral), a ordem ficou: h3 "Violência familiar (0 a 5 anos, Sinan)" → h3 "Taxa de
+  notificações de violência familiar" (município + RA) → **h3 novo "Violência familiar por bairro e CAP (2025)"** (dez
+  bairros em número, dez maiores taxas, mapa por bairro, CAP) → autoprovocada → pendentes. Mesmo agrupamento da
+  planilha, nenhum id perdido.
 - **Direito ao Brincar** (aba nova): h2 `🧸 Direito ao Brincar`, com o h3 de violência territorial (código
   movido de Proteção, com a nota metodológica). `_EIXO_META` ganha `("direito", "Direito ao Brincar", <ícone>)`
   (ícone Lucide a escolher, ex. `toy-brick`/`blocks`, acrescentado ao sprite de ícones), e o mesmo em
