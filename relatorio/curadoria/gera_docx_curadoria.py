@@ -32,15 +32,17 @@ CLI:
     python gera_docx_curadoria.py [<docx_anterior>] [--textos <json de incorpora_update_docx.py>] [--controle <json>]
     (--controle usa relatorio/controle_revisao.json se existir; sem ele, o documento sai sem marcas de status)
 
-Sem argumento: gera do zero (todo texto placeholder, sem apêndice de
-órfãos). Com argumento: lê `<docx_anterior>` para preservar texto já
-editado à mão e mover blocos removidos da estrutura para o apêndice "Textos
-órfãos" em vez de descartá-los. Destino sempre `relatorio/curadoria_textos.docx`
+Texto de cada bloco, em ordem de precedência: `--textos` > `relatorio/textos_curados.json` (o texto publicado no
+site/PDF) > `<docx_anterior>` > placeholder. O JSON entra sempre, então regerar sem o DOCX anterior já não perde texto
+curado (em d29cdb0 o DOCX saiu só com lorem); o DOCX anterior ainda serve para
+levar ao apêndice "Textos órfãos" os blocos que saíram da estrutura. Texto do DOCX anterior diferente do JSON é
+avisado no terminal: se for edição feita no Word e ainda não sincronizada, rode `sincroniza_docx.py` antes. Destino sempre `relatorio/curadoria_textos.docx`
 (hardcoded, mesma convenção dos scripts irmãos desta pasta).
 """
 
 import hashlib
 import io
+import json
 import random
 import re
 import sys
@@ -57,6 +59,7 @@ from gera_estrutura_eixos import (_nomes_de_arquivo, blocos_relatorio, eh_panora
 
 CAMINHO_SAIDA_PADRAO = "relatorio/curadoria_textos.docx"
 CAMINHO_CONTROLE_PADRAO = "relatorio/controle_revisao.json"
+CAMINHO_TEXTOS_CURADOS = "relatorio/textos_curados.json"
 
 # ---- controle de revisão (pedido do usuário, 2026-09-24) ----------------------
 # Status de cada bloco de texto, marcado no título (e portanto no Sumário, que é
@@ -329,9 +332,11 @@ def _eh_lorem(texto):
     return not ws or sum(w in lorem for w in ws) / len(ws) > 0.85
 
 
-def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_extra=None, controle=None):
+def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_extra=None, controle=None,
+              textos_json=CAMINHO_TEXTOS_CURADOS):
     """`textos_extra`: {bookmark_name: texto} que sobrepõe o `docx_anterior` (textos de um arquivo
-    de update casados por incorpora_update_docx.py). `controle`: dict de controle_revisao.json."""
+    de update casados por incorpora_update_docx.py). `controle`: dict de controle_revisao.json. `textos_json`:
+    textos publicados ({id_: texto}), sobrepõem o `docx_anterior`; None desliga."""
     estrutura = parse_estrutura_eixos()
     valida_estrutura(estrutura)
 
@@ -340,6 +345,18 @@ def gera_docx(caminho_saida=CAMINHO_SAIDA_PADRAO, docx_anterior=None, textos_ext
         # lorem do DOCX anterior não é texto curado: sem descartá-lo, um placeholder antigo (ex. de 200 palavras, antes
         # de specs/2026-09-28_melhorias_site U3) seria copiado adiante em vez do placeholder atual
         textos_curados = {b: t for b, t in extrai_textos_por_bookmark(docx_anterior).items() if not _eh_lorem(t)}
+    publicados = {}
+    if textos_json and Path(textos_json).exists():
+        publicados = {_bookmark_name(k): t for k, t in json.loads(Path(textos_json).read_text(encoding="utf-8")).items()
+                      if t and not _eh_lorem(t)}
+    divergentes = sorted(b for b, t in publicados.items()
+                         if b in textos_curados and textos_curados[b].strip() != t.strip())
+    if divergentes:
+        print(f"AVISO: {len(divergentes)} texto(s) do DOCX anterior diferem de {textos_json}; vale o JSON "
+              "(se a versão do DOCX é a certa, rode sincroniza_docx.py nele antes de regerar):")
+        for b in divergentes:
+            print(f"  - {b}")
+    textos_curados.update(publicados)
     textos_curados.update(textos_extra or {})
     controle = controle or {}
     # "ajustes_manuais" (correções feitas fora de um arquivo de update) vence o status calculado

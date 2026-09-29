@@ -136,8 +136,10 @@ opening 90) in the three generators — site `_lorem`, LaTeX `lorem`, DOCX `_lor
    ```
    One heading per eixo/subsection, the (screen) images, one bookmarked text block per image, plus the report
    blocks (Resumo after the Introduction; Principais achados and Síntese at the start/end of each eixo;
-   Considerações finais at the end). **Always pass the existing DOCX** so curated text survives (matched by
-   bookmark); text whose indicator left the structure goes to a "Textos órfãos" appendix, never lost.
+   Considerações finais at the end). Text comes from `relatorio/textos_curados.json` (always read, so a rebuild
+   without the previous DOCX no longer loses curated text -- it did in d29cdb0), then the previous DOCX; on a
+   difference the JSON wins and the key is printed as `AVISO` (if the DOCX version is the right one, run step 7 on it
+   first). Still pass the existing DOCX: text whose indicator left the structure goes to a "Textos órfãos" appendix.
    `relatorio/controle_revisao.json` is loaded automatically (status marks + "Controle de revisão" table).
    After regenerating, check that every non-lorem text of the previous DOCX is still there under the same
    bookmark (`extrai_textos_por_bookmark` on both files).
