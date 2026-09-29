@@ -32,6 +32,8 @@ COLUNAS_SEM_MILHAR = re.compile(r"^(ano|idade|cod\w*|codigo|cap|ap|rp|ra)$", re.
 COLUNAS_PCT = re.compile(r"(percent|%|taxa|propor|cobertura)", re.I)
 NOTA_SUPRESSAO = ("Nota: -- indica célula suprimida (menos de 20 famílias ou crianças), "
                   "conforme a regra de proteção de dados do Cadastro Único.")
+NOTA_AGREGACAO = ("Nota: bairros com menos de 20 crianças ou famílias no Cadastro Único aparecem somados por Região "
+                  "Administrativa (“Demais bairros da RA …”), conforme a regra de proteção de dados do Cadastro Único.")
 
 # Tabelas repetidas no PDF (pedido do usuário, 2026-09-25: "many tables seem repetitive... merge/omit some").
 # Só o apêndice do PDF: o site e o DOCX continuam lendo estrutura_eixos.md inteiro.
@@ -332,6 +334,9 @@ def prepara(caminho):
     if "suprimido" in df.columns:
         meta["suprimido"] = bool(df["suprimido"].astype(bool).any())
         df = df.drop(columns="suprimido")
+    if "agregado_em" in df.columns:   # specs/2026-09-29_privacidade_cadunico: bairro pequeno só dentro do seu conjunto
+        meta["agregado"] = bool(df["agregado_em"].notna().any())
+        df = df[df["agregado_em"].isna()].drop(columns=[c for c in ("agregado_em", "bairros agregados") if c in df.columns])
     if "ano" in df.columns and pd.api.types.is_numeric_dtype(df["ano"]) and df["ano"].nunique() > 1:
         meta["periodo"] = (int(df["ano"].min()), int(df["ano"].max()))
     if aj.get("ultimo_ano") or (meta["bairro"] and "ano" in df.columns and len(df) > LIMIAR_ULTIMO_ANO):
@@ -448,7 +453,8 @@ def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo, no_corpo=False):
     elif meta["periodo"] and not tem_ano:
         titulo += f", {meta['periodo'][0]}-{meta['periodo'][1]}"
     titulo = esc(titulo)
-    fonte = fonte_tex + (" " + NOTA_SUPRESSAO if meta["suprimido"] else "")
+    fonte = (fonte_tex + (" " + NOTA_SUPRESSAO if meta["suprimido"] else "")
+             + (" " + NOTA_AGREGACAO if meta.get("agregado") else ""))
 
     colunas, specs = [], []
     for c in df.columns:

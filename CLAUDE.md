@@ -25,9 +25,11 @@ jupytext --sync analise.py               # sync analise.ipynb <-> analise.py aft
 
 The CadÚnico section needs the `.env` DB credentials **and** a kernel with
 `psycopg` 3 (dev machine: conda env `analises_env`; base Anaconda only has
-`psycopg2`). Every sub-municipal CadÚnico output goes through
-`suprime_celulas_pequenas` (< 20 families blanked) before it is written —
-see `specs/2026-09-23_recortes_cadunico/specification.md` §5. A full run also writes the
+`psycopg2`). Every sub-municipal CadÚnico output is protected before it is written (no count < 20 below the
+municipality — `specs/2026-09-23_recortes_cadunico/specification.md` §5): **by bairro, `agrega_bairros_pequenos`
+sums small bairros into "Demais bairros da RA X" (then AP, then município)** instead of blanking them, and a bairro
+also joins its group when a published percentage's numerator or complement is < 20
+(`specs/2026-09-29_privacidade_cadunico`); other small cells still use `suprime_celulas_pequenas` (blank). A full run also writes the
 print version of every figure used by the PDF report (`GERA_VARIANTE_A4`,
 section "🖨️ Variante de impressão"; `visualizacoes/a4/`, `mapas/a4/`).
 

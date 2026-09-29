@@ -484,3 +484,13 @@ cobertura vacinal de volta (chamada descomentada); tabelas de violência familia
 corpo da seção (chave nova `tabela_no_texto:`), como no site; seção vazia de causas evitáveis por raça/cor fora (E16).
 Quadros de indicador pendente, no site e no PDF, com a frase fixa e um motivo formal por item (chave `motivo:`,
 obrigatória) — sai o texto interno ("baixar dados — Léo", "Posterior").
+
+## 2026-09-29 — `specs/privacidade_cadunico` (bairros pequenos do CadÚnico agregados por RA)
+
+Regra de proteção do CadÚnico reforçada: por bairro, a célula pequena deixa de ficar vazia e é somada aos outros
+bairros pequenos da mesma Região Administrativa ("Demais bairros da RA X"; depois AP e município), com totais que
+fecham; em percentual, o bairro também entra no conjunto quando o numerador ou o complemento é menor que 20 (o
+percentual × o total publicado devolvia contagens pequenas em 6 bairros no mapa de crianças negras e 14 no de famílias
+com uma adulta). Aplicado às tabelas versionadas, aos mapas, ao site e ao PDF. Achado registrado no ROADMAP: um commit
+de 2026-09-09, anterior à regra, tem contagens abaixo de 20 no histórico do GitHub.
+
