@@ -1,0 +1,8 @@
+{
+  "name": "apresentacao-primeira-infancia",
+  "private": true,
+  "description": "Deck da primeira infância carioca (Marp). Gerado por build/gera_apresentacao.py -- specs/2026-09-28_apresentacao",
+  "devDependencies": {
+    "@marp-team/marp-cli": "4.5.1"
+  }
+}

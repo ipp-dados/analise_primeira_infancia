@@ -70,7 +70,7 @@ reimplementing this logic:
    deliberately left unchanged** — see the note below.
 3. A closing "Análise / Relatório" section (markdown notes only, no code
    output) — deliberately omitted from both the HTML and PDF reports. Its
-   subtitles are the 6 active policy axes (`specs/estrutura_eixos.md`), not
+   subtitles are the policy axes (6 when written; 7 since `specs/2026-09-28_nova_estrutura`), not
    the source-order sections above.
 
 **Presentation order vs. build order** (`specs/2026-09-22_ajuste_eixos/`): the sections
@@ -80,7 +80,9 @@ nascidos vivos/baixo peso/óbitos already computed above) — this order is not
 reorganized when the *published* structure changes. The `website/` site,
 the PDF, and the DOCX curation export are instead grouped by **eixo da
 política municipal de primeira infância** (Prioridade, Inclusão, Família e
-Cuidados, Proteção, Alimentação, Moradia), read from `specs/estrutura_eixos.md`
+Cuidados, Proteção, Direito ao Brincar, Alimentação, Moradia), preceded by an **Introdução/panorama**
+(population and births: site tab *Visão geral*, PDF chapter *Introdução*; the first `##` of the crosswalk, recognized
+by `eh_panorama()`, not counted as an axis — `specs/2026-09-28_nova_estrutura`), read from `specs/estrutura_eixos.md`
 — a hand-editable crosswalk from the indicator catalog
 (`dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx`) to the real
 visualization/map/table files. To change the published grouping, edit that
@@ -134,6 +136,10 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 - `mapas/` — choropleth PNGs from `mapa_coropletico_bairros`, plus each map's twin input table in `tabelas_finais/tabela_mapa_*.csv` (gitignored except `.gitkeep`). `mapas/tabelas_bairros/` is a legacy Excel-based leftover, kept only for two files not yet migrated.
 - `website/` — the published static site (GitHub Pages; `specs/2026-09-24_website_refactor`): tabs per eixo, sticky outline, interactive SVG charts/maps. `website/build/build_site.py` (moved from the PDF skill's `build_html_report.py`) generates `index.html`, `data/charts.js`, `data/geo.js` (map geometry, one `<path>` per region, shared by all maps via `<use>`; the `<use>` of each map and its CSV are in `window.MAPAS` in `data/charts.js`, inserted by `js/charts.js` on load — `specs/2026-09-28_melhorias_site`) and `assets/images/basemap-*`/`ipp-logo-*`; `css/` and `js/` are **hand-edited static files**, not generator strings. Generated output is committed (CI has no `tabelas_finais/`, so it only copies). **Distinct pipeline and visual identity from `relatorio/analise_primeira_infancia.pdf`** — don't mix their conventions. Static-site rules (relative lowercase paths, hash-only routes, no `fetch`, only html/css/js/svg/png/jpg/ico published) and the size budget (the generator warns above 1 MB `index.html` / 2 MB site) are in `website/README.md`. `*.png`/`*.svg` are gitignored globally; `!/website/assets/**` keeps the site's assets tracked. Narrow screens (`specs/2026-09-28_website_mobile`): every tablet/phone rule is in `css/mobile.css` and charts in narrow containers are redrawn at real width by `js/charts.js` — the desktop (≥ 1100 px) must stay pixel-identical, checked by screenshot comparison before committing.
 - `relatorio/` — the published PDF (`analise_primeira_infancia.pdf`, copied there only by `gera_latex.py --publicar`), `latex/` (LaTeX source: hand-edited `relatorio.tex`/`estilo.sty`/`pretextual/`/`fontes.bib`, generated `gerado/`, gitignored `_build/`), the sources inventory (`inventario_fontes.md/.csv`, for the team), the DOCX curation export with its review status (`controle_revisao.json`), past Google Docs curation rounds (`textos_updates_antigos/curadoria_textos_update_<N>.docx`; a new one arrives as `relatorio/curadoria_textos_update.docx` and is archived there after incorporation), and `textos_curados.json` (curated text read by the site and the PDF). `publicacao.json` is the single "em desenvolvimento" switch: it drives both the site's yellow strip and the PDF watermark — flip it there and rebuild both. `relatorio/index.html` no longer exists (replaced by `website/`).
+- `apresentacao/` — the 30-slide deck (Marp, `specs/2026-09-28_apresentacao`): one source file `apresentacao.md`
+  (numbers `{{n:...}}` computed from `tabelas_finais/` by `build/numeros.py`, figures `fig:<name>` from
+  `visualizacoes/`/`mapas/`, conditional blocks), built by `python apresentacao/build/gera_apresentacao.py`
+  (`--publicar` copies the PPTX/PDF to `apresentacao/`); variants in `apresentacao/variantes/`. See `apresentacao/README.md`.
 - `docs/especificacao_projeto.md` — the functional/technical specification of the whole project (products, eixos and
   indicators, sources, requirements, architecture, rules, processes, how to run). Update it when a round changes
   something it describes (its §11 lists what to check).

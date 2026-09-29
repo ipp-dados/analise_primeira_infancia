@@ -11,6 +11,14 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 
 ## Em andamento
 
+-1. **Nova estrutura + apresentação — planejadas em 2026-09-28** (branch `planning`). (a) `specs/2026-09-28_nova_estrutura`:
+   Introdução com panorama (população e nascidos vivos) na Visão geral e no capítulo de Introdução do PDF, 7º eixo
+   "Direito ao Brincar", reordenação conforme a planilha da equipe; `specs/estrutura_eixos.md` já atualizado (51 itens,
+   nenhum arquivo removido). **Implementada no mesmo dia** em `spec/nova_estrutura` (site, PDF, DOCX, notas "menores de 5 anos"); falta publicar o PDF e o deploy do site, com OK do usuário. Regra do
+   usuário: acrescentar o que falta, nunca remover o que sobra. (b) `specs/2026-09-28_apresentacao`: deck de 30 slides
+   em Marp, com fonte única em Markdown e variantes; depende de (a); respostas Q1-Q6 recebidas; **implementada no mesmo dia** (`spec/apresentacao`: 30 slides, PPTX e PDF em `apresentacao/`); três rodadas de revisão do usuário no mesmo dia (slide "produto vivo, construído com as secretarias", mapas sem outliers, matrículas por rede e arranjo familiar, população padronizada em 469 mil). Falta: revisão dos 6 textos marcados `revisar` pela equipe; merge de `planning`/`spec/nova_estrutura`/`spec/apresentacao` em `staging_main`, publicação do PDF do relatório e deploy do site (com OK do usuário); decidir se o tratamento do Centro como outlier no mapa do IPS vale também para o site e o PDF. Lacunas registradas:
+   taxa de mortalidade de 1 a 4 anos, taxa de violência de todas as naturezas, efeito visual do eixo transversal.
+
 0. **Melhorias do site e do relatório — Rodada A implementada em 2026-09-28** (`specs/2026-09-28_melhorias_site`,
    branch `spec/melhorias-site`): favicon novo (monograma "PI", escolhido pelo usuário; alternativas em `website/build/favicon_opcoes/`,
    trocar com `gera_favicon.py`), texto de abertura de cada eixo (`introducao_<eixo>`, lorem até ser curado), lorem ≤ 150
