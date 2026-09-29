@@ -60,6 +60,18 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   RA, CAP) usa o Censo 2022, fixo, e diz isso na fonte ou na legenda. Nunca comparar uma com a outra
   sem dizer (o Censo 2022 subconta crianças pequenas). A faixa etária do rótulo é a faixa real do dado
   (`specs/2026-09-24_populacao-referencia/auditoria_faixas.md`), não a do catálogo.
+- **Faixa etária padrão: 0 a 5 anos (até 72 meses)** (regra do usuário, 2026-09-29, `specs/2026-09-29_pendencias` D9).
+  Toda saída publicada (site, PDF, DOCX, apresentação) trabalha com 0 a 5 anos completos; se uma fonte traz 6 anos,
+  eles ficam fora dos gráficos e dos números citados. Quando os 6 anos forem mesmo necessários, **com nota explícita**.
+  Títulos do crosswalk que vêm do catálogo ("até 6 anos") dizem "até 72 meses", com o nome do catálogo na `nota` (D18).
+  Onde a fonte só tem outra faixa (Censo 2022 por bairro: 0 a 4 anos), o rótulo diz a faixa real.
+- **Base zero nos gráficos de taxa/percentual** (decisão P1, `specs/2026-09-25_website_graficos`), com **uma exceção**:
+  o percentual de baixo peso ao nascer, de eixo cortado, com a marca de corte desenhada e "eixo não começa em zero"
+  na fonte (`specs/2026-09-29_pendencias` D3/D12; `serie_temporal(base_zero=False)`, `eixoCortado` no site). Outra
+  exceção só com decisão do usuário.
+- **Agregar taxas publicadas** (quando não há numerador e denominador da mesma base): somar taxa × população e dividir
+  pela soma da população — nunca média simples. Não dividir contagens de tabelas de bases diferentes (ex.: SIDRA
+  10057 ÷ 9606 passa de 100%; `specs/2026-09-29_pendencias` D14).
 - `dados_locais/` **não é gitignorado** — arquivos colocados ali (inclusive
   camadas geo) são versionados. Confirme com `git status` antes de assumir o
   contrário; não versione dado bruto sensível sem checar antes se deveria
@@ -105,9 +117,13 @@ gerado.
 - Toda mudança não-trivial (nova seção de análise, nova convenção visual,
   merge de um branch externo, refatoração) ganha uma pasta
   `specs/<AAAA-MM-DD>_<nome-da-rodada>/` (data de abertura da rodada, para
-  que `specs/` liste as rodadas em ordem cronológica) **antes** da implementação, com o subconjunto
-  relevante de `plan.md`, `specification.md`/`specs.md`, `tasks.md`,
-  `validation.md`. Ver as pastas existentes (`specs/2026-09-08_mortalidade-ap`,
+  que `specs/` liste as rodadas em ordem cronológica) **antes** da implementação, com os **quatro**
+  documentos do desenvolvimento orientado a spec (regra do usuário, 2026-09-29; antes bastava um
+  subconjunto): `specification.md` (o quê e por quê: contexto, decisões, requisitos, fora do escopo),
+  `plan.md` (como: levantamento do código, blocos, riscos), `tasks.md` (tarefas numeradas por bloco,
+  com caixas marcadas durante a execução) e `validation.md` (critérios de aceite verificáveis,
+  preenchidos com o resultado ao fim). O planejamento só termina — e a implementação só começa —
+  com os quatro commitados na branch de planejamento. Ver as pastas existentes (`specs/2026-09-08_mortalidade-ap`,
   `specs/2026-09-09_maps-and-ibge`, `specs/2026-09-09_visual-identity`, `specs/2026-09-14_relatorio-interativo`)
   para o formato — não é rígido, mas todo spec documenta contexto, decisões
   tomadas (com o *porquê*) e o que foi validado.
@@ -124,6 +140,10 @@ gerado.
   arquivo deve morar, o que fazer com conteúdo conflitante), **pergunte** —
   agrupando várias perguntas relacionadas numa única rodada em vez de
   parar a cada dúvida individual — em vez de assumir e seguir em frente.
+  As perguntas vão pela ferramenta de pergunta interativa (`AskUserQuestion`,
+  até 4 perguntas por chamada, com opções e a recomendada marcada), não
+  soltas no texto; se houver mais de 4, fazer rodadas sucessivas agrupadas
+  por tema (reforçado pelo usuário em 2026-09-29).
 
 ## 6. Privacidade e dados sensíveis
 

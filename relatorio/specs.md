@@ -520,6 +520,18 @@ removido do git). Detalhes, medições e validação em `specs/2026-09-24_websit
 - Nenhum cartão, seed ou id removido (inventário antes × depois); links antigos cujo cartão mudou de aba abrem a aba
   certa (`js/navigation.js`). 8 abas: abaixo de 1280 px, "Família" e "Brincar" como rótulo curto.
 
+### v12 — pendências: faixa 0 a 5, eixo cortado, tablet (`specs/2026-09-29_pendencias`)
+
+- Mapa de mortalidade infantil por bairro só no cartão de raça/cor (pill "Total" do neonatal saiu, E13); série "Não
+  informada" fora do gráfico de taxa por raça/cor (E14).
+- **Exceção à base zero (P1):** só o percentual de baixo peso ao nascer, com `eixoCortado` em `js/charts.js` (marca de
+  corte no pé do eixo) e "Nota: eixo não começa em zero" na fonte.
+- Faixa padrão 0 a 5 anos (D9): população Ripsa e Censo 2022, taxas de frequência (IBGE 10056, agregadas por taxa ×
+  população, D14); amarela e indígena só no total 0 a 5 (E12/D15); cartão "PNAD" substituído pela taxa total do Censo
+  (E15). Títulos renomeados guardam os ids antigos (`antigo=`).
+- Tablet (720-1099 px) com as metas do celular: alvos ≥ 44 px e gráficos sempre desenhados na largura real (fim do
+  `LIMITE_REAL` de 640 px). Desktop inalterado.
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |

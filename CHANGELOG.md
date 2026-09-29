@@ -466,3 +466,13 @@ usuário no mesmo dia: slide "produto vivo, construído com as secretarias" no i
 extremos (versão de impressão com teto no percentil 95 e, no mapa do IPS, o Centro tratado como outlier pela regra
 de Tukey do site); slides de matrículas por rede e de adultos por família no CadÚnico; população padronizada com
 469 mil (0 a 6 anos, Ripsa 2025) como número-âncora.
+
+## 2026-09-29 — `specs/pendencias` (pendências: faixa 0 a 5, exclusões E12-E15, eixo cortado, tablet)
+
+Faixa padrão do projeto passa a ser 0 a 5 anos (até 72 meses), com nota quando os 6 anos forem necessários: população
+do Censo e da Ripsa, taxas de frequência escolar (IBGE, agregadas por taxa × população), títulos do catálogo como "até
+72 meses" e o número-âncora do deck em 393 mil. Mapa de mortalidade infantil duplicado sai do cartão neonatal (E13);
+"Não informada" sai da taxa por raça/cor (E14); amarela e indígena só no total 0-5 (E12); gráfico "PNAD" era o Censo
+2022 e foi substituído (E15); baixo peso com eixo cortado (única exceção à base zero); tablet com alvos de 44 px e
+gráficos na largura real. Correção de passagem: `carrega_cadunico_familias_0_6` apontava para o esquema `ctpe`, que o
+banco não tem mais.
