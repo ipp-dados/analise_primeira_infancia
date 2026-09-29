@@ -107,6 +107,14 @@ Key conventions enforced throughout, worth checking before adding a new call sit
   `dados_locais/populacao/`, network only if a year is missing); sub-municipal rates keep the fixed
   Censo 2022 (0-4) and must say so in the source/legend. Labels use the data's real age range (CadÚnico
   `'0-6'` and SISVAN are 0-5; see `auditoria_faixas.md`), not the catalog's "até 6 anos".
+- **Standard age range is 0-5 (up to 72 months)** (`specs/2026-09-29_pendencias` D9): every published output uses 0-5;
+  age 6 is dropped from charts/numbers even when a source has it, and any unavoidable use of 6 gets an explicit note.
+  Crosswalk headings from the catalog say "até 72 meses" (catalog name in the `nota`, D18). `*_0_6_*` file names were
+  kept as keys (curated text, crosswalk, deck) — the content is 0-5.
+- **Zero baseline on rate charts** (P1), with one exception: low birth weight % (cut axis with a drawn break mark and
+  "eixo não começa em zero" in the source; `serie_temporal(base_zero=False)`, `eixoCortado` in `js/charts.js`).
+- Aggregating published rates with no same-base numerator/denominator: sum rate × population, divide by population
+  (SIDRA 10057 ÷ 9606 exceeds 100% — different Census bases; D14).
 - Never aggregate a percentage column by averaging/summing it across bairros
   — sum the absolute numerator/denominator first (`agrega_bairros_por_nivel`),
   then recompute the rate.
