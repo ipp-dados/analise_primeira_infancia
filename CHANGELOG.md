@@ -476,3 +476,11 @@ do Censo e da Ripsa, taxas de frequência escolar (IBGE, agregadas por taxa × p
 2022 e foi substituído (E15); baixo peso com eixo cortado (única exceção à base zero); tablet com alvos de 44 px e
 gráficos na largura real. Correção de passagem: `carrega_cadunico_familias_0_6` apontava para o esquema `ctpe`, que o
 banco não tem mais.
+
+## 2026-09-29 — `specs/alinhamento_pdf_site` (PDF alinhado ao site; quadros de pendente formais)
+
+PDF segue o site na ordem de Prioridade (taxa de mortalidade na primeira infância logo depois das neonatais); série de
+cobertura vacinal de volta (chamada descomentada); tabelas de violência familiar por CAP e de CadÚnico ÷ população no
+corpo da seção (chave nova `tabela_no_texto:`), como no site; seção vazia de causas evitáveis por raça/cor fora (E16).
+Quadros de indicador pendente, no site e no PDF, com a frase fixa e um motivo formal por item (chave `motivo:`,
+obrigatória) — sai o texto interno ("baixar dados — Léo", "Posterior").
