@@ -61,17 +61,19 @@ DOCX, em que ordem e com que título.
 | Eixo | Foco da política | Indicadores | Pendentes | Gráficos | Mapas | Tabelas |
 |---|---|---:|---:|---:|---:|---:|
 | 🧭 Introdução (panorama, não é eixo) | quantas crianças há, onde vivem, quem são (sexo, raça/cor) e quantas nascem | 7 | 0 | 7 | 4 | 9 |
-| 🎯 Prioridade | gestantes e crianças em vulnerabilidade: mortalidade materna, neonatal, infantil e por causas evitáveis; CadÚnico (razão sobre a população, crianças, famílias, renda, sexo, raça/cor) | 16 | 2 | 36 | 14 | 46 |
+| 🎯 Prioridade | gestantes e crianças em vulnerabilidade: mortalidade materna, neonatal, infantil e por causas evitáveis; CadÚnico (razão sobre a população, crianças, famílias, renda, sexo, raça/cor) | 15 | 1 | 36 | 13 | 46 |
 | 🤝 Inclusão | crianças com deficiência (CadÚnico) | 3 | 3 | 0 | 0 | 0 |
-| 👨‍👩‍👧 Família e Cuidados | frequência escolar (total, raça/cor, sexo, taxa total do Censo 2022), matrículas e atendimento, cobertura vacinal, CadÚnico por renda e arranjo familiar | 8 | 0 | 10 | 1 | 10 |
+| 👨‍👩‍👧 Família e Cuidados | frequência escolar (total, raça/cor, sexo, taxa total do Censo 2022), matrículas e atendimento, cobertura vacinal, CadÚnico por renda e arranjo familiar | 8 | 0 | 11 | 1 | 10 |
 | 🛡️ Proteção | violência familiar (por vínculo do autor, taxas, bairros e CAP), notificações | 7 | 2 | 6 | 7 | 13 |
 | 🧸 Direito ao Brincar | violência territorial (IPS, por RA) | 1 | 0 | 0 | 3 | 1 |
 | 🍽️ Alimentação | baixo peso ao nascer, desnutrição e sobrepeso (SISVAN) | 6 | 0 | 4 | 2 | 6 |
 | 🏠 Moradia | inadequação e adensamento habitacional | 3 | 3 | 0 | 0 | 0 |
-| **Total** | | **51** | **10** | **63** | **31** | **85** |
+| **Total** | | **50** | **9** | **64** | **30** | **85** |
 
 "Pendente" (`status: pendente` no crosswalk) é indicador do catálogo ainda sem dado: aparece no site e no PDF como
-caixa "indicador em desenvolvimento", com uma frase pública fixa (as notas internas nunca são publicadas).
+caixa "indicador em desenvolvimento", com uma frase pública fixa seguida do `motivo:` do item (texto formal,
+obrigatório; as notas internas nunca são publicadas). Tabelas que o site mostra dentro do cartão saem no corpo da seção
+do PDF (`tabela_no_texto:`), não no apêndice (`specs/2026-09-29_alinhamento_pdf_site`).
 
 **Níveis geográficos.** Município; e, abaixo dele, **bairro** (166, chave `codbairro`), **Área de Planejamento** (AP,
 5, IPP), **Região de Planejamento** (RP, 16), **Região Administrativa** (RA, 33 — não existe RA 32) e **Coordenadoria
@@ -403,7 +405,7 @@ componente (6-7), uma regra (8) ou um processo (9-10). A data no topo diz a que 
   automaticamente, ao site só à mão.
 - **Textos**: blocos ainda em lorem ipsum (resumo, achados, aberturas e sínteses dos eixos, parte das figuras); a
   lista sai no build do PDF. Alertas abertos em `relatorio/controle_revisao.json`.
-- **Indicadores pendentes**: 9 (o eixo Moradia inteiro).
+- **Indicadores pendentes**: 9 (o eixo Moradia inteiro, os 3 de deficiência, 2 de violência e 1 de mortalidade).
 - **Denominador sub-municipal**: o Censo 2022 fixo subconta crianças pequenas; a estimativa por bairro a partir da
   Ripsa está no `ROADMAP.md` (Próximas features, item 2).
 - **Organização**: a reorganização das pastas de dados e saídas (fase 1c) e o empacotamento de scripts para outros

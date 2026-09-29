@@ -85,7 +85,9 @@ _OUT_ARG = str(Path(sys.argv[1]).resolve()) if len(sys.argv) > 1 else None   # r
 os.chdir(ROOT)
 sys.path.insert(0, str(ROOT / "relatorio" / "curadoria"))
 
-from gera_estrutura_eixos import avisa_itens_sem_arquivo, chave_eixo
+from gera_estrutura_eixos import TEXTO_PENDENTE, avisa_itens_sem_arquivo, chave_eixo, motivos_pendentes
+# D5 (specs/2026-09-29_alinhamento_pdf_site): quadro de pendente = frase fixa + `motivo:` do crosswalk, igual no PDF
+_MOTIVOS_PENDENTES = motivos_pendentes()
 # populacao-referencia D4: avisa (sem mudar a saída) itens do crosswalk que o relatório pularia em silêncio
 avisa_itens_sem_arquivo()
 
@@ -685,7 +687,7 @@ def tabela_com_texto(build_fn, seed):
         '</div>'
     )
 
-def emite_bloco_pendente(titulo, nota):
+def emite_bloco_pendente(titulo):
     """Subsecao 'a reservar' (catalogo tem o indicador, analise.py ainda nao o
     implementa) -- specs/2026-09-22_ajuste_eixos/specs.md §3-E: nunca uma secao vazia sem
     explicacao, sempre com o selo + a razao (Status da planilha). Mesmo
@@ -695,7 +697,12 @@ def emite_bloco_pendente(titulo, nota):
     h3(titulo)
     _PENDENTES_SECAO[section_starts[-1][2]] = _PENDENTES_SECAO.get(section_starts[-1][2], 0) + 1
     # specs/2026-09-24_website_refactor: callout com ícone (sai o emoji 🚧)
-    parts.append(callout("pending", "construction", "Indicador catalogado, ainda não disponível", f"<p>{_esc(nota)}</p>"))
+    # texto público = frase fixa + `motivo:` do item em specs/estrutura_eixos.md (mesmo título); nunca a `nota:`
+    # interna (specs/2026-09-29_alinhamento_pdf_site D5) -- título sem item pendente no crosswalk para o build
+    if titulo not in _MOTIVOS_PENDENTES:
+        raise KeyError(f"emite_bloco_pendente: '{titulo}' não é item pendente (com motivo:) em specs/estrutura_eixos.md")
+    parts.append(callout("pending", "construction", "Indicador catalogado, ainda não disponível",
+                         f"<p>{_esc(TEXTO_PENDENTE)} {_esc(_MOTIVOS_PENDENTES[titulo])}</p>"))
 
 _PENDENTES_SECAO = {}   # sid do h2 -> nº de indicadores pendentes (cartões da Visão geral)
 
@@ -1621,7 +1628,7 @@ for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
 # não é mais gerada) -- ver specs/2026-09-22_merge-waleska-changes/specs.md
 option_card(_entries_mapas_cap_faixa, 'mapa')
 
-emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo", "recorte por sexo ainda não extraído do SIM")
+emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo")
 
 # ---- CadÚnico: recortes por sexo, raça/cor, arranjo familiar e renda (specs/2026-09-23_recortes_cadunico) ----
 FONTE_CADUNICO = "CadÚnico (extração CTPE, jun/2026)"
@@ -1729,9 +1736,9 @@ option_card([
 
 h2('🤝 Inclusão')
 
-emite_bloco_pendente("Crianças no CadÚnico com alguma deficiência", "baixar dados — Léo")
-emite_bloco_pendente("Famílias no CadÚnico com criança com deficiência", "baixar dados — Léo")
-emite_bloco_pendente("Crianças no CadÚnico por tipo de deficiência", "baixar dados — Léo")
+emite_bloco_pendente("Crianças no CadÚnico com alguma deficiência")
+emite_bloco_pendente("Famílias no CadÚnico com criança com deficiência")
+emite_bloco_pendente("Crianças no CadÚnico por tipo de deficiência")
 
 # ===================================================== FAMILIA E CUIDADOS ==
 
@@ -1961,8 +1968,8 @@ option_card([("Bairro (2026)", lambda: mapa_svg(df_m_auto, "codbairro", "casos",
     "Lesão autoprovocada notificada por bairro (2026, ano parcial)", "Notificações (2026)",
     "Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos", bins=[1, 3], zero_branco=True), "mapa_notif_autoprovocada_bairro_2026")], 'mapa')
 
-emite_bloco_pendente("Taxa de notificações de violência (todas as naturezas)", "as taxas de violência familiar estão acima; a de violência em geral (não só familiar) ainda não foi extraída do Sinan")
-emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e idade)", "dado ainda não extraído do Tabnet municipal")
+emite_bloco_pendente("Taxa de notificações de violência (todas as naturezas)")
+emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e idade)")
 
 # ================================================================ DIREITO AO BRINCAR ==
 
@@ -2026,9 +2033,9 @@ option_card([
 
 h2('🏠 Moradia')
 
-emite_bloco_pendente("Crianças no CadÚnico em domicílios com inadequação habitacional", "Posterior")
-emite_bloco_pendente("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)", "Posterior")
-emite_bloco_pendente("Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)", "Posterior (apenas cad)")
+emite_bloco_pendente("Crianças no CadÚnico em domicílios com inadequação habitacional")
+emite_bloco_pendente("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)")
+emite_bloco_pendente("Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)")
 
 # ============================================================== ASSEMBLE ==
 

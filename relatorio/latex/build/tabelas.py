@@ -435,7 +435,9 @@ def _longtable(colspec, ncols, cab, corpo, titulo, rotulo, tamanho, sep):
             r"\end{longtable}}" "\n")
 
 
-def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo):
+def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo, no_corpo=False):
+    """`no_corpo` (specs/2026-09-29_alinhamento_pdf_site D3, `tabela_no_texto:`): tabela dentro de um capítulo -- só vai
+    para paisagem se a largura estimada não couber no retrato (no apêndice, mais de MAX_COLUNAS_RETRATO colunas já basta)."""
     nome = Path(caminho).name
     aj = AJUSTES.get(nome, {})
     df, meta = prepara(caminho)
@@ -495,7 +497,9 @@ def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo):
                 texto = 3.6
             cab_cm = min(len(str(nome)) * 0.19, 2.2)
             return max(texto, cab_cm) + 0.35
-        largo = ncol > MAX_COLUNAS_RETRATO or sum(_larg_col(n, v, a) for n, v, a in zip(df.columns, colunas, specs)) > 15.6
+        largura = sum(_larg_col(n, v, a) for n, v, a in zip(df.columns, colunas, specs))
+        largo = (ncol > MAX_COLUNAS_RETRATO and not no_corpo) or largura > 15.6
+        miudo = largo or ncol > MAX_COLUNAS_RETRATO
         def cab_celula(c, al):
             txt = r"\textbf{" + esc(c) + "}"
             if al == "r" and len(str(c)) > 12:    # cabeçalho longo quebra numa caixa estreita, alinhada à direita
@@ -510,7 +514,7 @@ def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo):
         specs = [(r">{\raggedright\arraybackslash}p{3.6cm}" if al == "l" and max((len(str(v)) for v in col), default=0) > 20
                   else al) for al, col in zip(specs, colunas)]
         tex = _longtable("@{}" + "".join(specs) + "@{}", ncol, cab, corpo, titulo, rotulo,
-                         r"\scriptsize" if largo else r"\small", "3pt" if largo else "5pt")
+                         r"\scriptsize" if miudo else r"\small", "3pt" if miudo else "5pt")
         if largo:
             tex = r"\begin{landscape}" + "\n" + tex + rf"\vspace{{-6pt}}\fonte{{{fonte}}}" + "\n" + r"\end{landscape}" + "\n"
             return tex
