@@ -512,3 +512,9 @@ barras. Projeto todo (D1): as faixas de renda do CadÚnico passam a
 2023 — no pacote, nas tabelas, no site, no PDF e no texto curado. `_a4_mapa` não aplica mais o P95 quando recebe um
 teto explícito.
 
+## 2026-09-29 — DOCX de curadoria com os textos curados de volta
+
+`relatorio/curadoria_textos.docx` estava só com lorem desde d29cdb0 (regerado sem o DOCX anterior; os 77 textos seguiam
+em `textos_curados.json`, e o site e o PDF não foram afetados). Regerado com os textos do JSON, já com as correções de
+0 a 5 anos e da linha de pobreza. `gera_docx_curadoria.py` passa a ler `textos_curados.json` sempre (precedência:
+`--textos` > JSON > DOCX anterior > placeholder) e avisa quando um texto do DOCX anterior difere do JSON.

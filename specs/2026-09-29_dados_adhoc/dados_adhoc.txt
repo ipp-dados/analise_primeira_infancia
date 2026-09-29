@@ -1,0 +1,71 @@
+# TASK: Ad-hoc Data Integration (Housing & Inclusion Axes) & Roadmap Tracking
+
+## Objective
+Temporarily update the project's data structures, report, and presentation views to incorporate ad-hoc indicators for the "Moradia" (Housing) and "Inclusão" (Inclusion) axes for Rio de Janeiro (ref date: 08/2026). Use the provided CSV file in the `specs/` directory as the reference data source, and ensure these changes are flagged for future replacement in the product roadmap.
+
+---
+
+## 1. Data Source & Specs
+- **Reference CSV Location:** `specs/` folder (use this file to extract or map the required input structures/values).
+
+---
+
+## 2. Data Specifications
+
+### Axis 1: Moradia (Housing)
+- **Scope:** Rio de Janeiro Municipality (Ref: 08/2026)
+- **Data Schema Required:** Define/extend data models to capture the following 4 indicator sets, each tracked across 4 metrics:
+  - Metrics per indicator:
+    - `familias` (Number of families)
+    - `pessoas_total` (Total people)
+    - `criancas_0_3` (Children aged 0-3)
+    - `criancas_4_6` (Children aged 4-6)
+  
+- **Indicators to implement:**
+  1. `domicilio_sem_banheiro` (Type: Domiciliary)
+  2. `domicilio_sem_agua_encanada` (Type: Territorial)
+  3. `formas_abastecimento_agua` (Type: Territorial)
+  4. `formas_escoamento_esgoto` (Type: Territorial)
+
+> *Note: Populate values directly from the reference CSV in `specs/` where available, or set up interface slots for pending backend fields.*
+
+### Axis 2: Inclusão (Inclusion)
+- **Scope:** People with Disabilities in CadÚnico — Rio de Janeiro Municipality (Ref: 08/2026)
+- **Static Values to Update/Inject:**
+  - `familias_com_deficiencia`: 210,241
+  - `pessoas_com_deficiencia_total`: 401,074
+  - `criancas_deficiencia_0_3_total`: 9,258
+  - `criancas_deficiencia_0_3_bpc`: 3,086
+  - `criancas_deficiencia_4_6_total`: 16,737
+  - `criancas_deficiencia_4_6_bpc`: 7,214
+
+---
+
+## 3. Technical Requirements & Implementation Steps
+
+### Step 1: Data Model & File Parsing
+- Read/parse the reference CSV from `specs/` to load or populate the relevant data model/mock state for the "Moradia" and "Inclusão" report sections.
+- Tag these entries in the data layer with metadata: `is_adhoc: true`, `ref_date: "2026-08"`, `replacement_pending: true`.
+
+### Step 2: Presentation & UI Integration Proposal
+Implement the following visual components in the presentation/dashboard layout:
+1. **Moradia View:**
+   - Create a summary card/grid highlighting basic sanitation deficits (Water/Sewage/Bathroom access).
+   - Display a breakdown table or metric cards split by age group (0–3 yrs, 4–6 yrs vs. Total).
+2. **Inclusão View:**
+   - Add a key performance indicator (KPI) panel for CadÚnico disability coverage.
+   - Include a visual comparison (e.g., progress bar or ratio card) showing BPC coverage among young children:
+     - 0–3 yrs: 3,086 / 9,258 (~33.3% BPC coverage)
+     - 4–6 yrs: 7,214 / 16,737 (~43.1% BPC coverage)
+
+### Step 3: Roadmap Tracking
+- Add a visual flag, badge, or console/UI tag in dev modes stating:  
+  `"Ad-hoc Data (Ref 08/26) — Scheduled for automated pipeline replacement in Q4"`.
+- Add an item/comment in the codebase roadmap or documentation file (`ROADMAP.md` or similar) marking this replacement task.
+
+---
+
+## Deliverables
+1. Code changes updating state/data structures using the CSV file in `specs/`.
+2. Rendered UI updates showing the new housing indicators and inclusion statistics in the presentation component.
+3. Updated `ROADMAP.md` (or equivalent tracking file) reflecting the planned replacement of ad-hoc data.
