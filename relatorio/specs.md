@@ -532,6 +532,12 @@ removido do git). Detalhes, medições e validação em `specs/2026-09-24_websit
 - Tablet (720-1099 px) com as metas do celular: alvos ≥ 44 px e gráficos sempre desenhados na largura real (fim do
   `LIMITE_REAL` de 640 px). Desktop inalterado.
 
+### v12.1 — alinhamento com o PDF (`specs/2026-09-29_alinhamento_pdf_site`)
+
+- Quadros de indicador pendente: `emite_bloco_pendente(titulo)` mostra a frase fixa (`TEXTO_PENDENTE`, a mesma do PDF)
+  + o `motivo:` do item em `specs/estrutura_eixos.md`, lido pelo título; o build para se o item não existir ou não tiver
+  motivo. Sai o texto interno escrito à mão no gerador.
+
 ## Arquivos
 
 | Arquivo | Tema | Paleta dos gráficos | Seção de mapas |
