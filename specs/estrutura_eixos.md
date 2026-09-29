@@ -32,6 +32,12 @@
 >   continuam internas e nunca são publicadas;
 > - `- tabela_no_texto: `<arquivo>.csv`` — a tabela (também listada em `- tabela:`) sai no corpo da seção do PDF,
 >   com o texto curado da mesma chave, e não no apêndice. Usado quando o site mostra a tabela dentro do cartão.
+>
+> **Campo novo (`specs/2026-09-29_dados_adhoc`, 2026-09-29):**
+> - `- dado_pontual: <id>` — o item usa uma extração pontual, fora da rotina automatizada. `<id>` aponta para o
+>   manifesto `dados_locais/cadunico/adhoc_<id>.json`, fonte única do **aviso público** (`aviso` + `nota_faixa`), que o
+>   PDF imprime num quadro abaixo do título do item (o site mostra o mesmo texto). Itens "(dado pontual, …)" entram só
+>   por acréscimo e saem quando a extração automatizada os substituir (ROADMAP).
 
 ## 🧭 Introdução
 
@@ -289,6 +295,15 @@
 - motivo: Os dados de deficiência dependem de uma nova extração do Cadastro Único, ainda não disponível.
 - nota: baixar dados — Léo
 
+### Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026)
+- fonte: Cadastro Único — extração pontual, referência 08/2026
+- dado_pontual: 2026_08
+- tabela_no_texto: `cadunico_adhoc_deficiencia_2026_08.csv`
+- tabela: `cadunico_adhoc_deficiencia_2026_08.csv`
+- tabela_no_texto: `cadunico_adhoc_deficiencia_contexto_2026_08.csv`
+- tabela: `cadunico_adhoc_deficiencia_contexto_2026_08.csv`
+- nota: extração pontual enviada pela equipe (valores no pedido, specs/2026-09-29_dados_adhoc); faixas 0-3 e 4-6 (inclui 6 anos, D1); famílias e pessoas com deficiência são de todas as idades, só contexto — os 3 itens pendentes acima continuam pendentes (D2); só acréscimo (D1/D3)
+
 ## 👨‍👩‍👧 Família e Cuidados
 
 ### Crianças até 72 meses frequentando escola/creche (geral)
@@ -495,3 +510,17 @@
 - status: pendente
 - motivo: Previsto para uma próxima edição, a partir do Cadastro Único.
 - nota: Posterior (apenas cad)
+
+### Famílias e crianças no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, ago/2026)
+- fonte: Cadastro Único — extração pontual, referência 08/2026
+- dado_pontual: 2026_08
+- tabela_no_texto: `cadunico_adhoc_moradia_domicilio_2026_08.csv`
+- tabela: `cadunico_adhoc_moradia_domicilio_2026_08.csv`
+- nota: extração pontual enviada pela equipe (`dados_locais/cadunico/domicilios_cadunico_2026_08.xlsx`, specs/2026-09-29_dados_adhoc); indicadores do pedido `domicilio_sem_banheiro` (domiciliar) e `domicilio_sem_agua_encanada` (territorial); faixas 0-3 e 4-6 (D1); os 3 itens pendentes acima continuam pendentes (D3)
+
+### Famílias e crianças no CadÚnico por forma de abastecimento de água e de escoamento sanitário (dado pontual, ago/2026)
+- fonte: Cadastro Único — extração pontual, referência 08/2026
+- dado_pontual: 2026_08
+- tabela_no_texto: `cadunico_adhoc_moradia_territorio_2026_08.csv`
+- tabela: `cadunico_adhoc_moradia_territorio_2026_08.csv`
+- nota: só as formas fora da rede geral (a extração não trouxe a rede geral); cisterna com crianças não informadas (A3); fossa séptica, pessoas corrigido de '17..149' (A1); aba duplicada descartada (A2)

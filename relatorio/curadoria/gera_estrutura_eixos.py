@@ -48,6 +48,21 @@ def motivos_pendentes(caminho="specs/estrutura_eixos.md"):
     return out
 
 
+def manifesto_dado_pontual(ident, raiz=None):
+    """Manifesto `dados_locais/cadunico/adhoc_<ident>.json` de um item `- dado_pontual: <ident>`
+    (specs/2026-09-29_dados_adhoc) -- fonte única do aviso público. Erro se não existir."""
+    import json
+    from pathlib import Path
+    base = Path(raiz) if raiz else Path(__file__).resolve().parents[2]
+    return json.loads((base / "dados_locais/cadunico" / f"adhoc_{ident.strip()}.json").read_text(encoding="utf-8"))
+
+
+def aviso_dado_pontual(ident, raiz=None):
+    """Texto público do quadro "Dado pontual": aviso + nota da faixa etária (D1/D4 de specs/2026-09-29_dados_adhoc)."""
+    m = manifesto_dado_pontual(ident, raiz)
+    return " ".join(t for t in (m.get("aviso"), m.get("nota_faixa")) if t)
+
+
 # Diretorios (relativos a raiz do projeto) onde cada tipo de referencia deve
 # existir de fato -- usados por valida_estrutura().
 _DIRS_POR_CAMPO = {
