@@ -1,94 +1,81 @@
 # Roadmap
 
-Estado em 2026-09-28 (fim do dia; curadoria: update 5). Arquivo único do projeto: substitui `specs/roadmap.md` e `website/ROADMAP.md`
-(fundidos aqui em 2026-09-25). As decisões e o *porquê* de cada item ficam na pasta da rodada em `specs/`
-(`specs/<AAAA-MM-DD>_<nome>/`); aqui fica só o que falta fazer e onde procurar.
+Estado em 2026-09-29 (rodada de pendências implementada; falta a publicação, com OK do usuário). Arquivo único do projeto: substitui
+`specs/roadmap.md` e `website/ROADMAP.md` (fundidos aqui em 2026-09-25). As decisões e o *porquê* de cada item ficam
+na pasta da rodada em `specs/` (`specs/<AAAA-MM-DD>_<nome>/`); aqui fica só o que falta fazer, onde procurar e o
+histórico resumido.
 
-Organização: **Em andamento** → **Próximos** (fila priorizada) → **Backlog por tema** → **Concluído** (histórico
-resumido). Dentro de cada seção, a ordem é a de prioridade.
-
----
-
-## Em andamento
-
--1. **Nova estrutura + apresentação — planejadas em 2026-09-28** (branch `planning`). (a) `specs/2026-09-28_nova_estrutura`:
-   Introdução com panorama (população e nascidos vivos) na Visão geral e no capítulo de Introdução do PDF, 7º eixo
-   "Direito ao Brincar", reordenação conforme a planilha da equipe; `specs/estrutura_eixos.md` já atualizado (51 itens,
-   nenhum arquivo removido). **Implementada no mesmo dia** em `spec/nova_estrutura` (site, PDF, DOCX, notas "menores de 5 anos"); falta publicar o PDF e o deploy do site, com OK do usuário. Regra do
-   usuário: acrescentar o que falta, nunca remover o que sobra. (b) `specs/2026-09-28_apresentacao`: deck de 30 slides
-   em Marp, com fonte única em Markdown e variantes; depende de (a); respostas Q1-Q6 recebidas; **implementada no mesmo dia** (`spec/apresentacao`: 30 slides, PPTX e PDF em `apresentacao/`); três rodadas de revisão do usuário no mesmo dia (slide "produto vivo, construído com as secretarias", mapas sem outliers, matrículas por rede e arranjo familiar, população padronizada em 469 mil). Falta: revisão dos 6 textos marcados `revisar` pela equipe; merge de `planning`/`spec/nova_estrutura`/`spec/apresentacao` em `staging_main`, publicação do PDF do relatório e deploy do site (com OK do usuário); decidir se o tratamento do Centro como outlier no mapa do IPS vale também para o site e o PDF. Lacunas registradas:
-   taxa de mortalidade de 1 a 4 anos, taxa de violência de todas as naturezas, efeito visual do eixo transversal.
-
-0. **Melhorias do site e do relatório — Rodada A implementada em 2026-09-28** (`specs/2026-09-28_melhorias_site`,
-   branch `spec/melhorias-site`): favicon novo (monograma "PI", escolhido pelo usuário; alternativas em `website/build/favicon_opcoes/`,
-   trocar com `gera_favicon.py`), texto de abertura de cada eixo (`introducao_<eixo>`, lorem até ser curado), lorem ≤ 150
-   palavras, pequenos múltiplos só com Painéis, `index.html` 785 → 343 KB sem mudança visual. Mesclada em
-   `staging_main` em 2026-09-28; falta o deploy. **Rodada B concluída** no mesmo dia (item 1 de Próximos, fases 1a e
-   1b, `specs/2026-09-28_organizacao`). **Rodada C concluída** no mesmo dia (item 6 de Próximos:
-   documentação + `docs/especificacao_projeto.md`, `specs/2026-09-28_documentacao`).
-
-1. **Site: exclusões + `improve charts`** — implementado em 2026-09-25 (`specs/2026-09-25_website_graficos`, branch
-   `spec/website-graficos`). O push para `staging_main` quebrou o site publicado e foi **revertido em 2026-09-28**
-   (commit de rollback `883b4b1`); correções na rodada `specs/2026-09-28_website_bugfix` (mesmo branch: cache das
-   folhas de estilo/JS, telas estreitas, textos curados ausentes). Rollback revertido e branch corrigido integrado em
-   `staging_main` no mesmo dia (`21cc040`). Falta só o **deploy**, com OK do usuário. Decisões abertas levantadas na
-   revisão:
-   - mapa de taxa de mortalidade infantil por bairro aparece **duas vezes** no eixo Prioridade (cartão de raça/cor e
-     "Total" do cartão neonatal, mesmos valores) — decidir qual fica (site e PDF);
-   - unidade dos indicadores do IPS (violência territorial): rotulada "por 100 mil habitantes", convenção do IPS
-     Rio, mas a planilha do Data.Rio não traz a unidade — confirmar;
-   - curadoria: os 2 textos que tiveram a unidade convertida (`controle_revisao.json`, `ajustes_manuais`, "revisar");
-   - série "Não informada" na taxa de mortalidade infantil por raça/cor (`percentual_mortalidade_raca_ano`, site e
-     PDF): chega a 89‰ e achata as outras linhas, porque divide óbitos sem raça (SIM) por nascidos sem raça (SINASC),
-     o que não é uma taxa comparável. Proposta: tirar essa série do gráfico de taxa e mantê-la no de contagem;
-   - base zero nas taxas (decisão P1): variações pequenas, como o baixo peso ao nascer entre 9% e 11%, ficam mais
-     achatadas. Rever com a equipe se algum indicador deve ter o eixo cortado, com o corte visível no gráfico.
-
-2. **Curadoria de textos** (contínuo; DOCX `relatorio/curadoria_textos.docx`, controle em
-   `relatorio/controle_revisao.json`; updates antigos em `relatorio/textos_updates_antigos/`). Última rodada:
-   update 5 (2026-09-28) — 7 textos novos no relatório (causas evitáveis por faixa e por subgrupo em < 1, 1-4 e
-   < 5 anos; Censo 0-6 por raça/cor; taxa de frequência escolar por raça/cor e por sexo) e 2 de figuras fora do
-   relatório (frequência escolar absoluta, E8), guardados como órfãos.
-   - ainda em lorem ipsum: resumo, principais achados e síntese de cada eixo, e textos de figura (46 chaves ao todo no
-     total; a lista sai no build: `gera_latex.py` imprime "textos em lorem");
-   - alertas abertos para a equipe decidir (não corrigidos no texto): mapa de taxa de mortalidade infantil cita os
-     números da taxa pós-neonatal; frase das Considerações finais possivelmente sem "não" ("deve atuar de forma
-     isolada"); texto da cobertura vacinal anual pronto, mas a figura está fora do relatório (E1); **novos no
-     update 5**: subgrupos < 5 anos cita 198 óbitos por atenção ao recém-nascido em 2006 (a tabela tem 204); taxa de
-     frequência escolar por raça/cor e por sexo lê a linha "Total" da tabela SIDRA 10056 como "conjunto de 0 a 6
-     anos" (é o total de todas as idades: ~25%, com taxas de 8% a 97% por idade);
-   - 2 textos com a unidade convertida depois da base do update 5 (`percentual_mortalidade_raca_ano`,
-     `mapa_taxa_obitos_raca_total_bairro_2025`: percentual → por mil) continuam em `ajustes_manuais`, a revisar;
-   - nota editorial em aberto no subgrupo 28-364 dias: "opção de texto que junte tudo por conta da repetição".
-   - próximo update: baixar a partir do `relatorio/curadoria_textos.docx` atual (o update 5 partiu do update 4 e
-     por isso ainda trazia textos já corrigidos depois).
+Organização em duas partes:
+- **A fazer** — (1) **Rodada atual**, (2) **Aguardando equipe/usuário** (depende de terceiros, não de código),
+  (3) **Próximas features** (fila priorizada), (4) **Backlog por tema**. Dentro de cada seção, a ordem é a de prioridade.
+- **Concluído** — histórico resumido, do mais recente ao mais antigo.
 
 ---
 
-## Próximos
+# A fazer
 
-1. **Organização do projeto (feat)** — fases **1a e 1b concluídas em 2026-09-28** (`specs/2026-09-28_organizacao`,
-   branch `spec/organizacao`; mesmas 431 saídas antes e depois): funções do notebook no pacote `primeira_infancia/`
-   (um módulo por tema, `analise.py` de 4.786 para 2.938 linhas), scripts de pipeline da skill do PDF em
-   `relatorio/curadoria/`, `requirements.txt` só com as dependências diretas fixadas (+ `requirements-dev.txt`),
-   restos de compilação LaTeX removidos. Falta a **fase 1c**, numa rodada própria, com a mesma regra
-   ("mesmas saídas antes e depois"):
+## 0. Rodada em planejamento — versão de demonstração (`specs/2026-09-29_demo`, branch `spec/demo` → `demo`)
+
+Planejada em 2026-09-29 (D1-D11). É uma branch `demo`, exclusiva e só de ida, com texto provisório no lugar do lorem,
+pendentes ocultos, faixa maior com a V.1 prevista para **6/10/2026**, PDF até a página impressa 18 mais o aviso, e o
+Pages publicando a partir dela. Falta o OK do usuário para implementar. A troca da branch do ambiente `github-pages` é
+manual.
+
+## 1. Rodada atual — pendências (`specs/2026-09-29_pendencias`, branch `spec/pendencias`)
+
+**Implementada em 2026-09-29** (decisões D1-D18, validação V1-V14 em `validation.md`): mapa duplicado fora (E13),
+"Não informada" fora da taxa (E14), baixo peso com eixo cortado (única exceção à base zero), **faixa padrão 0 a 5 anos**
+(Censo, Ripsa, taxas de frequência do IBGE agregadas por taxa × população; títulos "até 72 meses"; deck com 393 mil),
+amarela e indígena só no total (E12), gráfico "PNAD" que era o Censo 2022 substituído (E15), tablet com alvos de 44 px e
+gráficos na largura real, unidade do IPS confirmada, Centro como outlier só no deck, rodadas anteriores fechadas.
+
+Falta só o que depende do **OK do usuário**:
+1. Publicar o PDF (`gera_latex.py --publicar`; o publicado ainda é o de `specs/2026-09-28_melhorias_site`), fazer o
+   deploy do site (`deploy-relatorio.yml`) e publicar o deck (`gera_apresentacao.py --publicar`), ainda com a marca
+   "em desenvolvimento".
+2. Tags `rodada/nova_estrutura`, `rodada/apresentacao`, `rodada/pendencias`, e tag de arquivo da branch
+   `waleska-analise-primeira-infancia` (superada, D7) antes de apagá-la; apagar as branches mescladas
+   (pedido de 2026-09-29: não apagar agora).
+
+## 2. Aguardando equipe/usuário
+
+Não dependem de código; entram no projeto quando chegarem.
+
+- **Curadoria de textos** (contínuo; DOCX `relatorio/curadoria_textos.docx`, controle em
+  `relatorio/controle_revisao.json`; updates antigos em `relatorio/textos_updates_antigos/`). Última rodada:
+  update 5 (2026-09-28). Próximo update: baixar a partir do `relatorio/curadoria_textos.docx` atual (o update 5
+  partiu do update 4 e por isso ainda trazia textos já corrigidos depois).
+  - ainda em lorem ipsum: resumo, principais achados e síntese de cada eixo, abertura de cada eixo
+    (`introducao_<eixo>`) e textos de figura (a lista sai no build: `gera_latex.py` imprime "textos em lorem");
+  - alertas para a equipe decidir (não corrigidos no texto): mapa de taxa de mortalidade infantil cita os números da
+    taxa pós-neonatal; frase das Considerações finais possivelmente sem "não" ("deve atuar de forma isolada"); texto
+    da cobertura vacinal anual pronto, mas a figura está fora do relatório (E1); subgrupos < 5 anos cita 198 óbitos
+    por atenção ao recém-nascido em 2006 (a tabela tem 204) (o alerta da linha "Total" da SIDRA 10056 foi resolvido
+    pela faixa 0 a 5, `specs/2026-09-29_pendencias`);
+  - textos marcados `revisar` em `ajustes_manuais`: os 2 com a unidade convertida (2026-09-25) e os 6 ajustados em
+    2026-09-29 (faixa 0 a 5, "Não informada", texto herdado do gráfico "PNAD") — lista em
+    `specs/2026-09-29_pendencias/validation.md` V13;
+  - nota editorial no subgrupo 28-364 dias: "opção de texto que junte tudo por conta da repetição".
+  - **tabelas no corpo sem bloco no DOCX** (achado de `specs/2026-09-29_dados_adhoc`): os textos das tabelas
+    `tabela_no_texto` (`cadunico_razao_populacao_0_a_5_2026` e as 4 `cadunico_adhoc_*`) saem em lorem no site e no PDF,
+    mas `gera_docx_curadoria.py` só cria bloco de texto para figuras — a equipe não tem onde escrevê-los.
+- **Apresentação**: os 6 trechos propostos pelo IPP marcados `<!-- revisar -->` em `apresentacao/apresentacao.md`
+  (lista em `specs/2026-09-28_apresentacao/validation.md`).
+- **Teste do site num iPhone e num Android** (usuário; roteiro em `specs/2026-09-28_website_mobile/validation.md` V7).
+
+## 3. Próximas features
+
+1. **Organização do projeto, fase 1c** (continuação de `specs/2026-09-28_organizacao`; regra: mesmas saídas antes e
+   depois):
    - **Pastas de dados e saídas**: reorganizar `dados_locais/`, `tabelas_finais/`, `visualizacoes/` e `mapas/`
      (estrutura por fonte/eixo, nomes, o legado `mapas/tabelas_bairros/` — cujos 3 `.xlsx` versionados são
      regravados a cada execução só com metadados novos —, as variantes `a4/`); atualizar os leitores
      (`website/build/build_site.py`, `relatorio/latex/build/`, `relatorio/curadoria/`, `specs/estrutura_eixos.md`,
-     skills, `primeira_infancia/`).
+     skills, `primeira_infancia/`, `apresentacao/build/`).
    - Revisitar a decisão de `specs/2026-09-22_ajuste_eixos` §9.1 (não reordenar fisicamente as seções) agora que as
      funções saíram do arquivo — a ordem continua sendo de dependência de dados.
-   - Pré-requisito do item 2.
-
-2. **Empacotar scripts reutilizáveis para outros projetos** (depois do item 1) — transformar em pacotes
-   instaláveis o que não é específico da primeira infância: mapa coroplético por bairro/AP/RP/RA com fundo
-   cartográfico e rodapé, limpeza de exportações do Tabnet, carga do SIDRA, população Ripsa, gráficos com a
-   identidade visual, relatório ABNT em LaTeX a partir de um crosswalk `.md`, round-trip de curadoria em DOCX.
-   Definir fronteiras, nomes, versionamento e onde publicar (repositório próprio, pip via git).
-
-3. **Estimativa de crianças pequenas por bairro com a Ripsa** (pedido do usuário, 2026-09-24; continuação da
+   - Pré-requisito do item 3.
+2. **Estimativa de crianças pequenas por bairro com a Ripsa** (pedido do usuário, 2026-09-24; continuação da
    decisão B1 de `specs/2026-09-24_populacao-referencia`). O Censo 2022 fixo subconta crianças pequenas (0-4:
    310.648 no Censo contra 361.163 na Ripsa em 2022, +16%) e não varia por ano. Estimativa derivada, rotulada
    como tal:
@@ -98,26 +85,33 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
      correspondência 160 → 166 bairros).
    Depois recalcular as taxas sub-municipais (violência por bairro/RA/CAP e o % CadÚnico, que depende também do
    item CadÚnico 1) e documentar a mudança de denominador.
+3. **Empacotar scripts reutilizáveis para outros projetos** (depois do item 1) — transformar em pacotes
+   instaláveis o que não é específico da primeira infância: mapa coroplético por bairro/AP/RP/RA com fundo
+   cartográfico e rodapé, limpeza de exportações do Tabnet, carga do SIDRA, população Ripsa, gráficos com a
+   identidade visual, relatório ABNT em LaTeX a partir de um crosswalk `.md`, round-trip de curadoria em DOCX,
+   deck Marp com números calculados. Definir fronteiras, nomes, versionamento e onde publicar (repositório
+   próprio, pip via git).
+4. **Substituir os dados pontuais do CadÚnico (ref. 08/2026) pela extração automatizada — 4º tri de 2026.
+   Bloqueia a versão final do site** (regra D7, constituição §3: sem a faixa "em desenvolvimento" o build e o deploy
+   param enquanto houver dado pontual; no PDF ele nunca entra)
+   (`specs/2026-09-29_dados_adhoc`, implementada em 2026-09-29 na branch `spec/dados-adhoc`). Hoje Inclusão e Moradia
+   mostram, por acréscimo, uma extração pontual (fora do banco CTPE) com o aviso "Dado pontual". Ao substituir:
+   levar as mesmas medidas para `analise.py` a partir do banco (com faixa 0 a 5 anos), recalcular, e apagar
+   `dados_locais/cadunico/` (planilha, CSV e manifesto `adhoc_2026_08.json` — a lista de tabelas geradas está nele),
+   as funções `*_cadunico_adhoc` de `primeira_infancia/cadunico.py`, a célula "📌 Dados pontuais" do `analise.py`, os
+   3 itens "(dado pontual, ago/2026)" de `specs/estrutura_eixos.md`, os blocos marcados `dados_adhoc` em
+   `website/build/build_site.py`, o slide "Primeiros números de Inclusão e Moradia" do deck, as entradas
+   `cadunico_adhoc_*` de `relatorio/latex/build/tabelas.py` e `mds_cadunico_adhoc` de `fontes.bib` (com a
+   exclusão `(?!…extração pontual)` do padrão de `mds_cadunico`). Os itens pendentes de Inclusão e Moradia saem de
+   pendente quando o dado automatizado cobrir o que o catálogo pede (famílias **com criança** com deficiência, tipo de
+   deficiência, inadequação e adensamento).
+5. **Tirar a menção ao IPS do site e do relatório** (pedido do usuário, 2026-09-29; no deck já feito — D12 de
+   `specs/2026-09-29_slide_revision`): na violência territorial (Direito ao Brincar), a fonte passa a citar só o
+   Data.Rio, como no deck — `fonte:` em `specs/estrutura_eixos.md`, `fonte_dados` dos 3 mapas em `analise.py` (e as
+   versões A4), o texto no `website/build/build_site.py`, a entrada/`padroes` em `relatorio/latex/fontes.bib` e os
+   textos curados que citem o IPS (decisão da equipe); depois regerar site, PDF e DOCX.
 
-4. **Agregar amarela + indígena na frequência escolar por raça/cor** (decidido em 2026-09-25; `specs/exclusoes.md`
-   E12) — taxa de frequência escolar por idade e raça/cor do Censo 2022 (`sidra_taxa_frequencia_0_6_raca_2022`):
-   os dois grupos são pequenos e chegam a 100% em várias idades. Mesma regra de E5: somar os absolutos
-   (frequentam / população) e recalcular a taxa, nunca somar percentuais; aplicar no gráfico de `analise.py`
-   (tela e impressão), na tabela do PDF e no site.
-
-5. **Site: versão mobile — implementada em 2026-09-28** (`specs/2026-09-28_website_mobile`, branch
-   `spec/website-mobile`), validada no Playwright em 3 motores e 4 tamanhos; o desktop não mudou (conferido pixel a
-   pixel). Falta: **teste num iPhone e num Android** (roteiro em `validation.md` V7, com o usuário), merge em
-   `staging_main` e deploy. Fica para depois: tablet com alvos de toque de 44 px e texto dos gráficos de viewBox fixo
-   entre 9,5 e 11 px (a meta de 44 px / 11 px desta rodada era só do celular).
-
-6. **Atualizar a documentação do projeto — concluído em 2026-09-28** (`specs/2026-09-28_documentacao`): documentos
-   alinhados ao estado real e **especificação funcional/técnica** do projeto em `docs/especificacao_projeto.md`.
-   Mantê-la em dia a cada rodada (a §11 dela diz o que conferir).
-
----
-
-## Backlog por tema
+## 4. Backlog por tema
 
 ### CadÚnico
 1. **Geocodificação por bairro oficial** (F1 de `specs/2026-09-23_recortes_cadunico`): o bairro vem do CEP dos
@@ -145,8 +139,16 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
 ### Outros dados
 - Levantar e importar bases pendentes (a detalhar): indicadores do catálogo ainda `pendente` em
   `specs/estrutura_eixos.md` (Moradia, deficiência, violência por tipificação, causas evitáveis por sexo).
+- Lacunas registradas pela nova estrutura (`specs/2026-09-28_nova_estrutura`): taxa de mortalidade de 1 a 4 anos,
+  taxa de violência de todas as naturezas, efeito visual do eixo transversal.
+
+### PDF (`relatorio/latex/`)
+- Legendas a partir do inventário/manifesto e remissões "ver Tabela X.n" (T3.3 de `specs/2026-09-25_relatorio_latex`).
 
 ### Site (`website/`)
+- **"Até 72 meses" e paleta sem azul no site e no PDF** (`specs/2026-09-29_slide_revision` D1, fora daquela rodada):
+  o deck já usa "até 72 meses" e terra em terracota; no site/PDF os mapas do Censo seguem em `Blues` (tema `censo`)
+  e vários títulos dizem "0 a 5 anos". Mudar exige decidir a nova cor do tema `censo` em `primeira_infancia/estilo.py`.
 - **Página "Fale Conosco"** (pedido do usuário, 2026-09-24): rota por hash (`#fale-conosco`) como uma aba,
   acessível pela barra de navegação. Formulário exige backend, que o GitHub Pages não tem — `mailto:` + texto
   (estático) ou serviço externo (exige decisão sobre dados pessoais/LGPD).
@@ -157,8 +159,7 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
   placeholder) — `specs/2026-09-14_relatorio-interativo/tasks.md` T6.2.
 - **Logo**: confirmar autorização de uso do logo oficial da Prefeitura/IPP antes do deploy público (T0.4) e pedir
   o SVG oficial à Ascom do IPP (hoje PNG em `srcset`, `specs/2026-09-24_website_refactor` D6).
-- **Fontes quase repetidas** na caixa "Fontes desta seção": unificar as constantes `FONTE_*` do gerador (pode
-  sair junto com as referências ABNT da rodada em andamento).
+- **Fontes quase repetidas** na caixa "Fontes desta seção": unificar as constantes `FONTE_*` do gerador.
 - Medir formalmente o contraste do rodapé (WCAG AA; T5.6 — só houve inspeção visual).
 - Altura da caixa de texto fora do padrão mapa (240 px com rolagem): revisitar quando os textos reais entrarem.
 - **Dados por aba com carregamento tardio** e **outliers de mapa como troca de cor**: medidos e deixados de fora
@@ -169,40 +170,49 @@ resumido). Dentro de cada seção, a ordem é a de prioridade.
   dia for preciso colorir o mar por conta própria (`relatorio/specs.md` v6.4-v6.6).
 
 ### Repositório (git)
-
-Decididos em 2026-09-28 para depois (a limpeza de branches mescladas foi feita no mesmo dia, ver Concluído):
-
+- **Dado do CadÚnico abaixo de 20 no histórico** (achado de 2026-09-29, `specs/2026-09-29_privacidade_cadunico` D3):
+  o commit `cdfacd2` (2026-09-09, antes da regra de 2026-09-23) tem contagens de crianças/famílias por bairro de 1 a 19
+  em `cadunico_por_bairro_2026.csv`, `cadunico_por_bairro_ate_4_2026.csv`, `tabela_mapa_cadunico_criancas_2026.csv` e
+  `tabela_mapa_cadunico_primeira_infancia_2026.csv`, publicado no GitHub. As versões atuais estão conformes. Limpar exige
+  reescrever o histórico (`git filter-repo` só nesses arquivos, force-push em todas as branches, todos reclonam; muda
+  os hashes citados nas specs) — **decisão do usuário com a equipe**; pode ser feita junto com a limpeza de binários
+  do item abaixo.
 - **Tamanho do histórico** — o pack tem ~178 MB, quase tudo binário com muitas versões: o PDF (19 versões, 644 MB
-  sem compactar), o antigo `relatorio/index.html` (308 MB) e o DOCX de curadoria (87 MB). **Não reescrever o histórico
-  por ora**: mudaria o identificador de todos os commits (clones e a branch da Waleska refeitos; hashes citados no
-  `CHANGELOG.md` e nas `specs/`, como o rollback `883b4b1`, deixariam de existir). Primeiro conter o crescimento:
-  publicar o PDF como anexo de Release do GitHub em vez de versioná-lo a cada build, ou pôr PDF/DOCX no Git LFS. Se
-  o clone um dia atrapalhar, uma limpeza única combinada com a equipe (tag antes, `git filter-repo`, todos reclonam).
-- **Papel da `main`** — está 204 commits atrás de `staging_main` (a branch padrão) e nunca recebeu as rodadas.
-  Proposta: usá-la como branch de versão e mesclar `staging_main` nela quando `relatorio/publicacao.json` passar para
-  a versão final; alternativa: aposentá-la.
-- **`waleska-analise-primeira-infancia`** — tem 2 commits de conteúdo que não estão em `staging_main` ("Ajusta análise
-  dos resultados da primeira infância", "Ajusta curadoria da primeira infancia", 2026-09-22); confirmar com a autora se
-  ainda são necessários antes de mesclar ou apagar.
+  sem compactar), o antigo `relatorio/index.html` (308 MB) e o DOCX de curadoria (87 MB); agora também o PPTX/PDF da
+  apresentação (~17 MB por versão). **Não reescrever o histórico por ora**: mudaria o identificador de todos os
+  commits (hashes citados no `CHANGELOG.md` e nas `specs/`, como o rollback `883b4b1`, deixariam de existir).
+  Primeiro conter o crescimento: publicar PDF/PPTX como anexo de Release do GitHub em vez de versioná-los a cada
+  build, ou pô-los no Git LFS. Se o clone um dia atrapalhar, uma limpeza única combinada com a equipe (tag antes,
+  `git filter-repo`, todos reclonam).
+- **Papel da `main`** — muito atrás de `staging_main` (a branch padrão) e nunca recebeu as rodadas. Proposta: usá-la
+  como branch de versão e mesclar `staging_main` nela quando `relatorio/publicacao.json` passar para a versão final;
+  alternativa: aposentá-la.
 
 ### Ideias (sem decisão)
 - Substituir a visualização HTML por um painel Streamlit.
 
 ---
 
-## Concluído
+# Concluído
 
 Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
-| 2026-09-28 | Git: 15 branches já mescladas apagadas (13 `spec/*`, `ajuste_eixos`, `inclusao_dados_protecao`), cada ponto final preservado numa tag `rodada/<nome>`; ficam `main`, `planning`, `staging_main` e a branch da Waleska | `specs/constitution.md` §7 |
-| 2026-09-28 | Documentação alinhada ao estado real e especificação funcional/técnica do projeto (`docs/especificacao_projeto.md`); `.env.example` | `specs/2026-09-28_documentacao` |
+| 2026-09-29 | Revisão do deck: 30 → 33 slides, "até 72 meses", 393 mil, mapas sem azul (terracota) e com teto de Tukey, violência familiar por vínculo (sem soma), eixos incompletos/ausentes; faixas de renda do CadÚnico corrigidas para "Pobreza"/"Baixa renda" em todo o projeto | `specs/2026-09-29_slide_revision` |
+| 2026-09-29 | PDF alinhado ao site (ordem de Prioridade, vacinação de volta, tabelas no corpo com `tabela_no_texto:`, seção vazia fora — E16); quadros de pendente formais com `motivo:` | `specs/2026-09-29_alinhamento_pdf_site` |
+| 2026-09-29 | Pendências: faixa padrão 0 a 5 anos (até 72 meses), exclusões E12-E15, eixo cortado no baixo peso, tablet com as metas do celular, decisões registradas; correção do esquema do banco do CadÚnico | `specs/2026-09-29_pendencias` |
+| 2026-09-29 | Decisões de pendências (escopo da rodada atual, mapa duplicado, série "Não informada", base zero, unidade do IPS, Centro só no deck, branch da Waleska superada); regra de perguntas agrupadas pela ferramenta interativa na constituição | este arquivo, `specs/constitution.md` §5 |
+| 2026-09-29 | Merge de `spec/nova_estrutura` e `spec/apresentacao` em `planning` e `staging_main` (`ab9f803`) e deploy do site | `.github/workflows/deploy-relatorio.yml` |
+| 2026-09-28 | Apresentação: deck de 30 slides em Marp com fonte única em Markdown, números calculados de `tabelas_finais/`, variantes por secretaria, PPTX e PDF em `apresentacao/`; mapas com teto P95, Centro como outlier no IPS | `specs/2026-09-28_apresentacao` |
+| 2026-09-28 | Nova estrutura: panorama na Introdução (Visão geral no site), 7º eixo Direito ao Brincar, reordenação conforme a planilha da equipe (site, PDF, DOCX); 94 × 94 figuras e 43 × 43 tabelas mantidas | `specs/2026-09-28_nova_estrutura` |
+| 2026-09-28 | Git: 15 branches já mescladas apagadas (13 `spec/*`, `ajuste_eixos`, `inclusao_dados_protecao`), cada ponto final preservado numa tag `rodada/<nome>` | `specs/constitution.md` §7 |
+| 2026-09-28 | Documentação alinhada ao estado real e especificação funcional/técnica do projeto (`docs/especificacao_projeto.md` e `.docx`); `.env.example` | `specs/2026-09-28_documentacao` |
 | 2026-09-28 | Organização do projeto, fases 1a e 1b: pacote `primeira_infancia/`, scripts em `relatorio/curadoria/`, requisitos diretos fixados, 431/431 saídas idênticas | `specs/2026-09-28_organizacao` |
-| 2026-09-28 | Rodada A de melhorias: favicon (SVG + `.ico` + apple-touch), abertura de cada eixo, lorem ≤ 150 palavras, só Painéis nos pequenos múltiplos, `index.html` 785 → 343 KB (mapas montados em JS, sprite de ícones) | `specs/2026-09-28_melhorias_site` |
+| 2026-09-28 | Rodada A de melhorias: favicon (SVG + `.ico` + apple-touch), abertura de cada eixo, lorem ≤ 150 palavras, só Painéis nos pequenos múltiplos, `index.html` 785 → 343 KB (mapas montados em JS, sprite de ícones); deploy feito | `specs/2026-09-28_melhorias_site` |
 | 2026-09-28 | Curadoria: update 5 incorporado (7 textos novos no site e no PDF, 2 órfãos; controle de revisão recalculado sobre as 5 rodadas; updates antigos em `relatorio/textos_updates_antigos/`; scripts `compara_updates.py` e `valida_textos_publicados.py`) | `relatorio/controle_revisao.json`, skill `export_pdf_report` |
-| 2026-09-28 | Site mobile (`css/mobile.css`: gráficos na largura real, "Nesta seção", select, legenda abaixo do mapa, toque) e marca d'água "EM DESENVOLVIMENTO" no PDF ligada à faixa do site (`relatorio/publicacao.json`) | `specs/2026-09-28_website_mobile` |
-| 2026-09-28 | Rollback de `staging_main` e correções do site (cache de CSS/JS, telas estreitas, textos curados ausentes); tabelas de conferência texto × figura | `specs/2026-09-28_website_bugfix` |
+| 2026-09-28 | Site mobile (`css/mobile.css`: gráficos na largura real, "Nesta seção", select, legenda abaixo do mapa, toque), mesclado e publicado; marca d'água "EM DESENVOLVIMENTO" no PDF ligada à faixa do site (`relatorio/publicacao.json`) | `specs/2026-09-28_website_mobile` |
+| 2026-09-28 | Rollback de `staging_main` e correções do site (cache de CSS/JS, telas estreitas, textos curados ausentes); tabelas de conferência texto × figura; branch corrigido integrado (`21cc040`) | `specs/2026-09-28_website_bugfix` |
 | 2026-09-25 | Site: exclusões E2-E9 (alternância Taxa ↔ Óbitos), paleta validada, teto P95, unidades nos eixos e taxas por mil com ‰, base zero, pequenos múltiplos, fontes ABNT, textos de achados/síntese; revisão de unidades também na origem (`analise.py`, PDF) | `specs/2026-09-25_website_graficos` |
 | 2026-09-25 | Relatório final em LaTeX/ABNT publicado (`relatorio/analise_primeira_infancia.pdf`), validação V1-V20; substitui o PDF por HTML/Edge headless | `specs/2026-09-25_relatorio_latex` |
 | 2026-09-25 | Lista de exclusões (E1-E12) aplicada ao PDF e ao `analise.py` | `specs/exclusoes.md` |

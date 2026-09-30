@@ -1,15 +1,15 @@
 ---
-# Fonte única do deck (specs/2026-09-28_apresentacao). Para uma variante: copie este arquivo para variantes/<nome>.md,
+# Fonte única do deck (specs/2026-09-28_apresentacao; estrutura de 33 slides: specs/2026-09-29_slide_revision). Para uma variante: copie este arquivo para variantes/<nome>.md,
 # mude este cabeçalho e ligue/desligue blocos; gere com  python apresentacao/build/gera_apresentacao.py variantes/<nome>.md
 titulo: Diagnóstico da Primeira Infância Carioca
-subtitulo: Um hub de dados para a Política Integrada da Primeira Infância
+subtitulo: Um hub de dados para a Política Municipal Integrada da Primeira Infância do Rio de Janeiro
 publico: gestores            # gestores | tecnico
 secretaria: ""               # ex. "Secretaria Municipal de Saúde" -- aparece na capa e na chamada
 evento: Apresentação às secretarias municipais
 data: outubro de 2026
 rodape: Diagnóstico da Primeira Infância Carioca · Instituto Pereira Passos
 url_site: https://ipp-dados.github.io/analise_primeira_infancia/
-contato: ascom.ipp@prefeitura.rio
+contato: pesquisaeavaliacao.ipp@prefeitura.rio
 blocos: [cooperacao, governanca, demo]
 ---
 
@@ -36,23 +36,26 @@ Abertura (1 min). Apresentar o IPP e o objetivo da conversa: mostrar o que já t
 -->
 
 ---
-
 <div class="kicker">Parte I · Contexto</div>
 
 # Por que um diagnóstico da primeira infância
 
+<div style="font-size:23px">
+
 - Os primeiros seis anos concentram as maiores oportunidades — e os maiores riscos — do desenvolvimento
-- A **Política Integrada da Primeira Infância** precisa de um retrato comum da cidade, que todas as secretarias leiam do mesmo jeito
+- A **Política Municipal Integrada da Primeira Infância Carioca** precisa de um retrato comum da cidade
+- Precisamos de um retrato das **especificidades das diferentes partes da cidade**
 - Este diagnóstico organiza esse retrato **por eixo da política** e **por território**, do município ao bairro
+
+</div>
 
 <!-- revisar -->
 
 <!--
-Mensagem: não é mais um relatório; é uma base comum para planejar e acompanhar a política.
+Mensagem: não é mais um relatório; é uma base comum para planejar e acompanhar a política -- e que mostra a cidade por partes, não só a média.
 -->
 
 ---
-
 <div class="kicker">Parte I · Contexto</div>
 
 # Um produto vivo, construído com as secretarias
@@ -72,21 +75,31 @@ Mensagem central: o projeto é COM as secretarias, não SOBRE elas. Convidar des
 -->
 
 ---
-
 <div class="kicker">Parte I · Contexto</div>
 
-# Um só lugar para os dados da primeira infância
+# O que os registros administrativos não contam sozinhos
+
+- **Foram feitos para outra finalidade**: atender, pagar, notificar — não medir
+- **Mudam com o tempo**: nova ficha, novo sistema, nova regra de registro podem parecer mudança real
+- **Mostram associação, não causa**: Zika de 2015-2016, recessão (2015-2016) e Covid-19 (2020-2021) atravessam as séries
+
+<!-- revisar -->
+
+---
+<div class="kicker">Parte I · Contexto</div>
+
+# Um centro para os dados da primeira infância
 
 <div class="hub">
 <div class="col">
 <div class="caixa" style="--c:var(--c1)">Censo e estimativas (IBGE, Ripsa/MS)</div>
-<div class="caixa" style="--c:var(--c2)">Cadastro Único</div>
+<div class="caixa" style="--c:var(--c2)">Inclusão: Cadastro Único</div>
 <div class="caixa" style="--c:var(--c3)">Saúde: nascimentos, óbitos, violência, nutrição, vacinação</div>
 <div class="caixa" style="--c:var(--c4)">Educação: Censo Escolar, PNAD</div>
-<div class="caixa" style="--c:var(--c7)">Território: IPS, limites de bairro, AP, RA, CAP</div>
+<div class="caixa" style="--c:var(--c7)">Território: limites de bairro, AP, RA, CAP</div>
 </div>
 <div class="seta">→</div>
-<div class="centro"><b>{{n:n_indicadores}} indicadores</b>um processamento único e aberto, com as mesmas regras para todas as fontes</div>
+<div class="centro"><b>Um processamento único</b>aberto, com as mesmas regras para todas as fontes</div>
 <div class="seta">→</div>
 <div class="col">
 <div class="caixa" style="--c:var(--c3)"><b>Site interativo</b> — {{n:n_graficos}} gráficos e {{n:n_mapas}} mapas</div>
@@ -96,64 +109,28 @@ Mensagem central: o projeto é COM as secretarias, não SOBRE elas. Convidar des
 </div>
 
 <!--
-Os números saem da estrutura do relatório (estrutura_eixos.md): indicadores, gráficos e mapas publicados.
+Os números de gráficos e mapas saem da estrutura do relatório (estrutura_eixos.md).
 -->
 
 ---
-
-<div class="kicker">Parte I · Contexto</div>
-
-# O que os registros administrativos não contam sozinhos
-
-- **Foram feitos para outra finalidade**: atender, pagar, notificar — não medir
-- **Mudam com o tempo**: nova ficha, novo sistema, nova regra de registro podem parecer mudança real
-- **Nem sempre chegam ao bairro**: a maior parte da estatística oficial para no município
-- **Mostram associação, não causa**: Zika (2016), recessão (2015-2016) e Covid-19 (2020-2021) atravessam as séries
-
-<!-- revisar -->
-
----
-
 <!-- se: cooperacao -->
 <div class="kicker">Parte I · Chamada</div>
 
-# {{n:n_pendentes}} dos {{n:n_indicadores}} indicadores da política ainda não têm dado
+# Para integrar, três acordos simples
 
-<div class="lado" style="grid-template-columns: 1fr 1.5fr">
-<div>
-
-Os dados que faltam **existem** — estão nos sistemas das secretarias.
-
-Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
-
+<div class="grupo">
+<div class="grupo-titulo">Governança de Dados</div>
+<div class="stats">
+<div style="--c:var(--c1)"><b>Consistência</b><span>o mesmo código de bairro (ou endereço geocodificável) em toda base</span></div>
+<div style="--c:var(--c3)"><b>Periodicidade</b><span>uma extração periódica combinada, sempre com o mesmo formato</span></div>
+<div style="--c:var(--c2)"><b>Privacidade</b><span>só números agregados; bairros com menos de 20 famílias são somados aos vizinhos da mesma região</span></div>
 </div>
-<div>
-
-{{tabela:pendentes}}
-
-</div>
-</div>
-
-<!-- revisar -->
-
----
-
-<div class="kicker">Parte I · Chamada</div>
-
-# Para integrar, quatro acordos simples
-
-<div class="stats" style="--n:4">
-<div style="--c:var(--c1)"><b>Chave</b><span>o mesmo código de bairro (ou endereço geocodificável) em toda base</span></div>
-<div style="--c:var(--c3)"><b>Ritmo</b><span>uma extração periódica combinada, sempre com o mesmo formato</span></div>
-<div style="--c:var(--c2)"><b>Sigilo</b><span>só números agregados; células com menos de 20 famílias ficam em branco</span></div>
-<div style="--c:var(--c7)"><b>Qualidade</b><span>um ponto focal que explique mudanças de ficha, sistema ou regra</span></div>
 </div>
 
 <!-- revisar -->
 <!-- /se -->
 
 ---
-
 <!-- _class: secao -->
 <!-- _footer: '' -->
 
@@ -164,10 +141,37 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 ## Quantas crianças são, onde estão e como medimos
 
 ---
+<!-- _class: numero -->
 
+<div class="kicker">Parte II · Quantas crianças</div>
+
+<div class="grande">{{n:pop_0_5_ripsa_mil}}</div>
+
+<div class="legenda-grande">crianças de até 72 meses vivem no Rio — <strong>{{n:pct_0_5_ripsa_2025}}</strong> da população em {{n:ano_ripsa}}. E são cada vez menos: eram {{n:pop_0_5_ripsa_2000_mil}} em 2000 ({{n:pct_0_5_ripsa_2000}} da população), <strong>{{n:queda_0_5_ripsa_2000}} a menos</strong>.</div>
+
+<p class="nota">Até 72 meses = 0 a 5 anos completos. É a faixa de todo o painel.</p>
+
+<!-- fonte: Ripsa/Ministério da Saúde, estimativas populacionais 2000-2025 -->
+
+---
+<div class="kicker">Parte II · Quantas crianças</div>
+
+# {{n:pop_0_5_ripsa_mil}} na cidade; outra régua no bairro
+
+<div class="stats" style="margin-top:22px">
+<div style="--c:var(--c1)"><b>{{n:censo_0_4_2022_mil}}</b><span>0 a 4 anos, <strong>Censo 2022</strong> — a única contagem por bairro, usada nos mapas</span></div>
+<div class="destaque" style="--c:var(--c2)"><b>{{n:pop_0_5_ripsa_mil}}</b><span>até 72 meses, <strong>estimativa Ripsa/Ministério da Saúde</strong> ({{n:ano_ripsa}}) — a referência da cidade</span></div>
+<div style="--c:var(--c7)"><b>{{n:pop_0_6_ripsa_mil}}</b><span>0 a 6 anos, <strong>estimativa Ripsa</strong> ({{n:ano_ripsa}}) — a faixa da política municipal ("até 6 anos"), com as crianças de 6 anos</span></div>
+</div>
+
+<p class="nota" style="font-size:18px; margin-top:26px">O Censo conta menos crianças pequenas do que existem; a estimativa corrige isso, mas só para a cidade inteira. Por isso: taxas <strong>do município</strong> usam a estimativa do mesmo ano; taxas <strong>por bairro ou região</strong> usam o Censo 2022 e servem para comparar territórios entre si. Até 72 meses = 0 a 5 anos completos.</p>
+
+<!-- fonte: Ripsa/Ministério da Saúde, estimativas populacionais; IBGE, Censo Demográfico 2022 -->
+
+---
 <div class="kicker">Parte II · Território</div>
 
-# O bairro é a unidade de análise
+# O bairro é a unidade de análise principal
 
 <div class="lado">
 <div>
@@ -178,12 +182,11 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 
 </div>
 
-![](fig:mapa_censo_0_4_absoluto)
+![](fig:apres_censo_0_4_absoluto)
 
 </div>
 
 ---
-
 <div class="kicker">Parte II · Território</div>
 
 # Cada fonte tem o seu recorte de território
@@ -199,73 +202,24 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 
 ![](fig:mapa_violencia_familiar_mae_taxa_ra_2025)
 
-<div class="rotulo">Violência familiar e IPS: 33 Regiões Administrativas</div>
+<div class="rotulo">Violência familiar e homicídios: 33 Regiões Administrativas</div>
 </div>
 </div>
 
 ---
-
-<!-- _class: numero -->
-
-<div class="kicker">Parte II · Quantas crianças</div>
-
-<div class="grande">{{n:pop_0_6_ripsa_mil}}</div>
-
-<div class="legenda-grande">crianças de 0 a 6 anos vivem no Rio — <strong>{{n:pct_0_6_ripsa_2025}}</strong> da população em {{n:ano_ripsa}}. E são cada vez menos: eram {{n:pop_0_6_ripsa_2000_mil}} em 2000 ({{n:pct_0_6_ripsa_2000}} da população), <strong>{{n:queda_0_6_ripsa_2000}} a menos</strong>.</div>
-
-<!-- fonte: Ripsa/Ministério da Saúde, estimativas populacionais 2000-2025 -->
-
----
-
-<div class="kicker">Parte II · Quantas crianças</div>
-
-# {{n:pop_0_6_ripsa_mil}} na cidade; outras réguas no bairro e no cadastro
-
-<div class="stats">
-<div style="--c:var(--c2)"><b>{{n:pop_0_6_ripsa_mil}}</b><span>0 a 6 anos, <strong>estimativa Ripsa/Ministério da Saúde</strong> ({{n:ano_ripsa}}) — a faixa da política, só para a cidade inteira</span></div>
-<div style="--c:var(--c3)"><b>{{n:pop_0_5_ripsa_mil}}</b><span>0 a 5 anos, mesma estimativa — a base de comparação do Cadastro Único, que vai até 5 anos</span></div>
-<div style="--c:var(--c1)"><b>{{n:censo_0_4_2022_mil}}</b><span>0 a 4 anos, <strong>Censo 2022</strong> — a única contagem por bairro, usada nos mapas</span></div>
-</div>
-
-<p class="nota" style="font-size:20px; margin-top:22px">O Censo conta menos crianças pequenas do que existem; a estimativa corrige isso, mas só para a cidade inteira. Por isso: taxas <strong>do município</strong> usam a estimativa do mesmo ano; taxas <strong>por bairro ou região</strong> usam o Censo 2022 e servem para comparar territórios entre si.</p>
-
-<!-- fonte: Ripsa/Ministério da Saúde, estimativas populacionais; IBGE, Censo Demográfico 2022 -->
-
----
-
-
 <!-- _class: numero -->
 
 <div class="kicker">Parte II · Cadastro Único</div>
 
 <div class="grande">{{n:razao_cadunico}}</div>
 
-<div class="legenda-grande">das crianças de 0 a 5 anos da cidade estão no Cadastro Único — <strong>{{n:cadunico_criancas_0_5}}</strong> crianças em <strong>{{n:cadunico_familias}}</strong> famílias. É muito, mas <strong>não é a cidade toda</strong>.</div>
+<div class="legenda-grande">das crianças de até 72 meses da cidade estão no Cadastro Único — <strong>{{n:cadunico_criancas_0_5}}</strong> crianças em <strong>{{n:cadunico_familias}}</strong> famílias. É muito, mas <strong>não é a cidade toda</strong>.</div>
+
+<p class="nota">Até 72 meses = 0 a 5 anos completos.</p>
 
 <!-- fonte: Cadastro Único (extração CTPE, jun/2026); Ripsa/Ministério da Saúde (2025) -->
 
 ---
-
-<div class="kicker">Parte II · Cadastro Único</div>
-
-# O cadastro mostra, sobretudo, a infância mais pobre
-
-<div class="lado">
-<div>
-
-**{{n:pct_cadunico_extrema_pobreza}}** das crianças cadastradas vivem em famílias em extrema pobreza.
-
-Ótimo para planejar a proteção social; enviesado para descrever todas as crianças.
-
-</div>
-
-![](fig:cadunico_familias_por_faixa_renda)
-
-</div>
-
----
-
-
 <div class="kicker">Parte II · Onde estão</div>
 
 # As crianças estão na Zona Oeste — e pesam mais nas periferias
@@ -273,13 +227,13 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 <div class="dois">
 <div>
 
-![](fig:mapa_censo_0_4_absoluto)
+![](fig:apres_censo_0_4_absoluto)
 
 <div class="rotulo"><strong>{{n:top3_bairros_0_4}}</strong> lideram em número</div>
 </div>
 <div>
 
-![](fig:mapa_censo_0_4_percentual)
+![](fig:apres_censo_0_4_percentual)
 
 <div class="rotulo">Em proporção da população, favelas e periferias passam à frente da Zona Sul</div>
 </div>
@@ -288,10 +242,9 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 <!-- revisar -->
 
 ---
-
 <div class="kicker">Parte II · Quem são</div>
 
-# {{n:pct_negras_0_6_censo}} das crianças de 0 a 6 anos são negras
+# {{n:pct_negras_0_5_censo}} das crianças de até 72 meses são negras
 
 <div class="fig">
 
@@ -299,8 +252,9 @@ Com eles, Inclusão e Moradia saem do zero e Proteção fica completa.
 
 </div>
 
----
+<!-- fonte: IBGE, Censo Demográfico 2022 (SIDRA 9606), 0 a 5 anos completos (até 72 meses); negras = pretas + pardas -->
 
+---
 <div class="kicker">Parte II · Nascimentos</div>
 
 # {{n:nascidos_2025}} crianças nasceram no Rio em 2025
@@ -319,7 +273,24 @@ Eram **{{n:nascidos_pico}}** em {{n:nascidos_pico_ano}}. Os nascimentos se conce
 </div>
 
 ---
+<div class="kicker">Parte II · Desigualdade</div>
 
+# Onde está a primeira infância do Cadastro Único
+
+<div class="lado">
+<div>
+
+Crianças de até 72 meses cadastradas, por bairro.
+
+<p class="nota">Bairro atribuído pelo CEP; bairros com menos de 20 famílias são somados aos vizinhos da mesma região ("Demais bairros da RA").</p>
+
+</div>
+
+![](fig:mapa_cadunico_criancas_bairro_2026)
+
+</div>
+
+---
 <div class="kicker">Parte II · Desigualdade</div>
 
 # Mortalidade infantil: {{n:tmi_2025}} por mil, desigual entre bairros
@@ -329,35 +300,19 @@ Eram **{{n:nascidos_pico}}** em {{n:nascidos_pico_ano}}. Os nascimentos se conce
 
 Óbitos de menores de 1 ano por mil nascidos vivos, 2025.
 
-<p class="nota">Taxa calculada com os nascidos que têm bairro de residência informado. Bairros com poucos nascimentos oscilam muito de um ano para outro.</p>
+<p class="nota">Taxa calculada com os nascidos que têm bairro de residência informado. Bairros com poucos nascimentos têm taxas extremas: ficam com a cor máxima e são listados no rodapé, para não apagar as diferenças entre os demais.</p>
 
 </div>
 
-![](fig:mapa_taxa_mortalidade_infantil_bairro_2025)
+![](fig:apres_taxa_mortalidade_infantil_bairro_2025)
 
 </div>
+
+<!--
+Valores extremos: cerca de Tukey (1,5 x intervalo interquartil), a mesma regra do site. Os bairros acima da cerca estão nomeados na nota do rodapé.
+-->
 
 ---
-
-<div class="kicker">Parte II · Desigualdade</div>
-
-# Onde está a infância do Cadastro Único
-
-<div class="lado">
-<div>
-
-Crianças de 0 a 5 anos cadastradas, por bairro.
-
-<p class="nota">Bairro atribuído pelo CEP; bairros com menos de 20 famílias ficam em branco.</p>
-
-</div>
-
-![](fig:mapa_cadunico_criancas_bairro_2026)
-
-</div>
-
----
-
 <!-- _class: secao -->
 <!-- _footer: '' -->
 
@@ -368,7 +323,50 @@ Crianças de 0 a 5 anos cadastradas, por bairro.
 ## Destaques por eixo — o resto está no site e no relatório
 
 ---
+<div class="kicker">Eixo Prioridade</div>
 
+# O cadastro mostra, sobretudo, a primeira infância mais pobre
+
+<div class="lado">
+<div>
+
+**{{n:pct_cadunico_pobreza}}** das crianças cadastradas vivem em famílias em pobreza (renda por pessoa de até R$ 218).
+
+Ótimo para planejar a proteção social; enviesado para descrever todas as crianças.
+
+</div>
+
+![](fig:cadunico_familias_por_faixa_renda)
+
+</div>
+
+<!--
+R$ 218 por pessoa é a linha de pobreza do Bolsa Família (desde 2023); de R$ 218 a meio salário mínimo é baixa renda.
+-->
+
+---
+<div class="kicker">Eixo Família e Cuidados</div>
+
+# {{n:pct_familias_uma_adulta}} das famílias com crianças no CadÚnico têm uma só adulta
+
+<p class="nota forte" style="margin:0 0 6px"><strong>Atenção:</strong> "uma só adulta" é aproximado pelos adultos (18 anos ou mais) no cadastro — <strong>não é o conceito oficial de família monoparental</strong>.</p>
+
+<div class="dois baixo">
+<div>
+
+![](fig:cadunico_familias_por_arranjo)
+
+<div class="rotulo"><strong>{{n:familias_uma_adulta}}</strong> famílias com uma mulher como única adulta; {{n:pct_familias_dois_adultos}} têm um homem e uma mulher</div>
+</div>
+<div>
+
+![](fig:mapa_percentual_cadunico_familias_uma_adulta_bairro_2026)
+
+<div class="rotulo">{{n:pct_uma_adulta_pobreza}} delas vivem em pobreza</div>
+</div>
+</div>
+
+---
 <div class="kicker">Eixo Prioridade</div>
 
 # Óbitos evitáveis de bebês caíram de {{n:evitaveis_0_364_primeiro}} para {{n:evitaveis_0_364_2025}}
@@ -387,10 +385,33 @@ Ainda assim, **{{n:pct_evitaveis_menores5_2025}}** dos óbitos de menores de 5 a
 </div>
 
 ---
+<div class="kicker">Eixo Prioridade</div>
 
+# Causas evitáveis por faixa etária
+
+<div class="lado largo baixo">
+<div>
+
+Óbitos evitáveis em 2025, por subgrupo de causa, em três idades: **0 a 6 dias**, **7 a 27 dias** e **28 a 364 dias**.
+
+Cada idade pede uma resposta diferente — do pré-natal e do parto ao cuidado do bebê em casa.
+
+</div>
+
+![](fig:obitos_causas_evitaveis_subgrupo_faixa_2025)
+
+</div>
+
+<!-- revisar -->
+
+<!--
+Slide novo (slide_revision). As três faixas são as mesmas da mortalidade neonatal precoce, tardia e pós-neonatal.
+-->
+
+---
 <div class="kicker">Eixo Família e Cuidados</div>
 
-# {{n:atend_0_5}} das crianças de 0 a 5 anos estão matriculadas
+# {{n:atend_0_5}} das crianças de até 72 meses estão matriculadas
 
 <div class="lado">
 <div class="stats" style="--n:1; gap:14px; margin:0">
@@ -405,10 +426,9 @@ Ainda assim, **{{n:pct_evitaveis_menores5_2025}}** dos óbitos de menores de 5 a
 <p class="nota">Taxa bruta: {{n:matriculas_0_5}} matrículas em escolas do Rio em 2025 sobre a população estimada da mesma idade.</p>
 
 ---
-
 <div class="kicker">Eixo Família e Cuidados</div>
 
-# A rede pública perdeu {{n:queda_publica_desde_pico}} das matrículas de 0 a 5 anos desde {{n:mat_publica_pico_ano}}
+# A rede pública perdeu {{n:queda_publica_desde_pico}} das matrículas de até 72 meses desde {{n:mat_publica_pico_ano}}
 
 <div class="lado largo">
 <div>
@@ -426,49 +446,56 @@ A pública ainda responde por **{{n:pct_publica_2025}}** das matrículas.
 </div>
 
 ---
-
-<div class="kicker">Eixo Família e Cuidados</div>
-
-# {{n:pct_familias_uma_adulta}} das famílias com crianças no CadÚnico têm uma só adulta
-
-<div class="dois">
-<div>
-
-![](fig:cadunico_familias_por_arranjo)
-
-<div class="rotulo"><strong>{{n:familias_uma_adulta}}</strong> famílias com uma mulher como única adulta; {{n:pct_familias_dois_adultos}} têm um homem e uma mulher</div>
-</div>
-<div>
-
-![](fig:mapa_percentual_cadunico_familias_uma_adulta_bairro_2026)
-
-<div class="rotulo">{{n:pct_uma_adulta_extrema_pobreza}} delas vivem em extrema pobreza</div>
-</div>
-</div>
-
-<p class="nota">Arranjo aproximado pelos adultos (18 anos ou mais) no cadastro; não é o conceito oficial de família monoparental.</p>
-
----
-
 <div class="kicker">Eixo Proteção</div>
 
-# Violência familiar: {{n:vf_notif_mae_2025}} notificações com a mãe como provável autora
+# Violência familiar contra a primeira infância: mãe ou pai como provável autor
 
 <div class="lado largo">
 <div>
 
-{{n:vf_taxa_mae_2025}} por mil crianças de 0 a 5 anos em 2025.
+Em {{n:vf_ano}}: **{{n:vf_taxa_mae_pai_2025}}** notificações com a mãe ou o pai como provável autor por mil crianças de até 72 meses ({{n:vf_notif_mae_pai_2025}} notificações).
 
-<p class="nota">Notificação não é caso confirmado; a série muda de patamar em 2017, possivelmente por mudança na ficha.</p>
+<p class="nota">Mãe e pai somados: uma notificação que cite os dois conta duas vezes. Notificação não é caso confirmado; a série muda de patamar em 2017, possivelmente por mudança na ficha.</p>
+
+</div>
+
+![](fig:apres_violencia_familiar_mae_pai_taxa_ano)
 
 </div>
 
-![](fig:violencia_familiar_taxa_municipio_ano)
+<!-- revisar -->
 
-</div>
+<!--
+Pedido do usuário (2026-09-29): mãe e pai numa linha só (soma dos dois vínculos; o Tabnet não permite deduplicar
+a notificação que cita os dois). Os vínculos separados e "outros" seguem no site e no relatório.
+-->
 
 ---
+<div class="kicker">Eixo Proteção</div>
 
+# Notificações por bairro em {{n:vf_ano}}: mãe ou pai
+
+<div class="lado">
+<div>
+
+Notificações de violência familiar com a mãe ou o pai como provável autor, por bairro de residência da criança.
+
+<p class="nota">Contagem absoluta: bairros com mais crianças tendem a ter mais notificações. Mãe e pai somados: uma notificação que cite os dois conta duas vezes. Notificação não é caso confirmado.</p>
+
+</div>
+
+![](fig:apres_violencia_familiar_mae_pai_bairro_2025)
+
+</div>
+
+<!-- revisar -->
+
+<!--
+Pedido do usuário (2026-09-29): um mapa só, mãe + pai somados (antes, dois mapas por vínculo). Contagem absoluta ->
+classes discretas (convenção do projeto). Os mapas por vínculo e a taxa por bairro e por RA estão no site.
+-->
+
+---
 <div class="kicker">Eixo Direito ao Brincar</div>
 
 # O território onde a criança brinca
@@ -476,9 +503,9 @@ A pública ainda responde por **{{n:pct_publica_2025}}** das matrículas.
 <div class="lado">
 <div>
 
-Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:ips_homicidios_max_ra}} é um valor extremo e fica com a cor máxima; entre as demais RAs, lidera {{n:ips_homicidios_2a_ra}}.
+Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:homicidios_max_ra}} é um valor extremo e fica com a cor máxima; entre as demais RAs, lidera {{n:homicidios_2a_ra}}.
 
-<p class="nota">Dado da população geral, de todas as idades (IPS 2024) — não é específico de crianças.</p>
+<p class="nota">Dado da população geral, de todas as idades (2024) — não é específico de crianças.</p>
 
 </div>
 
@@ -487,8 +514,7 @@ Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:ip
 </div>
 
 ---
-
-<div class="kicker">Eixo Alimentação · e o que falta</div>
+<div class="kicker">Eixo Alimentação</div>
 
 # 1 em cada 10 bebês nasce com baixo peso
 
@@ -497,16 +523,101 @@ Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:ip
 
 **{{n:baixo_peso_pct_2025}}** dos nascidos vivos em 2025 ({{n:baixo_peso_n_2025}}) tinham menos de 2,5 kg.
 
-**Inclusão** e **Moradia** ainda não têm dado: são os eixos que mais dependem das secretarias.
+<p class="nota">Bairros com poucos nascimentos têm percentuais extremos: ficam com a cor máxima e são listados no rodapé.</p>
 
 </div>
 
-![](fig:mapa_percentual_baixo_peso_bairro_2025)
+![](fig:apres_baixo_peso_bairro_2025)
 
 </div>
 
 ---
+<div class="kicker">Eixo Inclusão · Dado pontual</div>
 
+# Crianças com deficiência no Cadastro Único e o BPC
+
+<div class="stats" style="--n:3; margin-top:22px">
+<div class="destaque" style="--c:var(--c2)"><b>{{n:adhoc_criancas_deficiencia_0_6}}</b><span>crianças de 0 a 6 anos com deficiência no Cadastro Único</span></div>
+<div style="--c:var(--c2)"><b>{{n:adhoc_bpc_pct_0_3}}</b><span>das crianças de 0 a 3 anos com deficiência recebem o BPC ({{n:adhoc_bpc_n_0_3}} de {{n:adhoc_deficiencia_0_3}})</span></div>
+<div style="--c:var(--c2)"><b>{{n:adhoc_bpc_pct_4_6}}</b><span>das crianças de 4 a 6 anos com deficiência recebem o BPC ({{n:adhoc_bpc_n_4_6}} de {{n:adhoc_deficiencia_4_6}})</span></div>
+</div>
+
+<p class="nota" style="margin-top:28px">BPC: Benefício de Prestação Continuada. Dado pontual do Cadastro Único (agosto de 2026), a ser substituído pela extração automatizada no 4º trimestre de 2026. Faixas da extração: 0 a 3 e 4 a 6 anos — a de 4 a 6 inclui os 6 anos, fora do padrão de 0 a 5 anos do diagnóstico.</p>
+
+<!-- revisar -->
+
+<!--
+Slide novo (specs/2026-09-29_dados_adhoc, só acréscimo; o slide único de Inclusão e Moradia foi dividido em dois a
+pedido do usuário). Cobertura do BPC = crianças com BPC ÷ crianças com deficiência, mesma extração. Os indicadores do
+catálogo (famílias com criança com deficiência, tipo de deficiência) seguem pendentes. Sai quando a extração
+automatizada substituir a pontual (ROADMAP).
+-->
+
+---
+<div class="kicker">Eixo Moradia · Dado pontual</div>
+
+# Saneamento nos domicílios das crianças do Cadastro Único
+
+<div class="stats" style="--n:2; margin-top:18px">
+<div style="--c:var(--c7)"><b>{{n:adhoc_criancas_sem_banheiro}}</b><span>crianças em domicílio sem banheiro</span></div>
+<div style="--c:var(--c7)"><b>{{n:adhoc_criancas_sem_agua}}</b><span>crianças em domicílio sem água canalizada</span></div>
+</div>
+
+<div class="stats" style="--n:3; margin-top:18px">
+<div style="--c:var(--c3)"><b>{{n:adhoc_criancas_vala_ceu_aberto}}</b><span>crianças com esgoto em vala a céu aberto</span></div>
+<div style="--c:var(--c3)"><b>{{n:adhoc_criancas_rio_mar}}</b><span>crianças com esgoto jogado em rio ou mar</span></div>
+<div style="--c:var(--c3)"><b>{{n:adhoc_criancas_fossa_rudimentar}}</b><span>crianças com esgoto em fossa rudimentar</span></div>
+</div>
+
+<p class="nota" style="margin-top:20px">Crianças de 0 a 6 anos no Cadastro Único; os números não se somam (a mesma criança pode estar em mais de uma situação). Dado pontual (agosto de 2026), a ser substituído pela extração automatizada no 4º trimestre de 2026; a faixa de 4 a 6 anos inclui os 6 anos, fora do padrão de 0 a 5 anos do diagnóstico.</p>
+
+<!-- revisar -->
+
+<!--
+Slide novo (specs/2026-09-29_dados_adhoc): os 5 destaques do site (cartões de Moradia), só as crianças de 0 a 6 anos
+(0 a 3 + 4 a 6 da mesma extração). Sai quando a extração automatizada substituir a pontual (ROADMAP).
+-->
+
+---
+<div class="kicker">Parte III · O que falta</div>
+
+# Eixos incompletos
+
+<div class="stats" style="--n:2; margin-top:26px">
+<div style="--c:var(--c2)"><b>Inclusão e Moradia</b><span>os dados do Cadastro Único já estão mapeados e em importação</span></div>
+<div style="--c:var(--c3)"><b>Direito ao Brincar</b><span>dado incompleto: precisamos do apoio das secretarias para integrar os registros administrativos georreferenciados que já existem</span></div>
+</div>
+
+<!-- revisar -->
+
+<!--
+Slide novo (slide_revision). Retoma o antigo slide de indicadores pendentes: o que falta e o que as secretarias podem trazer.
+-->
+
+---
+<div class="kicker">Parte III · O que falta</div>
+
+# Eixos pendentes
+
+<div class="stats" style="--n:2; margin-top:18px">
+<div style="--c:var(--c7)"><b>Direito à Cidade</b><span>necessidade de mais dados primários</span></div>
+<div style="--c:var(--c5)"><b>Participação</b><span>necessidade de mais dados primários</span></div>
+</div>
+
+<div class="conecta"></div>
+
+<div class="solucao"><b>Nossa sugestão: pesquisa primária</b><span>uma proposta para os dois eixos, a decidir com as secretarias. Os mapeamentos afetivos já feitos pela Prefeitura do Rio são modelos e casos de estudo para desenhá-la</span></div>
+
+<!-- revisar -->
+
+<!--
+Slide novo (slide_revision); revisto em 2026-09-29 a pedido do usuário: "eixos pendentes", mensagem genérica
+(necessidade de mais dados primários) e os mapeamentos afetivos anteriores da Prefeitura como referência. É proposta,
+não compromisso -- apresentar como pergunta às secretarias. Convite: quem já coleta algo sobre esses temas? Que
+pesquisa faria sentido?
+-->
+
+---
 <div class="kicker">Parte III · Produtos</div>
 
 # Dois produtos, os mesmos dados
@@ -528,48 +639,25 @@ Homicídios por 100 mil habitantes, por Região Administrativa. A taxa de {{n:ip
 </div>
 
 ---
+<!-- _class: secao -->
+<!-- _footer: '' -->
 
-<!-- _class: qr -->
+<div class="kicker">Parte III · Ao vivo</div>
 
-<div class="kicker">Parte III · Acesse agora</div>
-
-# Abra no celular
-
-<div class="lado">
-<div>
-
-{{qr:url_site}}
-
-<div class="url">{{url_site}}</div>
-
-</div>
-<div>
-
-Funciona no celular e no computador, sem instalar nada.
-
-Cada gráfico tem **tabela** e **CSV** para baixar.
-
-</div>
-<div>
-
-![](captura:site_celular)
-
-</div>
-</div>
+# Demonstração do HUB
 
 <!-- se: demo -->
 <!--
-DEMONSTRAÇÃO AO VIVO (3-4 min; se a rede falhar, seguir com este slide):
+DEMONSTRAÇÃO AO VIVO (3-4 min; slide genérico, sem link nem QR code -- pedido do usuário, 2026-09-29):
 1. Visão geral: Introdução e panorama (mapa de crianças por bairro; alternar Bairro / AP / RP).
 2. Aba Prioridade: mortalidade infantil por bairro -- passar o mouse num bairro (tooltip), alternar Taxa / Óbitos.
 3. Um gráfico: "Ver dados em tabela" e baixar o CSV.
 4. Aba Inclusão: indicadores "em desenvolvimento" -- gancho para a chamada.
-5. Celular: abrir pelo QR code.
+5. Celular: mostrar o mesmo site numa tela estreita.
 -->
 <!-- /se -->
 
 ---
-
 <!-- _class: encerramento -->
 <!-- _footer: '' -->
 

@@ -10,7 +10,7 @@ O que o pré-processador faz antes do Marp (que não tem variáveis nem condicio
   {{campo}}          campo do cabeçalho (frontmatter) do .md
   {{n:chave}}        número calculado de tabelas_finais/ (build/numeros.py); chave inexistente = erro
   {{qr:campo}}       QR code (segno) da URL do campo, como <img>
-  fig:nome           figura de visualizacoes/ ou mapas/ (PNG do analise.py), reduzida para _build/img/
+  fig:nome           figura do analise.py (versão de impressão de mapas/a4/ ou visualizacoes/a4/; senão a PNG), em _build/img/
   captura:nome       captura de tela gerada pelo gerador (site no desktop/celular, capa do PDF)
   <!-- se: bloco --> ... <!-- /se -->           entra só se `bloco` está na lista `blocos` do cabeçalho
   <!-- se: publico=x --> ... <!-- /se -->      entra só se `publico` do cabeçalho é x
@@ -75,17 +75,22 @@ _MANIFESTO = None
 
 
 def pdf_mapa(nome):
-    """PDF do mapa: próprio da apresentação (build/mapas_apresentacao.py) ou a versão de impressão do analise.py."""
-    if nome in mapas_apresentacao.MAPAS:
+    """PDF da figura: mapa próprio da apresentação (build/mapas_apresentacao.py) ou a versão de impressão do analise.py
+    -- mapas/a4/ ou, para gráficos, visualizacoes/a4/ (specs/2026-09-29_slide_revision: sem título embutido, que dizia
+    "0 a 5 anos", e com a legenda fora das barras)."""
+    if nome in mapas_apresentacao.MAPAS or nome in mapas_apresentacao.GRAFICOS:
         return mapas_apresentacao.gera(nome)[0]
-    a4 = RAIZ / "mapas/a4" / f"{nome}.pdf"
-    return a4 if a4.exists() else None
+    for pasta in ("mapas/a4", "visualizacoes/a4"):
+        a4 = RAIZ / pasta / f"{nome}.pdf"
+        if a4.exists():
+            return a4
+    return None
 
 
 def fonte_mapa(nome):
     """Fonte (e nota do teto de cor) do mapa A4, do manifesto gravado pelo analise.py -- vai para o rodapé do slide."""
     global _MANIFESTO
-    if nome in mapas_apresentacao.MAPAS:
+    if nome in mapas_apresentacao.MAPAS or nome in mapas_apresentacao.GRAFICOS:
         return mapas_apresentacao.gera(nome)[1].replace("'", "’")
     if _MANIFESTO is None:
         import pandas as pd
@@ -94,13 +99,15 @@ def fonte_mapa(nome):
                       if arq.exists() else {})
     f = re.sub(r"\s+", " ", str(_MANIFESTO.get(nome, ""))).strip()
     f = f.replace("; o valor real está na tabela do apêndice", "").replace("'", "’")
+    f = f.replace("0 a 5 anos", "até 72 meses")   # R1 do deck (specs/2026-09-29_slide_revision); o manifesto é do relatório
     return f.rstrip(".")
 
 
 def figura(nome):
     """Mapas: a versão de impressão (mapas/a4/<nome>.pdf), que tem o teto de cor no percentil 95 nos mapas contínuos por
     bairro -- o mesmo tratamento de valores extremos do site (pedido do usuário, 2026-09-28: "sempre os mapas sem os
-    outliers") -- e não tem título embutido (o título é o do slide). Gráficos: a PNG de tela do analise.py."""
+    outliers") -- e não tem título embutido (o título é o do slide). Gráficos: a versão de impressão (visualizacoes/a4/), também sem título; a PNG de tela
+    do analise.py só quando ela falta."""
     a4 = pdf_mapa(nome)
     if a4:
         destino = IMG / f"{nome}_a4.png"
@@ -160,7 +167,8 @@ def capturas(url_site):
                 if nav is None:
                     raise RuntimeError("nenhum navegador para o Playwright")
                 pg = nav.new_page(viewport={"width": 1440, "height": 900})
-                pg.goto(site + "#visao-geral"); pg.wait_for_timeout(1200)
+                # topo da página, com o banner (pedido do usuário, 2026-09-29; o hash #visao-geral rolava para as abas)
+                pg.goto(site); pg.wait_for_timeout(1500); pg.evaluate("window.scrollTo(0, 0)"); pg.wait_for_timeout(300)
                 pg.screenshot(path=str(alvos["site_desktop"]))
                 pg = nav.new_page(viewport={"width": 390, "height": 780}, device_scale_factor=2)
                 pg.goto(site + "#prioridade/mortalidade-infantil-por-bairro"); pg.wait_for_timeout(1500)
@@ -196,6 +204,8 @@ def rodape_dos_mapas(corpo):
                     fontes.append(base)
                 if nota and nota not in notas:
                     notas.append(nota)
+        # fonte que é o começo de outra (mesma base, uma com a ressalva do bairro) aparece uma vez só
+        fontes = [f for f in fontes if not any(g != f and g.startswith(f) for g in fontes)]
         if fontes:
             texto = "; ".join(fontes) + (". Nota: " + "; ".join(notas) if notas else "")
             slides[k] = sl.rstrip("\n") + f"\n\n<!-- fonte: {texto} -->\n\n"
@@ -254,7 +264,7 @@ def main():
     base = [npx, "marp", md.name, "--theme-set", "ipp.css", "--html", "--allow-local-files"]
     saidas = []
     for f in formatos:
-        args = {"pptx": ["--pptx"], "pdf": ["--pdf", "--pdf-notes"], "html": ["--html"], "png": ["--images", "png"]}[f]
+        args = {"pptx": ["--pptx"], "pdf": ["--pdf"], "html": ["--html"], "png": ["--images", "png"]}[f]
         destino = BUILD / (f"{nome}.{f}" if f != "png" else f"png/{nome}.png")
         destino.parent.mkdir(exist_ok=True)
         # stdin fechado: sem isso o marp-cli espera o Markdown pela entrada padrão (fica parado quando não é terminal)

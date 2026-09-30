@@ -25,9 +25,11 @@ jupytext --sync analise.py               # sync analise.ipynb <-> analise.py aft
 
 The CadÚnico section needs the `.env` DB credentials **and** a kernel with
 `psycopg` 3 (dev machine: conda env `analises_env`; base Anaconda only has
-`psycopg2`). Every sub-municipal CadÚnico output goes through
-`suprime_celulas_pequenas` (< 20 families blanked) before it is written —
-see `specs/2026-09-23_recortes_cadunico/specification.md` §5. A full run also writes the
+`psycopg2`). Every sub-municipal CadÚnico output is protected before it is written (no count < 20 below the
+municipality — `specs/2026-09-23_recortes_cadunico/specification.md` §5): **by bairro, `agrega_bairros_pequenos`
+sums small bairros into "Demais bairros da RA X" (then AP, then município)** instead of blanking them, and a bairro
+also joins its group when a published percentage's numerator or complement is < 20
+(`specs/2026-09-29_privacidade_cadunico`); other small cells still use `suprime_celulas_pequenas` (blank). A full run also writes the
 print version of every figure used by the PDF report (`GERA_VARIANTE_A4`,
 section "🖨️ Variante de impressão"; `visualizacoes/a4/`, `mapas/a4/`).
 
@@ -107,6 +109,14 @@ Key conventions enforced throughout, worth checking before adding a new call sit
   `dados_locais/populacao/`, network only if a year is missing); sub-municipal rates keep the fixed
   Censo 2022 (0-4) and must say so in the source/legend. Labels use the data's real age range (CadÚnico
   `'0-6'` and SISVAN are 0-5; see `auditoria_faixas.md`), not the catalog's "até 6 anos".
+- **Standard age range is 0-5 (up to 72 months)** (`specs/2026-09-29_pendencias` D9): every published output uses 0-5;
+  age 6 is dropped from charts/numbers even when a source has it, and any unavoidable use of 6 gets an explicit note.
+  Crosswalk headings from the catalog say "até 72 meses" (catalog name in the `nota`, D18). `*_0_6_*` file names were
+  kept as keys (curated text, crosswalk, deck) — the content is 0-5.
+- **Zero baseline on rate charts** (P1), with one exception: low birth weight % (cut axis with a drawn break mark and
+  "eixo não começa em zero" in the source; `serie_temporal(base_zero=False)`, `eixoCortado` in `js/charts.js`).
+- Aggregating published rates with no same-base numerator/denominator: sum rate × population, divide by population
+  (SIDRA 10057 ÷ 9606 exceeds 100% — different Census bases; D14).
 - Never aggregate a percentage column by averaging/summing it across bairros
   — sum the absolute numerator/denominator first (`agrega_bairros_por_nivel`),
   then recompute the rate.
@@ -126,7 +136,11 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 
 - `dados_locais/` — raw input data by source (`censo/`, `mortalidade/`,
   `nascidos_vivos/`, `sisvan/`, `ibge_sidra/`, `vacinacao/`, `educacao/`, `populacao/`, `protecao/`; CadÚnico is not a
-  file — it is read from the CTPE database) and `dados_locais/geo/`
+  file — it is read from the CTPE database — except the **temporary** ad hoc extraction in `cadunico/` (ref. 08/2026,
+  manifest `adhoc_2026_08.json`, crosswalk field `- dado_pontual:`; `specs/2026-09-29_dados_adhoc`), added only
+  additively and to be replaced by the automated extraction in Q4 2026). **Ad hoc data never goes to the PDF report
+  and blocks the final site**: `gera_latex.py` drops `dado_pontual` items; with `em_desenvolvimento = false`
+  `build_site.py` exits and the deploy workflow fails on `data-dado-pontual` without the dev strip (constitution §3) and `dados_locais/geo/`
   (reference boundary geojsons). **`dados_locais/` is NOT gitignored** —
   files placed there, including geo layers, get committed; verify with `git
   status` before assuming otherwise. `dados_locais/tratados/` holds

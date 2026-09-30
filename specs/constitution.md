@@ -60,6 +60,25 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   RA, CAP) usa o Censo 2022, fixo, e diz isso na fonte ou na legenda. Nunca comparar uma com a outra
   sem dizer (o Censo 2022 subconta crianças pequenas). A faixa etária do rótulo é a faixa real do dado
   (`specs/2026-09-24_populacao-referencia/auditoria_faixas.md`), não a do catálogo.
+- **Faixa etária padrão: 0 a 5 anos (até 72 meses)** (regra do usuário, 2026-09-29, `specs/2026-09-29_pendencias` D9).
+  Toda saída publicada (site, PDF, DOCX, apresentação) trabalha com 0 a 5 anos completos; se uma fonte traz 6 anos,
+  eles ficam fora dos gráficos e dos números citados. Quando os 6 anos forem mesmo necessários, **com nota explícita**.
+  Títulos do crosswalk que vêm do catálogo ("até 6 anos") dizem "até 72 meses", com o nome do catálogo na `nota` (D18).
+  Onde a fonte só tem outra faixa (Censo 2022 por bairro: 0 a 4 anos), o rótulo diz a faixa real.
+- **Base zero nos gráficos de taxa/percentual** (decisão P1, `specs/2026-09-25_website_graficos`), com **uma exceção**:
+  o percentual de baixo peso ao nascer, de eixo cortado, com a marca de corte desenhada e "eixo não começa em zero"
+  na fonte (`specs/2026-09-29_pendencias` D3/D12; `serie_temporal(base_zero=False)`, `eixoCortado` no site). Outra
+  exceção só com decisão do usuário.
+- **Agregar taxas publicadas** (quando não há numerador e denominador da mesma base): somar taxa × população e dividir
+  pela soma da população — nunca média simples. Não dividir contagens de tabelas de bases diferentes (ex.: SIDRA
+  10057 ÷ 9606 passa de 100%; `specs/2026-09-29_pendencias` D14).
+- **Dado pontual nunca vai para o relatório nem para a versão final do site** (regra do usuário, 2026-09-29,
+  `specs/2026-09-29_dados_adhoc` D7). Item com `- dado_pontual:` no crosswalk (extração fora da rotina, ex. CadÚnico
+  ago/2026) aparece **só no site em desenvolvimento**: o gerador do PDF o descarta (`sem_dados_pontuais`), a fonte
+  dele não entra na lista Fontes (`so_site = {sim}` no `fontes.bib`), e ele é um **bloqueio** da versão final do
+  site — com `em_desenvolvimento = false` em `relatorio/publicacao.json`, `build_site.py` para, e o deploy falha se o
+  HTML tiver `data-dado-pontual` sem a faixa. Para tirar a faixa, antes substitua o dado pontual pela extração
+  automatizada ou retire os blocos (`ROADMAP.md`). Não contornar sem decisão do usuário.
 - `dados_locais/` **não é gitignorado** — arquivos colocados ali (inclusive
   camadas geo) são versionados. Confirme com `git status` antes de assumir o
   contrário; não versione dado bruto sensível sem checar antes se deveria
@@ -105,9 +124,13 @@ gerado.
 - Toda mudança não-trivial (nova seção de análise, nova convenção visual,
   merge de um branch externo, refatoração) ganha uma pasta
   `specs/<AAAA-MM-DD>_<nome-da-rodada>/` (data de abertura da rodada, para
-  que `specs/` liste as rodadas em ordem cronológica) **antes** da implementação, com o subconjunto
-  relevante de `plan.md`, `specification.md`/`specs.md`, `tasks.md`,
-  `validation.md`. Ver as pastas existentes (`specs/2026-09-08_mortalidade-ap`,
+  que `specs/` liste as rodadas em ordem cronológica) **antes** da implementação, com os **quatro**
+  documentos do desenvolvimento orientado a spec (regra do usuário, 2026-09-29; antes bastava um
+  subconjunto): `specification.md` (o quê e por quê: contexto, decisões, requisitos, fora do escopo),
+  `plan.md` (como: levantamento do código, blocos, riscos), `tasks.md` (tarefas numeradas por bloco,
+  com caixas marcadas durante a execução) e `validation.md` (critérios de aceite verificáveis,
+  preenchidos com o resultado ao fim). O planejamento só termina — e a implementação só começa —
+  com os quatro commitados na branch de planejamento. Ver as pastas existentes (`specs/2026-09-08_mortalidade-ap`,
   `specs/2026-09-09_maps-and-ibge`, `specs/2026-09-09_visual-identity`, `specs/2026-09-14_relatorio-interativo`)
   para o formato — não é rígido, mas todo spec documenta contexto, decisões
   tomadas (com o *porquê*) e o que foi validado.
@@ -124,6 +147,10 @@ gerado.
   arquivo deve morar, o que fazer com conteúdo conflitante), **pergunte** —
   agrupando várias perguntas relacionadas numa única rodada em vez de
   parar a cada dúvida individual — em vez de assumir e seguir em frente.
+  As perguntas vão pela ferramenta de pergunta interativa (`AskUserQuestion`,
+  até 4 perguntas por chamada, com opções e a recomendada marcada), não
+  soltas no texto; se houver mais de 4, fazer rodadas sucessivas agrupadas
+  por tema (reforçado pelo usuário em 2026-09-29).
 
 ## 6. Privacidade e dados sensíveis
 
@@ -145,6 +172,17 @@ dado completo). Grupos pequenos na cidade inteira (ex. raça/cor amarela e
 indígena) só aparecem no total do município. Microdados de pessoa ou
 família nunca são gravados em disco.
 
+**Agregação no lugar do vazio (pedido do usuário, 2026-09-29, `specs/2026-09-29_privacidade_cadunico`):** por bairro,
+a célula pequena não fica vazia — o bairro é somado aos outros bairros pequenos da mesma **Região Administrativa**
+("Demais bairros da RA X"); se o conjunto ainda ficar abaixo de 20, aos da mesma **AP**; depois, ao município
+("Demais bairros"). Só o que não fecha nem assim fica vazio. Função única: `agrega_bairros_pequenos`
+(`primeira_infancia/cadunico.py`), aplicada a toda saída do CadÚnico por bairro, inclusive as versionadas no git.
+**Percentual por bairro:** o bairro também entra no conjunto quando o **numerador ou o complemento** (total −
+numerador) é menor que 20 — percentual × total publicado devolveria a contagem. Em mapa de percentual, o bairro do
+conjunto mostra a taxa do conjunto; em mapa de contagem, fica sem cor, e o total do conjunto está na tabela.
+**Histórico:** o commit `cdfacd2` (2026-09-09, antes da regra) tem contagens por bairro abaixo de 20 no GitHub; a
+limpeza do histórico está no `ROADMAP.md` e depende de decisão com a equipe (§7).
+
 ## 7. Git
 
 - Branch de integração: `staging_main`. Branches de trabalho seguem
@@ -159,6 +197,22 @@ família nunca são gravados em disco.
   `SPEC-<Nome>: Bloco N -- descrição curta` (visto no histórico); fora
   desse contexto, uma mensagem direta em português descrevendo o *porquê*
   basta.
+- **Branch `demo` — versão de demonstração** (regra do usuário, 2026-09-29, `specs/2026-09-29_demo`): texto
+  provisório no lugar do lorem (`website/build/textos_demo.json`), blocos pendentes ocultos, faixa maior com a data
+  da V.1 e PDF só até a página impressa 18 com página de aviso. Tudo isso é **exclusivo da `demo`**: não entra em
+  `staging_main`, em `main` nem em outra branch. O fluxo é **só de ida** (`staging_main` → `demo`, para atualizar);
+  a `demo` nunca é mesclada de volta. O texto provisório nunca vai para o PDF, para `relatorio/textos_curados.json`
+  nem para o DOCX de curadoria, que seguem mostrando lorem e pendentes. Enquanto a demonstração estiver no ar, o
+  GitHub Pages publica só a partir da `demo`.
+- **Direção dos merges** (regra do usuário, 2026-09-29): o trabalho sobe das branches de rodada para a integração, e
+  a integração desce para as derivadas. Nunca no sentido contrário:
+  - `spec/<nome>` → `staging_main` (merge `--no-ff` ao fim da rodada);
+  - `staging_main` → `main` (publicação);
+  - `staging_main` → `demo` (para atualizar a demonstração). Depois do merge, regere o site e o PDF na `demo` e
+    confira que o build não parou por falta de texto provisório.
+  - **Proibido**: `demo` → `staging_main`/`main`/`spec/*`, e `staging_main` ← qualquer branch que tenha a `demo` na
+    história. Uma correção feita na `demo` que valha para todos é refeita numa `spec/<nome>` a partir de
+    `staging_main` (ou por `cherry-pick` de um commit que não traga nada da demonstração), nunca por merge.
 - Nunca force-push, nunca reescreva commits já publicados, nunca pule hooks
   — pedir confirmação explícita antes de qualquer operação destrutiva
   (`reset --hard`, `checkout --`, deletar branch).

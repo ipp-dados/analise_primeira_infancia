@@ -85,7 +85,10 @@ _OUT_ARG = str(Path(sys.argv[1]).resolve()) if len(sys.argv) > 1 else None   # r
 os.chdir(ROOT)
 sys.path.insert(0, str(ROOT / "relatorio" / "curadoria"))
 
-from gera_estrutura_eixos import avisa_itens_sem_arquivo, chave_eixo
+from gera_estrutura_eixos import TEXTO_PENDENTE, avisa_itens_sem_arquivo, chave_eixo, motivos_pendentes
+from gera_estrutura_eixos import aviso_dado_pontual as aviso_dado_pontual_texto, parse_estrutura_eixos, tem_dados_pontuais
+# D5 (specs/2026-09-29_alinhamento_pdf_site): quadro de pendente = frase fixa + `motivo:` do crosswalk, igual no PDF
+_MOTIVOS_PENDENTES = motivos_pendentes()
 # populacao-referencia D4: avisa (sem mudar a saída) itens do crosswalk que o relatório pularia em silêncio
 avisa_itens_sem_arquivo()
 
@@ -685,7 +688,7 @@ def tabela_com_texto(build_fn, seed):
         '</div>'
     )
 
-def emite_bloco_pendente(titulo, nota):
+def emite_bloco_pendente(titulo):
     """Subsecao 'a reservar' (catalogo tem o indicador, analise.py ainda nao o
     implementa) -- specs/2026-09-22_ajuste_eixos/specs.md §3-E: nunca uma secao vazia sem
     explicacao, sempre com o selo + a razao (Status da planilha). Mesmo
@@ -695,7 +698,12 @@ def emite_bloco_pendente(titulo, nota):
     h3(titulo)
     _PENDENTES_SECAO[section_starts[-1][2]] = _PENDENTES_SECAO.get(section_starts[-1][2], 0) + 1
     # specs/2026-09-24_website_refactor: callout com ícone (sai o emoji 🚧)
-    parts.append(callout("pending", "construction", "Indicador catalogado, ainda não disponível", f"<p>{_esc(nota)}</p>"))
+    # texto público = frase fixa + `motivo:` do item em specs/estrutura_eixos.md (mesmo título); nunca a `nota:`
+    # interna (specs/2026-09-29_alinhamento_pdf_site D5) -- título sem item pendente no crosswalk para o build
+    if titulo not in _MOTIVOS_PENDENTES:
+        raise KeyError(f"emite_bloco_pendente: '{titulo}' não é item pendente (com motivo:) em specs/estrutura_eixos.md")
+    parts.append(callout("pending", "construction", "Indicador catalogado, ainda não disponível",
+                         f"<p>{_esc(TEXTO_PENDENTE)} {_esc(_MOTIVOS_PENDENTES[titulo])}</p>"))
 
 _PENDENTES_SECAO = {}   # sid do h2 -> nº de indicadores pendentes (cartões da Visão geral)
 
@@ -703,6 +711,53 @@ def nota_metodologica(texto):
     """Nota de limitação/qualidade de dado sob o h3 (ex.: quebra de série, denominador). Callout
     próprio (ícone de informação, sai o emoji ℹ️) -- não é indicador pendente, é ressalva sobre um dado real."""
     parts.append(callout("note", "info", "Nota metodológica", f"<p>{_esc(texto)}</p>"))
+
+# ---- dados pontuais (specs/2026-09-29_dados_adhoc): aviso, cartões de indicador e barras de proporção ----------
+# Blocos marcados "dados_adhoc" saem quando a extração automatizada substituir a pontual (ROADMAP).
+
+_DADOS_PONTUAIS = []   # títulos dos blocos com dado pontual emitidos -- bloqueiam a versão final (ver _EM_DESENVOLVIMENTO)
+
+def aviso_dado_pontual(ident):
+    """Quadro "Dado pontual": aviso + nota da faixa, do manifesto `adhoc_<ident>.json`. O atributo `data-dado-pontual`
+    marca o HTML para a checagem do deploy (.github/workflows/deploy-relatorio.yml)."""
+    _DADOS_PONTUAIS.append(toc[-1][1] if toc else ident)
+    parts.append(callout("note", "calendar", "Dado pontual", f"<p>{_esc(aviso_dado_pontual_texto(ident))}</p>",
+                         extra=f' data-dado-pontual="{_esc(ident)}"'))
+
+def cartoes_indicador(itens):
+    """Cartões de indicador (número grande + rótulo + detalhe). `itens`: dicts com valor, rotulo, faixas (lista de
+    (rótulo, valor), em destaque logo abaixo do número -- as faixas etárias), detalhe (dado secundário) e contexto
+    (True = número de contexto, visualmente mais discreto)."""
+    cards = "".join(
+        f'<div class="kpi{" kpi-contexto" if i.get("contexto") else ""}">'
+        f'<div class="kpi-valor">{_fmt_ptbr(i["valor"])}</div><div class="kpi-rotulo">{_esc(i["rotulo"])}</div>'
+        + ('<div class="kpi-faixas">' + "".join(f'<div><b>{_fmt_ptbr(v)}</b><span>{_esc(r)}</span></div>'
+                                                for r, v in i["faixas"]) + '</div>' if i.get("faixas") else "")
+        + (f'<div class="kpi-detalhe">{_esc(i["detalhe"])}</div>' if i.get("detalhe") else "") + '</div>'
+        for i in itens)
+    parts.append(f'<div class="kpi-grid">{cards}</div>')
+
+def _fmt_tabela(df, pct=()):
+    """Números no formato pt-BR para `plain_table` (milhar com ponto; colunas em `pct` com 1 casa e %; vazio = —)."""
+    out = df.copy()
+    for c in out.columns:
+        if pd.api.types.is_numeric_dtype(out[c]):
+            out[c] = out[c].map(lambda v: "—" if pd.isna(v) else (_fmt_ptbr(v, 1) + "%" if c in pct else _fmt_ptbr(v)))
+    return out
+
+def barras_razao(itens, titulo, fonte):
+    """Proporção numerador/denominador em barra horizontal, com os dois números escritos (lê-se sem a cor).
+    `itens`: (rótulo, numerador, denominador)."""
+    _registra_fonte(fonte)
+    linhas = "".join(
+        f'<div class="razao-item"><div class="razao-cab"><span class="razao-rotulo">{_esc(r)}</span>'
+        f'<span class="razao-valor">{_fmt_ptbr(100 * n / d, 1)}%</span></div>'
+        f'<div class="razao-trilho" role="img" aria-label="{_esc(r)}: {_fmt_ptbr(100 * n / d, 1)}%">'
+        f'<div class="razao-barra" style="width:{100 * n / d:.1f}%"></div></div>'
+        f'<div class="razao-detalhe">{_fmt_ptbr(n)} de {_fmt_ptbr(d)}</div></div>'
+        for r, n, d in itens)
+    parts.append(f'<div class="out"><div class="chart-subtitle">{_esc(titulo)}</div>'
+                 f'<div class="razao-lista">{linhas}</div><div class="out-src">{fonte}</div></div>')
 
 # ---- institutional logo (embedded once, reused in navbar + footer) --------
 
@@ -1058,10 +1113,13 @@ _MAPAS = {}
 _OVERLAYS_MAPA = []
 
 def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados, bins=None, fmt="int", nivel="bairro", teto=None, zero_branco=False,
-             col_suprimido=None, rotulo_suprimido="suprimido (< 20)", col_extra=None, rotulo_extra=""):
+             col_suprimido=None, rotulo_suprimido="suprimido (< 20)", col_extra=None, rotulo_extra="", col_agregado=None):
     """`col_extra` (populacao-referencia D1): coluna percentual opcional de `df` mostrada no tooltip ao lado do
     valor, como "1.234 (1,9% do município)" com `rotulo_extra`; None (padrão) não muda nada.
     `teto`: limite superior só da escala de cor contínua (valores acima usam a cor máxima; o tooltip mostra o real).
+    `col_agregado` (specs/2026-09-29_privacidade_cadunico): coluna de `df` com o nome do conjunto em que o bairro pequeno
+    foi somado ("Demais bairros da RA X"); o tooltip e o CSV mostram o conjunto, e a legenda explica. Em taxa, o bairro
+    vem com a taxa do conjunto; em contagem, sem valor (sem cor).
     `col_suprimido` (specs/2026-09-23_recortes_cadunico §5): coluna booleana de `df` marcando regiões suprimidas por
     privacidade (valor já vazio na tabela) -- o tooltip mostra `rotulo_suprimido` em vez de "—" e a legenda
     ganha uma linha própria. None (padrão) = comportamento anterior, usado pelos demais mapas.
@@ -1078,6 +1136,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
     valores = {}
     suprimidas = set()
     extras = {}
+    agregados = {}
     for _, r in df.iterrows():
         try:
             chave = _chave_norm(r[chave_col], nivel)
@@ -1089,6 +1148,8 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
             extras[chave] = float(r[col_extra])
         if col_suprimido is not None and bool(r[col_suprimido]):
             suprimidas.add(chave)
+        if col_agregado is not None and isinstance(r[col_agregado], str) and r[col_agregado]:
+            agregados[chave] = r[col_agregado]
     brutos = list(valores.values())
     # outliers so em percentual/taxa -- nao em contagem absoluta (specification.md §3.3, decisao O)
     limpos = remove_outliers_tukey(brutos) if _eh_taxa_ou_percentual(fmt) else brutos
@@ -1128,6 +1189,9 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 val_txt += f" ({_fmt_ptbr(extras[chave], 1)}% {rotulo_extra})".replace(" )", ")")
             if chave in suprimidas:
                 val_txt = rotulo_suprimido
+            if chave in agregados:   # bairro pequeno somado no conjunto da RA (privacidade_cadunico)
+                # só no tooltip: o rótulo da região é compartilhado com a geometria (data/geo.js) e com o CSV
+                val_txt = (f"{val_txt} ({agregados[chave]})" if v is not None else f"somado em {agregados[chave]}")
             # geometria em data/geo.js (<path id>), nome da região em window.GEO_NOMES;
             # stroke/fill-opacity no CSS (`.map-svg use`) -- aqui só o que muda por mapa
             if fill not in cores:
@@ -1152,6 +1216,11 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
                 v = vmin + (vmax - vmin) * frac
                 sw = _cor_sequencial(tema, frac)
                 legend_bits.append(f'<div class="map-legend-row"><span class="map-legend-sw" style="background:{sw}"></span>{"≥ " if acima_do_teto and i == steps - 1 else ""}{_fmt_ptbr(v, 1)}{_SUFIXO_FMT.get(fmt, "")}</div>')
+        if agregados:
+            _txt_ag = ("Bairros pequenos: taxa do conjunto da RA" if any(valor_por_regiao.get(k) is not None for k in agregados)
+                       else "Sem cor: bairro pequeno, somado aos da RA (ver tabela)")
+            legend_bits.append('<div class="map-legend-row"><span class="map-legend-sw" style="background:var(--surface-2);'
+                               f'border:1px dashed var(--ink-3, #888)"></span>{_esc(_txt_ag)}</div>')
         if suprimidas:
             legend_bits.append('<div class="map-legend-row"><span class="map-legend-sw" style="background:var(--surface-2);border:1px solid var(--ink-3, #888)"></span>'
                                f'Sem dado / {_esc(rotulo_suprimido)}</div>')
@@ -1279,7 +1348,7 @@ option_card([
 ], 'grafico')
 
 # populacao-referencia A2/D2: série anual Ripsa (item "Crianças até 6 anos (número)")
-h3('População de 0 a 6 anos por ano (estimativas Ripsa/MS)')
+h3('População de 0 a 5 anos por ano (estimativas Ripsa/MS)', antigo='população-de-0-a-6-anos-por-ano-estimativas-ripsams')   # D9 (specs/2026-09-29_pendencias): 0 a 5 anos
 nota_metodologica(
     "Estimativas populacionais da Ripsa/Ministério da Saúde, que corrigem a subcontagem de crianças pequenas do Censo 2022 — "
     "por isso os valores ficam acima dos do Censo e não se comparam diretamente com eles. Só existem para o município como um todo."
@@ -1287,22 +1356,22 @@ nota_metodologica(
 FONTE_RIPSA = "Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025)"
 df_pop_ripsa = read("populacao_ripsa_0_a_6_por_ano.csv")
 option_card([
-    ("0 a 6 anos", lambda: line_chart(df_pop_ripsa["ano"], [{'label': 'Crianças de 0 a 6 anos', 'values': df_pop_ripsa['populacao_0_a_6']}],
-        opts={'height': 220, 'maxXLabels': 8, 'table': True}, fonte=FONTE_RIPSA, unidade="Crianças de 0 a 6 anos"), "populacao_ripsa_0_a_6_por_ano"),
-    ("% da população", lambda: line_chart(df_pop_ripsa["ano"], [{'label': 'Crianças de 0 a 6 anos', 'values': df_pop_ripsa['percentual_0_a_6'], 'format': 'pct1'}],
+    ("0 a 5 anos", lambda: line_chart(df_pop_ripsa["ano"], [{'label': 'Crianças de 0 a 5 anos', 'values': df_pop_ripsa['populacao_0_a_5']}],
+        opts={'height': 220, 'maxXLabels': 8, 'table': True}, fonte=FONTE_RIPSA, unidade="Crianças de 0 a 5 anos"), "populacao_ripsa_0_a_6_por_ano"),
+    ("% da população", lambda: line_chart(df_pop_ripsa["ano"], [{'label': 'Crianças de 0 a 5 anos', 'values': df_pop_ripsa['percentual_0_a_5'], 'format': 'pct1'}],
         opts={'height': 200, 'maxXLabels': 8, 'table': True}, fonte=FONTE_RIPSA, unidade="% da população do município"), "populacao_ripsa_0_a_6_percentual_por_ano"),
 ], 'grafico')
 
-h3('Crianças de 0 a 6 anos por idade, raça/cor e sexo (Censo 2022)', antigo='população-0-6-por-idaderaçasexo-ibge-sidra-2022')
+h3('Crianças de 0 a 5 anos por idade, raça/cor e sexo (Censo 2022)', antigo=['população-0-6-por-idaderaçasexo-ibge-sidra-2022', 'crianças-de-0-a-6-anos-por-idade-raçacor-e-sexo-censo-2022'])
 FONTE_SIDRA_CENSO = "Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)"
-_ORDEM_IDADE_SIDRA_0_6 = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
+_ORDEM_IDADE_SIDRA_0_5_POP = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']   # D9: 0 a 5 anos
 
 def _ordenar_idade(df, ordem):
     return df[df["idade"].isin(ordem)].set_index("idade").reindex(ordem).reset_index()
 
-df_censo_raca = _ordenar_idade(read("censo_sidra_populacao_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
+df_censo_raca = _ordenar_idade(read("censo_sidra_populacao_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_5_POP)
 raca_cols = [c for c in df_censo_raca.columns if c not in ("idade", "Total")]
-df_censo_sexo = _ordenar_idade(read("censo_sidra_populacao_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6)
+df_censo_sexo = _ordenar_idade(read("censo_sidra_populacao_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_5_POP)
 sexo_cols = [c for c in df_censo_sexo.columns if c not in ("idade", "Total")]
 option_card([
     ("Por raça", lambda: grouped_bar_chart(df_censo_raca["idade"], series_from_cols(df_censo_raca, raca_cols), fonte=FONTE_SIDRA_CENSO, unidade="Crianças"), "censo_sidra_populacao_0_6_raca_2022"),
@@ -1317,6 +1386,9 @@ FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no municíp
 # de mortalidade infantil do site e do PDF (o CSV traz `percentual_*`, por 100) -- recalculada dos absolutos.
 RACA_LABEL = {"branca": "Branca", "parda": "Parda", "preta": "Preta", "amarela_indigena": "Amarela e indígena", "nao_informado": "Não informada"}
 RACAS = list(RACA_LABEL)
+# E14 (specs/exclusoes.md, specs/2026-09-29_pendencias D2): "Não informada" fica só na contagem -- óbitos sem raça (SIM) ÷
+# nascidos sem raça (SINASC) não é taxa comparável
+RACAS_TAXA = [r for r in RACAS if r != "nao_informado"]
 UN_OBITOS_ANO = "Óbitos por ano"
 UN_TAXA_INFANTIL = "Óbitos de menores de 1 ano por mil nascidos vivos"
 
@@ -1382,8 +1454,8 @@ _mapas_neo_obitos = [
         "Óbitos neonatais tardios (7 a 27 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "mapa_obitos_neonatal_tardia_bairro_2025"),
     ("Pós-neonatal", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_28_364", "mortalidade",
         "Óbitos pós-neonatais (28 a 364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[1, 2, 4, 8]), "mapa_obitos_pos_neonatal_bairro_2025"),
-    ("Total", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "obitos_0_364", "mortalidade",
-        "Óbitos infantis (0 a 364 dias) por bairro (2025)", "Óbitos", FONTE_DATASUS, bins=[2, 5, 10, 20]), "mapa_mortalidade_infantil_bairro_2025"),
+    # E13 (specs/exclusoes.md, specs/2026-09-29_pendencias D1): sem a pill "Total" -- o mapa de 0 a 364 dias por bairro
+    # (taxa e óbitos) é idêntico ao do cartão "Mortalidade infantil por bairro" (raça/cor), que fica
 ]
 _UN_MAPA_TAXA = "Óbitos por mil nascidos vivos"
 _mapas_neo_taxa = [
@@ -1393,8 +1465,8 @@ _mapas_neo_taxa = [
         "Taxa de mortalidade neonatal tardia (7 a 27 dias) por bairro (2025)", _UN_MAPA_TAXA, FONTE_DATASUS, fmt="pm1"), "mapa_taxa_obitos_tardios_bairro_2025"),
     ("Pós-neonatal", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_pos_neonatal", "mortalidade",
         "Taxa de mortalidade pós-neonatal (28 a 364 dias) por bairro (2025)", _UN_MAPA_TAXA, FONTE_DATASUS, fmt="pm1"), "mapa_taxa_mortalidade_pos_neonatal_bairro_2025"),
-    ("Total", lambda: mapa_svg(df_map_pos_neo_2025, "codigo", "taxa_mortalidade_infantil", "mortalidade",
-        "Taxa de mortalidade infantil (0 a 364 dias) por bairro (2025)", _UN_MAPA_TAXA, FONTE_DATASUS, fmt="pm1"), "mapa_taxa_mortalidade_infantil_bairro_2025"),
+    # E13 (specs/exclusoes.md, specs/2026-09-29_pendencias D1): sem a pill "Total" -- o mapa de 0 a 364 dias por bairro
+    # (taxa e óbitos) é idêntico ao do cartão "Mortalidade infantil por bairro" (raça/cor), que fica
 ]
 option_card_alternancia([("Taxa", _mapas_neo_taxa), ("Óbitos", _mapas_neo_obitos)])
 
@@ -1414,8 +1486,8 @@ h3('Mortalidade infantil por raça/cor', antigo=['nascidos-vivos-e-mortalidade-i
 option_card([
     ("Óbitos por raça/cor", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"obitos_{r}" for r in RACAS], {f"obitos_{r}": RACA_LABEL[r] for r in RACAS}),
         opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS, unidade="Óbitos de menores de 1 ano por ano"), "obitos_raca_ano"),
-    ("Taxa por raça/cor", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"taxa_{r}" for r in RACAS], {f"taxa_{r}": RACA_LABEL[r] for r in RACAS}, fmt='pm1'),
-        opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS, unidade=UN_TAXA_INFANTIL), "percentual_mortalidade_raca_ano"),
+    ("Taxa por raça/cor", lambda: line_chart(df_raca["ano"], series_from_cols(df_raca, [f"taxa_{r}" for r in RACAS_TAXA], {f"taxa_{r}": RACA_LABEL[r] for r in RACAS_TAXA}, fmt='pm1'),
+        opts={'height': 260, 'table': True}, fonte=FONTE_DATASUS + ". Nota: a categoria \"Não informada\" aparece só no gráfico de óbitos", unidade=UN_TAXA_INFANTIL), "percentual_mortalidade_raca_ano"),
 ], 'grafico')
 
 h3('Mortalidade infantil por bairro', antigo=['mapas-2', 'nascidos-vivos-e-mortalidade-infantil-por-bairro'])
@@ -1618,12 +1690,13 @@ for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
 # não é mais gerada) -- ver specs/2026-09-22_merge-waleska-changes/specs.md
 option_card(_entries_mapas_cap_faixa, 'mapa')
 
-emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo", "recorte por sexo ainda não extraído do SIM")
+emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo")
 
 # ---- CadÚnico: recortes por sexo, raça/cor, arranjo familiar e renda (specs/2026-09-23_recortes_cadunico) ----
 FONTE_CADUNICO = "CadÚnico (extração CTPE, jun/2026)"
 FONTE_MAPA_CADUNICO = (FONTE_CADUNICO + ". Bairro atribuído pelo CEP (Correios), pode divergir do bairro oficial; "
-                       "bairros com menos de 20 famílias suprimidos")
+                       "bairros com menos de 20 crianças ou famílias somados aos da mesma Região Administrativa "
+                       "(proteção de dados do Cadastro Único)")
 df_cad_sexo = read("cadunico_por_sexo_2026.csv")
 df_cad_raca = read("cadunico_por_raca_cor_2026.csv")
 df_cad_arranjo = read("cadunico_familias_por_arranjo_2026.csv")
@@ -1633,7 +1706,7 @@ _ORDEM_RACA_CAD = ["Parda", "Branca", "Preta", "Amarela", "Indígena"]
 
 def _mapa_cadunico_pct(col, titulo, legenda):
     return mapa_svg(df_cad_recortes_mapa, "codbairro", col, "cadunico", titulo, legenda, FONTE_MAPA_CADUNICO,
-                    fmt="pct1", col_suprimido="suprimido")
+                    fmt="pct1", col_suprimido="suprimido", col_agregado="agregado_em")
 
 # populacao-referencia A4: razão municipal CadÚnico / população Ripsa
 h3("Crianças de 0 a 5 anos no CadÚnico em relação à população do município")
@@ -1679,16 +1752,16 @@ df_map_cadunico_0_4 = read("tabela_mapa_cadunico_criancas_0_a_4_2026.csv")
 option_card([
     ("Crianças 0-5", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
         "Crianças (0 a 5 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[250, 750, 1500, 3000],
-        col_suprimido="suprimido"), "mapa_cadunico_criancas_bairro_2026"),
+        col_suprimido="suprimido", col_agregado="agregado_em"), "mapa_cadunico_criancas_bairro_2026"),
     ("Crianças 0-4", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
         "Crianças (0 a 4 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[200, 500, 1000, 2000],
-        col_suprimido="suprimido"), "mapa_cadunico_criancas_0_a_4_bairro_2026"),
+        col_suprimido="suprimido", col_agregado="agregado_em"), "mapa_cadunico_criancas_0_a_4_bairro_2026"),
     # recortes_cadunico D6: mapa "% s/ Censo" retirado do relatório (até 510% por viés CEP -> bairro; fica só no notebook)
 ], 'mapa')
 
-h3("Famílias no CadÚnico com crianças até 6 anos, por sexo")
+h3("Famílias no CadÚnico com crianças de 0 a 5 anos, por sexo", antigo="famílias-no-cadúnico-com-crianças-até-6-anos-por-sexo")
 nota_metodologica(
-    "Sexo da criança. \"Até 6 anos\" = 0 a 5 anos completos (quem já fez 6 anos não está nesta extração). "
+    "Sexo da criança, de 0 a 5 anos completos: quem já fez 6 anos não está nesta extração (o catálogo diz \"até 6 anos\"). "
     "As famílias estão classificadas pelo sexo das suas crianças (só meninas, só meninos ou meninas e meninos) — "
     "cada família conta uma vez só."
 )
@@ -1704,7 +1777,7 @@ option_card([
 ], 'grafico')
 # mapa % meninas cortado na revisão visual (recortes_cadunico T12.3): ~49% em todo bairro
 
-h3("Famílias no CadÚnico com crianças até 6 anos, por raça/cor")
+h3("Famílias no CadÚnico com crianças de 0 a 5 anos, por raça/cor", antigo="famílias-no-cadúnico-com-crianças-até-6-anos-por-raçacor")
 nota_metodologica(
     "Raça/cor da criança. Uma família com crianças de raça/cor diferentes aparece em mais de uma categoria, por isso as "
     "famílias não somam o total. Negra = preta + parda. Por bairro, só o percentual de crianças negras é publicado "
@@ -1726,9 +1799,35 @@ option_card([
 
 h2('🤝 Inclusão')
 
-emite_bloco_pendente("Crianças no CadÚnico com alguma deficiência", "baixar dados — Léo")
-emite_bloco_pendente("Famílias no CadÚnico com criança com deficiência", "baixar dados — Léo")
-emite_bloco_pendente("Crianças no CadÚnico por tipo de deficiência", "baixar dados — Léo")
+emite_bloco_pendente("Crianças no CadÚnico com alguma deficiência")
+emite_bloco_pendente("Famílias no CadÚnico com criança com deficiência")
+emite_bloco_pendente("Crianças no CadÚnico por tipo de deficiência")
+
+# dados_adhoc (specs/2026-09-29_dados_adhoc): extração pontual de ago/2026, só acréscimo -- os pendentes acima ficam (D2/D3)
+FONTE_CADUNICO_ADHOC = "Cadastro Único — extração pontual, referência 08/2026"
+h3('Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026)')
+aviso_dado_pontual("2026_08")
+_def = read("cadunico_adhoc_deficiencia_2026_08.csv").set_index("Faixa etária")
+_def_ctx = read("cadunico_adhoc_deficiencia_contexto_2026_08.csv").set_index("Medida")["Valor"]
+_def_tot = _def.loc["Total (0 a 6 anos)"]
+# pedido do usuário (2026-09-29): crianças de 0 a 6 e as faixas 0 a 3 / 4 a 6 em destaque; famílias e pessoas (todas as
+# idades) como dado secundário
+_faixas_def = lambda col: [(f, _def.loc[f, col]) for f in ("0 a 3 anos", "4 a 6 anos")]
+cartoes_indicador([
+    {"valor": _def_tot["Crianças com deficiência"], "rotulo": "crianças de 0 a 6 anos com deficiência",
+     "faixas": _faixas_def("Crianças com deficiência")},
+    {"valor": _def_tot["Com BPC"], "rotulo": "delas recebem o Benefício de Prestação Continuada (BPC)",
+     "faixas": _faixas_def("Com BPC"),
+     "detalhe": f'{_fmt_ptbr(_def_tot["% com BPC"], 1)}% das crianças com deficiência'},
+    {"valor": _def_ctx["Famílias com pessoa com deficiência"], "rotulo": "famílias com pessoa com deficiência",
+     "detalhe": "todas as idades — contexto", "contexto": True},
+    {"valor": _def_ctx["Pessoas com deficiência (todas as idades)"], "rotulo": "pessoas com deficiência",
+     "detalhe": "todas as idades — contexto", "contexto": True},
+])
+barras_razao([(f, _def.loc[f, "Com BPC"], _def.loc[f, "Crianças com deficiência"]) for f in ("0 a 3 anos", "4 a 6 anos")],
+             "Cobertura do BPC entre as crianças com deficiência no CadÚnico, por faixa etária", FONTE_CADUNICO_ADHOC)
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_def.reset_index(), pct=("% com BPC",)), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_deficiencia_2026_08")
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_def_ctx.reset_index()), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_deficiencia_contexto_2026_08")
 
 # ===================================================== FAMILIA E CUIDADOS ==
 
@@ -1738,7 +1837,6 @@ h2('👨‍👩‍👧 Família e Cuidados')
 # dado comparável; o total absoluto continua (Família e Cuidados). Título do h3 sem "Frequência e".
 FONTE_SIDRA_EDU = "Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)"
 _ORDEM_IDADE_SIDRA_0_5 = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
-_ORDEM_IDADE_SIDRA_0_6_EDU = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
 
 # populacao-referencia D3: total por idade da SIDRA 10057 (item "frequentando escola/creche (geral)")
 h3('Crianças de 0 a 5 anos que frequentam escola/creche (Censo 2022)')
@@ -1747,21 +1845,26 @@ option_card([("Por idade", lambda: bar_chart([{'label': r["idade"], 'value': r["
     fonte=FONTE_SIDRA_EDU, unidade="Crianças que frequentam escola ou creche"), "sidra_frequencia_escola_0_5_total_2022")], 'grafico')
 
 h3('Taxa de frequência a escola ou creche por idade, raça/cor e sexo (Censo 2022)', antigo='frequência-e-taxa-de-frequência-escolar-por-raçasexo')
-df_taxa_raca = _ordenar_idade(read("sidra_taxa_frequencia_0_6_raca_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
-tr_cols = [c for c in df_taxa_raca.columns if c not in ("idade", "Total")]
-df_taxa_sexo = _ordenar_idade(read("sidra_taxa_frequencia_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_6_EDU)
-ts_cols = [c for c in df_taxa_sexo.columns if c not in ("idade", "Total")]
+# D9/D14/D15 (specs/2026-09-29_pendencias): 0 a 5 anos, taxas do IBGE; amarela e indígena (grupos pequenos) só no
+# total de 0 a 5 anos, na nota -- fora das barras por idade
+_taxa_raca_csv = read("sidra_taxa_frequencia_0_6_raca_2022.csv")
+_taxa_amarela_indigena = _taxa_raca_csv.set_index("idade").loc["Total 0 a 5 anos", "Amarela e indígena"]
+df_taxa_raca = _ordenar_idade(_taxa_raca_csv, _ORDEM_IDADE_SIDRA_0_5)
+tr_cols = ["Branca", "Parda", "Preta"]
+FONTE_TAXA_RACA = (FONTE_SIDRA_EDU + ". Nota: amarela e indígena (grupos pequenos) só no total de 0 a 5 anos: "
+                   + f"{_taxa_amarela_indigena:.1f}".replace(".", ",") + "%")
+df_taxa_sexo = _ordenar_idade(read("sidra_taxa_frequencia_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
+ts_cols = ["Homens", "Mulheres"]
 option_card([
-    ("Por raça/cor", lambda: grouped_bar_chart(df_taxa_raca["idade"], series_from_cols(df_taxa_raca, tr_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU, unidade="% das crianças da idade que frequentam escola ou creche"), "sidra_taxa_frequencia_0_6_raca_2022"),
+    ("Por raça/cor", lambda: grouped_bar_chart(df_taxa_raca["idade"], series_from_cols(df_taxa_raca, tr_cols, fmt='pct1'), fonte=FONTE_TAXA_RACA, unidade="% das crianças da idade que frequentam escola ou creche"), "sidra_taxa_frequencia_0_6_raca_2022"),
     ("Por sexo", lambda: grouped_bar_chart(df_taxa_sexo["idade"], series_from_cols(df_taxa_sexo, ts_cols, fmt='pct1'), fonte=FONTE_SIDRA_EDU, unidade="% das crianças da idade que frequentam escola ou creche"), "sidra_taxa_frequencia_0_6_sexo_2022"),
 ], 'grafico')
 
-h3('Frequência a escola ou creche por idade (PNAD Contínua)', antigo='frequência-escolar-por-idade-pnad-contínua')
-df_pnad = read("frequencia_escolar_pnad_por_idade.csv")
-# PNAD e Matrículas ficam soltos -- indicadores/fontes diferentes entre si,
-# nao um corte do mesmo dado (specification.md §9, mesmo criterio ja usado
-# para nao forcar pills na "Comparação entre faixas etárias" de evitáveis)
-option_card([("Frequência por idade", lambda: bar_chart([{'label': r["Idade"], 'value': r["Total"] * 100} for _, r in df_pnad.iterrows()], fonte="PNAD Contínua (IBGE)", fmt='pct1', unidade="% das crianças da idade que frequentam escola ou creche"), "pnad_frequencia_escolar_por_idade")], 'grafico')
+# D16 (specs/2026-09-29_pendencias, E15): o cartão "PNAD Contínua" trazia exatamente a coluna Total da tabela 10056 do
+# Censo 2022 -- mesmo dado, fonte corrigida, 0 a 5 anos
+h3('Taxa de frequência a escola ou creche por idade (Censo 2022)', antigo=['frequência-escolar-por-idade-pnad-contínua', 'frequência-a-escola-ou-creche-por-idade-pnad-contínua'])
+df_taxa_total = _ordenar_idade(read("sidra_taxa_frequencia_0_5_total_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
+option_card([("Taxa por idade", lambda: bar_chart([{'label': r["idade"], 'value': r["Taxa (%)"]} for _, r in df_taxa_total.iterrows()], fonte=FONTE_SIDRA_EDU, fmt='pct1', unidade="% das crianças da idade que frequentam escola ou creche"), "sidra_taxa_frequencia_0_5_total_2022")], 'grafico')
 
 # populacao-referencia Parte E (matriculas/): série 2007-2025 refeita dos microdados do INEP
 h3('Matrículas de crianças de 0 a 5 anos (Censo Escolar/INEP)')
@@ -1806,7 +1909,7 @@ option_card([
         fonte=FONTE_EPI, unidade="Cobertura vacinal (%)"), "cobertura_vacinal_epi_ano"),
 ], 'grafico')
 
-h3("Famílias no CadÚnico com crianças até 6 anos, por renda e arranjo familiar")
+h3("Famílias no CadÚnico com crianças de 0 a 5 anos, por renda e arranjo familiar", antigo="famílias-no-cadúnico-com-crianças-até-6-anos-por-renda-e-arranjo-familiar")
 nota_metodologica(
     "Arranjo familiar aproximado pela composição do cadastro: número e sexo das pessoas de 18 anos ou mais na família. "
     "\"Uma adulta\" NÃO é o conceito oficial de família monoparental (que depende do parentesco, ausente nesta extração) — "
@@ -1954,8 +2057,8 @@ option_card([("Bairro (2026)", lambda: mapa_svg(df_m_auto, "codbairro", "casos",
     "Lesão autoprovocada notificada por bairro (2026, ano parcial)", "Notificações (2026)",
     "Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos", bins=[1, 3], zero_branco=True), "mapa_notif_autoprovocada_bairro_2026")], 'mapa')
 
-emite_bloco_pendente("Taxa de notificações de violência (todas as naturezas)", "as taxas de violência familiar estão acima; a de violência em geral (não só familiar) ainda não foi extraída do Sinan")
-emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e idade)", "dado ainda não extraído do Tabnet municipal")
+emite_bloco_pendente("Taxa de notificações de violência (todas as naturezas)")
+emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e idade)")
 
 # ================================================================ DIREITO AO BRINCAR ==
 
@@ -1964,7 +2067,7 @@ h2('🧸 Direito ao Brincar')
 # ---- Violência territorial (Data.Rio/IPS) ---------------------------------
 h3('Violência territorial (Data.Rio/IPS, 2024)')
 nota_metodologica(
-    "ATENÇÃO: são dados gerais da população, de todas as idades — NÃO são específicos de crianças (0 a 6 anos) nem de jovens; "
+    "ATENÇÃO: são dados gerais da população, de todas as idades — NÃO são específicos de crianças (0 a 5 anos) nem de jovens; "
     "o indicador \"homicídios de jovens negros\" também se refere à população geral. Um único ano (2024), sem série. "
     "Nível Região Administrativa; a RA XXI Paquetá não tem dado no IPS."
 )
@@ -1987,7 +2090,9 @@ h2('🍽️ Alimentação')
 
 h3('Baixo peso ao nascer')
 option_card([
-    ("% abaixo do peso", lambda: line_chart(df_bp["ano"], [{'label': 'Baixo peso ao nascer', 'values': df_bp['percentual abaixo do peso'], 'format': 'pct1'}], opts={'height': 220, 'table': True}, fonte=FONTE_DATASUS,
+    ("% abaixo do peso", lambda: line_chart(df_bp["ano"], [{'label': 'Baixo peso ao nascer', 'values': df_bp['percentual abaixo do peso'], 'format': 'pct1'}], opts={'height': 220, 'table': True, 'eixoCortado': True},
+        # D3/D12 (specs/2026-09-29_pendencias): única exceção à base zero (P1) -- a variação real (9%-11%) sumia
+        fonte=FONTE_DATASUS + ". Nota: eixo não começa em zero",
         unidade="% dos nascidos vivos com menos de 2.500 g"), "nascidos_abaixo_peso_percentual_por_ano"),
 ], 'grafico')
 
@@ -2017,9 +2122,45 @@ option_card([
 
 h2('🏠 Moradia')
 
-emite_bloco_pendente("Crianças no CadÚnico em domicílios com inadequação habitacional", "Posterior")
-emite_bloco_pendente("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)", "Posterior")
-emite_bloco_pendente("Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)", "Posterior (apenas cad)")
+emite_bloco_pendente("Crianças no CadÚnico em domicílios com inadequação habitacional")
+emite_bloco_pendente("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)")
+emite_bloco_pendente("Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)")
+
+# dados_adhoc (specs/2026-09-29_dados_adhoc): extração pontual de ago/2026, só acréscimo -- os pendentes acima ficam (D3)
+_C03, _C46 = "Crianças de 0 a 3 anos", "Crianças de 4 a 6 anos"
+
+def _cartao_moradia(linha, rotulo):
+    """Crianças de 0 a 6 (0 a 3 + 4 a 6, mesma extração) em destaque, com as faixas; famílias e pessoas como dado
+    secundário (pedido do usuário, 2026-09-29)."""
+    return {"valor": linha[_C03] + linha[_C46], "rotulo": rotulo,
+            "faixas": [("0 a 3 anos", linha[_C03]), ("4 a 6 anos", linha[_C46])],
+            "detalhe": f'{_fmt_ptbr(linha["Famílias"])} famílias · {_fmt_ptbr(linha["Pessoas"])} pessoas'}
+
+def _tabela_moradia(df):
+    """Crianças primeiro (0 a 6 = 0 a 3 + 4 a 6), famílias e pessoas no fim."""
+    df = df.copy()
+    df.insert(1, "Crianças de 0 a 6 anos", df[_C03] + df[_C46])
+    return df[[df.columns[0], "Crianças de 0 a 6 anos", _C03, _C46, "Famílias", "Pessoas"]]
+
+h3('Famílias e crianças no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, ago/2026)')
+aviso_dado_pontual("2026_08")
+_dom = read("cadunico_adhoc_moradia_domicilio_2026_08.csv").set_index("Situação do domicílio")
+cartoes_indicador([_cartao_moradia(_dom.loc["Sem banheiro"], "crianças de 0 a 6 anos em domicílio sem banheiro"),
+                   _cartao_moradia(_dom.loc["Sem água canalizada"], "crianças de 0 a 6 anos em domicílio sem água canalizada")])
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_tabela_moradia(_dom.reset_index())), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_domicilio_2026_08")
+
+h3('Famílias e crianças no CadÚnico por forma de abastecimento de água e de escoamento sanitário (dado pontual, ago/2026)')
+aviso_dado_pontual("2026_08")
+_ter = read("cadunico_adhoc_moradia_territorio_2026_08.csv")
+_esg = _ter[_ter["Serviço"] == "Escoamento sanitário"].set_index("Forma")
+cartoes_indicador([_cartao_moradia(_esg.loc["Vala a céu aberto"], "crianças de 0 a 6 anos com esgoto em vala a céu aberto"),
+                   _cartao_moradia(_esg.loc["Jogado em rio ou mar"], "crianças de 0 a 6 anos com esgoto jogado em rio ou mar"),
+                   _cartao_moradia(_esg.loc["Fossa rudimentar"], "crianças de 0 a 6 anos com esgoto em fossa rudimentar")])
+# uma coluna de texto só (a tabela alinha à direita toda coluna depois da 1ª)
+_ter_site = _ter.assign(Forma=_ter["Serviço"] + ": " + _ter["Forma"].str.lower()).drop(columns="Serviço")
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_tabela_moradia(_ter_site)), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_territorio_2026_08")
+nota_metodologica("Só as formas fora da rede geral (a extração não trouxe a rede geral). Cisterna: a extração registra "
+                  "0 crianças em 1.323 famílias, valor tratado como não informado (—).")
 
 # ============================================================== ASSEMBLE ==
 
@@ -2198,6 +2339,14 @@ navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-l
 # faixa de aviso: controlada por relatorio/publicacao.json (em_desenvolvimento), a mesma chave da marca d'água do PDF
 # (relatorio/latex/build/gera_latex.py) -- as duas saem juntas na versão final (specs/2026-09-28_website_mobile)
 _EM_DESENVOLVIMENTO = json.loads(Path("relatorio/publicacao.json").read_text(encoding="utf-8")).get("em_desenvolvimento", False)
+# regra do usuário (2026-09-29, constituição §3; specs/2026-09-29_dados_adhoc D7): dado pontual só existe no site EM
+# DESENVOLVIMENTO. A versão final (sem a faixa) não é gerada enquanto houver bloco ou item `- dado_pontual:`.
+_PONTUAIS_MD = tem_dados_pontuais(parse_estrutura_eixos("specs/estrutura_eixos.md"))
+if not _EM_DESENVOLVIMENTO and (_DADOS_PONTUAIS or _PONTUAIS_MD):
+    raise SystemExit(
+        "BLOQUEADO: relatorio/publicacao.json diz em_desenvolvimento = false, mas o site ainda tem dado pontual "
+        f"(blocos: {_DADOS_PONTUAIS or '-'}; itens do crosswalk: {_PONTUAIS_MD or '-'}). Dado pontual não vai para a "
+        "versão final: substitua pela extração automatizada ou retire os blocos `dados_adhoc` (ROADMAP) antes de publicar.")
 banner = (
     ('<div class="dev-banner" role="alert">'
      '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
@@ -2302,7 +2451,7 @@ doc = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{TITULO_SITE}</title>
-<meta name="description" content="Indicadores de primeira infância (0 a 6 anos) do município do Rio de Janeiro, por eixo da política municipal.">
+<meta name="description" content="Indicadores de primeira infância (0 a 5 anos) do município do Rio de Janeiro, por eixo da política municipal.">
 <link rel="icon" href="{_v('favicon.ico')}" sizes="32x32">
 <link rel="icon" href="{_v('assets/images/favicon.svg')}" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{_v('assets/images/apple-touch-icon.png')}">

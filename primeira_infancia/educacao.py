@@ -26,6 +26,8 @@ __all__ = [
     '_le_matriculas_zip_inep',
     'carrega_censo_escolar_matriculas',
     'resume_matriculas_0_a_5',
+    '_IDADES_0_A_5_SIDRA',
+    'taxa_frequencia_0_a_5',
 ]
 
 
@@ -125,3 +127,32 @@ def resume_matriculas_0_a_5(df_matriculas, df_ripsa):
         numerador = out['matriculas'] if faixa == '0_a_5' else out[f'matriculas_{faixa}']
         out[f'taxa_atendimento_{faixa}'] = (numerador / out[f'populacao_{faixa}'] * 100).round(1)
     return out.reset_index()
+
+
+# ------------------------------------------------------------------ taxa de frequência 0 a 5 anos (Censo 2022)
+_IDADES_0_A_5_SIDRA = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
+
+def taxa_frequencia_0_a_5(df_taxa, df_populacao, coluna_corte, agrupa=None, rotulo_total='Total 0 a 5 anos'):
+    """Taxa de frequência escolar bruta (%) a escola ou creche, por idade simples e corte (sexo ou raça/cor), 0 a 5 anos
+    (specs/2026-09-29_pendencias D9, D14, D15). Entradas no formato longo de `carrega_sidra_longo` (`idade`, `valor`,
+    `coluna_corte`): `df_taxa` = taxa publicada pelo IBGE (SIDRA 10056), `df_populacao` = população residente (9606).
+
+    Cada grupo mantém a taxa publicada. A linha `rotulo_total` e os grupos de `agrupa`
+    ({'Amarela e indígena': ['Amarela', 'Indígena']}) são agregados somando taxa × população e dividindo pela soma
+    da população -- nunca média simples de taxas. Não se usa frequentam (10057) ÷ população (9606): as duas tabelas
+    vêm de bases diferentes do Censo e a razão passa de 100% (D14). A linha "Total" da 10056 (todas as idades) e os
+    6 anos ficam de fora. Devolve o formato largo: uma linha por idade + total, uma coluna por corte, 2 decimais."""
+    pop = df_populacao.assign(idade=df_populacao['idade'].replace({'Menos de 1 ano': '0 ano'}))
+    taxa = df_taxa[df_taxa['idade'].isin(_IDADES_0_A_5_SIDRA)].pivot_table(
+        index='idade', columns=coluna_corte, values='valor', aggfunc='sum').reindex(_IDADES_0_A_5_SIDRA)
+    den = pop[pop['idade'].isin(_IDADES_0_A_5_SIDRA)].pivot_table(
+        index='idade', columns=coluna_corte, values='valor', aggfunc='sum').reindex(_IDADES_0_A_5_SIDRA)[taxa.columns]
+    num = taxa * den / 100   # frequentam, estimado pela taxa publicada
+    for novo, grupos in (agrupa or {}).items():
+        num[novo], den[novo] = num[grupos].sum(axis=1), den[grupos].sum(axis=1)
+    num.loc[rotulo_total], den.loc[rotulo_total] = num.sum(), den.sum()
+    resultado = (num / den.where(den > 0) * 100).round(2)
+    for col in taxa.columns:   # cada grupo por idade = exatamente a taxa publicada
+        resultado.loc[_IDADES_0_A_5_SIDRA, col] = taxa[col]
+    resultado.columns.name = None
+    return resultado.rename_axis('idade').reset_index()

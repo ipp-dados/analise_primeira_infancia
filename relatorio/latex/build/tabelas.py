@@ -32,6 +32,8 @@ COLUNAS_SEM_MILHAR = re.compile(r"^(ano|idade|cod\w*|codigo|cap|ap|rp|ra)$", re.
 COLUNAS_PCT = re.compile(r"(percent|%|taxa|propor|cobertura)", re.I)
 NOTA_SUPRESSAO = ("Nota: -- indica célula suprimida (menos de 20 famílias ou crianças), "
                   "conforme a regra de proteção de dados do Cadastro Único.")
+NOTA_AGREGACAO = ("Nota: bairros com menos de 20 crianças ou famílias no Cadastro Único aparecem somados por Região "
+                  "Administrativa (“Demais bairros da RA …”), conforme a regra de proteção de dados do Cadastro Único.")
 
 # Tabelas repetidas no PDF (pedido do usuário, 2026-09-25: "many tables seem repetitive... merge/omit some").
 # Só o apêndice do PDF: o site e o DOCX continuam lendo estrutura_eixos.md inteiro.
@@ -104,10 +106,10 @@ AJUSTES = {
         "renomeia": {"Sexo feminino, 0 a 4 anos": "Meninas", "Sexo masculino, 0 a 4 anos": "Meninos",
                      "Total": "População total", "Percentual 0 a 4 anos": "% 0 a 4 anos"}},
     "censo_por_bairro.csv": {"titulo": "População de 0 a 4 e de 5 a 9 anos, por bairro, Censo Demográfico 2022"},
-    "populacao_ripsa_0_a_6_por_ano.csv": {"titulo": "População de 0 a 6 anos, estimativas Ripsa/Ministério da Saúde",
-        "colunas": ["ano", "populacao_0_a_5", "populacao_0_a_6", "populacao_total", "percentual_0_a_6"],
-        "renomeia": {"populacao_0_a_5": "0 a 5 anos", "populacao_0_a_6": "0 a 6 anos", "populacao_total": "População total",
-                     "percentual_0_a_6": "% 0 a 6 anos"}},
+    # specs/2026-09-29_pendencias D9: faixa padrão 0 a 5 anos (nome do arquivo mantido)
+    "populacao_ripsa_0_a_6_por_ano.csv": {"titulo": "População de 0 a 5 anos, estimativas Ripsa/Ministério da Saúde",
+        "colunas": ["ano", "populacao_0_a_5", "populacao_total", "percentual_0_a_5"],
+        "renomeia": {"populacao_0_a_5": "0 a 5 anos", "populacao_total": "População total", "percentual_0_a_5": "% 0 a 5 anos"}},
     "nascidos_vivos_por_ano.csv": {"titulo": "Nascidos vivos de mães residentes no município"},
     "tabela_mapa_nascidos_vivos_2025.csv": {"titulo": "Nascidos vivos por bairro de residência da mãe",
         "renomeia": {"percentual_do_municipio": "% do município"}},
@@ -167,12 +169,12 @@ AJUSTES = {
     "mortalidade_evitaveis_subgrupo_cap_2025.csv": {"titulo": "Óbitos por causas evitáveis, por subgrupo, CAP e faixa etária, 2025",
         "renomeia": {"cod_ap_sms": "CAP", "faixa_etaria": "Faixa etária"}},
     # --- Inclusão
-    "censo_sidra_populacao_0_6_sexo_2022.csv": {"titulo": "População de 0 a 6 anos, por idade e sexo, Censo Demográfico 2022"},
-    "censo_sidra_populacao_0_6_raca_2022.csv": {"titulo": "População de 0 a 6 anos, por idade e cor ou raça, Censo Demográfico 2022"},
+    "censo_sidra_populacao_0_6_sexo_2022.csv": {"titulo": "População de 0 a 5 anos, por idade e sexo, Censo Demográfico 2022"},
+    "censo_sidra_populacao_0_6_raca_2022.csv": {"titulo": "População de 0 a 5 anos, por idade e cor ou raça, Censo Demográfico 2022"},
     "sidra_frequencia_escola_0_5_raca_2022.csv": {"titulo": "Crianças de 0 a 5 anos que frequentam escola ou creche, por idade e cor ou raça, Censo Demográfico 2022"},
-    "sidra_taxa_frequencia_0_6_raca_2022.csv": {"titulo": "Taxa de frequência escolar bruta de 0 a 6 anos (%), por idade e cor ou raça, Censo Demográfico 2022"},
+    "sidra_taxa_frequencia_0_6_raca_2022.csv": {"titulo": "Taxa de frequência escolar bruta de 0 a 5 anos (%), por idade e cor ou raça, Censo Demográfico 2022"},
     "sidra_frequencia_escola_0_5_sexo_2022.csv": {"titulo": "Crianças de 0 a 5 anos que frequentam escola ou creche, por idade e sexo, Censo Demográfico 2022"},
-    "sidra_taxa_frequencia_0_6_sexo_2022.csv": {"titulo": "Taxa de frequência escolar bruta de 0 a 6 anos (%), por idade e sexo, Censo Demográfico 2022"},
+    "sidra_taxa_frequencia_0_6_sexo_2022.csv": {"titulo": "Taxa de frequência escolar bruta de 0 a 5 anos (%), por idade e sexo, Censo Demográfico 2022"},
     "cadunico_razao_populacao_0_a_5_2026.csv": {"titulo": "Crianças de 0 a 5 anos no CadÚnico em relação à população do município",
         "colunas": ["criancas_cadunico_0_a_5", "familias_cadunico", "populacao_ripsa_0_a_5", "razao_percentual"],
         "renomeia": {"criancas_cadunico_0_a_5": "Crianças no CadÚnico", "familias_cadunico": "Famílias no CadÚnico",
@@ -197,7 +199,8 @@ AJUSTES = {
                      "Percentual Primeira Inf. Cadúnico": "% no CadÚnico"}},
     "cadunico_por_faixa_renda_2026.csv": {"titulo": "Crianças de 0 a 5 anos e famílias no CadÚnico, por faixa de renda per capita",
         "colunas": ["faixa de renda (descrição)", "Crianças", "Famílias"], "renomeia": {"faixa de renda (descrição)": "Faixa de renda"}},
-    "frequencia_escolar_pnad_por_idade.csv": {"titulo": "Frequência escolar (%) por idade, PNAD Contínua"},
+    # D16/E15 (specs/2026-09-29_pendencias): substitui "frequencia_escolar_pnad_por_idade.csv" (era a coluna Total da 10056)
+    "sidra_taxa_frequencia_0_5_total_2022.csv": {"titulo": "Taxa de frequência escolar bruta de 0 a 5 anos (%), por idade, Censo Demográfico 2022"},
     "cobertura_vacinal_epi_por_ano.csv": {"titulo": "Cobertura vacinal (%) por imunobiológico"},
     "cobertura_vacinal_epi_comparativo_anos.csv": {"titulo": "Cobertura vacinal (%) por imunobiológico, anos selecionados",
         "pivo": ("imunobiologico", "ano", "cobertura"), "renomeia": {"imunobiologico": "Imunobiológico"}},
@@ -331,6 +334,9 @@ def prepara(caminho):
     if "suprimido" in df.columns:
         meta["suprimido"] = bool(df["suprimido"].astype(bool).any())
         df = df.drop(columns="suprimido")
+    if "agregado_em" in df.columns:   # specs/2026-09-29_privacidade_cadunico: bairro pequeno só dentro do seu conjunto
+        meta["agregado"] = bool(df["agregado_em"].notna().any())
+        df = df[df["agregado_em"].isna()].drop(columns=[c for c in ("agregado_em", "bairros agregados") if c in df.columns])
     if "ano" in df.columns and pd.api.types.is_numeric_dtype(df["ano"]) and df["ano"].nunique() > 1:
         meta["periodo"] = (int(df["ano"].min()), int(df["ano"].max()))
     if aj.get("ultimo_ano") or (meta["bairro"] and "ano" in df.columns and len(df) > LIMIAR_ULTIMO_ANO):
@@ -434,7 +440,9 @@ def _longtable(colspec, ncols, cab, corpo, titulo, rotulo, tamanho, sep):
             r"\end{longtable}}" "\n")
 
 
-def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo):
+def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo, no_corpo=False):
+    """`no_corpo` (specs/2026-09-29_alinhamento_pdf_site D3, `tabela_no_texto:`): tabela dentro de um capítulo -- só vai
+    para paisagem se a largura estimada não couber no retrato (no apêndice, mais de MAX_COLUNAS_RETRATO colunas já basta)."""
     nome = Path(caminho).name
     aj = AJUSTES.get(nome, {})
     df, meta = prepara(caminho)
@@ -445,7 +453,9 @@ def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo):
     elif meta["periodo"] and not tem_ano:
         titulo += f", {meta['periodo'][0]}-{meta['periodo'][1]}"
     titulo = esc(titulo)
-    fonte = fonte_tex + (" " + NOTA_SUPRESSAO if meta["suprimido"] else "")
+    fonte = (fonte_tex + (" " + NOTA_SUPRESSAO if meta["suprimido"] else "")
+             + (" " + NOTA_AGREGACAO if meta.get("agregado") else "")
+             + (" Nota: " + esc(aj["nota"]) if aj.get("nota") else ""))   # nota própria da tabela (AJUSTES)
 
     colunas, specs = [], []
     for c in df.columns:
@@ -494,7 +504,9 @@ def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo):
                 texto = 3.6
             cab_cm = min(len(str(nome)) * 0.19, 2.2)
             return max(texto, cab_cm) + 0.35
-        largo = ncol > MAX_COLUNAS_RETRATO or sum(_larg_col(n, v, a) for n, v, a in zip(df.columns, colunas, specs)) > 15.6
+        largura = sum(_larg_col(n, v, a) for n, v, a in zip(df.columns, colunas, specs))
+        largo = (ncol > MAX_COLUNAS_RETRATO and not no_corpo) or largura > 15.6
+        miudo = largo or ncol > MAX_COLUNAS_RETRATO
         def cab_celula(c, al):
             txt = r"\textbf{" + esc(c) + "}"
             if al == "r" and len(str(c)) > 12:    # cabeçalho longo quebra numa caixa estreita, alinhada à direita
@@ -509,7 +521,7 @@ def tabela_latex(caminho, titulo_secao, fonte_tex, rotulo):
         specs = [(r">{\raggedright\arraybackslash}p{3.6cm}" if al == "l" and max((len(str(v)) for v in col), default=0) > 20
                   else al) for al, col in zip(specs, colunas)]
         tex = _longtable("@{}" + "".join(specs) + "@{}", ncol, cab, corpo, titulo, rotulo,
-                         r"\scriptsize" if largo else r"\small", "3pt" if largo else "5pt")
+                         r"\scriptsize" if miudo else r"\small", "3pt" if miudo else "5pt")
         if largo:
             tex = r"\begin{landscape}" + "\n" + tex + rf"\vspace{{-6pt}}\fonte{{{fonte}}}" + "\n" + r"\end{landscape}" + "\n"
             return tex
