@@ -96,7 +96,7 @@
 - fonte: DataSUS/Tabnet (nascidos vivos)
 - mapa: `mapa_nascidos_vivos_bairro_2025.png`
 - tabela: `tabela_mapa_nascidos_vivos_2025.csv`
-- nota: mesma informação do mapa de contagem, dividida pelo total do município (coluna `percentual_do_municipio` da tabela; no HTML, no tooltip do mapa). O total inclui os nascidos sem bairro informado (6.336 de 65.507 em 2025), por isso os bairros somam ~90%. Sem mapa próprio (`specs/2026-09-24_populacao-referencia`, D1 revisada)
+- nota: mesma informação do mapa de contagem, dividida pelo total do município (coluna `percentual_do_municipio` da tabela; no HTML, no tooltip do mapa). O total inclui os nascidos sem bairro informado (3 de 58.700 em 2025; eram 6.336 de 65.507 antes do filtro de residência, specs/2026-09-30_filtro_residencia_tabnet), por isso os bairros somam ~100%. Sem mapa próprio (`specs/2026-09-24_populacao-referencia`, D1 revisada)
 - nota: movido de Prioridade para a Introdução (specs/2026-09-28_nova_estrutura); a planilha da equipe marca "?" na visualização -- continua sem mapa próprio (D1 revisada)
 
 ## 🎯 Prioridade (sem secundário)

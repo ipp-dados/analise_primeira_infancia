@@ -973,7 +973,8 @@ fonte_datasus_bairro = 'DATASUS/Tabnet, óbitos e nascimentos de residentes no m
 df_vivos_mapa = df_vivos[df_vivos['ano']=='2025'].dropna(subset=['codigo']).copy()
 # populacao-referencia D1 (item "percentual de nascidos vivos por bairro de residência da mãe" do catálogo):
 # nascidos vivos do bairro ÷ total do município × 100. O total INCLUI 'EM BRANCO' (bairro não informado:
-# 6.336 de 65.507 em 2025), então a soma dos bairros fica abaixo de 100% (~90%) e a lacuna fica visível.
+# 3 de 58.700 em 2025, com o filtro de residência -- specs/2026-09-30_filtro_residencia_tabnet; antes, sem o
+# filtro, eram 6.336 de 65.507 e a soma dos bairros ficava em ~90%), então a soma fica em ~100%.
 # O mapa continua sendo o de contagem -- o percentual é a mesma informação dividida por uma constante.
 _total_vivos_2025 = df_vivos.loc[df_vivos['ano']=='2025', 'nascidos vivos'].sum()
 _em_branco_2025 = _total_vivos_2025 - df_vivos_mapa['nascidos vivos'].sum()
@@ -1007,7 +1008,7 @@ serie_temporal(df_vivos_por_ano,tempo='ano',valor='nascidos vivos', titulo='Nasc
 
 # %% [markdown]
 # <!-- nota-curadoria:nascidos_vivos_por_ano -->
-# **Nota de curadoria:** A partir do gráfico de nascidos vivos é possível observar que há uma tendência de queda no número de nascidos vivos na cidade do Rio de Janeiro, com alguns períodos de recuperação. Entre os anos de 2020 e 2021, após um período com uma persistente queda acentuada, a série atinge um patamar muito baixo, período que coincide com o pico da pandemia da COVID-19, apontando que em 2022 a recuperação aparece como um ajuste estatístico da série. Logo, a queda, ainda que não linear, é consistente e aponta para uma redução de cerca de 30% ao longo da série histórica.
+# **Nota de curadoria:** A partir do gráfico de nascidos vivos é possível observar que há uma tendência de queda no número de nascidos vivos na cidade do Rio de Janeiro, com alguns períodos de recuperação. Entre os anos de 2020 e 2021, após um período com uma persistente queda acentuada, a série atinge um patamar muito baixo, período que coincide com o pico da pandemia da COVID-19, e a queda continua nos anos seguintes. Logo, a queda, ainda que não linear, é consistente e aponta para uma redução de cerca de 30% ao longo da série histórica.
 
 # %% [markdown]
 # #### Nascidos abaixo peso
@@ -1047,7 +1048,7 @@ mapa_coropletico_bairros(
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_percentual_baixo_peso_bairro_2025 -->
-# **Nota de curadoria:** Em 2025, a maior parte dos bairros do Rio de Janeiro apresentou percentuais de nascidos com baixo peso entre 7,4% e 29,4%. Alguns bairros apresentam percentuais mais elevados, chegando a valores acima de 20%. Diferentemente dos números absolutos, o mapa percentual permite comparar melhor os bairros, pois considera a quantidade de nascidos com baixo peso em relação ao total de nascimentos. Valores extremos devem ser analisados com cautela, especialmente em bairros com poucos nascimentos.
+# **Nota de curadoria:** Em 2025, a maior parte dos bairros do Rio de Janeiro apresentou percentuais de nascidos com baixo peso entre 6,7% e 28,6%. Alguns bairros apresentam percentuais mais elevados, chegando a valores acima de 20%. Diferentemente dos números absolutos, o mapa percentual permite comparar melhor os bairros, pois considera a quantidade de nascidos com baixo peso em relação ao total de nascimentos. Valores extremos devem ser analisados com cautela, especialmente em bairros com poucos nascimentos.
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_nascidos_baixo_peso_bairro_2025 -->
@@ -1067,7 +1068,7 @@ serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titul
 
 # %% [markdown]
 # <!-- nota-curadoria:nascidos_abaixo_peso_percentual_por_ano -->
-# **Nota de curadoria:** Entre 2006 e 2025, o percentual de nascidos com baixo peso apresentou oscilações moderadas. Após permanecer próximo de 10% até 2010, o indicador caiu e atingiu seu menor valor em 2017, com 9,15%. A partir de 2018, observa-se uma tendência de crescimento, chegando ao pico de 10,63% em 2023. Nos anos seguintes houve pequena redução, com o percentual chegando a 10,26% em 2025.
+# **Nota de curadoria:** Entre 2006 e 2025, o percentual de nascidos com baixo peso apresentou oscilações moderadas. Após permanecer próximo de 9,5% até 2010, o indicador caiu e atingiu seu menor valor em 2017, com 9,15%. A partir de 2018, observa-se uma tendência de crescimento, chegando ao pico de 10,39% em 2023. Nos anos seguintes houve pequena redução, com o percentual chegando a 10,00% em 2025.
 
 # %% [markdown]
 # #### 📉 Mortalidade
@@ -1199,7 +1200,7 @@ serie_temporal_multipla(
 
 # %% [markdown]
 # <!-- nota-curadoria:obitos_raca_ano -->
-# **Nota de curadoria:** A série permite observar mudanças distintas na trajetória dos óbitos segundo raça/cor. Entre 2006 e 2025, os registros para crianças brancas passaram de 468 para 272, enquanto entre crianças pardas passaram de 373 para 396, após oscilações e valores superiores a 500 em alguns anos. Entre crianças pretas, os registros passaram de 89 para 57. A categoria “não informada” também apresentou redução, de 167 para 47, o que altera sua participação na série ao longo do período. Essas diferenças podem ser analisadas em conjunto com os nascidos vivos por raça/cor, disponíveis a partir de 2011, para distinguir composição dos nascimentos e ocorrência dos óbitos.
+# **Nota de curadoria:** A série permite observar mudanças distintas na trajetória dos óbitos segundo raça/cor. Entre 2006 e 2025, os registros para crianças brancas passaram de 468 para 253, enquanto entre crianças pardas passaram de 373 para 375, após oscilações e valores superiores a 500 em alguns anos. Entre crianças pretas, os registros passaram de 89 para 53. A categoria “não informada” também apresentou redução, de 167 para 42, o que altera sua participação na série ao longo do período. Essas diferenças podem ser analisadas em conjunto com os nascidos vivos por raça/cor, disponíveis a partir de 2011, para distinguir composição dos nascimentos e ocorrência dos óbitos.
 
 # %%
 # percentual só existe a partir de 2011 (início da série de nascidos vivos por raça/cor da mãe)
@@ -1221,7 +1222,7 @@ serie_temporal_multipla(
 
 # %% [markdown]
 # <!-- nota-curadoria:percentual_mortalidade_raca_ano -->
-# **Nota de curadoria:** A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, as taxas de crianças brancas e pardas permaneceram próximas, variando de 17,6 a 11,3 e de 19,8 a 14,3 óbitos por mil nascidos vivos, respectivamente. Para crianças pretas, a taxa variou entre 5,0 e 14,3 por mil, enquanto a categoria amarela e indígena, agrupada por ter poucos registros, apresenta oscilações maiores associadas ao pequeno número de casos. A categoria “não informada” aparece só no gráfico de óbitos: a razão entre óbitos e nascidos sem raça/cor informada não é uma taxa comparável às demais. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
+# **Nota de curadoria:** A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, as taxas de crianças brancas e pardas permaneceram próximas, variando de 17,6 a 11,2 e de 19,7 a 10,2 óbitos por mil nascidos vivos, respectivamente. Para crianças pretas, a taxa variou entre 5,0 e 14,3 por mil, enquanto a categoria amarela e indígena, agrupada por ter poucos registros, apresenta oscilações maiores associadas ao pequeno número de casos. A categoria “não informada” aparece só no gráfico de óbitos: a razão entre óbitos e nascidos sem raça/cor informada não é uma taxa comparável às demais. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
 
 # %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025) — total de óbitos, todas as raças
@@ -1245,11 +1246,11 @@ mapa_coropletico_bairros(
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_taxa_obitos_raca_total_bairro_2025 -->
-# **Nota de curadoria:** A taxa de mortalidade infantil permite comparar os bairros considerando a relação entre os óbitos e os nascidos vivos de cada território. Em 2025, Cidade Nova e Gericinó apresentaram a maior taxa registrada, de 71,4 óbitos por mil nascidos vivos, mas com números diferentes de óbitos e nascidos vivos: 3 óbitos entre 42 nascidos vivos em Cidade Nova e 1 entre 14 em Gericinó. Cidade Universitária apresentou 58,8 por mil, com 1 óbito entre 17 nascidos vivos. A comparação entre taxa, número de óbitos e nascidos vivos permite qualificar a leitura das diferenças territoriais e serve de base para relacionar o indicador a outros recortes da mortalidade infantil.
+# **Nota de curadoria:** A taxa de mortalidade infantil permite comparar os bairros considerando a relação entre os óbitos e os nascidos vivos de cada território. Em 2025, Cidade Nova apresentou a maior taxa registrada, de 73,2 óbitos por mil nascidos vivos, com 3 óbitos entre 41 nascidos vivos, seguida por Gericinó, com 62,5 por mil (1 óbito entre 16 nascidos vivos). Ribeira apresentou 45,5 por mil, com 1 óbito entre 22 nascidos vivos. A comparação entre taxa, número de óbitos e nascidos vivos permite qualificar a leitura das diferenças territoriais e serve de base para relacionar o indicador a outros recortes da mortalidade infantil.
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_obitos_raca_total_bairro_2025 -->
-# **Nota de curadoria:** A distribuição territorial dos óbitos infantis evidencia diferenças na quantidade de registros entre os bairros do município. Em 2025, Santa Cruz concentrou 53 óbitos, seguido por Campo Grande, com 40, e Jacarepaguá, com 32. Dos 167 bairros presentes na tabela, 139 registraram ao menos um óbito e 28 não apresentaram registros. Como o mapa utiliza números absolutos, essas diferenças podem ser relacionadas ao número de nascidos vivos de cada território, permitindo complementar a análise com a taxa de mortalidade infantil e outros recortes demográficos.
+# **Nota de curadoria:** A distribuição territorial dos óbitos infantis evidencia diferenças na quantidade de registros entre os bairros do município. Em 2025, Santa Cruz concentrou 53 óbitos, seguido por Campo Grande, com 40, e Jacarepaguá, com 32. Dos 167 bairros presentes na tabela, 130 registraram ao menos um óbito e 37 não apresentaram registros. Como o mapa utiliza números absolutos, essas diferenças podem ser relacionadas ao número de nascidos vivos de cada território, permitindo complementar a análise com a taxa de mortalidade infantil e outros recortes demográficos.
 
 # %%
 ## Retirar não informados do gráfico de percentual
@@ -1971,7 +1972,7 @@ serie_temporal(df_obitos_gravidez_anual,'ano','óbitos-gravidez','Óbitos durant
 
 # %% [markdown]
 # <!-- nota-curadoria:obitos_gravidez_por_ano -->
-# **Nota de curadoria:** A série histórica permite acompanhar a variação dos óbitos ocorridos durante a gravidez no município entre 2006 e 2025. O número de registros passou de 78 em 2006 para 15 em 2025, uma redução de aproximadamente 81%, embora a trajetória apresente oscilações ao longo do período. Em 2024 foram registrados 4 óbitos, seguido de aumento para 15 em 2025. Por se tratar de número absoluto de óbitos, o indicador permite acompanhar a evolução temporal do evento, mas não representa, isoladamente, uma medida de risco. A série pode servir de base para comparações com outros indicadores de mortalidade materna.
+# **Nota de curadoria:** A série histórica permite acompanhar a variação dos óbitos ocorridos durante a gravidez no município entre 2006 e 2025. O número de registros passou de 58 em 2006 para 14 em 2025, uma redução de aproximadamente 76%, embora a trajetória apresente oscilações ao longo do período. Em 2024 foram registrados 4 óbitos, seguido de aumento para 14 em 2025. Por se tratar de número absoluto de óbitos, o indicador permite acompanhar a evolução temporal do evento, mas não representa, isoladamente, uma medida de risco. A série pode servir de base para comparações com outros indicadores de mortalidade materna.
 
 # %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025)
@@ -1993,7 +1994,7 @@ df_obitos_gravidez_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_gravidez_2025
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_obitos_gravidez_bairro_2025 -->
-# **Nota de curadoria:** A distribuição territorial dos óbitos durante a gravidez permite identificar os bairros com registros do evento em 2025. Foram registrados 14 óbitos em 12 bairros, com dois registros em Vigário Geral e Rocinha. O total do mapa é menor que o da série municipal (15 óbitos em 2025) porque 1 registro não tem bairro de residência informado. Como são números absolutos e contagens pequenas, o mapa pode ser utilizado como referência territorial e relacionado a outros indicadores, como nascidos vivos, população e características demográficas, para ampliar a análise da mortalidade materna.
+# **Nota de curadoria:** A distribuição territorial dos óbitos durante a gravidez permite identificar os bairros com registros do evento em 2025. Foram registrados 14 óbitos em 12 bairros, com dois registros em Vigário Geral e Rocinha. O total do mapa é o mesmo da série municipal (14 óbitos em 2025). Como são números absolutos e contagens pequenas, o mapa pode ser utilizado como referência territorial e relacionado a outros indicadores, como nascidos vivos, população e características demográficas, para ampliar a análise da mortalidade materna.
 
 # %%
 df_obitos_puerperio = pd.read_csv('dados_locais/mortalidade/obitos_puerperio_bairro_2006_2025.csv')
@@ -2014,7 +2015,7 @@ serie_temporal(df_obitos_puerperio_anual,'ano','óbitos-puerpério','Óbitos dur
 
 # %% [markdown]
 # <!-- nota-curadoria:obitos_puerperio_por_ano -->
-# **Nota de curadoria:** A série histórica permite acompanhar a variação dos óbitos ocorridos durante o puerpério entre 2006 e 2025. Os registros passaram de 67 em 2006 para 35 em 2025, com oscilações ao longo do período. Destaca-se o aumento observado em 2020 e 2021, quando foram registrados 74 e 109 óbitos, respectivamente, seguido de redução nos anos posteriores. Em 2024 ocorreu o menor número da série, com 33 óbitos, seguido de 35 em 2025. A série pode ser utilizada para comparações temporais com outros indicadores de mortalidade materna.
+# **Nota de curadoria:** A série histórica permite acompanhar a variação dos óbitos ocorridos durante o puerpério entre 2006 e 2025. Os registros passaram de 48 em 2006 para 29 em 2025, com oscilações ao longo do período. Destaca-se o aumento observado em 2020 e 2021, quando foram registrados 63 e 79 óbitos, respectivamente, seguido de redução nos anos posteriores. Em 2024 ocorreu o menor número da série, com 25 óbitos, seguido de 29 em 2025. A série pode ser utilizada para comparações temporais com outros indicadores de mortalidade materna.
 
 # %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025)
@@ -2035,7 +2036,7 @@ df_obitos_puerperio_mapa.to_csv('tabelas_finais//tabela_mapa_obitos_puerperio_20
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_obitos_puerperio_bairro_2025 -->
-# **Nota de curadoria:** A distribuição territorial dos óbitos durante o puerpério permite identificar os bairros com registros do evento em 2025. Foram registrados 31 óbitos distribuídos em 24 bairros, com maior número em Senador Camará, que apresentou 3 registros. Jacarepaguá, Bangu, Pavuna, Guaratiba e Complexo do Alemão registraram 2 óbitos cada, enquanto os demais bairros com ocorrência apresentaram 1 registro. O total do mapa é menor que o da série municipal (35 óbitos em 2025) porque 4 registros não têm bairro de residência informado. Como são números absolutos, o mapa pode ser relacionado a outros indicadores, como nascidos vivos e características demográficas, para ampliar a análise territorial da mortalidade materna.
+# **Nota de curadoria:** A distribuição territorial dos óbitos durante o puerpério permite identificar os bairros com registros do evento em 2025. Foram registrados 29 óbitos distribuídos em 22 bairros, com maior número em Senador Camará, que apresentou 3 registros. Jacarepaguá, Bangu, Pavuna, Guaratiba e Complexo do Alemão registraram 2 óbitos cada, enquanto os demais bairros com ocorrência apresentaram 1 registro. O total do mapa é o mesmo da série municipal (29 óbitos em 2025). Como são números absolutos, o mapa pode ser relacionado a outros indicadores, como nascidos vivos e características demográficas, para ampliar a análise territorial da mortalidade materna.
 
 # %% [markdown]
 # #### 🩺 Mortalidade Neonatal
@@ -2070,7 +2071,7 @@ serie_temporal(df_neonatal_precoce_anual,'ano','taxa_mortalidade_precoce','Taxa 
 
 # %% [markdown]
 # <!-- nota-curadoria:taxa_mortalidade_precoce_ano -->
-# **Nota de curadoria:** A série histórica permite analisar a evolução da mortalidade neonatal precoce em relação ao número de nascidos vivos no município. Entre 2006 e 2025, a taxa passou de 7,86 para 6,42 óbitos por mil nascidos vivos, embora tenha apresentado oscilações ao longo do período. Em 2024, foram registrados 389 óbitos, o menor número da série, seguido de aumento para 420 em 2025. A leitura conjunta da taxa e dos números absolutos permite distinguir mudanças na ocorrência dos óbitos de variações relacionadas ao número de nascidos vivos, servindo como base para comparações temporais e para o cruzamento com outros indicadores de mortalidade infantil.
+# **Nota de curadoria:** A série histórica permite analisar a evolução da mortalidade neonatal precoce em relação ao número de nascidos vivos no município. Entre 2006 e 2025, a taxa passou de 6,86 para 5,68 óbitos por mil nascidos vivos, embora tenha apresentado oscilações ao longo do período. Em 2024, foram registrados 322 óbitos, o menor número da série, seguido de aumento para 333 em 2025. A leitura conjunta da taxa e dos números absolutos permite distinguir mudanças na ocorrência dos óbitos de variações relacionadas ao número de nascidos vivos, servindo como base para comparações temporais e para o cruzamento com outros indicadores de mortalidade infantil.
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2094,11 +2095,11 @@ mapa_coropletico_bairros(
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_taxa_mortalidade_precoce_bairro_2025 -->
-# **Nota de curadoria:** A taxa de mortalidade neonatal precoce permite comparar os bairros considerando o número de nascidos vivos de cada território, evitando a interpretação baseada apenas na quantidade de óbitos. Em 2025, alguns bairros apresentam taxas elevadas associadas a poucos registros de óbitos e a um número reduzido de nascidos vivos, como Gericinó, com 1 óbito entre 14 nascidos vivos, e Cidade Universitária, com 1 entre 17. Por isso, a leitura territorial da taxa deve considerar também o número absoluto de óbitos e o tamanho do denominador. Esses dados podem servir de base para comparar os territórios e aprofundar a análise em conjunto com outros indicadores.
+# **Nota de curadoria:** A taxa de mortalidade neonatal precoce permite comparar os bairros considerando o número de nascidos vivos de cada território, evitando a interpretação baseada apenas na quantidade de óbitos. Em 2025, alguns bairros apresentam taxas elevadas associadas a poucos registros de óbitos e a um número reduzido de nascidos vivos, como Gericinó, com 1 óbito entre 16 nascidos vivos, e Ribeira, com 1 entre 22. Por isso, a leitura territorial da taxa deve considerar também o número absoluto de óbitos e o tamanho do denominador. Esses dados podem servir de base para comparar os territórios e aprofundar a análise em conjunto com outros indicadores.
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_obitos_neonatal_precoce_bairro_2025 -->
-# **Nota de curadoria:** A distribuição dos óbitos neonatais precoces por bairro permite identificar como os 420 óbitos registrados em 2025 estão distribuídos territorialmente. Por apresentar números absolutos, o mapa possibilita comparar a quantidade de óbitos entre os bairros e reconhecer onde esses registros estão mais concentrados. A informação pode ser utilizada como base para cruzamentos com o número de nascidos vivos, relacionando a ocorrência dos óbitos ao tamanho da população exposta. O recorte territorial também pode ser relacionado a outros indicadores de mortalidade infantil e características demográficas dos bairros, ampliando a análise do fenômeno.
+# **Nota de curadoria:** A distribuição dos óbitos neonatais precoces por bairro permite identificar como os 333 óbitos registrados em 2025 estão distribuídos territorialmente. Por apresentar números absolutos, o mapa possibilita comparar a quantidade de óbitos entre os bairros e reconhecer onde esses registros estão mais concentrados. A informação pode ser utilizada como base para cruzamentos com o número de nascidos vivos, relacionando a ocorrência dos óbitos ao tamanho da população exposta. O recorte territorial também pode ser relacionado a outros indicadores de mortalidade infantil e características demográficas dos bairros, ampliando a análise do fenômeno.
 
 # %% [markdown]
 # ##### Tardia (7 a 27 dias)
@@ -2124,7 +2125,7 @@ serie_temporal(df_neonatal_tardia_anual,'ano','taxa_obitos_tardios','Taxa de ób
 
 # %% [markdown]
 # <!-- nota-curadoria:taxa_obitos_tardios_ano -->
-# **Nota de curadoria:** A série histórica permite acompanhar a evolução da mortalidade neonatal tardia em relação ao número de nascidos vivos. Entre 2006 e 2025, a taxa passou de 2,70 para 2,60 óbitos por mil nascidos vivos, com oscilações ao longo do período. O maior valor ocorreu em 2020 (3,46), enquanto o menor foi registrado em 2022 (2,29). No mesmo período, os óbitos tardios passaram de 250 para 170. A leitura conjunta desses indicadores permite diferenciar a variação no número de óbitos da variação proporcional em relação aos nascidos vivos e serve de base para comparações temporais com outros indicadores de mortalidade infantil.
+# **Nota de curadoria:** A série histórica permite acompanhar a evolução da mortalidade neonatal tardia em relação ao número de nascidos vivos. Entre 2006 e 2025, a taxa passou de 2,17 para 2,43 óbitos por mil nascidos vivos, com oscilações ao longo do período. O maior valor ocorreu em 2020 (2,79), enquanto o menor foi registrado em 2011 (1,95). No mesmo período, os óbitos tardios passaram de 178 para 142. A leitura conjunta desses indicadores permite diferenciar a variação no número de óbitos da variação proporcional em relação aos nascidos vivos e serve de base para comparações temporais com outros indicadores de mortalidade infantil.
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2148,11 +2149,11 @@ mapa_coropletico_bairros(
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_taxa_obitos_tardios_bairro_2025 -->
-# **Nota de curadoria:** A taxa de mortalidade neonatal tardia permite comparar os bairros considerando o número de nascidos vivos de cada território. Em 2025, alguns bairros apresentam taxas elevadas mesmo com apenas um óbito, como Cidade Nova, com 1 óbito entre 42 nascidos vivos, e Riachuelo, com 1 entre 66. Dos 161 bairros da tabela, 86 não registraram óbitos tardios. Por isso, a leitura da taxa deve considerar conjuntamente o número de óbitos e o número de nascidos vivos, especialmente nos territórios com menor número de nascimentos. O indicador pode servir de base para comparações territoriais e cruzamentos com outros dados de mortalidade infantil.
+# **Nota de curadoria:** A taxa de mortalidade neonatal tardia permite comparar os bairros considerando o número de nascidos vivos de cada território. Em 2025, alguns bairros apresentam taxas elevadas mesmo com apenas um óbito, como Cidade Nova, com 1 óbito entre 41 nascidos vivos, e Riachuelo, com 1 entre 63. Dos 159 bairros da tabela, 88 não registraram óbitos tardios. Por isso, a leitura da taxa deve considerar conjuntamente o número de óbitos e o número de nascidos vivos, especialmente nos territórios com menor número de nascimentos. O indicador pode servir de base para comparações territoriais e cruzamentos com outros dados de mortalidade infantil.
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_obitos_neonatal_tardia_bairro_2025 -->
-# **Nota de curadoria:** A distribuição territorial dos óbitos neonatais tardios permite identificar como os registros de 2025 se concentram entre os bairros. Na base utilizada para o mapa, 86 bairros não apresentaram registros, enquanto os maiores números ocorreram em Santa Cruz e Campo Grande, com 12 óbitos cada, e Jacarepaguá, com 8. Como se trata de números absolutos, a quantidade de óbitos deve ser interpretada em conjunto com o número de nascidos vivos de cada território. Essa informação pode servir de base para comparar a distribuição dos registros com as respectivas taxas e com outros indicadores de mortalidade neonatal.
+# **Nota de curadoria:** A distribuição territorial dos óbitos neonatais tardios permite identificar como os registros de 2025 se concentram entre os bairros. Na base utilizada para o mapa, 88 bairros não apresentaram registros, enquanto os maiores números ocorreram em Santa Cruz e Campo Grande, com 12 óbitos cada, e Jacarepaguá, com 8. Como se trata de números absolutos, a quantidade de óbitos deve ser interpretada em conjunto com o número de nascidos vivos de cada território. Essa informação pode servir de base para comparar a distribuição dos registros com as respectivas taxas e com outros indicadores de mortalidade neonatal.
 
 # %% [markdown]
 # ##### Pós-neonatal (28 a 364 dias)
@@ -2207,7 +2208,7 @@ serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_pos_neonata
 
 # %% [markdown]
 # <!-- nota-curadoria:taxa_mortalidade_pos_neonatal_ano -->
-# **Nota de curadoria:** Ao longo da série, o indicador apresenta oscilações, com valores mais elevados no início do período e redução até 2020, quando atingiu 3,70 óbitos por mil nascidos vivos. A partir de 2021, observa-se retomada dos valores, chegando a 4,65 em 2024 e 4,48 em 2025. A comparação entre os anos permite identificar mudanças no comportamento desse componente da mortalidade infantil e verificar como sua trajetória se relaciona às variações observadas na taxa de mortalidade infantil total.
+# **Nota de curadoria:** Ao longo da série, o indicador apresenta oscilações, com valores mais elevados no início do período e redução até 2020, quando atingiu 3,69 óbitos por mil nascidos vivos. A partir de 2021, observa-se retomada dos valores, chegando a 4,35 em 2024 e 4,24 em 2025. A comparação entre os anos permite identificar mudanças no comportamento desse componente da mortalidade infantil e verificar como sua trajetória se relaciona às variações observadas na taxa de mortalidade infantil total.
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2231,7 +2232,7 @@ mapa_coropletico_bairros(
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_taxa_mortalidade_pos_neonatal_bairro_2025 -->
-# **Nota de curadoria:** A taxa permite comparar os bairros considerando o número de nascidos vivos de cada território. Em 2025, os maiores valores ocorreram em Cidade Nova (47,62 por mil), Camorim (28,57) e Pitangueiras (26,32). Esses valores correspondem a poucos registros de óbitos: 2 em Cidade Nova, 1 em Camorim e 2 em Pitangueiras. A leitura conjunta da taxa com o número de óbitos e de nascidos vivos é importante para contextualizar as diferenças entre os territórios, especialmente nos bairros com menor número de nascimentos.
+# **Nota de curadoria:** A taxa permite comparar os bairros considerando o número de nascidos vivos de cada território. Em 2025, os maiores valores ocorreram em Cidade Nova (48,78 por mil), Camorim (33,33) e Barra de Guaratiba (20,41). Esses valores correspondem a poucos registros de óbitos: 2 em Cidade Nova, 1 em Camorim e 1 em Barra de Guaratiba. A leitura conjunta da taxa com o número de óbitos e de nascidos vivos é importante para contextualizar as diferenças entre os territórios, especialmente nos bairros com menor número de nascimentos.
 
 # %% [markdown]
 # ##### Total (0 a 364 dias)
@@ -2242,7 +2243,7 @@ serie_temporal(df_mortalidade_infantil_anual,'ano','taxa_mortalidade_infantil','
 
 # %% [markdown]
 # <!-- nota-curadoria:taxa_mortalidade_infantil_ano -->
-# **Nota de curadoria:** A série histórica apresenta oscilações entre 2006 e 2025, com redução até 2017, quando atingiu 11,26 óbitos por mil nascidos vivos. A partir de 2018, observa-se uma retomada gradual, chegando a 13,03 em 2024 e 13,06 em 2025. A comparação ao longo do período permite identificar mudanças no comportamento do indicador e relacioná-las às variações no número de óbitos e de nascidos vivos. A trajetória também pode ser analisada em conjunto com os diferentes componentes da mortalidade na primeira infância.
+# **Nota de curadoria:** A série histórica apresenta oscilações entre 2006 e 2025, com redução até 2017, quando atingiu 11,26 óbitos por mil nascidos vivos. A partir de 2018, observa-se uma retomada gradual, chegando a 12,35 em 2024 e 12,33 em 2025. A comparação ao longo do período permite identificar mudanças no comportamento do indicador e relacioná-las às variações no número de óbitos e de nascidos vivos. A trajetória também pode ser analisada em conjunto com os diferentes componentes da mortalidade na primeira infância.
 
 # %% [markdown]
 # ###### 🗺️ Mapa por bairro (2025)
@@ -2263,7 +2264,7 @@ mapa_coropletico_bairros(
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_mortalidade_infantil_bairro_2025 -->
-# **Nota de curadoria:** Em 2025, foram registrados 773 óbitos infantis nos bairros analisados. Santa Cruz concentrou 53 registros, seguida por Campo Grande, com 40, e Jacarepaguá, com 32. Em 28 dos 167 bairros não houve registro de óbitos. Como os números variam também conforme o tamanho da população de nascidos vivos, a comparação entre os bairros ganha contexto quando relacionada à respectiva taxa de mortalidade infantil.
+# **Nota de curadoria:** Em 2025, foram registrados 724 óbitos infantis nos bairros analisados. Santa Cruz concentrou 53 registros, seguida por Campo Grande, com 40, e Jacarepaguá, com 32. Em 37 dos 167 bairros não houve registro de óbitos. Como os números variam também conforme o tamanho da população de nascidos vivos, a comparação entre os bairros ganha contexto quando relacionada à respectiva taxa de mortalidade infantil.
 
 # %% [markdown]
 # <!-- nota-curadoria:mapa_taxa_mortalidade_infantil_bairro_2025 -->
