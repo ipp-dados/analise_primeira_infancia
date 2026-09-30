@@ -2,8 +2,8 @@
    specs/2026-09-24_website_refactor Blocos 4-6 (protótipo aprovado com ajustes): tokens novos. Nomes que o motor de gráficos
    (js/charts.js) e o gerador usam continuam existindo: --page, --surface, --surface-2,
    --ink*, --hairline*, --accent*, --shadow, --shadow-hover, --c1..--c11, --c-muted. */
-/* fontes (Fraunces, IBM Plex Sans/Mono): <link> no <head> do index.html, não @import aqui -- o @import só
-   começava a baixar depois deste arquivo (specs/2026-09-30_desempenho_site) */
+/* fontes (Fraunces, IBM Plex Sans/Mono): servidas pelo próprio site, @font-face em css/fonts.css
+   (specs/2026-09-30_desempenho_site) */
 
 :root{
   color-scheme: light;

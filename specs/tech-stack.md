@@ -86,7 +86,7 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 ## Site (`website/`) — antes relatório interativo `relatorio/index.html`
 
 - **Site estático, HTML/CSS/JS vanilla** (`specs/2026-09-24_website_refactor`, 2026-09-24) — sem framework, sem
-  passo de build no deploy, sem dependência externa além das fontes do Google Fonts. Até essa rodada
+  passo de build no deploy, sem dependência externa (as fontes, antes do Google Fonts, são servidas pelo próprio site desde `specs/2026-09-30_desempenho_site`). Até essa rodada
   era um único `relatorio/index.html` autocontido (20,9 MB); agora `website/index.html` + `css/`
   (3 arquivos, tokens em `main.css`) + `js/` (`charts.js` motor, `navigation.js` abas, `sidebar.js`
   sumário lateral) + `data/` (gerado: dados dos gráficos e geometria compartilhada dos mapas).

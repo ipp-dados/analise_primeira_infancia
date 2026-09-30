@@ -39,7 +39,7 @@ jobs:
       # fora da lista (ex. um .py ou .md copiado por engano).
       - name: Confere o conteúdo publicado
         run: |
-          fora=$(find _site -type f ! -name '.nojekyll' ! -regex '.*\.\(html\|css\|js\|svg\|png\|jpg\|ico\)$')
+          fora=$(find _site -type f ! -name '.nojekyll' ! -regex '.*\.\(html\|css\|js\|svg\|png\|jpg\|ico\|woff2\)$')
           if [ -n "$fora" ]; then echo "Arquivos fora do permitido:"; echo "$fora"; exit 1; fi
           echo "Conteúdo OK: $(find _site -type f | wc -l) arquivos, $(du -sh _site | cut -f1)"
 
