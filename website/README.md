@@ -52,6 +52,18 @@ mantém os assets do site no git — não remover (e `!/website/build/favicon_op
 - **Números** de `data/charts.js`: `2000.0` → `2000` (mesmo número em JS). Arredondar floats longos foi testado e
   descartado (mudava o antialiasing de algumas linhas).
 
+## Desempenho do carregamento (`specs/2026-09-30_desempenho_site`)
+
+- **Desenho por aba**: os dados de todas as abas continuam no carregamento (`data/charts.js`), mas o gráfico ou mapa de
+  uma aba ainda não aberta só é desenhado quando ela abre (evento `tabchange`) ou, antes disso, no tempo ocioso depois
+  do `load` (um gráfico ou mapa por vez, `preDesenha` em `js/charts.js`). O CSV dos mapas sai no carregamento. Antes,
+  94% do DOM (34 mil elementos, 5.344 regiões de mapa) nascia oculto e travava a página ~1 s num celular médio.
+- **Tooltip dos mapas por delegação**: 3 listeners por `<svg>`, não por região.
+- **Fontes**: `<link rel="preconnect">` + `<link rel="stylesheet">` do Google Fonts no `<head>` (gerado), não
+  `@import` no `main.css` — o `@import` só começava depois do CSS do site.
+- Novo gráfico/mapa: chame `lineChart`/`barChart`/`groupedBarChart` como antes; não desenhe direto no carregamento.
+  Scripts de medição (antes × depois, capturas, CPU 4×): `specs/2026-09-30_desempenho_site/medicao/`.
+
 ## Convenções dos gráficos (`specs/2026-09-25_website_graficos`)
 
 - **Formato do valor** (`format` da série / `fmt` do mapa): `int` contagem; `pct1` percentual (`%`); `pm1` taxa por
