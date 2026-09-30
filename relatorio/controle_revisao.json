@@ -729,6 +729,10 @@
   "cobertura_vacinal_epi_ano": [
    "Texto curado existe, mas a figura está fora do relatório (specs/exclusoes.md E1: chamada comentada em analise.py). Para publicar, descomentar a chamada e devolver a linha em estrutura_eixos.md.",
    "Resolvido em 2026-09-29 (specs/2026-09-29_alinhamento_pdf_site D2): chamada descomentada; figura de volta no PDF e no DOCX, com o texto curado."
+  ],
+  "nascidos_vivos_por_ano": [
+   "Conferir dado: a \"recuperação\" de 2022 era efeito da extração sem filtro de residência (os não residentes entravam a partir de 2022).",
+   "Resolvido em 2026-09-30 (frase trocada: a queda continua depois de 2021; specs/2026-09-30_filtro_residencia_tabnet)."
   ]
  },
  "ajustes_manuais": {
@@ -738,8 +742,10 @@
    "historico": [
     "curadoria_textos_update_1",
     "curadoria_textos_update_2",
-    "correcoes"
-   ]
+    "correcoes",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
   },
   "mapa_obitos_puerperio_bairro_2025": {
    "status": "atualizado",
@@ -747,8 +753,10 @@
    "historico": [
     "curadoria_textos_update_1",
     "curadoria_textos_update_2",
-    "correcoes"
-   ]
+    "correcoes",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
   },
   "percentual_mortalidade_raca_ano": {
    "status": "atualizado",
@@ -758,9 +766,10 @@
     "curadoria_textos_update_3",
     "curadoria_textos_update_4",
     "unidades_2026-09-25",
-    "pendencias_2026-09-29"
+    "pendencias_2026-09-29",
+    "residencia_2026-09-30"
    ],
-   "obs": "2026-09-25: conversão de unidade (por 100 -> por mil nascidos vivos), mesmos números; revisar | 2026-09-29: frase da categoria \"não informada\" trocada (a série saiu do gráfico de taxa, E14); revisar"
+   "obs": "2026-09-25: conversão de unidade (por 100 -> por mil nascidos vivos), mesmos números; revisar | 2026-09-29: frase da categoria \"não informada\" trocada (a série saiu do gráfico de taxa, E14); revisar | 2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
   },
   "mapa_taxa_obitos_raca_total_bairro_2025": {
    "status": "atualizado",
@@ -769,9 +778,10 @@
     "curadoria_textos_update_2",
     "curadoria_textos_update_3",
     "curadoria_textos_update_4",
-    "unidades_2026-09-25"
+    "unidades_2026-09-25",
+    "residencia_2026-09-30"
    ],
-   "obs": "2026-09-25: conversão de unidade (por 100 -> por mil nascidos vivos), mesmos números; revisar"
+   "obs": "2026-09-25: conversão de unidade (por 100 -> por mil nascidos vivos), mesmos números; revisar | 2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
   },
   "sidra_taxa_frequencia_0_6_raca_2022": {
    "status": "atualizado",
@@ -812,6 +822,198 @@
     "pendencias_2026-09-29"
    ],
    "obs": "2026-09-29: texto herdado de pnad_frequencia_escolar_por_idade (D16, E15: o gráfico \"PNAD\" era a coluna Total da 10056 do Censo 2022); números conferem (82,92% aos 4 anos, 90,57% aos 5); conferir a menção implícita à fonte; revisar"
+  },
+  "mapa_mortalidade_infantil_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "mapa_obitos_neonatal_precoce_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "mapa_obitos_neonatal_tardia_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "mapa_obitos_pos_neonatal_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "mapa_obitos_raca_total_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "mapa_percentual_baixo_peso_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "mapa_taxa_mortalidade_pos_neonatal_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "mapa_taxa_mortalidade_precoce_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "mapa_taxa_obitos_tardios_bairro_2025": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "nascidos_abaixo_peso_percentual_por_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "nascidos_vivos_por_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "obitos_gravidez_por_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "obitos_puerperio_por_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "obitos_raca_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "taxa_mortalidade_infantil_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "taxa_mortalidade_pos_neonatal_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "taxa_mortalidade_precoce_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "taxa_obitos_tardios_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "residencia_2026-09-30"
+   ],
+   "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
   }
  }
 }
