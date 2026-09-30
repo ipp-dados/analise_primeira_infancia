@@ -2463,6 +2463,15 @@ def _v(rel, conteudo=None):
     dados = dados.replace(b"\r\n", b"\n")   # mesmo hash com checkout CRLF (Windows) ou LF
     return f"{rel}?v={hashlib.md5(dados).hexdigest()[:8]}"
 
+# fontes do próprio site (specs/2026-09-30_desempenho_site): os @font-face vão no <style> do <head> -- sem pedido de
+# CSS a mais; os woff2 em assets/fonts/ (nome fixo, conteúdo não muda). Sem preload: medido, o preload dos 4 woff2
+# disputava banda com o CSS e atrasava a primeira pintura (~290 -> ~460 ms em 4G simulado).
+# Fonte: website/build/fontes.css, gerado por specs/2026-09-30_desempenho_site/baixa_fontes.py.
+import re as _re
+_FONTES_CSS = (ROOT / "website" / "build" / "fontes.css").read_text(encoding="utf-8")
+_FONTES_CSS = _re.sub(r"\s*\n\s*", "", _re.sub(r"/\*.*?\*/", "", _FONTES_CSS, flags=_re.S)).replace(": ", ":")
+_FONTES_CSS = "/* Fraunces, IBM Plex Sans e IBM Plex Mono: SIL Open Font License 1.1 */" + _FONTES_CSS
+
 doc = f"""<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -2473,6 +2482,7 @@ doc = f"""<!doctype html>
 <link rel="icon" href="{_v('favicon.ico')}" sizes="32x32">
 <link rel="icon" href="{_v('assets/images/favicon.svg')}" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{_v('assets/images/apple-touch-icon.png')}">
+<style>{_FONTES_CSS}</style>
 <link rel="stylesheet" href="{_v('css/main.css')}">
 <link rel="stylesheet" href="{_v('css/layout.css')}">
 <link rel="stylesheet" href="{_v('css/components.css')}">

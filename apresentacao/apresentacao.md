@@ -196,20 +196,20 @@ Os números de gráficos e mapas saem da estrutura do relatório (estrutura_eixo
 
 ![](fig:mapa_obitos_evitaveis_menores_5_anos_cap_2025)
 
-<div class="rotulo">Saúde: 10 Áreas Programáticas (CAP) — não são as 5 Áreas de Planejamento</div>
+<div class="rotulo">Saúde: 10 Áreas Programáticas (CAP) — não são as 5 Áreas de Planejamento<br><small>No mapa: óbitos por causas evitáveis de menores de 5 anos, 2025</small></div>
 </div>
 <div>
 
 ![](fig:mapa_violencia_familiar_mae_taxa_ra_2025)
 
-<div class="rotulo">Violência familiar e homicídios: 33 Regiões Administrativas</div>
+<div class="rotulo">Violência familiar e homicídios: 33 Regiões Administrativas<br><small>No mapa: notificações de violência familiar com a mãe como provável autora, por mil crianças de 0 a 4 anos (Censo 2022), 2025</small></div>
 </div>
 </div>
 
 ---
 <div class="kicker">Parte II · Onde estão</div>
 
-# As crianças estão na Zona Oeste — e pesam mais nas periferias
+# As crianças estão na Zona Oeste — e são mais expressivas nas periferias
 
 <div class="dois">
 <div>
@@ -282,7 +282,7 @@ Eram **{{n:nascidos_pico}}** em {{n:nascidos_pico_ano}}. Os nascimentos se conce
 
 Crianças de até 72 meses cadastradas, por bairro.
 
-<p class="nota">Bairro atribuído pelo CEP; bairros com menos de 20 famílias são somados aos vizinhos da mesma região ("Demais bairros da RA").</p>
+<p class="nota">Bairro atribuído pelo CEP; bairros com menos de 20 crianças ficam sem cor: são somados aos vizinhos da mesma região ("Demais bairros da RA").</p>
 
 </div>
 
@@ -334,6 +334,8 @@ Valores extremos: cerca de Tukey (1,5 x intervalo interquartil), a mesma regra d
 
 Ótimo para planejar a proteção social; enviesado para descrever todas as crianças.
 
+<p class="nota">O gráfico conta famílias: {{n:familias_pobreza}} ({{n:pct_familias_pobreza}}) estão em pobreza.</p>
+
 </div>
 
 ![](fig:cadunico_familias_por_faixa_renda)
@@ -356,13 +358,13 @@ R$ 218 por pessoa é a linha de pobreza do Bolsa Família (desde 2023); de R$ 21
 
 ![](fig:cadunico_familias_por_arranjo)
 
-<div class="rotulo"><strong>{{n:familias_uma_adulta}}</strong> famílias com uma mulher como única adulta; {{n:pct_familias_dois_adultos}} têm um homem e uma mulher</div>
+<div class="rotulo"><strong>{{n:familias_uma_adulta}}</strong> famílias com uma mulher como única adulta ({{n:pct_uma_adulta_pobreza}} delas em pobreza); {{n:pct_familias_dois_adultos}} têm um homem e uma mulher</div>
 </div>
 <div>
 
 ![](fig:mapa_percentual_cadunico_familias_uma_adulta_bairro_2026)
 
-<div class="rotulo">{{n:pct_uma_adulta_pobreza}} delas vivem em pobreza</div>
+<div class="rotulo">% de famílias com uma só adulta, por bairro</div>
 </div>
 </div>
 
@@ -374,9 +376,9 @@ R$ 218 por pessoa é a linha de pobreza do Bolsa Família (desde 2023); de R$ 21
 <div class="lado largo">
 <div>
 
-Menores de 1 ano, {{n:evitaveis_0_364_primeiro_ano}} a 2025.
+Menores de 1 ano, {{n:evitaveis_0_364_primeiro_ano}} a 2025. Ainda assim, em 2025, **{{n:evitaveis_0_364_2025}}** dos {{n:obitos_0_364_2025}} óbitos de bebês (**{{n:pct_evitaveis_0_364_2025}}**) tiveram causas evitáveis.
 
-Ainda assim, **{{n:pct_evitaveis_menores5_2025}}** dos óbitos de menores de 5 anos em 2025 ({{n:evitaveis_menores5_2025}}) eram evitáveis.
+Considerando também as crianças de 1 a 4 anos, **{{n:pct_evitaveis_menores5_2025}}** dos óbitos de menores de 5 anos em 2025 eram evitáveis ({{n:evitaveis_menores5_2025}} de {{n:obitos_menores5_2025}}).
 
 </div>
 
@@ -600,13 +602,13 @@ Slide novo (slide_revision). Retoma o antigo slide de indicadores pendentes: o q
 # Eixos pendentes
 
 <div class="stats" style="--n:2; margin-top:18px">
-<div style="--c:var(--c7)"><b>Direito à Cidade</b><span>necessidade de mais dados primários</span></div>
-<div style="--c:var(--c5)"><b>Participação</b><span>necessidade de mais dados primários</span></div>
+<div style="--c:var(--c7)"><b>Direito à Cidade</b><span>dados primários</span></div>
+<div style="--c:var(--c5)"><b>Participação</b><span>dados primários</span></div>
 </div>
 
 <div class="conecta"></div>
 
-<div class="solucao"><b>Nossa sugestão: pesquisa primária</b><span>uma proposta para os dois eixos, a decidir com as secretarias. Os mapeamentos afetivos já feitos pela Prefeitura do Rio são modelos e casos de estudo para desenhá-la</span></div>
+<div class="solucao"><b>Necessidade: dados primários</b><span>uma proposta para os dois eixos, a decidir com as secretarias. Os mapeamentos afetivos já feitos pela Prefeitura do Rio são modelos e casos de estudo para desenhá-la</span></div>
 
 <!-- revisar -->
 

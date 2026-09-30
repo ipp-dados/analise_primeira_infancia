@@ -542,52 +542,68 @@
   // regiões dos mapas a partir de window.MAPAS (data/charts.js; specs/2026-09-28_melhorias_site U5): o HTML traz o <svg>
   // vazio; aqui entram os <use> (mesmos atributos e ordem que o gerador escrevia antes), a rosa dos ventos e a escala
   // (window.MAPAS_OVERLAYS, uma variante por projeção) e o CSV do cartão (mesmo texto que ia no atributo data-csv)
+  // O CSV sai no carregamento (é barato); os <use>, a rosa e a escala só quando a aba do mapa abre (montaRegioes).
   function montaMapas(){
-    const M = window.MAPAS || {}, IDS = window.GEO_IDS || {}, NOMES = window.GEO_NOMES || {}, NS = 'http://www.w3.org/2000/svg';
+    const M = window.MAPAS || {}, IDS = window.GEO_IDS || {}, NOMES = window.GEO_NOMES || {};
     Object.keys(M).forEach(id=>{
       const svg = document.getElementById(id), m = M[id], ids = IDS[m.n];
       if (!svg || !ids) return;
-      const frag = document.createDocumentFragment();
-      ids.forEach((gid, k)=>{
-        const u = document.createElementNS(NS, 'use');
-        u.setAttribute('href', '#' + gid); u.setAttribute('fill', m.c[m.i[k]]); u.setAttribute('data-v', m.v[k]);
-        frag.appendChild(u);
-      });
-      svg.appendChild(frag);
-      svg.insertAdjacentHTML('beforeend', (window.MAPAS_OVERLAYS || [])[m.o] || '');   // rosa dos ventos + escala
       const card = svg.closest('.map-svg-card'), x = m.x || m.v;
       if (card) card.dataset.csv = [m.h.join(';')].concat(ids.map((gid, k)=>String(NOMES[gid]).replace(/;/g, ',') + ';' + x[k])).join('\n');
+      if (!painelFechado(svg)) montaRegioesDe(svg);
     });
   }
+  function montaRegioesDe(svg){
+    const m = (window.MAPAS || {})[svg.id], ids = m && (window.GEO_IDS || {})[m.n], NS = 'http://www.w3.org/2000/svg';
+    if (!ids || svg._montado) return;
+    svg._montado = true;
+    const frag = document.createDocumentFragment();
+    ids.forEach((gid, k)=>{
+      const u = document.createElementNS(NS, 'use');
+      u.setAttribute('href', '#' + gid); u.setAttribute('fill', m.c[m.i[k]]); u.setAttribute('data-v', m.v[k]);
+      frag.appendChild(u);
+    });
+    svg.appendChild(frag);
+    svg.insertAdjacentHTML('beforeend', (window.MAPAS_OVERLAYS || [])[m.o] || '');   // rosa dos ventos + escala
+  }
+  function montaRegioes(p){ p.querySelectorAll('.map-svg').forEach(montaRegioesDe); }
 
+  // tooltip dos mapas por delegação: 3 listeners por <svg> em vez de 3 por região (eram ~16 mil). Regiões são
+  // <use href="#gb12"> etc. (geometria em data/geo.js); o nome vem de window.GEO_NOMES -- o que não tem nome (rosa,
+  // escala) não é região.
   function initMapTooltips(){
+    const NOMES = window.GEO_NOMES || {};
+    const regiao = t => (t && t.tagName === 'use' && NOMES[(t.getAttribute('href') || '').slice(1)] !== undefined) ? t : null;
     document.querySelectorAll('.map-svg-card').forEach(card=>{
       const svg = card.querySelector('.map-svg');
       if (!svg) return;
       const tooltip = document.createElement('div'); tooltip.className = 'chart-tooltip';
       tooltip.style.position = 'absolute';
       card.appendChild(tooltip);
-      // regiões são <use href="#gb12"> etc. (geometria em data/geo.js); nome vem de window.GEO_NOMES
       let tocada = null;
-      svg.querySelectorAll('use[href]').forEach(path=>{
-        const nome = (window.GEO_NOMES || {})[path.getAttribute('href').slice(1)] || '';
-        const mostra = e=>{
-          const r = card.getBoundingClientRect();
-          tooltip.innerHTML = '<div class="tt-row"><b>'+nome+'</b></div><div class="tt-row">'+path.dataset.v+'</div>';
-          tooltip.style.display = 'block';
-          // preso às bordas do cartão (no celular o tooltip saía da tela -- specs/2026-09-28_website_mobile §5)
-          tooltip.style.left = Math.max(4, Math.min(e.clientX - r.left + 12, r.width - tooltip.offsetWidth - 4)) + 'px';
-          tooltip.style.top = Math.max(4, e.clientY - r.top - 34 - (e.pointerType && e.pointerType !== 'mouse' ? 30 : 0)) + 'px';
-          tooltip.style.transform = 'none';
-        };
-        path.addEventListener('mousemove', mostra);
-        path.addEventListener('pointerleave', e=>{ if (e.pointerType === 'mouse' && tocada !== path) tooltip.style.display = 'none'; });
-        // toque: mostra e destaca a região; tocar em outra troca; tocar fora do mapa fecha (listener global)
-        path.addEventListener('pointerup', e=>{
-          if (e.pointerType === 'mouse') return;
-          if (tocada) tocada.classList.remove('toque');
-          tocada = path; path.classList.add('toque'); mostra(e);
-        });
+      const mostra = (path, e)=>{
+        const r = card.getBoundingClientRect();
+        tooltip.innerHTML = '<div class="tt-row"><b>'+NOMES[path.getAttribute('href').slice(1)]+'</b></div><div class="tt-row">'+path.dataset.v+'</div>';
+        tooltip.style.display = 'block';
+        // preso às bordas do cartão (no celular o tooltip saía da tela -- specs/2026-09-28_website_mobile §5)
+        tooltip.style.left = Math.max(4, Math.min(e.clientX - r.left + 12, r.width - tooltip.offsetWidth - 4)) + 'px';
+        tooltip.style.top = Math.max(4, e.clientY - r.top - 34 - (e.pointerType && e.pointerType !== 'mouse' ? 30 : 0)) + 'px';
+        tooltip.style.transform = 'none';
+      };
+      svg.addEventListener('mousemove', e=>{ const path = regiao(e.target); if (path) mostra(path, e); });
+      // saiu de uma região (para o mar, a rosa ou fora do mapa) sem entrar em outra: esconde, como antes
+      svg.addEventListener('pointerout', e=>{
+        if (e.pointerType !== 'mouse') return;
+        const de = regiao(e.target);
+        if (de && tocada !== de && !regiao(e.relatedTarget)) tooltip.style.display = 'none';
+      });
+      // toque: mostra e destaca a região; tocar em outra troca; tocar fora do mapa fecha (listener global)
+      svg.addEventListener('pointerup', e=>{
+        if (e.pointerType === 'mouse') return;
+        const path = regiao(e.target);
+        if (!path) return;
+        if (tocada) tocada.classList.remove('toque');
+        tocada = path; path.classList.add('toque'); mostra(path, e);
       });
       card._esconde = ()=>{ tooltip.style.display = 'none'; if (tocada) { tocada.classList.remove('toque'); tocada = null; } };
     });
@@ -637,13 +653,56 @@
       if (mob !== c._mob || Math.abs(w - c._w) >= 40) agendaRedesenho(c);
     });
   }) : null;
+  // desenho por aba (specs/2026-09-30_desempenho_site): gráfico de aba ainda não aberta fica registrado e nasce na
+  // primeira vez que a aba abre (evento tabchange, antes da rolagem até o alvo). Os dados continuam todos no
+  // carregamento -- só o desenho espera. 94% do DOM estava em abas ocultas.
+  const adiados = new Map();   // painel -> contêineres
+  function painelFechado(el){
+    const p = el.closest('.tab-panel');
+    return p && !p._aberto ? p : null;
+  }
+  function nasce(container){
+    desenha(container);
+    if (observador) observador.observe(container);
+  }
   function registra(fn){
     return function(container, cfg){
       container._grafico = {fn: fn, cfg: cfg};
-      desenha(container);
-      if (observador) observador.observe(container);
+      const p = painelFechado(container);
+      if (!p) { nasce(container); return; }
+      if (!adiados.has(p)) adiados.set(p, []);
+      adiados.get(p).push(container);
     };
   }
+  function abrePainel(p){
+    if (!p || p._aberto) return;
+    p._aberto = true;
+    montaRegioes(p);
+    (adiados.get(p) || []).forEach(nasce);
+    adiados.delete(p);
+  }
+  document.addEventListener('tabchange', e=>abrePainel(e.detail.panel));
+  // depois do load, o tempo ocioso desenha as outras abas aos pedaços (um gráfico ou um mapa por vez), para a
+  // primeira troca de aba não pagar o desenho inteiro; o que faltar quando a aba abrir sai na hora (abrePainel)
+  const ocioso = window.requestIdleCallback || (f => setTimeout(()=>f({timeRemaining: ()=>8}), 30));
+  function preDesenha(){
+    const fila = [];
+    document.querySelectorAll('.tab-panel').forEach(p=>{
+      if (p._aberto) return;
+      p.querySelectorAll('.map-svg').forEach(svg=>fila.push(()=>montaRegioesDe(svg)));
+      (adiados.get(p) || []).forEach(c=>fila.push(()=>{
+        const lista = adiados.get(p), i = lista ? lista.indexOf(c) : -1;
+        if (i < 0) return;   // a aba abriu antes e já desenhou
+        lista.splice(i, 1); nasce(c);
+      }));
+    });
+    const passo = prazo=>{
+      while (fila.length && prazo.timeRemaining() > 4) fila.shift()();
+      if (fila.length) ocioso(passo);
+    };
+    ocioso(passo);
+  }
+  window.addEventListener('load', preDesenha);
   const lineChart = registra(desenhaLinha), groupedBarChart = registra(desenhaBarras);
 
   // mapas: --map-esc = unidades do viewBox por px na tela; mobile.css usa para manter escala e rosa legíveis
