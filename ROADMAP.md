@@ -14,6 +14,16 @@ Organização em duas partes:
 
 # A fazer
 
+## 00. Pendente para 2026-10-01: push e deploy
+
+Tudo está commitado **só localmente** (decisão do usuário em 2026-09-30: não enviar hoje). Falta:
+(1) `git push origin staging_main` (rodadas `spec/desempenho_site` e `spec/filtro_residencia_tabnet` já mescladas);
+(2) `git push origin demo` (merge de `staging_main` com site e PDF regerados na demo);
+(3) push das branches `spec/desempenho_site` e `spec/filtro_residencia_tabnet` (ou tag `rodada/<nome>`, constituição §7);
+(4) deploy manual do Pages a partir da `demo` (Actions → "Deploy relatório"; o workflow agora aceita `.woff2`).
+Antes do push, revisar no deck: slide 32 ("uma proposta… desenhá-la" sem referente depois do título "Necessidade: dados
+primários") e slide 21 (723 óbitos de bebês na tabela de evitáveis × 724 nos exports por bairro).
+
 ## 0a. Filtro de residência nos exports por bairro do Tabnet (`specs/2026-09-30_filtro_residencia_tabnet`)
 
 Aberta e implementada em 2026-09-30: os 20 exports por bairro do SIM/SINASC (Tabnet SMS-Rio) vinham sem o filtro de
