@@ -466,3 +466,70 @@ usuário no mesmo dia: slide "produto vivo, construído com as secretarias" no i
 extremos (versão de impressão com teto no percentil 95 e, no mapa do IPS, o Centro tratado como outlier pela regra
 de Tukey do site); slides de matrículas por rede e de adultos por família no CadÚnico; população padronizada com
 469 mil (0 a 6 anos, Ripsa 2025) como número-âncora.
+
+## 2026-09-29 — `specs/pendencias` (pendências: faixa 0 a 5, exclusões E12-E15, eixo cortado, tablet)
+
+Faixa padrão do projeto passa a ser 0 a 5 anos (até 72 meses), com nota quando os 6 anos forem necessários: população
+do Censo e da Ripsa, taxas de frequência escolar (IBGE, agregadas por taxa × população), títulos do catálogo como "até
+72 meses" e o número-âncora do deck em 393 mil. Mapa de mortalidade infantil duplicado sai do cartão neonatal (E13);
+"Não informada" sai da taxa por raça/cor (E14); amarela e indígena só no total 0-5 (E12); gráfico "PNAD" era o Censo
+2022 e foi substituído (E15); baixo peso com eixo cortado (única exceção à base zero); tablet com alvos de 44 px e
+gráficos na largura real. Correção de passagem: `carrega_cadunico_familias_0_6` apontava para o esquema `ctpe`, que o
+banco não tem mais.
+
+## 2026-09-29 — `specs/alinhamento_pdf_site` (PDF alinhado ao site; quadros de pendente formais)
+
+PDF segue o site na ordem de Prioridade (taxa de mortalidade na primeira infância logo depois das neonatais); série de
+cobertura vacinal de volta (chamada descomentada); tabelas de violência familiar por CAP e de CadÚnico ÷ população no
+corpo da seção (chave nova `tabela_no_texto:`), como no site; seção vazia de causas evitáveis por raça/cor fora (E16).
+Quadros de indicador pendente, no site e no PDF, com a frase fixa e um motivo formal por item (chave `motivo:`,
+obrigatória) — sai o texto interno ("baixar dados — Léo", "Posterior").
+
+## 2026-09-29 — `specs/privacidade_cadunico` (bairros pequenos do CadÚnico agregados por RA)
+
+Regra de proteção do CadÚnico reforçada: por bairro, a célula pequena deixa de ficar vazia e é somada aos outros
+bairros pequenos da mesma Região Administrativa ("Demais bairros da RA X"; depois AP e município), com totais que
+fecham; em percentual, o bairro também entra no conjunto quando o numerador ou o complemento é menor que 20 (o
+percentual × o total publicado devolvia contagens pequenas em 6 bairros no mapa de crianças negras e 14 no de famílias
+com uma adulta). Aplicado às tabelas versionadas, aos mapas, ao site e ao PDF. Achado registrado no ROADMAP: um commit
+de 2026-09-09, anterior à regra, tem contagens abaixo de 20 no histórico do GitHub.
+
+## 2026-09-29 — `specs/slide_revision` (deck de 30 para 33 slides; rótulos de renda do CadÚnico)
+
+Deck reorganizado pelo pedido de revisão (`revision_readme.md`) com as decisões D1-D8: 33 slides (sai a tabela de
+pendentes; entram causas evitáveis por faixa etária, mapas de violência familiar por bairro (mãe e pai) e
+dois slides de eixos incompletos/ausentes), "até 72 meses" com a nota "= 0 a 5 anos completos", 393 mil como referência
+(o 469 mil de 0-6 fica só como 3ª caixa do slide da população, D10), três caixas no slide da população com a Ripsa
+de até 72 meses em destaque, Direito à Cidade e Participação como eixos distintos com a pesquisa primária como solução comum, "Governança de Dados", nota de
+família monoparental destacada, contato `pesquisaeavaliacao.ipp@prefeitura.rio`. Mapas só do deck
+(`apresentacao/build/mapas_apresentacao.py`, agora com `cmap`/`bins`/`outlier`/`filtro`/`soma`): população em rampa
+terracota (nenhuma terra azul), mortalidade infantil e baixo peso com teto de Tukey e os bairros extremos nomeados no
+rodapé. Violência familiar sem soma de vínculos (D9, revisão de D7 pelo usuário: a mesma notificação pode citar mais de um
+autor): mãe, pai e outros separados no slide 25 e mapas de mãe e pai no slide 26. Os gráficos do deck passam a vir da
+versão de impressão (`visualizacoes/a4/`, sem título embutido) e a legenda de `grafico_barra_agrupado` sai de cima das
+barras. Projeto todo (D1): as faixas de renda do CadÚnico passam a
+"Pobreza (até R$ 218)" e "Baixa renda (R$ 218 a 810)" — R$ 218 per capita é a linha de pobreza do Bolsa Família desde
+2023 — no pacote, nas tabelas, no site, no PDF e no texto curado. `_a4_mapa` não aplica mais o P95 quando recebe um
+teto explícito.
+
+## 2026-09-29 — DOCX de curadoria com os textos curados de volta
+
+`relatorio/curadoria_textos.docx` estava só com lorem desde d29cdb0 (regerado sem o DOCX anterior; os 77 textos seguiam
+em `textos_curados.json`, e o site e o PDF não foram afetados). Regerado com os textos do JSON, já com as correções de
+0 a 5 anos e da linha de pobreza. `gera_docx_curadoria.py` passa a ler `textos_curados.json` sempre (precedência:
+`--textos` > JSON > DOCX anterior > placeholder) e avisa quando um texto do DOCX anterior difere do JSON.
+
+## 2026-09-29 — `specs/2026-09-29_dados_adhoc` (dados pontuais do CadÚnico em Moradia e Inclusão)
+
+Extração pontual do CadÚnico (ref. 08/2026, fora da rotina) entra **só por acréscimo** no site, no PDF e no deck: crianças
+com deficiência e cobertura do BPC (Inclusão), domicílios sem banheiro/sem água canalizada e formas de abastecimento e
+de escoamento fora da rede geral (Moradia). Os quadros de pendente continuam. Aviso público "Dado pontual" (manifesto
+`dados_locais/cadunico/adhoc_2026_08.json`, campo novo `- dado_pontual:` no crosswalk) e nota da faixa 4 a 6 anos (inclui
+os 6 anos). Substituição pela extração automatizada no 4º tri de 2026 no `ROADMAP.md`.
+
+## 2026-09-29 — regra: dado pontual fora do relatório e bloqueio da versão final do site
+
+Dado pontual (`- dado_pontual:`) nunca entra no PDF (o gerador o descarta; PDF de novo igual ao publicado) e bloqueia a
+versão final do site: sem a faixa "em desenvolvimento", `build_site.py` e o deploy param (constituição §3,
+`specs/2026-09-29_dados_adhoc` D7). Deck: um slide para Inclusão e outro para Moradia; site com crianças de 0 a 6 e
+faixas em destaque (D5, D6).

@@ -95,3 +95,7 @@ V5 (PDF 104 → 123 páginas, sem gráfico/mapa cortado); V6 (DOCX regenerado, i
 (3) G8 usa só bairros com ≥100 crianças; (4) unidade dos homicídios do IPS não declarada no xlsx — rotulada "taxa, conforme IPS" (a confirmar: por 100 mil hab.);
 (5) D2/D5/D6/D7/D8/D9/D10 seguiram os padrões propostos, sem objeção; D8 (corte de G3/G8/M8-M10) não aplicado — gerar tudo, decidir na revisão visual;
 (6) `specs/roadmap.md` tem edição do usuário não commitada e não foi tocado.
+
+## Adendo (2026-09-29, `specs/2026-09-29_pendencias` D6)
+Item (4) acima fechado pelo usuário: a unidade dos indicadores do IPS é **por 100 mil habitantes** (convenção do IPS
+Rio), como o site já rotula. Não há ressalva publicada a tirar.

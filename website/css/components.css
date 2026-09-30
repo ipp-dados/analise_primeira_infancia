@@ -237,3 +237,28 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.76rem;}
 .eixo-card-meta{font-family:var(--font-mono); font-size:.66rem; color:var(--ink-3); margin-top:auto;}
 
 /* telas estreitas (empilhamento, pills, legenda, botões): css/mobile.css (specs/2026-09-28_website_mobile) */
+
+/* ---------- dados pontuais (specs/2026-09-29_dados_adhoc): cartões de indicador e barras de proporção ----------
+   Classes novas, só usadas pelos blocos "dado pontual" de Inclusão e Moradia -- nada do que já existe muda. */
+.kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:14px; margin:14px 0 22px;}
+.kpi{background:var(--surface); box-shadow:var(--shadow-1); border-radius:var(--radius-md); padding:18px 20px;
+  border-top:3px solid var(--accent);}
+.kpi-contexto{background:var(--surface-2); box-shadow:inset 0 0 0 1px var(--hairline); border-top-color:var(--ink-3);}
+.kpi-valor{font-family:var(--font-display); font-weight:600; font-size:2rem; line-height:1.1; color:var(--ink);
+  font-variant-numeric:tabular-nums;}
+.kpi-contexto .kpi-valor{font-size:1.6rem; color:var(--ink-2);}
+.kpi-rotulo{font-size:.88rem; line-height:1.45; color:var(--ink-2); margin-top:6px;}
+.kpi-detalhe{font-size:.78rem; line-height:1.45; color:var(--ink-3); margin-top:8px;}
+
+.razao-lista{display:grid; gap:16px; margin:10px 0 4px; max-width:720px;}
+.razao-cab{display:flex; justify-content:space-between; align-items:baseline; gap:12px; font-size:.88rem; color:var(--ink);}
+.razao-valor{font-weight:600; font-variant-numeric:tabular-nums;}
+.razao-trilho{height:12px; margin-top:6px; background:var(--surface-3); border-radius:var(--radius-pill); overflow:hidden;}
+.razao-barra{height:100%; background:var(--accent); border-radius:var(--radius-pill);}
+.razao-detalhe{font-size:.78rem; color:var(--ink-3); margin-top:4px; font-variant-numeric:tabular-nums;}
+/* faixas etárias em destaque logo abaixo do número (crianças de 0 a 3 e de 4 a 6); famílias/pessoas ficam no detalhe */
+.kpi-faixas{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; margin-top:12px; padding-top:10px;
+  border-top:1px solid var(--hairline-2);}
+.kpi-faixas b{display:block; font-family:var(--font-display); font-weight:600; font-size:1.25rem; line-height:1.15;
+  color:var(--accent-ink); font-variant-numeric:tabular-nums;}
+.kpi-faixas span{display:block; font-size:.78rem; color:var(--ink-2); margin-top:2px;}

@@ -43,6 +43,18 @@ jobs:
           if [ -n "$fora" ]; then echo "Arquivos fora do permitido:"; echo "$fora"; exit 1; fi
           echo "Conteúdo OK: $(find _site -type f | wc -l) arquivos, $(du -sh _site | cut -f1)"
 
+      # Regra do usuário (2026-09-29, specs/constitution.md §3; specs/2026-09-29_dados_adhoc D7): dado pontual
+      # (blocos marcados data-dado-pontual) só pode ir ao ar com a faixa "EM DESENVOLVIMENTO". Versão final com
+      # dado pontual = deploy bloqueado.
+      - name: Bloqueia dado pontual na versão final
+        run: |
+          if grep -q 'data-dado-pontual' _site/index.html && ! grep -q 'class="dev-banner"' _site/index.html; then
+            echo "BLOQUEADO: versão final (sem a faixa EM DESENVOLVIMENTO) com dado pontual. Retire os blocos dados_adhoc"
+            echo "ou substitua pela extração automatizada antes de publicar (ROADMAP.md)."
+            exit 1
+          fi
+          echo "Dado pontual: OK"
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

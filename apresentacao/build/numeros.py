@@ -41,19 +41,16 @@ def _ultimo(df, col="ano"):
 
 
 # ---------------------------------------------------------------- população
-@numero
-def pop_0_6_ripsa_2025():
-    return fmt_int(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["populacao_0_a_6"])
-
-
+# specs/2026-09-29_pendencias D9/D17: a âncora é 0 a 5 anos (faixa padrão do projeto); 0 a 6 anos só na nota
+# "a política fala em até 6 anos" (`pop_0_6_ripsa_mil`)
 @numero
 def pop_0_6_ripsa_mil():
     return fmt_int(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["populacao_0_a_6"] / 1000) + " mil"
 
 
 @numero
-def pct_0_6_ripsa_2025():
-    return fmt_pct(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["percentual_0_a_6"])
+def pct_0_5_ripsa_2025():
+    return fmt_pct(_ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))["percentual_0_a_5"])
 
 
 def _ripsa_ano(ano):
@@ -62,20 +59,20 @@ def _ripsa_ano(ano):
 
 
 @numero
-def pop_0_6_ripsa_2000_mil():
-    return fmt_int(_ripsa_ano(2000)["populacao_0_a_6"] / 1000) + " mil"
+def pop_0_5_ripsa_2000_mil():
+    return fmt_int(_ripsa_ano(2000)["populacao_0_a_5"] / 1000) + " mil"
 
 
 @numero
-def pct_0_6_ripsa_2000():
-    return fmt_pct(_ripsa_ano(2000)["percentual_0_a_6"])
+def pct_0_5_ripsa_2000():
+    return fmt_pct(_ripsa_ano(2000)["percentual_0_a_5"])
 
 
 @numero
-def queda_0_6_ripsa_2000():
-    """Queda da população de 0 a 6 anos entre 2000 e o último ano da série (mesma fonte, Ripsa)."""
+def queda_0_5_ripsa_2000():
+    """Queda da população de 0 a 5 anos entre 2000 e o último ano da série (mesma fonte, Ripsa)."""
     ult = _ultimo(_csv("populacao_ripsa_0_a_6_por_ano.csv"))
-    return fmt_pct((1 - ult["populacao_0_a_6"] / _ripsa_ano(2000)["populacao_0_a_6"]) * 100, 0)
+    return fmt_pct((1 - ult["populacao_0_a_5"] / _ripsa_ano(2000)["populacao_0_a_5"]) * 100, 0)
 
 
 @numero
@@ -148,9 +145,18 @@ def top1_bairro_0_4_n():
 
 
 @numero
-def pct_negras_0_6_censo():
-    d = _csv("censo_sidra_populacao_0_6_raca_2022.csv")
-    return fmt_pct((d["Parda"].sum() + d["Preta"].sum()) / d["Total"].sum() * 100, 0)
+def censo_0_5_2022_mil():
+    """Crianças de 0 a 5 anos (até 72 meses) no Censo 2022, SIDRA 9606, linha "Total 0 a 5 anos"."""
+    d = _csv("censo_sidra_populacao_0_6_raca_2022.csv").set_index("idade").loc["Total 0 a 5 anos"]
+    return fmt_int(d["Total"] / 1000) + " mil"
+
+
+@numero
+def pct_negras_0_5_censo():
+    """Pardas + pretas na linha "Total 0 a 5 anos" (specs/2026-09-29_pendencias D9). Antes somava todas as linhas, inclusive
+    o "Total" de todas as idades da tabela 9606 -- efeito mínimo (54,3% contra 54,4% corretos), mas errado."""
+    d = _csv("censo_sidra_populacao_0_6_raca_2022.csv").set_index("idade").loc["Total 0 a 5 anos"]
+    return fmt_pct((d["Parda"] + d["Preta"]) / d["Total"] * 100, 0)
 
 
 # ---------------------------------------------------------------- nascimentos e mortalidade
@@ -231,11 +237,13 @@ def razao_cadunico():
     return fmt_pct(_razao_cad()["razao_percentual"])
 
 
+# specs/2026-09-29_slide_revision D1: R$ 218 per capita é a linha de POBREZA (Bolsa Família, desde 2023), não de extrema
+# pobreza. As faixas são lidas pela chave do CTPE (`0-218`), não pelo rótulo, que é texto de apresentação.
 @numero
-def pct_cadunico_extrema_pobreza():
+def pct_cadunico_pobreza():
     d = _csv("cadunico_por_faixa_renda_2026.csv")
     d = d[d["faixa de renda"] != "Total"]
-    return fmt_pct(d.iloc[0]["Crianças"] / d["Crianças"].sum() * 100, 0)
+    return fmt_pct(d.loc[d["faixa de renda"] == "0-218", "Crianças"].sum() / d["Crianças"].sum() * 100, 0)
 
 
 def _arranjo(nome):
@@ -259,9 +267,14 @@ def pct_familias_dois_adultos():
 
 
 @numero
-def pct_uma_adulta_extrema_pobreza():
+def pct_uma_adulta_pobreza():
+    """% das famílias de uma só adulta na faixa `0-218`. A tabela só grava o rótulo da faixa: o rótulo vem da chave,
+    pelo mesmo dicionário que o analise.py usa para gravá-la (`_ROTULOS_RENDA_CADUNICO_3`)."""
+    sys.path.insert(0, str(RAIZ))
+    from primeira_infancia.cadunico import _ROTULOS_RENDA_CADUNICO_3
+    rotulo = _ROTULOS_RENDA_CADUNICO_3["0-218"].replace("\n", " ")
     d = _csv("cadunico_familias_arranjo_renda_2026.csv")
-    r = d[(d["arranjo"] == "Uma adulta (mulher)") & (d["faixa de renda per capita"].str.startswith("Extrema"))]
+    r = d[(d["arranjo"] == "Uma adulta (mulher)") & (d["faixa de renda per capita"] == rotulo)]
     return fmt_pct(r["% no arranjo"].iloc[0], 0)
 
 
@@ -342,6 +355,50 @@ def vf_taxa_mae_2025():
     return fmt_dec(_ultimo(_csv("violencia_familiar_taxa_municipio_ano.csv"))["taxa_por_mil_mae"])
 
 
+# specs/2026-09-29_slide_revision D7 revista (2026-09-29): os vínculos NÃO se somam -- a mesma notificação pode citar
+# mais de um provável autor (specs/2026-09-23_inclusao_dados_protecao D6); cada vínculo com o seu número e a sua taxa.
+def _vf_2025():
+    return _ultimo(_csv("violencia_familiar_taxa_municipio_ano.csv"))
+
+
+@numero
+def vf_notif_pai_2025():
+    return fmt_int(_vf_2025()["pai"])
+
+
+@numero
+def vf_notif_outros_2025():
+    return fmt_int(_vf_2025()["outros"])
+
+
+@numero
+def vf_taxa_pai_2025():
+    return fmt_dec(_vf_2025()["taxa_por_mil_pai"])
+
+
+@numero
+def vf_taxa_outros_2025():
+    return fmt_dec(_vf_2025()["taxa_por_mil_outros"])
+
+
+# pedido do usuário (2026-09-29): nos slides de Proteção, mãe e pai numa só linha -- a soma dos dois vínculos (uma
+# notificação que cite os dois conta duas vezes; o Tabnet não deduplica). O slide diz isso na nota.
+@numero
+def vf_notif_mae_pai_2025():
+    return fmt_int(_vf_2025()["mae"] + _vf_2025()["pai"])
+
+
+@numero
+def vf_taxa_mae_pai_2025():
+    d = _vf_2025()
+    return fmt_dec((d["mae"] + d["pai"]) / d["populacao_0_a_5"] * 1000)
+
+
+@numero
+def vf_ano():
+    return str(int(_vf_2025()["ano"]))
+
+
 @numero
 def baixo_peso_pct_2025():
     return fmt_pct(_ultimo(_csv("nascidos_abaixo_peso_por_ano.csv"))["percentual abaixo do peso"])
@@ -353,14 +410,14 @@ def baixo_peso_n_2025():
 
 
 @numero
-def ips_homicidios_max_ra():
+def homicidios_max_ra():
     d = _csv("tabela_mapa_violencia_territorial_ra_2024.csv").dropna(subset=["taxa_homicidios"])
     r = d.loc[d["taxa_homicidios"].idxmax()]
     return f"{fmt_dec(r['taxa_homicidios'], 0)} ({r['regiao_adm'].title()})"
 
 
 @numero
-def ips_homicidios_2a_ra():
+def homicidios_2a_ra():
     """Maior taxa entre as RAs depois da primeira (o Centro, outlier no mapa do slide)."""
     d = _csv("tabela_mapa_violencia_territorial_ra_2024.csv").dropna(subset=["taxa_homicidios"])
     r = d.sort_values("taxa_homicidios", ascending=False).iloc[1]
@@ -368,7 +425,7 @@ def ips_homicidios_2a_ra():
 
 
 @numero
-def ips_homicidios_min_ra():
+def homicidios_min_ra():
     d = _csv("tabela_mapa_violencia_territorial_ra_2024.csv").dropna(subset=["taxa_homicidios"])
     r = d.loc[d["taxa_homicidios"].idxmin()]
     return f"{fmt_dec(r['taxa_homicidios'], 0)} ({r['regiao_adm'].title()})"
@@ -437,6 +494,84 @@ def valor(chave):
     if chave not in _NUMEROS:
         raise KeyError(f"número '{chave}' não existe em apresentacao/build/numeros.py")
     return _NUMEROS[chave]()
+
+
+# ---------------------------------------------------------------- dados pontuais do CadÚnico (ref. 08/2026)
+# specs/2026-09-29_dados_adhoc: extração pontual, faixas 0-3 e 4-6 (inclui os 6 anos, D1) -- sai com a substituição
+# pela extração automatizada (ROADMAP)
+def _deficiencia_adhoc():
+    return _csv("cadunico_adhoc_deficiencia_2026_08.csv").set_index("Faixa etária")
+
+
+def _moradia_adhoc(forma):
+    d = pd.concat([_csv("cadunico_adhoc_moradia_domicilio_2026_08.csv").rename(columns={"Situação do domicílio": "Forma"}),
+                   _csv("cadunico_adhoc_moradia_territorio_2026_08.csv")]).set_index("Forma")
+    return d.loc[forma]
+
+
+@numero
+def adhoc_criancas_deficiencia_0_6():
+    return fmt_int(_deficiencia_adhoc().loc["Total (0 a 6 anos)", "Crianças com deficiência"])
+
+
+@numero
+def adhoc_bpc_pct_0_3():
+    return fmt_pct(_deficiencia_adhoc().loc["0 a 3 anos", "% com BPC"], 0)
+
+
+@numero
+def adhoc_bpc_pct_4_6():
+    return fmt_pct(_deficiencia_adhoc().loc["4 a 6 anos", "% com BPC"], 0)
+
+
+def _criancas_0_6(forma):
+    r = _moradia_adhoc(forma)
+    return fmt_int(r["Crianças de 0 a 3 anos"] + r["Crianças de 4 a 6 anos"])
+
+
+@numero
+def adhoc_criancas_sem_agua():
+    return _criancas_0_6("Sem água canalizada")
+
+
+@numero
+def adhoc_criancas_sem_banheiro():
+    return _criancas_0_6("Sem banheiro")
+
+
+@numero
+def adhoc_criancas_vala_ceu_aberto():
+    return _criancas_0_6("Vala a céu aberto")
+
+
+@numero
+def adhoc_criancas_rio_mar():
+    return _criancas_0_6("Jogado em rio ou mar")
+
+
+@numero
+def adhoc_criancas_fossa_rudimentar():
+    return _criancas_0_6("Fossa rudimentar")
+
+
+@numero
+def adhoc_deficiencia_0_3():
+    return fmt_int(_deficiencia_adhoc().loc["0 a 3 anos", "Crianças com deficiência"])
+
+
+@numero
+def adhoc_deficiencia_4_6():
+    return fmt_int(_deficiencia_adhoc().loc["4 a 6 anos", "Crianças com deficiência"])
+
+
+@numero
+def adhoc_bpc_n_0_3():
+    return fmt_int(_deficiencia_adhoc().loc["0 a 3 anos", "Com BPC"])
+
+
+@numero
+def adhoc_bpc_n_4_6():
+    return fmt_int(_deficiencia_adhoc().loc["4 a 6 anos", "Com BPC"])
 
 
 if __name__ == "__main__":

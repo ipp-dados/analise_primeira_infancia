@@ -1,7 +1,7 @@
 # Diagnóstico da Primeira Infância Carioca — especificação funcional e técnica
 
 > Documento de referência do projeto: o que ele entrega, para quem, com que dados, como é construído e como se
-> mantém. Estado em **2026-09-28** (`staging_main`, depois das rodadas `melhorias_site` e `organizacao`). As decisões
+> mantém. Estado em **2026-09-29** (`spec/pendencias`: faixa padrão 0 a 5 anos, exclusões E12-E15, eixo cortado no baixo peso, tablet; `spec/dados-adhoc`: dados pontuais do CadÚnico em Inclusão e Moradia). As decisões
 > de cada mudança, com o *porquê*, estão nas pastas de rodada em `specs/`; o que falta fazer está em `ROADMAP.md`.
 > Atualize este documento quando uma rodada mudar algo descrito aqui (seção 11).
 
@@ -25,7 +25,7 @@
 
 ## 1. Visão geral
 
-**O que é.** Um diagnóstico da primeira infância (0 a 6 anos) no município do Rio de Janeiro, produzido pela
+**O que é.** Um diagnóstico da primeira infância (0 a 5 anos, até 72 meses; a política municipal fala em até 6 anos) no município do Rio de Janeiro, produzido pela
 Coordenadoria de Pesquisa, Avaliação e Política Pública do **Instituto Pereira Passos (IPP)** em parceria com a Casa
 Civil, como documento de apoio ao desenho, à implementação e ao monitoramento da **Política Integrada da Primeira
 Infância**. Reúne indicadores de população, assistência social, saúde, educação, proteção e nutrição que estão
@@ -42,7 +42,7 @@ textos e mantém o pipeline; e quem quiser reproduzir os números (código e dad
 | Relatório técnico em PDF | `relatorio/analise_primeira_infancia.pdf` (157 páginas, ABNT NBR 10719) | leitura, impressão e citação; todas as tabelas no apêndice |
 | Tabelas finais | `tabelas_finais/*.csv` (87) | os números por trás de cada figura |
 | DOCX de curadoria | `relatorio/curadoria_textos.docx` | a equipe escreve e revisa os textos que acompanham as figuras |
-| Apresentação | `apresentacao/apresentacao_primeira_infancia.pptx` e `.pdf` (30 slides) | apresentar o diagnóstico a gestores das secretarias; gerada de um único Markdown, com variantes por público |
+| Apresentação | `apresentacao/apresentacao_primeira_infancia.pptx` e `.pdf` (33 slides) | apresentar o diagnóstico a gestores das secretarias; gerada de um único Markdown, com variantes por público |
 | Código | `analise.py` + `primeira_infancia/` | reprodução completa, da fonte bruta à figura |
 
 **Estado.** Em desenvolvimento: o site mostra uma faixa "EM DESENVOLVIMENTO / TEMPORÁRIO" e o PDF sai com marca
@@ -61,17 +61,19 @@ DOCX, em que ordem e com que título.
 | Eixo | Foco da política | Indicadores | Pendentes | Gráficos | Mapas | Tabelas |
 |---|---|---:|---:|---:|---:|---:|
 | 🧭 Introdução (panorama, não é eixo) | quantas crianças há, onde vivem, quem são (sexo, raça/cor) e quantas nascem | 7 | 0 | 7 | 4 | 9 |
-| 🎯 Prioridade | gestantes e crianças em vulnerabilidade: mortalidade materna, neonatal, infantil e por causas evitáveis; CadÚnico (razão sobre a população, crianças, famílias, renda, sexo, raça/cor) | 16 | 2 | 36 | 14 | 46 |
+| 🎯 Prioridade | gestantes e crianças em vulnerabilidade: mortalidade materna, neonatal, infantil e por causas evitáveis; CadÚnico (razão sobre a população, crianças, famílias, renda, sexo, raça/cor) | 15 | 1 | 36 | 13 | 46 |
 | 🤝 Inclusão | crianças com deficiência (CadÚnico) | 3 | 3 | 0 | 0 | 0 |
-| 👨‍👩‍👧 Família e Cuidados | frequência escolar (total, raça/cor, sexo, PNAD), matrículas e atendimento, cobertura vacinal, CadÚnico por renda e arranjo familiar | 8 | 0 | 10 | 1 | 10 |
+| 👨‍👩‍👧 Família e Cuidados | frequência escolar (total, raça/cor, sexo, taxa total do Censo 2022), matrículas e atendimento, cobertura vacinal, CadÚnico por renda e arranjo familiar | 8 | 0 | 11 | 1 | 10 |
 | 🛡️ Proteção | violência familiar (por vínculo do autor, taxas, bairros e CAP), notificações | 7 | 2 | 6 | 7 | 13 |
 | 🧸 Direito ao Brincar | violência territorial (IPS, por RA) | 1 | 0 | 0 | 3 | 1 |
 | 🍽️ Alimentação | baixo peso ao nascer, desnutrição e sobrepeso (SISVAN) | 6 | 0 | 4 | 2 | 6 |
 | 🏠 Moradia | inadequação e adensamento habitacional | 3 | 3 | 0 | 0 | 0 |
-| **Total** | | **51** | **10** | **63** | **31** | **85** |
+| **Total** | | **50** | **9** | **64** | **30** | **85** |
 
 "Pendente" (`status: pendente` no crosswalk) é indicador do catálogo ainda sem dado: aparece no site e no PDF como
-caixa "indicador em desenvolvimento", com uma frase pública fixa (as notas internas nunca são publicadas).
+caixa "indicador em desenvolvimento", com uma frase pública fixa seguida do `motivo:` do item (texto formal,
+obrigatório; as notas internas nunca são publicadas). Tabelas que o site mostra dentro do cartão saem no corpo da seção
+do PDF (`tabela_no_texto:`), não no apêndice (`specs/2026-09-29_alinhamento_pdf_site`).
 
 **Níveis geográficos.** Município; e, abaixo dele, **bairro** (166, chave `codbairro`), **Área de Planejamento** (AP,
 5, IPP), **Região de Planejamento** (RP, 16), **Região Administrativa** (RA, 33 — não existe RA 32) e **Coordenadoria
@@ -100,7 +102,8 @@ site) com um padrão que liga o texto `fonte_dados` de cada figura à entrada. `
 | `ms_sisvan` | SISVAN (MS) | estado nutricional de crianças | `dados_locais/sisvan/` |
 | `sms_rio_epi_vacinal` | SI-PNI/EPI (SMS-Rio) | cobertura vacinal | `dados_locais/vacinacao/` |
 | `mds_cadunico` | Cadastro Único (extração CTPE) | famílias e crianças por renda, idade, sexo, raça/cor, arranjo, bairro | **banco PostgreSQL do CTPE** (não é arquivo) |
-| `ibge_pnadc` | PNAD Contínua (IBGE) | taxa de frequência escolar | `dados_locais/educacao/` |
+| `mds_cadunico_adhoc` | Cadastro Único, extração pontual (ref. 08/2026) | crianças com deficiência e BPC; famílias, pessoas e crianças por banheiro, água e esgoto (município; faixas 0-3 e 4-6) — **temporário**, a substituir pela extração automatizada (4º tri de 2026) | `dados_locais/cadunico/` (planilha + manifesto `adhoc_2026_08.json`) |
+| `ibge_pnadc` | PNAD Contínua (IBGE) | **não usada desde 2026-09-29**: o arquivo "PNAD" trazia a taxa do Censo 2022 (E15) | `dados_locais/educacao/` |
 | `inep_censo_escolar` | Censo Escolar (INEP, microdados) | matrículas 0-5 anos, 2007-2025 | `dados_locais/educacao/` (extrato; ZIPs baixados só se faltarem) |
 | `ipp_ips2024` | Índice de Progresso Social 2024 (IPP) | violência territorial por RA | `dados_locais/protecao/` |
 | `ipp_limites_bairros` | Limites oficiais (Data.Rio/IPP, SMS, IBGE) | geometrias de bairro, CAP, UF, municípios vizinhos | `dados_locais/geo/` |
@@ -123,7 +126,10 @@ Google Drive de acesso restrito do IPP.
 - **RF4** Gerar a **variante de impressão** de cada figura (`visualizacoes/a4/`, `mapas/a4/`, PDF vetorial no tamanho
   final do A4, sem título nem fonte embutidos) e o manifesto `visualizacoes/a4/_manifesto.csv` (título, fonte,
   unidade) lido pelo PDF. Uma falha numa variante vira aviso, não interrompe o notebook.
-- **RF5** Aplicar a **supressão de células pequenas** do CadÚnico (< 20) antes de gravar qualquer saída sub-municipal.
+- **RF5** Proteger toda saída sub-municipal do CadÚnico antes de gravá-la: nenhuma contagem < 20. Por bairro, o bairro
+  pequeno é **somado aos outros bairros pequenos da RA** (depois AP, depois município), também quando um percentual
+  publicado revelaria numerador ou complemento < 20 (`agrega_bairros_pequenos`, `specs/2026-09-29_privacidade_cadunico`);
+  demais células pequenas ficam vazias (`suprime_celulas_pequenas`).
 
 ### 4.2 Site interativo (`website/`)
 
@@ -166,7 +172,12 @@ Google Drive de acesso restrito do IPP.
   números calculados de `tabelas_finais/` (nunca digitados), figuras do `analise.py` e blocos ligados/desligados pelo
   cabeçalho, para derivar versões por público ou secretaria (`apresentacao/variantes/`).
 - **RF21** Mapas dos slides sem distorção por valores extremos: versão de impressão (teto de cor no percentil 95 por
-  bairro) ou, por pedido, mapa próprio com a regra de outlier do site (cercas de Tukey), sempre dito no rodapé.
+  bairro) ou, por pedido, mapa próprio com a regra de outlier do site (cercas de Tukey), sempre dito no rodapé, com
+  os bairros extremos nomeados (`specs/2026-09-29_slide_revision` D8).
+- **RF22** No deck, nenhuma terra em azul (rampa terracota nos mapas de população, `mapas_apresentacao.TERRACOTA`),
+  faixa etária escrita "até 72 meses" com a nota "= 0 a 5 anos completos", e mapas/gráficos próprios do deck
+  (`apresentacao/build/mapas_apresentacao.py`) gravados só em `apresentacao/_build/`; gráficos pela versão de impressão
+  do `analise.py` (`visualizacoes/a4/`, sem título embutido).
 
 ---
 
@@ -175,7 +186,7 @@ Google Drive de acesso restrito do IPP.
 | # | Requisito | Como é garantido |
 |---|---|---|
 | RNF1 | **Reprodutibilidade**: o mesmo código e os mesmos dados dão as mesmas saídas | geradores determinísticos (duas gerações seguidas do site com md5 idêntico); refatorações validadas por hash de todas as saídas (`specs/2026-09-28_organizacao`: 431/431) |
-| RNF2 | **Privacidade**: nenhuma célula sub-municipal do CadÚnico < 20 publicada; nenhum microdado de pessoa; credenciais fora do git | `suprime_celulas_pequenas`; `.env` no `.gitignore` (modelo em `.env.example`); `specs/constitution.md` §6 |
+| RNF2 | **Privacidade**: nenhuma célula sub-municipal do CadÚnico < 20 publicada; nenhum microdado de pessoa; credenciais fora do git | `agrega_bairros_pequenos` (bairro) e `suprime_celulas_pequenas`; `.env` no `.gitignore` (modelo em `.env.example`); `specs/constitution.md` §6 |
 | RNF3 | **Site estático**: só html/css/js/svg/png/jpg/ico, caminhos relativos, rotas por hash, sem `fetch`, sem build no deploy | workflow de deploy com lista de inclusão e checagem de extensões; `website/README.md` |
 | RNF4 | **Tamanho**: `index.html` ≤ 1 MB, site ≤ 2 MB (hoje 343 KB e 1,05 MB); PDF < 20 MB (hoje 14,2 MB) | o gerador do site imprime o tamanho e avisa no estouro |
 | RNF5 | **Cache**: o navegador nunca mistura HTML novo com CSS/JS antigos | `?v=<md5 do conteúdo>` em todo recurso |
@@ -247,7 +258,7 @@ Pontos importantes do desenho:
 
 | Caminho | Papel | Editado |
 |---|---|---|
-| `analise.py` | notebook (Jupytext `py:percent`): setup, uma seção por fonte na ordem de dependência (Censo 2022, CadÚnico, DataSUS/Tabnet — nascidos vivos, baixo peso, mortalidade —, SISVAN, cobertura vacinal, PNAD/Censo Escolar/INEP, junções, Proteção), notas de curadoria e a seção editorial final (não publicada) | à mão; `analise.ipynb` é gerado e ignorado |
+| `analise.py` | notebook (Jupytext `py:percent`): setup, uma seção por fonte na ordem de dependência (Censo 2022, CadÚnico, DataSUS/Tabnet — nascidos vivos, baixo peso, mortalidade —, SISVAN, cobertura vacinal, Censo 2022 (SIDRA)/Censo Escolar/INEP, junções, Proteção), notas de curadoria e a seção editorial final (não publicada) | à mão; `analise.ipynb` é gerado e ignorado |
 | `primeira_infancia/` | funções reutilizáveis, um módulo por tema: `conexao`, `limpeza`, `estilo`, `impressao`, `graficos`, `mapas`, `protecao`, `cadunico`, `populacao`, `educacao` | à mão |
 | `website/build/build_site.py` | gera `website/index.html`, `data/charts.js` (dados dos gráficos e mapas), `data/geo.js` (geometria compartilhada) | à mão |
 | `website/css/`, `website/js/` | estilo (tokens em `main.css`, celular em `mobile.css`) e motor de gráficos, abas, sumário | à mão |
@@ -287,7 +298,11 @@ As regras completas estão em `specs/constitution.md`; estas são as que mais af
   (`agrega_bairros_por_nivel`).
 - **Denominador por nível**: taxas municipais usam a estimativa Ripsa/MS do mesmo ano; taxas sub-municipais usam o
   Censo 2022 (fixo) e dizem isso na fonte ou na legenda.
-- **Faixa etária real no rótulo** (ex.: CadÚnico e SISVAN são 0 a 5 anos), não a do catálogo ("até 6 anos").
+- **Faixa padrão 0 a 5 anos (até 72 meses)**: os 6 anos ficam fora dos gráficos e números, e qualquer uso deles leva
+  nota; títulos que vêm do catálogo dizem "até 72 meses" (`specs/2026-09-29_pendencias` D9, D18). Onde a fonte só tem
+  outra faixa (Censo por bairro: 0 a 4), o rótulo diz a faixa real.
+- **Taxas publicadas agregadas por taxa × população** (somar e dividir pela população), nunca média simples; não dividir
+  contagens de tabelas de bases diferentes (D14).
 - Taxas de mortalidade **por mil nascidos vivos** (‰), nunca em %.
 
 ### 8.2 Figuras
@@ -296,6 +311,8 @@ As regras completas estão em `specs/constitution.md`; estas são as que mais af
 - Mapas: **contagem em classes discretas, taxa/percentual em escala contínua** (com teto no percentil 95 por bairro);
   paleta sequencial por tema (natalidade, mortalidade, CadÚnico, população, proteção); azul reservado ao mar.
 - Séries com 7 ou mais linhas viram pequenos múltiplos.
+- **Base zero** em todo gráfico de taxa, exceto o percentual de baixo peso ao nascer (eixo cortado, marca de corte e
+  nota "eixo não começa em zero").
 
 ### 8.3 Nomes
 
@@ -397,9 +414,12 @@ componente (6-7), uma regra (8) ou um processo (9-10). A data no topo diz a que 
   automaticamente, ao site só à mão.
 - **Textos**: blocos ainda em lorem ipsum (resumo, achados, aberturas e sínteses dos eixos, parte das figuras); a
   lista sai no build do PDF. Alertas abertos em `relatorio/controle_revisao.json`.
-- **Indicadores pendentes**: 9 (o eixo Moradia inteiro).
+- **Dados pontuais** (`specs/2026-09-29_dados_adhoc`): Inclusão e Moradia têm itens "(dado pontual, ago/2026)" de uma
+  extração fora da rotina, com aviso público (`- dado_pontual:` no crosswalk); saem com a extração automatizada (ROADMAP).
+  **Nunca vão para o PDF** e **bloqueiam a versão final do site** (build e deploy param sem a faixa; constituição §3).
+- **Indicadores pendentes**: 9 (os 3 de Moradia, os 3 de deficiência, 2 de violência e 1 de mortalidade).
 - **Denominador sub-municipal**: o Censo 2022 fixo subconta crianças pequenas; a estimativa por bairro a partir da
-  Ripsa está no `ROADMAP.md` (Próximos, item 3).
+  Ripsa está no `ROADMAP.md` (Próximas features, item 2).
 - **Organização**: a reorganização das pastas de dados e saídas (fase 1c) e o empacotamento de scripts para outros
   projetos estão no `ROADMAP.md`.
 

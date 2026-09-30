@@ -27,6 +27,53 @@ import re
 import unicodedata
 from pathlib import Path
 
+# Quadro de indicador pendente, igual no PDF e no site (specs/2026-09-29_alinhamento_pdf_site D5): esta frase fixa +
+# o `motivo:` do item (texto público e formal). As `nota:` são anotações internas e nunca são publicadas.
+TEXTO_PENDENTE = ("Indicador previsto na Política Integrada da Primeira Infância, ainda sem dado disponível para "
+                  "o município nesta edição. Será incluído quando a fonte for incorporada.")
+
+
+def motivos_pendentes(caminho="specs/estrutura_eixos.md"):
+    """{título do item: motivo} de todo item `status: pendente`; erro se algum não tiver `motivo:` (o público não pode
+    ver um quadro sem explicação, nem a anotação interna no lugar dela)."""
+    out = {}
+    for eixo in parse_estrutura_eixos(caminho):
+        for sub in eixo["subsecoes"]:
+            c = sub["campos"]
+            if (c.get("status") or "").strip() == "pendente":
+                motivo = (c.get("motivo") or "").strip()
+                if not motivo:
+                    raise ValueError(f"item pendente sem 'motivo:' em {caminho}: {sub['titulo']}")
+                out[sub["titulo"]] = motivo
+    return out
+
+
+def manifesto_dado_pontual(ident, raiz=None):
+    """Manifesto `dados_locais/cadunico/adhoc_<ident>.json` de um item `- dado_pontual: <ident>`
+    (specs/2026-09-29_dados_adhoc) -- fonte única do aviso público. Erro se não existir."""
+    import json
+    from pathlib import Path
+    base = Path(raiz) if raiz else Path(__file__).resolve().parents[2]
+    return json.loads((base / "dados_locais/cadunico" / f"adhoc_{ident.strip()}.json").read_text(encoding="utf-8"))
+
+
+def sem_dados_pontuais(estrutura):
+    """Estrutura sem os itens `- dado_pontual:` -- regra do usuário (2026-09-29, constituição §3): dado pontual
+    **nunca** entra no relatório em PDF (só no site em desenvolvimento). Usada pelo gerador do PDF e pelo inventário."""
+    return [{**e, "subsecoes": [s for s in e["subsecoes"] if not s["campos"].get("dado_pontual")]} for e in estrutura]
+
+
+def tem_dados_pontuais(estrutura):
+    """Títulos dos itens `- dado_pontual:` do crosswalk (bloqueio da versão final do site)."""
+    return [s["titulo"] for e in estrutura for s in e["subsecoes"] if s["campos"].get("dado_pontual")]
+
+
+def aviso_dado_pontual(ident, raiz=None):
+    """Texto público do quadro "Dado pontual": aviso + nota da faixa etária (D1/D4 de specs/2026-09-29_dados_adhoc)."""
+    m = manifesto_dado_pontual(ident, raiz)
+    return " ".join(t for t in (m.get("aviso"), m.get("nota_faixa")) if t)
+
+
 # Diretorios (relativos a raiz do projeto) onde cada tipo de referencia deve
 # existir de fato -- usados por valida_estrutura().
 _DIRS_POR_CAMPO = {

@@ -677,12 +677,9 @@
   }
  ],
  "alertas": {
-  "mapa_taxa_mortalidade_infantil_bairro_2025": "Os números do texto são os da taxa PÓS-NEONATAL, não da infantil: na tabela_mapa_mortalidade_infantil_2025.csv, Cidade Nova tem 3 óbitos infantis/42 NV = 71,43‰ (47,62‰ é a pós-neonatal, 2 óbitos); Camorim e Pitangueiras coincidem nas duas taxas. Texto não corrigido: decisão da equipe.",
+  "mapa_taxa_mortalidade_infantil_bairro_2025": "Os números do texto são os da taxa PÓS-NEONATAL, não da infantil: na tabela_mapa_mortalidade_infantil_2025.csv, Cidade Nova tem 3 óbitos infantis/42 NV = 71,43‰ (47,62‰ é a pós-neonatal, 2 óbitos); Camorim e Pitangueiras coincidem nas duas taxas. Texto não corrigido: decisão da equipe. | 2026-09-29: figura fora do site e do PDF (duplicada, E13); o texto fica órfão no DOCX.",
   "consideracoes_finais": "Frase 'o poder público deve atuar de forma isolada e integrar...' — provavelmente falta um 'não' (não deve atuar de forma isolada). Não corrigido: decisão da equipe. Veio colado depois do texto de obesidade SISVAN no update 4 (título 'Conclusão').",
-  "cobertura_vacinal_epi_ano": "Texto curado existe, mas a figura está fora do relatório (specs/exclusoes.md E1: chamada comentada em analise.py). Para publicar, descomentar a chamada e devolver a linha em estrutura_eixos.md.",
-  "obitos_evitaveis_menores_5_subgrupo_ano": "Conferir número: o texto diz que os óbitos por atenção ao recém-nascido passaram de 198 em 2006 para 55 em 2025; em obitos_evitaveis_menores_5_subgrupo_municipio_ano.csv o valor de 2006 é 204 (55 em 2025 confere). Texto não corrigido: decisão da equipe.",
-  "sidra_taxa_frequencia_0_6_raca_2022": "Conferir leitura: 'No conjunto de 0 a 6 anos, a taxa foi de 25,32% (26,81% pardas, 24,48% pretas, 24,36% brancas)' usa a linha 'Total' da tabela SIDRA 10056, que é o total de TODAS as idades (não 0 a 6 anos): com taxas de 8% a 97% por idade, a de 0 a 6 anos não pode ser ~25%. Texto não corrigido: decisão da equipe.",
-  "sidra_taxa_frequencia_0_6_sexo_2022": "Conferir leitura: 'No conjunto de 0 a 6 anos, a taxa foi de 26,76% entre os meninos e 24,07% entre as meninas' usa a linha 'Total' da tabela SIDRA 10056, que é o total de TODAS as idades (não 0 a 6 anos): com taxas de 8% a 97% por idade, a de 0 a 6 anos não pode ser ~25%. Texto não corrigido: decisão da equipe."
+  "obitos_evitaveis_menores_5_subgrupo_ano": "Conferir número: o texto diz que os óbitos por atenção ao recém-nascido passaram de 198 em 2006 para 55 em 2025; em obitos_evitaveis_menores_5_subgrupo_municipio_ano.csv o valor de 2006 é 204 (55 em 2025 confere). Texto não corrigido: decisão da equipe."
  },
  "alertas_resolvidos": {
   "censo_0_a_4_serie_percentual_ano": [
@@ -722,8 +719,16 @@
    "Resolvido em 2026-09-24 (correção aplicada no texto)."
   ],
   "sidra_taxa_frequencia_0_6_sexo_2022": [
-   "Resto do texto provisório ('sunt.', última palavra do lorem ipsum) no fim do parágrafo colado no update 5.",
-   "Resolvido em 2026-09-28 (palavra removida na incorporação do update 5; o resto do texto não foi alterado)."
+   "Conferir leitura: 'No conjunto de 0 a 6 anos, a taxa foi de 26,76% entre os meninos e 24,07% entre as meninas' usa a linha 'Total' da tabela SIDRA 10056, que é o total de TODAS as idades (não 0 a 6 anos): com taxas de 8% a 97% por idade, a de 0 a 6 anos não pode ser ~25%. Texto não corrigido: decisão da equipe.",
+   "Resolvido em 2026-09-29 (specs/2026-09-29_pendencias D9/D14): faixa 0 a 5 anos e total 0-5 calculado por taxa × população; texto ajustado e marcado revisar."
+  ],
+  "sidra_taxa_frequencia_0_6_raca_2022": [
+   "Conferir leitura: 'No conjunto de 0 a 6 anos, a taxa foi de 25,32% (26,81% pardas, 24,48% pretas, 24,36% brancas)' usa a linha 'Total' da tabela SIDRA 10056, que é o total de TODAS as idades (não 0 a 6 anos): com taxas de 8% a 97% por idade, a de 0 a 6 anos não pode ser ~25%. Texto não corrigido: decisão da equipe.",
+   "Resolvido em 2026-09-29 (specs/2026-09-29_pendencias D9/D14): faixa 0 a 5 anos e total 0-5 calculado por taxa × população; texto ajustado e marcado revisar."
+  ],
+  "cobertura_vacinal_epi_ano": [
+   "Texto curado existe, mas a figura está fora do relatório (specs/exclusoes.md E1: chamada comentada em analise.py). Para publicar, descomentar a chamada e devolver a linha em estrutura_eixos.md.",
+   "Resolvido em 2026-09-29 (specs/2026-09-29_alinhamento_pdf_site D2): chamada descomentada; figura de volta no PDF e no DOCX, com o texto curado."
   ]
  },
  "ajustes_manuais": {
@@ -752,9 +757,10 @@
     "curadoria_textos_update_2",
     "curadoria_textos_update_3",
     "curadoria_textos_update_4",
-    "unidades_2026-09-25"
+    "unidades_2026-09-25",
+    "pendencias_2026-09-29"
    ],
-   "obs": "2026-09-25: conversão de unidade (por 100 -> por mil nascidos vivos), mesmos números; revisar"
+   "obs": "2026-09-25: conversão de unidade (por 100 -> por mil nascidos vivos), mesmos números; revisar | 2026-09-29: frase da categoria \"não informada\" trocada (a série saiu do gráfico de taxa, E14); revisar"
   },
   "mapa_taxa_obitos_raca_total_bairro_2025": {
    "status": "atualizado",
@@ -766,6 +772,46 @@
     "unidades_2026-09-25"
    ],
    "obs": "2026-09-25: conversão de unidade (por 100 -> por mil nascidos vivos), mesmos números; revisar"
+  },
+  "sidra_taxa_frequencia_0_6_raca_2022": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "pendencias_2026-09-29"
+   ],
+   "obs": "2026-09-29: faixa 0 a 5 anos (D9); números de 0 a 5 e do conjunto 0-5 (taxa × população, D14) no lugar da linha \"Total\" de todas as idades; revisar"
+  },
+  "sidra_taxa_frequencia_0_6_sexo_2022": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "pendencias_2026-09-29"
+   ],
+   "obs": "2026-09-29: faixa 0 a 5 anos (D9); conjunto 0-5 e 5 anos no lugar de 6 anos; revisar"
+  },
+  "censo_sidra_populacao_0_6_raca_2022": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "pendencias_2026-09-29"
+   ],
+   "obs": "2026-09-29: faixa 0 a 5 anos (D9); \"aos 6 anos\" virou \"aos 5 anos\" com os números da tabela 9606; revisar"
+  },
+  "censo_sidra_populacao_0_6_sexo_2022": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "pendencias_2026-09-29"
+   ],
+   "obs": "2026-09-29: \"até 6 anos\" virou \"de 0 a 5 anos\" (D9); revisar"
+  },
+  "sidra_taxa_frequencia_0_5_total_2022": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "pendencias_2026-09-29"
+   ],
+   "obs": "2026-09-29: texto herdado de pnad_frequencia_escolar_por_idade (D16, E15: o gráfico \"PNAD\" era a coluna Total da 10056 do Censo 2022); números conferem (82,92% aos 4 anos, 90,57% aos 5); conferir a menção implícita à fonte; revisar"
   }
  }
 }
