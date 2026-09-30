@@ -2,23 +2,17 @@
 # # 🏛️ Análise Primeira Infância Carioca
 #
 # Notebook de extração, limpeza e visualização dos indicadores de primeira infância
-# (0 a 5 anos, até 72 meses -- faixa padrão do projeto, `specs/2026-09-29_pendencias` D9; a política municipal fala
-# em "até 6 anos") do município do Rio de Janeiro: Censo, CadÚnico, DataSus/Tabnet
+# (0 a 6 anos) do município do Rio de Janeiro: Censo, CadÚnico, DataSus/Tabnet
 # (nascidos vivos, mortalidade, causas evitáveis, cobertura vacinal) e educação
-# (Censo 2022/SIDRA e Censo Escolar/INEP).
+# (PNAD/Censo Escolar).
 
 # %% [markdown]
 # ---
 # ## 📦 Pacotes e Funções Auxiliares
 #
-# Conexão com o banco e todas as funções de limpeza/wrangling e de visualização reutilizadas ao longo do
-# notebook ficam no pacote `primeira_infancia/` (specs/2026-09-28_organizacao), um módulo por tema:
-# `conexao` (banco CTPE), `limpeza` (Tabnet/DataSUS, SISVAN, causas evitáveis, SIDRA), `estilo` (paletas,
-# fontes, fundo cartográfico), `graficos` (`serie_temporal`, `grafico_barra`, …), `mapas`
-# (`mapa_coropletico_bairros`, `agrega_bairros_por_nivel`), `impressao` (variante A4 do relatório PDF,
-# `GERA_VARIANTE_A4`), `protecao` (SINAN, violência), `cadunico` (recortes e supressão < 20),
-# `populacao` (Ripsa/MS) e `educacao` (Censo Escolar/INEP). As seções abaixo só *chamam* essas funções;
-# lógica reutilizável nova vai para o módulo do tema, não para uma célula daqui.
+# Imports, conexão com o banco e todas as funções de limpeza/wrangling e de
+# visualização reutilizadas ao longo do notebook. Ficam centralizadas aqui para que
+# as seções de análise abaixo apenas *chamem* essas funções, sem redefini-las.
 
 # %%
 from dotenv import load_dotenv
@@ -37,19 +31,1868 @@ import pandas as pd
 import math
 import numpy as np
 import os
+
+# %% [markdown]
+# ### 🔌 Conexão e utilitários gerais
+
+# %%
+#conecta ao banco CTPE
+def connect_db_ctpe():
+    """
+    Inicializa o cliente do banco local.
+
+    Returns:
+        engine: engine de sqlalchemy
+    """
+    # cria parâmetros da conexão com banco local
+    parameters = {
+    "db_name": os.getenv('db_name'),
+    "user": os.getenv('user'),
+    "password_db": os.getenv('password_db'),
+    "host": os.getenv('host'),
+    "port": os.getenv('port')
+    }
+    DB_URL = f"postgresql+psycopg://{parameters['user']}:{parameters['password_db']}@{parameters['host']}:{parameters['port']}/{parameters['db_name']}?client_encoding=utf8"
+    engine = create_engine(DB_URL)
+    return engine
+
+def convert_numeric_safe(s):
+    s_cleaned = s.strip().replace('%','')
+    return float(s_cleaned)
+
+# %% [markdown]
+# ### 🧹 Limpeza e wrangling de dados
+
+# %%
+def limpa_dados_sisvan(colunas, dataset):
+    path = Path(f"dados_locais/sisvan/{dataset}/")
+    arquivos = [f.name for f in path.iterdir() if f.is_file() and not f.name.startswith('.') and f.name != 'example_file']
+
+    colunas_ajustadas = ['ano']
+    for i in colunas:
+        if i != 'total':
+            colunas_ajustadas.append(i+'_bruto')
+            colunas_ajustadas.append(i+'_percentual')
+        else:
+            colunas_ajustadas.append(i)
+    print(colunas_ajustadas)
+    df_final = pd.DataFrame(columns=colunas_ajustadas)
+
+    for arquivo in arquivos:
+        df = pd.read_excel(f"dados_locais/sisvan/{dataset}/{arquivo}")
+        df_infos = df.iloc[[10],5:]
+        df_infos.columns = colunas_ajustadas[1:]
+        df_infos['ano'] = arquivo[-9:-5]
+        df_final = pd.concat([df_final,df_infos])
+    df_final.reset_index(inplace=True, drop=True)
+
+    df_final.to_csv(f"dados_locais/tratados/{dataset}.csv")
+
+def limpa_dados_datasus(df):
+    df = df.melt(id_vars=['Bairro Residencia'])
+    return df
+
+def limpeza_tabnet_bairros(df,categoria):
+    """Padroniza um export do Tabnet: extrai 'codigo' e 'bairro', remove linhas 'Total'."""
+    df.columns = ['bairro','ano',categoria]
+    df = df[df['bairro']!='Total']
+    df = df[df['ano']!='Total']
+    df[['codigo','bairro']] = df.loc[df['bairro']!='EM BRANCO','bairro'].str.split(' ', n=1,expand=True)
+    return df
+
+def carrega_raca_bairro(caminho, categoria, anos_validos, sep=';'):
+    """Lê um export do Tabnet por bairro e reindexa numa grade bairro x ano completa,
+    preenchendo com 0 os anos sem linha no arquivo original (evita contagens incompletas
+    em somas/subtrações posteriores)."""
+    df = pd.read_csv(caminho, sep=sep)
+    df = limpa_dados_datasus(df)
+    df = limpeza_tabnet_bairros(df, categoria=categoria)
+    df = df.dropna(subset=['codigo', 'bairro'])
+    df['ano'] = df['ano'].astype(int)
+    grade = df[['codigo', 'bairro']].drop_duplicates().merge(pd.DataFrame({'ano': anos_validos}), how='cross')
+    df = grade.merge(df[['codigo', 'bairro', 'ano', categoria]], on=['codigo', 'bairro', 'ano'], how='left')
+    df[categoria] = df[categoria].fillna(0)
+    df['ano'] = df['ano'].astype(str)
+    return df
+
+def carrega_causas_evitaveis_raca(caminho, categoria):
+    """Lê um export Tabnet de causas evitáveis por raça/cor (nível município), em formato largo
+    (ano nas colunas), e retorna em formato longo (raca, ano, categoria)."""
+    df = pd.read_csv(caminho, sep=';', encoding='latin-1')
+    df = df.rename(columns={df.columns[0]: 'raca'})
+    df['raca'] = df['raca'].str.strip()
+    df = df[df['raca'].isin(['Branca','Preta','Amarela','Parda','Indígena','Ignorado'])]
+    df = df.drop(columns=['Total'])
+    df = df.melt(id_vars=['raca'], var_name='ano', value_name=categoria)
+    df[categoria] = df[categoria].replace('-', 0).astype(float)
+    mapa_raca = {'Branca':'branca','Preta':'preta','Amarela':'amarela','Parda':'parda',
+                 'Indígena':'indigena','Ignorado':'nao_informado'}
+    df['raca'] = df['raca'].map(mapa_raca)
+    return df
+
+def carrega_causas_evitaveis_categoria(caminho, padrao):
+    """Lê um export Tabnet 'segundo causas' (hierarquia grupo/subgrupo/causa, nível município)
+    e filtra as linhas cujo rótulo bate com `padrao` (grupo ou subgrupo)."""
+    df = pd.read_csv(caminho, sep=';', encoding='latin-1')
+    df = df.rename(columns={df.columns[0]: 'causa'})
+    df = df[df['causa'].notna()]
+    df = df[df['causa'].str.match(padrao)]
+    df = df.drop(columns=['Total'])
+    df = df.melt(id_vars=['causa'], var_name='ano', value_name='obitos')
+    df['obitos'] = df['obitos'].replace('-', 0).astype(float)
+    df['ano'] = df['ano'].astype(int)
+    return df
+
+def combina_faixas_causa(padrao, arquivos_por_faixa):
+    """Aplica `carrega_causas_evitaveis_categoria` a cada faixa etária em `arquivos_por_faixa`
+    e soma o resultado por causa/ano (usado para obter o total 0-364 dias)."""
+    df_total = None
+    for caminho in arquivos_por_faixa.values():
+        df_faixa = carrega_causas_evitaveis_categoria(caminho, padrao)
+        df_total = df_faixa if df_total is None else pd.concat([df_total, df_faixa])
+    return df_total.groupby(['causa','ano'], as_index=False)['obitos'].sum()
+
+def total_e_percentual_ano(df):
+    """Agrega um Censo (Tabela 2974/IBGE) por bairro em total e percentual de 0 a 4 anos.
+
+    O `Total` é somado ANTES de criar a coluna '0 a 4 anos' -- na ordem inversa, a faixa de 0 a 4 anos
+    entrava duas vezes no total (populacao-referencia, auditoria de faixas §2; com a correção, os totais
+    de 2000 e 2010 batem com o IBGE: 5.857.904 e 6.320.446)."""
+    df['Total'] = df.iloc[:,9:].sum(axis=1)
+    df['0 a 4 anos'] = df['Sexo feminino, 0 a 4 anos'] + df['Sexo masculino, 0 a 4 anos']
+    df['Percentual 0 a 4 anos'] = (df['0 a 4 anos']/df['Total'])
+    return df[['bairro','0 a 4 anos','Total','Percentual 0 a 4 anos','Sexo feminino, 0 a 4 anos','Sexo masculino, 0 a 4 anos']]
+
+def carrega_cobertura_vacinal(caminho):
+    """Lê um export do EPI/SVS-Rio de cobertura vacinal por imunobiológico e ano."""
+    df = pd.read_csv(caminho, sep=';')
+    df['ano_num'] = pd.to_numeric(df['ANO'], errors='coerce')
+    df = df[df['ano_num'].notna()]
+    df['ano'] = df['ano_num'].astype(int)
+    df['cobertura'] = df['COBERTURA'].str.replace('%','',regex=False).str.replace(',','.',regex=False).astype(float)
+    return df[['ano','IMUNO','cobertura']].rename(columns={'IMUNO':'imunobiologico'})
+
+# a planilha TabWin de causas evitáveis por CAP só traz os 8 subgrupos CID (nunca o nível
+# 'grupo' como linha própria, e nunca um terceiro nível 'causa' -- ver specs/2026-09-08_mortalidade-ap/
+# specification.md §2.4); o rótulo bruto de 3 das 8 categorias ('1.2.*') traz um trecho 'ad '
+# redundante que não aparece no texto de subgrupo canônico -- este dicionário normaliza os 8
+# rótulos possíveis para esse texto canônico, usado em toda tabela derivada desta planilha
+_ROTULO_PARA_SUBGRUPO = {
+    '1.1. Reduzível pelas ações de imunização':    '1.1. Reduzível pelas ações de imunização',
+    '1.2.1. Red por ad at à mulher na gestação':   '1.2.1. Red por at à mulher na gestação',
+    '1.2.2. Red por ad at à mulher no parto':      '1.2.2. Red por at à mulher no parto',
+    '1.2.3. Red por ad at ao recém-nascido':       '1.2.3. Red por at ao recém-nascido',
+    '1.3. Red por ações de diag e trat adequado':  '1.3. Red por ações de diag e trat adequado',
+    '1.4. Red por ações promoção vinc a atenção':  '1.4. Red por ações promoção vinc a atenção',
+    '2. Causas mal definidas':                     '2. Causas mal definidas',
+    '3. Demais causas (não claramente evitáveis)': '3. Demais causas (não claramente evitáveis)',
+}
+
+_GRUPOS_CID = {'1': '1. Causas evitáveis',
+               '2': '2. Causas mal definidas',
+               '3': '3. Demais causas (não claramente evitáveis)'}
+
+def extrai_evitaveis_cap_blocos(caminho, aba, anos=range(2006, 2026)):
+    """Lê uma aba 'por CAP' (`<1 ano` / `1-4 anos` / `<5 anos`) da planilha de causas evitáveis
+    na primeira infância (TabWin) e devolve formato longo `cod_ap_sms, subgrupo, ano, obitos`.
+
+    A aba é uma pilha de 10 blocos de 12 linhas, um por Área Programática de Saúde (CAP):
+    título (carrega o código da CAP, ex. 'AP 3.1'), cabeçalho, 8 categorias CID, 'Total' e uma
+    linha em branco. Passo fixo de 12 linhas (não busca por regex de título) -- o layout do
+    TabWin é rígido e um passo fixo falha ruidosamente (IndexError) se a planilha mudar, o que
+    é preferível a falhar em silêncio. A linha 'Total' é descartada -- é recalculável e
+    entraria em dupla contagem em qualquer groupby posterior.
+    """
+    df = pd.read_excel(caminho, sheet_name=aba, header=None)
+    registros = []
+    for inicio in range(0, len(df), 12):
+        cod_ap_sms = df.iloc[inicio, 0].split(', AP ')[1].split(',')[0]
+        for linha in range(inicio + 2, inicio + 10):
+            subgrupo = _ROTULO_PARA_SUBGRUPO[df.iloc[linha, 0].strip()]
+            for ano, obitos in zip(anos, df.iloc[linha, 1:21]):
+                registros.append((cod_ap_sms, subgrupo, ano, int(obitos)))
+    return pd.DataFrame(registros, columns=['cod_ap_sms', 'subgrupo', 'ano', 'obitos'])
+
+def extrai_evitaveis_municipio(caminho):
+    """Lê a aba 'Informações gerais' (nível município, < 5 anos) da planilha de causas
+    evitáveis na primeira infância e devolve as três tabelas empilhadas nela, como uma tupla
+    de DataFrames `(por_subgrupo, por_cap, taxa)`. Índices de linha fixos (2-9 / 14-25 /
+    31-33), pelo mesmo motivo de `extrai_evitaveis_cap_blocos`.
+
+    As linhas ' Ign' e ' Ignorado' da tabela por CAP (CAP de residência não registrada, sob
+    dois rótulos diferentes ao longo da série) são somadas numa única categoria 'Ignorado' --
+    o mesmo padrão já usado no notebook para `mae_ignorado` + `mae_nao_informado`.
+    """
+    df = pd.read_excel(caminho, sheet_name='Informações gerais', header=None)
+    anos = list(range(2006, 2026))
+
+    registros_subgrupo = []
+    for linha in range(2, 10):
+        subgrupo = _ROTULO_PARA_SUBGRUPO[df.iloc[linha, 0].strip()]
+        for ano, obitos in zip(anos, df.iloc[linha, 1:21]):
+            registros_subgrupo.append((subgrupo, ano, int(obitos)))
+    por_subgrupo = pd.DataFrame(registros_subgrupo, columns=['subgrupo', 'ano', 'obitos'])
+
+    registros_cap = []
+    for linha in range(14, 26):
+        cod_ap_sms = df.iloc[linha, 0].strip()
+        cod_ap_sms = 'Ignorado' if cod_ap_sms in ('Ign', 'Ignorado') else cod_ap_sms
+        for ano, obitos in zip(anos, df.iloc[linha, 1:21]):
+            registros_cap.append((cod_ap_sms, ano, int(obitos)))
+    por_cap = pd.DataFrame(registros_cap, columns=['cod_ap_sms', 'ano', 'obitos'])
+    por_cap = por_cap.groupby(['cod_ap_sms', 'ano'], as_index=False)['obitos'].sum()
+
+    registros_taxa = list(zip(anos, df.iloc[31, 1:21], df.iloc[32, 1:21], df.iloc[33, 1:21]))
+    taxa = pd.DataFrame(registros_taxa, columns=['ano', 'obitos', 'nascidos_vivos', 'taxa_por_mil'])
+    taxa['obitos'] = taxa['obitos'].astype(int)
+    taxa['nascidos_vivos'] = taxa['nascidos_vivos'].astype(int)
+    taxa['taxa_por_mil'] = taxa['taxa_por_mil'].astype(float)
+
+    return por_subgrupo, por_cap, taxa
+
+def extrai_planilha_evitaveis_cap(caminho):
+    """Extrai a planilha de causas evitáveis na primeira infância por CAP (TabWin) e
+    materializa os 6 CSVs 'fiéis à fonte' (sem cálculo) em `dados_locais/tratados/` -- mesmo
+    padrão de `limpa_dados_sisvan`: roda uma vez, materializa CSV, não devolve nada."""
+    por_subgrupo, por_cap_municipio, taxa = extrai_evitaveis_municipio(caminho)
+    por_subgrupo.to_csv('dados_locais//tratados//obitos_evitaveis_menores_5_causa_municipio_2006_2025.csv', index=False)
+    por_cap_municipio.to_csv('dados_locais//tratados//obitos_evitaveis_menores_5_cap_municipio_2006_2025.csv', index=False)
+    taxa.to_csv('dados_locais//tratados//taxa_mortalidade_evitaveis_menores_5_municipio_2006_2025.csv', index=False)
+
+    abas_por_sufixo = {'menores_1_ano': '<1 ano', '1_a_4_anos': '1-4 anos', 'menores_5_anos': '<5 anos'}
+    for sufixo, aba in abas_por_sufixo.items():
+        df_bloco = extrai_evitaveis_cap_blocos(caminho, aba)
+        df_bloco.to_csv(f'dados_locais//tratados//obitos_evitaveis_{sufixo}_causa_cap_2006_2025.csv', index=False)
+
+def agrega_grupo_cid(df, colunas_chave):
+    """Soma os 8 subgrupos CID (coluna 'subgrupo') de uma tabela extraída da planilha de
+    causas evitáveis na primeira infância nos 3 grupos de primeiro nível ('1.', '2.', '3.'),
+    devolvendo uma coluna 'grupo' no lugar de 'subgrupo'. A planilha TabWin traz só os
+    subgrupos -- diferente dos arquivos 'segundo causas' usados nas seções anteriores, onde
+    grupo e subgrupo são linhas separadas -- então o grupo sai do primeiro caractere do
+    subgrupo já normalizado ('1.2.3. Red por at ao recém-nascido' -> grupo '1').
+
+    `colunas_chave` permite reusar a função para `['cod_ap_sms','ano','faixa_etaria']` (por
+    CAP) ou `['ano']` (município), sem duplicar lógica."""
+    df = df.copy()
+    df['grupo'] = df['subgrupo'].str[0].map(_GRUPOS_CID)
+    return df.groupby(colunas_chave + ['grupo'], as_index=False)['obitos'].sum()
+
+def subgrupo_excluido(subgrupo, faixa=None):
+    """Subgrupos de causa evitável que ficam fora dos gráficos por decisão da equipe (specs/exclusoes.md):
+    E3 -- 1.1 (reduzível por imunização), em todas as faixas: 0 a 2 óbitos por ano;
+    E2 -- 1.2.x (gestação, parto, recém-nascido) em '1 a 4 anos': causa perinatal nessa idade é quase
+    sempre erro de registro/codificação (22, 6 e 4 óbitos em 20 anos). Os CSVs continuam completos;
+    só o que é desenhado muda."""
+    s = str(subgrupo).strip()
+    if s.startswith('1.1'):
+        return True
+    return faixa is not None and '1 a 4' in str(faixa) and s.startswith('1.2')
+
+def filtra_colunas_subgrupo(colunas, faixa=None):
+    """{rótulo: coluna} de `serie_temporal_multipla` sem os subgrupos de `subgrupo_excluido`."""
+    return {rotulo: col for rotulo, col in colunas.items() if not subgrupo_excluido(rotulo, faixa)}
+
+def agrupa_racas_raras(df):
+    """E5 (specs/exclusoes.md): amarela e indígena somam 0 a 2 óbitos de menores de 1 ano por ano cada e geram
+    picos sem significado no percentual -- viram 'amarela_indigena', com o percentual recalculado a partir dos
+    absolutos somados (nunca somando percentuais, constituição §3). Acrescenta colunas, não remove nenhuma."""
+    df = df.copy()
+    df['obitos_amarela_indigena'] = df['obitos_amarela'] + df['obitos_indigena']
+    if {'nascidos_amarela', 'nascidos_indigena'} <= set(df.columns):
+        df['nascidos_amarela_indigena'] = df['nascidos_amarela'] + df['nascidos_indigena']
+        pct = df['obitos_amarela_indigena'] / df['nascidos_amarela_indigena'] * 100
+        df['percentual_amarela_indigena'] = pct.replace([float('inf'), -float('inf')], float('nan')).round(2)
+    return df
+
+def junta_codbairro_por_bairro(df, df_referencia):
+    """Junta `codbairro` a uma tabela cuja única chave de bairro é o nome (string) -- caso do
+    CadÚnico, a única fonte do projeto sem `codigo`/`codbairro` nativo. Usa `df_referencia`
+    (ex. `df_censo`, que já tem `codbairro` confiável) como fonte da correspondência
+    nome -> código. Levanta erro se sobrar alguma linha sem match, em vez de silenciosamente
+    dropar bairros -- um join fuzzy solto foi descartado como opção (skill `generate_map`)."""
+    resultado = df.merge(df_referencia[['bairro', 'codbairro']], on='bairro', how='left')
+    sem_match = resultado[resultado['codbairro'].isna()]
+    if len(sem_match) > 0:
+        raise ValueError(f"{len(sem_match)} bairros sem correspondência: {sorted(sem_match['bairro'].unique())}")
+    return resultado
+
+def carrega_sidra_longo(caminho, coluna_corte=None):
+    """Lê um export longo do IBGE SIDRA (uma linha de município, dimensões em colunas) e
+    devolve só as colunas relevantes: idade, `coluna_corte` (raça/sexo, se houver) e valor.
+
+    As tabelas de `dados_locais/ibge_sidra/` trazem sempre Rio de Janeiro (código 3304557),
+    2022, e uma coluna de idade (`Idade` na tabela 9606, `Grupo de idade` nas 10056/10057) --
+    normalizada aqui para 'idade'. `Valor == '-'` (0 ocorrências, mesma convenção já usada nos
+    arquivos Tabnet do projeto) é convertido para 0."""
+    df = pd.read_csv(caminho)
+    coluna_idade = 'Idade' if 'Idade' in df.columns else 'Grupo de idade'
+    df = df.rename(columns={coluna_idade: 'idade'})
+    df['valor'] = df['Valor'].replace('-', 0).astype(float)
+    colunas = ['idade', 'valor'] + ([coluna_corte] if coluna_corte else [])
+    return df[colunas]
+
+# %% [markdown]
+# ### 📈 Funções de visualização
+#
+# Todas salvam o gráfico em `visualizacoes/` como PNG. A exportação adicional em SVG fica
+# disponível, mas comentada, em cada função — descomente a linha `# plt.savefig(...svg...)`
+# quando precisar de um formato vetorial.
+
+# %%
+# Identidade visual compartilhada por todas as funções de visualização desta seção --
+# mesma paleta/rodapé de fonte usados no relatório HTML e no PDF (ver specs/2026-09-09_visual-identity).
+
+# paleta categórica de 11 cores -- mesmos hex do motor JS de relatorio/index.html (--c1..--c11),
+# para a mesma série ter a mesma cor no notebook, no PDF e no HTML.
+_PALETA_CATEGORICA = ['#6a95c8', '#d28060', '#66cca7', '#deb254', '#ca688d',
+                       '#54de54', '#8177bb', '#cc6766', '#bc9776', '#b67c99', '#8e9ea4']
+
+# matiz sequencial por tema, usado por mapa_coropletico_bairros no lugar de um cmap fixo --
+# mesma lógica "um matiz só por mapa" (magnitude), variando o matiz conforme o assunto.
+_CORES_TEMA_MAPA = {
+    'natalidade': 'BuGn',    # nascidos vivos, baixo peso
+    'mortalidade': 'RdPu',   # óbitos (neonatal, gravidez, puerpério, raça, evitáveis/CAP)
+    'cadunico': 'YlOrBr',    # CadÚnico
+    'censo': 'Blues',        # Censo/população
+    'protecao': 'OrRd',      # violência/notificações (eixo Proteção)
+}
+
+_LIMIAR_DESTAQUE_SERIES = 6  # acima disso, serie_temporal_multipla destaca só as mais relevantes
+_N_SERIES_DESTACADAS = 4
+_COR_SERIE_APAGADA = '#c9c9c9'
+_COR_FONTE_RODAPE = '#5E6D68'
+
+def _rodape_fonte(fonte_dados):
+    """Desenha 'Fonte: ...' discreto no canto inferior direito da figura -- mesma ideia do
+    footnote dos mapas, aplicada aos gráficos de série/barra. No-op se fonte_dados for None."""
+    if fonte_dados:
+        plt.figtext(0.99, 0.01, f'Fonte: {fonte_dados}', ha='right', va='bottom',
+                    fontsize=7, style='italic', color=_COR_FONTE_RODAPE)
+
+def serie_temporal(df,tempo,valor,titulo,nome_arquivo=None, formato='png', fonte_dados=None):
+    nome_arquivo = nome_arquivo or f"{valor}_{tempo}"
+    plt.figure(figsize=(12,6))
+    sns.lineplot(x=tempo,y=valor,data=df, color=_PALETA_CATEGORICA[0], marker='o')
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    plt.xlabel(tempo,fontsize=12)
+    plt.ylabel(valor,fontsize=12)
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
+    plt.grid(True,alpha=0.25)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout()
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_serie_unica(df, tempo, valor, titulo, nome_arquivo=nome_arquivo, fonte_dados=fonte_dados)
+    # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
+    plt.show()
+
+def grafico_barra(df,categoria,valor,titulo,nome_arquivo=None, formato='png', fonte_dados=None):
+    nome_arquivo = nome_arquivo or f"{valor}_{categoria}"
+    plt.figure(figsize=(10,6))
+    sns.barplot(x=categoria,y=valor,data=df,palette=_PALETA_CATEGORICA,hue=categoria,legend=False)
+    plt.xlabel(categoria,fontsize=12)
+    plt.ylabel(valor, fontsize=12)
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout()
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_barras(df, categoria, valor, titulo, nome_arquivo=nome_arquivo, fonte_dados=fonte_dados)
+    # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
+    plt.show()
+
+def grafico_barra_agrupado(df,categoria,valor,agrupador,titulo,nome_arquivo,ylabel=None,legend_title=None,ordem_categoria=None,ordem_agrupador=None,rotacao_x=30,figsize=(12,7),formato='png', fonte_dados=None):
+    plt.figure(figsize=figsize)
+    sns.barplot(data=df, x=categoria, y=valor, hue=agrupador, order=ordem_categoria, hue_order=ordem_agrupador, palette=_PALETA_CATEGORICA)
+    plt.xlabel(categoria,fontsize=12)
+    plt.ylabel(ylabel or valor, fontsize=12)
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
+    plt.xticks(rotation=rotacao_x, ha='right' if rotacao_x else 'center')
+    plt.legend(title=legend_title or agrupador, fontsize=9)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout()
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_barras_agrupadas(df, categoria, valor, agrupador, titulo, nome_arquivo=nome_arquivo, ylabel=ylabel,
+                         ordem_categoria=ordem_categoria, ordem_agrupador=ordem_agrupador, fonte_dados=fonte_dados)
+    # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
+    plt.show()
+
+def serie_temporal_multipla(df,tempo,colunas,titulo,nome_arquivo,ylabel='Valor',legend_title='Cor/Raça',figsize=(12,6),formato='png', fonte_dados=None, destaques=None, linhas_referencia=None):
+    """`linhas_referencia`: lista opcional de `(valor, rótulo)` desenhada como linha horizontal tracejada
+    cinza, com o rótulo à direita (ex.: metas do PNE). `None` (padrão) não desenha nada."""
+    plt.figure(figsize=figsize)
+    itens = list(colunas.items())
+    if len(itens) > _LIMIAR_DESTAQUE_SERIES:
+        mapa_colunas = dict(itens)
+        if destaques is None:
+            def _valor_final(coluna):
+                serie = df[coluna].dropna()
+                return serie.iloc[-1] if len(serie) else float('-inf')
+            destaques = sorted((r for r, _ in itens), key=lambda r: _valor_final(mapa_colunas[r]), reverse=True)[:_N_SERIES_DESTACADAS]
+        cor_idx = 0
+        for rotulo,coluna in itens:
+            if rotulo in destaques:
+                sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None,
+                             color=_PALETA_CATEGORICA[cor_idx % len(_PALETA_CATEGORICA)], linewidth=2.2, zorder=3)
+                cor_idx += 1
+            else:
+                sns.lineplot(x=tempo,y=coluna,data=df,marker=None,errorbar=None,legend=False,
+                             color=_COR_SERIE_APAGADA, alpha=0.6, linewidth=1.1, zorder=1)
+        plt.plot([],[],color=_COR_SERIE_APAGADA,alpha=0.6,linewidth=1.1,
+                 label=f'Outras ({len(itens) - len(destaques)})')
+    else:
+        for i,(rotulo,coluna) in enumerate(itens):
+            sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None,
+                         color=_PALETA_CATEGORICA[i % len(_PALETA_CATEGORICA)])
+    for valor, rotulo_ref in (linhas_referencia or []):
+        plt.axhline(valor, color='#6b6b6b', linestyle='--', linewidth=1.1, zorder=0)
+        plt.annotate(rotulo_ref, xy=(1, valor), xycoords=('axes fraction', 'data'), xytext=(-4, 3),
+                     textcoords='offset points', ha='right', va='bottom', fontsize=9, color='#3a3a3a', style='italic')
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    plt.xlabel(tempo,fontsize=12)
+    plt.ylabel(ylabel,fontsize=12)
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
+    plt.legend(title=legend_title,fontsize=9)
+    plt.grid(True,alpha=0.3)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout()
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_series(df, tempo, colunas, titulo, nome_arquivo=nome_arquivo, ylabel=ylabel, fonte_dados=fonte_dados,
+               linhas_referencia=linhas_referencia)
+    # plt.savefig(f"visualizacoes/{nome_arquivo}.svg")  # descomente para exportar também em SVG
+    plt.show()
+
+def _numero_ptbr(n):
+    """Formata um número inteiro com separador de milhar no padrão brasileiro (ex.: 10000 -> '10.000')."""
+    return f"{n:,.0f}".replace(",", ".")
+
+# basemap cartográfico/'desenho' (sem satélite -- descartado; ver generate_map skill para o porquê):
+# relevo suave, sem rótulos de municípios vizinhos, mar em azul. max_zoom 13 (suficiente na escala do município).
+_PROVEDORES_FUNDO = {
+    'mapa': ctx.providers.Esri.OceanBasemap,
+}
+
+# o serviço 'Ocean_Basemap' da Esri (provedor de 'mapa') passou a responder HTTP 500 em 2026-09; o sucessor
+# 'Ocean/World_Ocean_Base' tem o mesmo estilo (relevo suave, mar azul, sem rótulos) e serve os tiles.
+# Chave nova (não altera 'mapa'): use fundo='mapa_oceano_base' enquanto o serviço antigo estiver fora do ar.
+# 2026-09-25 (specs/2026-09-25_relatorio_latex, aprovado pelo usuário após comparação lado a lado): 'mapa_oceano_base' passou a
+# ser o padrão de mapa_coropletico_bairros -- mesmo estilo; 'mapa' continua disponível se o serviço antigo voltar.
+_PROVEDORES_FUNDO['mapa_oceano_base'] = xyzservices.TileProvider(
+    name='Esri.WorldOceanBase',
+    url='https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution='Tiles © Esri — Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri',
+    max_zoom=13,
+)
+
+# nível de agregação geográfica: coluna do geojson de bairros usada no dissolve/join, e o tipo para
+# comparação (Área de Planejamento e codbairro são numéricos; Região de Planejamento é 'AP.subregião',
+# ex. '4.2', e não pode virar número sem perder precisão)
+_NIVEIS_AGREGACAO = {
+    'bairro': {'coluna_geo': 'codbairro', 'tipo': int},
+    'ap':     {'coluna_geo': 'area_plane', 'tipo': int},
+    'rp':     {'coluna_geo': 'cod_rp', 'tipo': str},
+    'cap':    {'coluna_geo': 'cod_ap_sms', 'tipo': str},
+    'ra':     {'coluna_geo': 'codra', 'tipo': int},  # Região Administrativa (33 no geojson de bairros; não existe RA 32)
+}
+
+# geojson oficial das 10 CAPs (Coordenadoria de Área Programática de Saúde, SMS-Rio -- não
+# aninha no geojson de bairros do IPP, que só traz Área/Região de Planejamento), Data.Rio
+# ("Áreas Programáticas da Saúde"); ver specs/2026-09-08_mortalidade-ap/specification.md §4
+_CAMINHO_GEO_CAP = 'dados_locais/geo/limite_ap_saude_rio.geojson'
+
+# de-para RA -> CAP, derivado do cruzamento espacial com o polígono oficial acima (não de
+# memória -- a versão anterior, escrita à mão, errava Guaratiba e Complexo do Alemão). Não é
+# usado pelos mapas desta seção (que usam o geojson oficial direto via nivel='cap'); fica
+# documentado para uso futuro, agregando qualquer tabela por bairro/RA até a CAP
+_RA_PARA_CAP = {
+    1: '1.0', 2: '1.0', 3: '1.0', 7: '1.0', 21: '1.0', 23: '1.0',
+    4: '2.1', 5: '2.1', 6: '2.1', 27: '2.1',
+    8: '2.2', 9: '2.2',
+    10: '3.1', 11: '3.1', 20: '3.1', 29: '3.1', 30: '3.1', 31: '3.1',
+    12: '3.2', 13: '3.2', 28: '3.2',
+    14: '3.3', 15: '3.3', 22: '3.3', 25: '3.3',
+    16: '4.0', 24: '4.0', 34: '4.0',
+    17: '5.1', 33: '5.1',
+    18: '5.2', 26: '5.2',
+    19: '5.3',
+}
+
+_FONTE_TITULO = 'Palatino Linotype'  # serifada, estilo de publicação acadêmica
+
+# canto reservado para a legenda/colorbar (sempre 'upper left'), em fração dos eixos (0-1) -- um
+# rótulo de município vizinho que caia aqui seria sobreposto pela legenda, então é descartado
+_ZONA_LEGENDA = (0.0, 0.46, 0.34, 1.0)  # (x0, y0, x1, y1)
+
+def _adiciona_rosa_dos_ventos(ax, x=0.94, y=0.90, tamanho=0.05, cor='#262626'):
+    """Desenha uma seta 'N' simples (rosa dos ventos) no canto superior direito do mapa."""
+    ax.annotate(
+        'N', xy=(x, y), xytext=(x, y - tamanho),
+        xycoords=ax.transAxes, textcoords=ax.transAxes,
+        ha='center', va='center', fontsize=15, fontweight='bold', color=cor,
+        arrowprops=dict(arrowstyle='-|>', color=cor, lw=2.0, mutation_scale=24),
+        zorder=5,
+    )
+
+def _adiciona_rotulos_municipios_vizinhos(ax, xlim, ylim, cor='#262626', tamanho=10, margem=0.02,
+                                           caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson'):
+    """Rotula os municípios vizinhos (não Rio de Janeiro) visíveis na área do mapa.
+
+    Usa o ponto representativo do FRAGMENTO recortado pela janela (garante que o rótulo fique dentro
+    da parte de fato visível do município, não fora do mapa) -- mas descarta fragmentos cujo ponto
+    fica perto demais da borda (`margem`), que é o caso de um município que só encosta numa pontinha
+    do canto do mapa (ex.: Rio Claro, cujo pedaço visível é um triângulo minúsculo no canto) e cujo
+    rótulo sairia cortado pela borda da figura. Também descarta quem cairia sobre a legenda/colorbar
+    (sempre no canto superior esquerdo -- `_ZONA_LEGENDA`).
+    """
+    gdf_mun = gpd.read_file(caminho_municipios).to_crs(epsg=3857)
+    gdf_mun = gdf_mun[gdf_mun['nome'] != 'Rio de Janeiro'].copy()
+    janela = box(xlim[0], ylim[0], xlim[1], ylim[1])
+    gdf_mun = gdf_mun[gdf_mun.intersects(janela)].copy()
+    gdf_mun['ponto'] = gdf_mun.intersection(janela).apply(lambda g: g.representative_point())
+
+    largura, altura = xlim[1] - xlim[0], ylim[1] - ylim[0]
+    x0, x1 = xlim[0] + largura * margem, xlim[1] - largura * margem
+    y0, y1 = ylim[0] + altura * margem, ylim[1] - altura * margem
+    lx0, ly0, lx1, ly1 = _ZONA_LEGENDA
+
+    def _visivel(p):
+        if not (x0 <= p.x <= x1 and y0 <= p.y <= y1):
+            return False
+        xf, yf = (p.x - xlim[0]) / largura, (p.y - ylim[0]) / altura
+        return not (lx0 <= xf <= lx1 and ly0 <= yf <= ly1)
+
+    gdf_visiveis = gdf_mun[gdf_mun['ponto'].apply(_visivel)]
+    for _, row in gdf_visiveis.iterrows():
+        ponto = row['ponto']
+        ax.annotate(
+            row['nome'], xy=(ponto.x, ponto.y), ha='center', va='center',
+            fontsize=tamanho, color=cor, fontweight='medium', zorder=4,
+            path_effects=[pe.withStroke(linewidth=2.5, foreground='white')],
+        )
+
+def agrega_bairros_por_nivel(df, nivel, colunas_soma):
+    """Agrega uma tabela por bairro para o nível de Área de Planejamento ('ap') ou Região de
+    Planejamento ('rp'), somando `colunas_soma` (ex.: contagens absolutas). Percentuais devem ser
+    recalculados depois a partir das colunas somadas (ex.: total de crianças / população total),
+    nunca por média simples das linhas por bairro -- bairros têm populações muito desiguais.
+
+    `df` precisa já trazer a coluna administrativa do próprio nível ('area_plane' para 'ap', 'cod_rp'
+    para 'rp') -- os exports do Censo/Data.Rio por bairro já vêm com essas colunas nativamente (não
+    é preciso buscá-las no geojson de bairros à parte)."""
+    coluna_geo, tipo = _NIVEIS_AGREGACAO[nivel]['coluna_geo'], _NIVEIS_AGREGACAO[nivel]['tipo']
+    df = df.copy()
+    df[coluna_geo] = df[coluna_geo].astype(tipo)
+    return df.groupby(coluna_geo, as_index=False)[colunas_soma].sum()
+
+def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None, nivel='bairro', bins=None,
+                              cmap='Oranges', legenda_titulo=None, fundo='mapa_oceano_base', alpha=None, fonte_dados=None,
+                              caminho_geojson='dados_locais/geo/limite_bairros_rio.geojson',
+                              caminho_uf='dados_locais/geo/limite_uf_brasil.geojson',
+                              caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson', formato='png', zero_branco=False):
+    """Gera um mapa coroplético do Rio (limites IPP/Data.Rio, simplificados) e salva em mapas/.
+
+    `nivel`: 'bairro' (padrão) | 'ap' (Área de Planejamento, 5 regiões) | 'rp' (Região de
+    Planejamento, 16 regiões) | 'ra' (Região Administrativa, 33 regiões, chave `codra`) -- une (`dissolve`) os polígonos de bairro nesse nível antes do join
+    com `df`. `chave` é a coluna de `df` usada no join; se None, usa o nome padrão de cada nível
+    ('codbairro', 'area_plane' ou 'cod_rp') -- `df` deve trazer essa coluna já agregada (ver
+    `agrega_bairros_por_nivel` para ir de uma tabela por bairro a uma por AP/RP).
+
+    Bairros/regiões sem correspondência em `df` ficam sem preenchimento ('Sem dado'). Se `bins` for
+    informado (lista de limites superiores, ex.: [1000, 2500, 5000, 10000]), o mapa usa classes
+    discretas com legenda no padrão 'Até X' / 'X a Y' / 'Mais de Z' (estilo de
+    `mapas/mapa_referencia.jpeg`); caso contrário, usa uma escala contínua com barra de cores
+    (legenda/colorbar sempre dentro da própria área do mapa, não numa coluna externa -- só o título
+    fica na margem branca da figura).
+
+    `fundo`: 'mapa' (padrão -- basemap cartográfico via Esri Ocean Basemap: relevo, mar em azul, sem
+    nomes de cidade) | None (fundo branco liso, sem contexto geográfico). Com fundo, os limites
+    estaduais (UF, fonte IBGE) do entorno são sobrepostos em amarelo tracejado, os municípios
+    vizinhos (não Rio de Janeiro) visíveis são rotulados, a vista é ampliada além dos bairros para
+    dar contexto (região metropolitana, baía, mar), e o mapa recebe rosa dos ventos + escala gráfica
+    (corrigida para a distorção de latitude do Web Mercator).
+    `zero_branco` (só com `bins`, contagens absolutas): quando True, valores iguais a 0 ficam brancos, com
+    entrada própria '0 (sem casos)' na legenda, em vez de cair na primeira classe ('Até X'). Padrão False
+    (comportamento anterior, usado pelos demais mapas).
+
+    A figura usa proporção larga (~1,46:1, próxima de A4 paisagem) e é exportada a 300 DPI com
+    `bbox_inches='tight'`, para que só o título ocupe espaço fora do mapa em si.
+
+    `fonte_dados`: texto curto citando a fonte dos dados temáticos (ex.: 'Censo Demográfico 2022
+    (IBGE/Data.Rio)'), exibido no rodapé do mapa junto com o sistema de referência -- SIRGAS 2000
+    (dados originais) e, quando `fundo` está ativo, Web Mercator/EPSG:3857 (projeção usada para
+    render, a mesma dos basemaps web -- por isso a escala gráfica é corrigida para a latitude, ver
+    a skill generate_map).
+    """
+    info_nivel = _NIVEIS_AGREGACAO[nivel]
+    coluna_geo, tipo = info_nivel['coluna_geo'], info_nivel['tipo']
+    chave = chave or coluna_geo
+
+    gdf_bairros = gpd.read_file(caminho_geojson)
+    gdf_bairros[coluna_geo] = gdf_bairros[coluna_geo].astype(tipo)
+    gdf_nivel = gdf_bairros if nivel == 'bairro' else gdf_bairros.dissolve(by=coluna_geo, as_index=False)
+
+    df = df.copy()
+    df[chave] = df[chave].astype(tipo)
+    gdf = gdf_nivel.merge(df[[chave, coluna_valor]], left_on=coluna_geo, right_on=chave, how='left')
+    gdf_a4 = gdf.copy()   # variante de impressão (mesmos dados, desenho próprio)
+
+    # fator de correção do Web Mercator na latitude do Rio (~-23°), para a escala gráfica ficar correta
+    # (centroide aproximado só para essa correção, não precisa de precisão métrica -- dispensa reprojeção)
+    lat_media = gdf.geometry.centroid.y.mean()
+    correcao_mercator = math.cos(math.radians(lat_media))
+
+    usa_fundo = fundo is not None
+    if usa_fundo:
+        if fundo not in _PROVEDORES_FUNDO:
+            raise ValueError(f"fundo inválido: {fundo!r} (use 'mapa' ou None)")
+        gdf = gdf.to_crs(epsg=3857)
+    alpha = alpha if alpha is not None else (0.82 if usa_fundo else 1.0)
+    missing_kwds = ({'color': 'none', 'edgecolor': '#8a8a8a', 'hatch': '///', 'label': 'Sem dado'}
+                     if usa_fundo else {'color': '#f0f0f0', 'edgecolor': '#bdbdbd', 'label': 'Sem dado'})
+
+    # figura em formato largo: padding vertical generoso (contexto acima/abaixo do município), mas
+    # bem mais enxuto na horizontal -- o contorno dos bairros já é ~1,9:1 (muito mais largo que
+    # alto); cortar o excesso de fundo/basemap nas laterais (não os bairros) aproxima a proporção
+    # final de uma página A4 paisagem (~1,41:1) sem cortar nenhum dado
+    minx, miny, maxx, maxy = gdf.total_bounds
+    padx, pady = (maxx - minx) * 0.03, (maxy - miny) * 0.15
+    aspecto = (maxx - minx + 2 * padx) / (maxy - miny + 2 * pady)
+    altura_fig = 8.5
+    _, ax = plt.subplots(figsize=(round(altura_fig * aspecto, 1), altura_fig))
+
+    if bins:
+        limite_inferior = min(gdf[coluna_valor].min(), bins[0]) - 1
+        limite_superior = max(gdf[coluna_valor].max(), bins[-1])
+        limites = [limite_inferior] + list(bins) + [limite_superior]
+        rotulos = [f"Até {_numero_ptbr(bins[0])}"]
+        rotulos += [f"{_numero_ptbr(bins[i-1]+1)} a {_numero_ptbr(bins[i])}" for i in range(1, len(bins))]
+        rotulos.append(f"Mais de {_numero_ptbr(bins[-1])}")
+        eh_zero = (gdf[coluna_valor] == 0) if zero_branco else pd.Series(False, index=gdf.index)
+        gdf['faixa'] = pd.cut(gdf[coluna_valor].where(~eh_zero), bins=limites, labels=rotulos, ordered=True)
+        gdf.plot(
+            column='faixa', ax=ax, cmap=cmap, linewidth=0.4, edgecolor='#616161', legend=True, alpha=alpha,
+            zorder=2, missing_kwds=missing_kwds,
+            legend_kwds={'title': legenda_titulo or coluna_valor, 'loc': 'upper left', 'fontsize': 10,
+                         'title_fontsize': 12, 'framealpha': 0.92, 'facecolor': 'white', 'edgecolor': '#c9c9c9',
+                         'labelcolor': '#111111'},
+        )
+        if zero_branco and eh_zero.any():
+            # zeros por cima do preenchimento 'Sem dado' (que os cobre com hachura), em branco liso
+            gdf[eh_zero].plot(ax=ax, color='white', linewidth=0.4, edgecolor='#616161', zorder=2.5)
+            legenda_antiga = ax.get_legend()
+            handles_ant = list(legenda_antiga.legend_handles)
+            rotulos_ant = [t.get_text() for t in legenda_antiga.get_texts()]
+            if not gdf[coluna_valor].isna().any():  # 'Sem dado' só se houver região realmente sem dado
+                manter = [i for i, r in enumerate(rotulos_ant) if r != 'Sem dado']
+                handles_ant, rotulos_ant = [handles_ant[i] for i in manter], [rotulos_ant[i] for i in manter]
+            handles = [Line2D([0], [0], marker='o', linestyle='', markerfacecolor='white', markeredgecolor='#616161', markersize=11)] + handles_ant
+            rotulos_leg = ['0 (sem casos)'] + rotulos_ant
+            legenda_antiga.remove()
+            ax.legend(handles=handles, labels=rotulos_leg, title=legenda_titulo or coluna_valor, loc='upper left', fontsize=10,
+                      title_fontsize=12, framealpha=0.92, facecolor='white', edgecolor='#c9c9c9', labelcolor='#111111')
+        legenda = ax.get_legend()
+        legenda.get_title().set_fontweight('bold')
+        for texto in legenda.get_texts():
+            texto.set_fontweight('semibold')
+    else:
+        # colorbar como inset dentro da própria área do mapa (não numa coluna externa) -- mesmo canto
+        # que a legenda de classes usaria, já que os dois modos são mutuamente exclusivos numa chamada;
+        # deslocada para perto do topo (y0=0,60) para ficar mais sobre a margem de contexto (fora dos
+        # bairros) do que sobre os próprios polígonos coloridos. Sem nenhum retângulo/caixa de fundo
+        # (nem borda, nem preenchimento) atrás da colorbar -- os rótulos dos ticks e o texto do eixo
+        # (rotacionado) ficam FORA da própria cax, então em vez de uma caixa opaca por baixo, cada
+        # texto ganha um halo branco (path_effects.withStroke, a mesma técnica dos rótulos de
+        # município vizinho) para continuar legível não importa sobre qual parte do mapa a colorbar
+        # caia.
+        cax_x0, cax_y0, cax_largura, cax_altura = 0.035, 0.60, 0.03, 0.30
+        cax = ax.inset_axes([cax_x0, cax_y0, cax_largura, cax_altura])
+        gdf.plot(
+            column=coluna_valor, ax=ax, cmap=cmap, linewidth=0.4, edgecolor='#616161', legend=True, alpha=alpha,
+            zorder=2, missing_kwds=missing_kwds, cax=cax,
+            legend_kwds={'label': legenda_titulo or coluna_valor},
+        )
+        halo = [pe.withStroke(linewidth=3, foreground='white')]
+        cax.tick_params(labelsize=9, colors='#111111')
+        for rotulo in cax.get_yticklabels():
+            rotulo.set_fontweight('semibold')
+            rotulo.set_path_effects(halo)
+        cax.yaxis.label.set_size(11)
+        cax.yaxis.label.set_color('#111111')
+        cax.yaxis.label.set_fontweight('bold')
+        cax.yaxis.label.set_path_effects(halo)
+
+    if usa_fundo:
+        # amplia a vista além dos bairros para dar contexto (região metropolitana, baía, mar)
+        ax.set_xlim(minx - padx, maxx + padx)
+        ax.set_ylim(miny - pady, maxy + pady)
+
+        gdf_uf = gpd.read_file(caminho_uf).to_crs(epsg=3857)
+        gdf_uf.boundary.plot(ax=ax, color='#ffeb3b', linewidth=1.3, linestyle='--', zorder=1)
+        ax.set_xlim(minx - padx, maxx + padx)
+        ax.set_ylim(miny - pady, maxy + pady)
+
+        ctx.add_basemap(ax, source=_PROVEDORES_FUNDO[fundo], zorder=0, attribution_size=6)
+
+        _adiciona_rosa_dos_ventos(ax)
+        ax.add_artist(ScaleBar(
+            correcao_mercator, units='m', location='lower right', box_alpha=0.75,
+            color='#262626', box_color='white', scale_loc='bottom', border_pad=0.6,
+            font_properties={'size': 10},
+        ))
+        _adiciona_rotulos_municipios_vizinhos(ax, ax.get_xlim(), ax.get_ylim(), caminho_municipios=caminho_municipios)
+
+    # rodapé com sistema de referência (+ projeção de render, quando reprojetado para o basemap) e
+    # fonte dos dados -- convenção cartográfica (ver mapas/mapa_referencia.jpeg); sempre presente,
+    # com ou sem fundo. Em duas linhas e deslocado um pouco à direita do centro: nem sobre o atributo
+    # do basemap do contextily (inferior esquerdo, 2 linhas largas) nem sobre a escala gráfica
+    # (inferior direito) -- ambos variam de largura conforme o recorte/nível do mapa
+    texto_referencia = ('Sistema de referência: SIRGAS 2000, UTM - Fuso 23S (dados) | Web Mercator EPSG:3857 (mapa)'
+                         if usa_fundo else 'Sistema de referência: SIRGAS 2000, UTM - Fuso 23S')
+    rodape = texto_referencia if not fonte_dados else f"{texto_referencia}\nFonte: {fonte_dados}"
+    ax.annotate(
+        rodape, xy=(0.55, 0.012), xycoords='axes fraction', ha='center', va='bottom',
+        fontsize=6.5, color='#262626', zorder=6,
+        bbox=dict(boxstyle='square,pad=0.35', facecolor='white', alpha=0.8, edgecolor='none'),
+    )
+
+    ax.set_title(titulo, fontsize=22, pad=14, fontfamily=_FONTE_TITULO, fontweight='bold')
+    ax.axis('off')
+    plt.tight_layout()
+    plt.savefig(f"mapas/{nome_arquivo}.{formato}", dpi=300, bbox_inches='tight', pad_inches=0.15)
+    _a4_mapa(gdf_a4, coluna_valor, titulo, nome_arquivo=nome_arquivo, nivel=nivel, bins=bins, cmap=cmap,
+             legenda_titulo=legenda_titulo, fonte_dados=fonte_dados, zero_branco=zero_branco,
+             caminho_uf=caminho_uf, caminho_municipios=caminho_municipios)
+    plt.show()
+
+# %% [markdown]
+# ### 🖨️ Variante de impressão (relatório PDF)
+#
+# Cada função de visualização acima grava também uma **variante para o relatório em PDF**
+# (`specs/2026-09-25_relatorio_latex`, §5.1 e Bloco 5): figura desenhada no tamanho final do A4 (16 cm de largura útil),
+# sem título nem fonte embutidos (vão para a legenda ABNT do LaTeX), eixo com rótulo por extenso e unidade,
+# números em pt-BR, rótulos diretos seletivos (sem tooltip no papel), paleta de impressão validada e IBM Plex
+# Sans (a fonte do corpo do relatório). Séries com mais de `_LIMIAR_DESTAQUE_SERIES` linhas viram pequenos
+# múltiplos; mapas de taxa por bairro usam teto de cor no percentil 95 (decisão D5).
+# Gráficos em `visualizacoes/a4/*.pdf` (vetorial), mapas em `mapas/a4/*.pdf`; título, fonte e unidade de cada
+# figura vão para `visualizacoes/a4/_manifesto.csv`, lido por `relatorio/latex/build/gera_latex.py`.
+# Desligar com `GERA_VARIANTE_A4 = False`. As PNGs de tela, o site e o DOCX não mudam.
+
+# %%
 from matplotlib import font_manager as _fm
 from matplotlib.ticker import FuncFormatter as _FuncFormatter, MaxNLocator as _MaxNLocator
 from matplotlib.colors import Normalize as _Normalize
 from matplotlib.patches import Patch as _Patch
 import textwrap as _textwrap
+
+GERA_VARIANTE_A4 = True
+_PASTA_A4 = {'grafico': 'visualizacoes/a4', 'mapa': 'mapas/a4'}
+_MANIFESTO_A4 = 'visualizacoes/a4/_manifesto.csv'
+_CM = 1 / 2.54
+_LARGURA_A4 = 16 * _CM
+# paleta de impressão: mesmos matizes e ordem de _PALETA_CATEGORICA, em tons que passam no validador da skill
+# dataviz em fundo branco (luminância, croma, daltonismo, contraste >= 3:1) -- specs/2026-09-25_relatorio_latex §5.1
+_PALETA_IMPRESSAO = ['#3f76b8', '#dc7a45', '#0f7d5c', '#b88a1e', '#b8527b', '#5c9a3c', '#6f64ae', '#b84f4e']
+_TINTA, _TINTA2, _TINTA3, _GRADE, _CINZA_CONTEXTO = '#16202A', '#3F4B57', '#6B7580', '#DDE2E7', '#C9CFD5'
+_PASTA_FONTES = 'relatorio/latex/fontes'
+_FAMILIA_IMPRESSAO = None
+
+# rótulo por extenso, com unidade, para a coluna/ylabel que chega às funções de visualização
+ROTULOS_EIXO = {
+    'taxa_mortalidade_precoce': 'Óbitos de 0 a 6 dias por mil nascidos vivos',
+    'taxa_obitos_tardios': 'Óbitos de 7 a 27 dias por mil nascidos vivos',
+    'taxa_mortalidade_pos_neonatal': 'Óbitos de 28 a 364 dias por mil nascidos vivos',
+    'taxa_mortalidade_infantil': 'Óbitos de menores de 1 ano por mil nascidos vivos',
+    'taxa_por_mil': 'Óbitos evitáveis de menores de 5 anos por mil nascidos vivos',
+    'nascidos vivos': 'Nascidos vivos por ano',
+    'percentual abaixo do peso': '% dos nascidos vivos com menos de 2.500 g',
+    'óbitos-gravidez': 'Óbitos maternos durante a gravidez, por ano',
+    'óbitos-puerpério': 'Óbitos maternos durante o puerpério, por ano',
+    'Percent. baixo peso total': '% das crianças acompanhadas com peso baixo ou muito baixo para a idade',
+    'Percent. sobrepeso total': '% das crianças acompanhadas com sobrepeso ou obesidade',
+    'obesidade_percentual': '% das crianças acompanhadas com obesidade',
+    'populacao_0_a_6': 'Crianças de 0 a 6 anos',
+    'percentual_0_a_6': '% da população do município',
+    'Percentual 0 a 4 anos': '% da população do município',
+    'matriculas': 'Matrículas de crianças de 0 a 5 anos',
+    'Óbitos': 'Óbitos por ano',
+    'Pessoas': 'Pessoas',
+    'Taxa (%)': 'Taxa de frequência escolar bruta (%)',
+    'Percentual (%)': '%',
+    'Notificações': 'Notificações por ano',
+    'notificações': 'Notificações',
+}
+# ... e por arquivo, quando o mesmo ylabel genérico serve a medidas diferentes
+ROTULOS_A4_ARQUIVO = {
+    'percentual_mortalidade_raca_ano': 'Óbitos de menores de 1 ano por mil nascidos vivos',
+    'pnad_frequencia_escolar_por_idade': '% que frequenta escola ou creche',
+    'cadunico_familias_arranjo_renda': '% das famílias do arranjo',
+    'taxa_atendimento_0_a_5_por_ano': 'Matrículas por 100 crianças residentes',
+}
+_ESCALA_100_A4 = {'pnad_frequencia_escolar_por_idade'}   # CSV em fração 0-1
+
+
+def _familia_impressao():
+    """IBM Plex Sans versionada em relatorio/latex/fontes/ (a mesma do corpo do PDF); sans-serif se faltar."""
+    global _FAMILIA_IMPRESSAO
+    if _FAMILIA_IMPRESSAO is None:
+        arquivos = list(Path(_PASTA_FONTES).glob('IBMPlexSans-*.otf'))
+        for arq in arquivos:
+            _fm.fontManager.addfont(str(arq))
+        _FAMILIA_IMPRESSAO = 'IBM Plex Sans' if arquivos else 'sans-serif'
+    return _FAMILIA_IMPRESSAO
+
+
+def _rc_impressao():
+    return {
+        'font.family': _familia_impressao(), 'font.size': 8, 'text.color': _TINTA, 'axes.labelcolor': _TINTA2,
+        'axes.labelsize': 8, 'axes.edgecolor': _TINTA3, 'axes.linewidth': 0.6, 'axes.spines.top': False,
+        'axes.spines.right': False, 'axes.spines.left': False, 'axes.grid': True, 'axes.grid.axis': 'y',
+        'grid.color': _GRADE, 'grid.linewidth': 0.5, 'grid.alpha': 1.0, 'grid.linestyle': '-',
+        'xtick.color': _TINTA3, 'ytick.color': _TINTA3, 'xtick.labelcolor': _TINTA2, 'ytick.labelcolor': _TINTA2,
+        'xtick.labelsize': 7.5, 'ytick.labelsize': 7.5, 'ytick.left': False, 'xtick.major.width': 0.6,
+        'xtick.major.size': 2.5, 'legend.frameon': False, 'legend.fontsize': 7.5, 'legend.title_fontsize': 7.5,
+        'lines.linewidth': 1.6, 'lines.solid_capstyle': 'round', 'pdf.fonttype': 42, 'axes.titlesize': 8,
+        'savefig.dpi': 300, 'axes.prop_cycle': plt.cycler(color=_PALETA_IMPRESSAO), 'hatch.linewidth': 0.4,
+    }
+
+
+def _num_a4(v, dec=0):
+    if v is None or (isinstance(v, float) and math.isnan(v)):
+        return '–'
+    return f'{v:,.{dec}f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
+
+
+def _decimais_a4(valores):
+    """0 casas para contagens e valores grandes, 1 para taxas/percentuais pequenos."""
+    v = pd.Series(valores).dropna().astype(float)
+    if v.empty:
+        return 0
+    inteiros = (v == v.round()).all()
+    return 0 if (inteiros or v.abs().max() >= 100) else 1
+
+
+def _rotulo_a4(coluna_ou_ylabel, nome_arquivo=None):
+    if nome_arquivo in ROTULOS_A4_ARQUIVO:
+        return ROTULOS_A4_ARQUIVO[nome_arquivo]
+    chave = str(coluna_ou_ylabel)
+    if chave in ROTULOS_EIXO:
+        return ROTULOS_EIXO[chave]
+    texto = chave.replace('_', ' ').strip()
+    return texto[:1].upper() + texto[1:]
+
+
+def _categoria_a4(v):
+    """0.0 -> '0'; mantém texto."""
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    return str(v)
+
+
+def _eh_total_a4(v):
+    return str(v).strip().lower().startswith(('total', 'subtotal'))
+
+
+def _rotulo_y_a4(ax, texto):
+    """Unidade na horizontal, acima do eixo -- lê-se sem girar a página."""
+    ax.set_ylabel('')
+    ax.annotate(_textwrap.fill(texto, 95), xy=(0, 1), xycoords='axes fraction', xytext=(0, 8),
+                textcoords='offset points', ha='left', va='bottom', fontsize=7.5, color=_TINTA2)
+
+
+def _eixo_x_anos_a4(ax, xs, rotulo_extra=0):
+    xs = sorted(pd.Series(xs).dropna().unique())
+    if len(xs) <= 12:
+        ax.set_xticks(xs)
+    else:
+        ax.xaxis.set_major_locator(_MaxNLocator(integer=True, nbins=9))
+    ax.set_xlim(xs[0] - 0.5, xs[-1] + 0.5 + rotulo_extra * (xs[-1] - xs[0]))
+    if len(xs) > 12:   # a folga à direita é para os rótulos: nenhum ano marcado além do último dado
+        ax.set_xticks([t for t in ax.get_xticks() if xs[0] <= t <= xs[-1]])
+    ax.xaxis.set_major_formatter(_FuncFormatter(lambda v, _: str(int(v))))
+
+
+def _ponto_a4(ax, x, y, cor, texto=None, dx=0, dy=0, ha='center', va='center', peso='normal', tamanho=7.5):
+    ax.plot([x], [y], 'o', ms=4.0, color=cor, mec='white', mew=1.0, zorder=5, clip_on=False)
+    if texto:
+        ax.annotate(texto, (x, y), xytext=(dx, dy), textcoords='offset points', ha=ha, va=va,
+                    fontsize=tamanho, color=_TINTA, fontweight=peso, zorder=6)
+
+
+def _salva_a4(fig, nome_arquivo, tipo, titulo, fonte, unidade):
+    pasta = Path(_PASTA_A4[tipo])
+    pasta.mkdir(parents=True, exist_ok=True)
+    destino = pasta / f'{nome_arquivo}.pdf'
+    fig.savefig(destino, bbox_inches='tight', pad_inches=0.02)
+    plt.close(fig)
+    manifesto = Path(_MANIFESTO_A4)
+    linha = {'arquivo': destino.as_posix(), 'tipo': tipo, 'titulo': titulo, 'fonte': fonte or '', 'unidade': unidade or ''}
+    df_m = pd.read_csv(manifesto) if manifesto.exists() else pd.DataFrame(columns=list(linha))
+    df_m = pd.concat([df_m[df_m['arquivo'] != linha['arquivo']], pd.DataFrame([linha])], ignore_index=True)
+    manifesto.parent.mkdir(parents=True, exist_ok=True)
+    df_m.sort_values('arquivo').to_csv(manifesto, index=False)
+
+
+def _a4_seguro(funcao):
+    """A variante de impressão nunca interrompe o notebook: falha vira aviso (e a figura cai na PNG de tela)."""
+    def envelope(*args, **kwargs):
+        if not GERA_VARIANTE_A4:
+            return
+        # seaborn aceita x='ano' quando 'ano' é o índice do DataFrame; aqui a coluna precisa existir
+        if args and isinstance(args[0], pd.DataFrame) and not isinstance(args[0], gpd.GeoDataFrame) \
+                and any(n is not None and n not in args[0].columns for n in args[0].index.names):
+            args = (args[0].reset_index(),) + tuple(args[1:])
+        try:
+            with plt.rc_context(_rc_impressao()):
+                funcao(*args, **kwargs)
+        except Exception as erro:  # noqa: BLE001 -- aviso explícito, não silêncio
+            print(f'[variante A4] {funcao.__name__} falhou para {kwargs.get("nome_arquivo", "?")}: {erro} '
+                  '-- o relatório usa a PNG de tela para esta figura')
+    envelope.__name__ = funcao.__name__
+    return envelope
+
+
+# ------------------------------------------------------------------ séries temporais
+@_a4_seguro
+def _a4_serie_unica(df, tempo, valor, titulo, nome_arquivo, fonte_dados):
+    d = df[[tempo, valor]].dropna().sort_values(tempo)
+    x, y = d[tempo].astype(float), d[valor].astype(float)
+    dec = _decimais_a4(y)
+    fig, ax = plt.subplots(figsize=(_LARGURA_A4, 6.0 * _CM))
+    cor = _PALETA_IMPRESSAO[0]
+    ax.plot(x, y, color=cor)
+    ax.set_ylim(0, y.max() * 1.2 if y.max() > 0 else 1)
+    ax.yaxis.set_major_locator(_MaxNLocator(nbins=5, integer=y.max() >= 5))
+    ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0 if y.max() >= 5 else 1)))
+    _eixo_x_anos_a4(ax, x, rotulo_extra=0.07)
+    rotulo = _rotulo_a4(valor, nome_arquivo)
+    _rotulo_y_a4(ax, rotulo)
+    i_min, i_max = y.idxmin(), y.idxmax()
+    marcados = {d.index[0], i_min, i_max}
+    for i in marcados - {d.index[-1]}:
+        acima = i != i_min or i == i_max
+        _ponto_a4(ax, x[i], y[i], cor, _num_a4(y[i], dec), dy=6 if acima else -7, va='bottom' if acima else 'top')
+    u = d.index[-1]
+    _ponto_a4(ax, x[u], y[u], cor, f'{_num_a4(y[u], dec)}\nem {int(x[u])}', dx=5, ha='left', peso='semibold')
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo)
+
+
+def _espaca_rotulos(valores, separacao):
+    """Posições y dos rótulos de fim de linha sem sobreposição (mantém a ordem; desloca o mínimo)."""
+    ordem = sorted(range(len(valores)), key=lambda i: valores[i])
+    pos = list(valores)
+    for k in range(1, len(ordem)):
+        a, b = ordem[k - 1], ordem[k]
+        if pos[b] - pos[a] < separacao:
+            pos[b] = pos[a] + separacao
+    return pos
+
+
+@_a4_seguro
+def _a4_series(df, tempo, colunas, titulo, nome_arquivo, ylabel, fonte_dados, linhas_referencia=None, marcos=None):
+    itens = [(r, c) for r, c in colunas.items() if c in df.columns]
+    if len(itens) > _LIMIAR_DESTAQUE_SERIES:
+        return _a4_pequenos_multiplos(df, tempo, itens, titulo, nome_arquivo, ylabel, fonte_dados)
+    d = df.sort_values(tempo)
+    x = d[tempo].astype(float)
+    todos = pd.concat([d[c] for _, c in itens]).astype(float)
+    dec = _decimais_a4(todos)
+    fig, ax = plt.subplots(figsize=(_LARGURA_A4, 6.8 * _CM))
+    maximo = max([todos.max()] + [v for v, _ in (linhas_referencia or [])])   # metas cabem no gráfico
+    topo = maximo * 1.15 if maximo > 0 else 1
+    ax.set_ylim(0, topo)
+    finais = []
+    for i, (rotulo, col) in enumerate(itens):
+        cor = _PALETA_IMPRESSAO[i % len(_PALETA_IMPRESSAO)]
+        s = d[[tempo, col]].dropna()
+        ax.plot(s[tempo].astype(float), s[col].astype(float), color=cor, label=rotulo)
+        if len(s):
+            finais.append((rotulo, cor, float(s[tempo].iloc[-1]), float(s[col].iloc[-1])))
+    for valor, rotulo_ref in (linhas_referencia or []):
+        ax.axhline(valor, color=_TINTA3, lw=0.6, zorder=0)
+        ax.annotate(rotulo_ref, xy=(0, valor), xycoords=('axes fraction', 'data'), xytext=(2, 2),
+                    textcoords='offset points', fontsize=6.8, color=_TINTA2, va='bottom')
+    for ano, texto in (marcos or {}).items():
+        ax.axvline(ano, color=_TINTA3, lw=0.6, zorder=0)
+        ax.annotate(_textwrap.fill(texto, 30), xy=(ano, topo), xytext=(3, -2), textcoords='offset points',
+                    fontsize=6.8, color=_TINTA2, va='top')
+    # rótulos no fim das linhas (nome e último valor); quando as linhas terminam juntas, o rótulo é afastado
+    # e ligado ao ponto por um fio fino (em vez de empilhar rótulos soltos)
+    ys = _espaca_rotulos([f[3] for f in finais], separacao=topo * 0.075)
+    # nomes longos (ex. subgrupos CID-10) no fim da linha alargariam a figura além dos 16 cm e o texto encolheria
+    # ao caber na página: nesse caso o fim da linha leva só o valor, e o nome fica na legenda (uma entrada por linha)
+    nomes_longos = max((len(str(f[0])) for f in finais), default=0) > 18
+    rotulos_fim = [(_num_a4(f[3], dec) if nomes_longos else f'{f[0]}  {_num_a4(f[3], dec)}') for f in finais]
+    largura_rot = max((len(r) for r in rotulos_fim), default=10)
+    _eixo_x_anos_a4(ax, x, rotulo_extra=min(0.04 + largura_rot * 0.012, 0.35))
+    folga = (x.max() - x.min()) * 0.02
+    for (rotulo, cor, xf, yf), yr, texto_fim in zip(finais, ys, rotulos_fim):
+        ax.plot([xf], [yf], 'o', ms=3.6, color=cor, mec='white', mew=0.9, zorder=5)
+        seta = dict(arrowstyle='-', color=_TINTA3, lw=0.4, shrinkA=0, shrinkB=2) if abs(yr - yf) > topo * 0.01 else None
+        ax.annotate(texto_fim, xy=(xf, yf), xytext=(xf + folga, yr), textcoords='data',
+                    ha='left', va='center', fontsize=7, color=_TINTA, fontweight='semibold',
+                    annotation_clip=False, arrowprops=seta)
+    ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0 if topo >= 10 else 1)))
+    rotulo_y = _rotulo_a4(ylabel, nome_arquivo)
+    _rotulo_y_a4(ax, rotulo_y)
+    if len(itens) > 1:
+        if nomes_longos:
+            alcas, rotulos_leg = ax.get_legend_handles_labels()
+            ax.legend(alcas, [_textwrap.fill(str(r), 70) for r in rotulos_leg], loc='upper left',
+                      bbox_to_anchor=(0, -0.12), ncol=1, handlelength=1.6)
+        else:
+            ax.legend(loc='upper left', bbox_to_anchor=(0, -0.12), ncol=min(len(itens), 4), handlelength=1.6,
+                      columnspacing=1.4)
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo_y)
+
+
+def _a4_pequenos_multiplos(df, tempo, itens, titulo, nome_arquivo, ylabel, fonte_dados):
+    """Um painel por série; a série em cor, as demais em cinza ao fundo; mesma escala em todos."""
+    n = len(itens)
+    ncol = 4 if n <= 8 else (5 if n in (9, 10) else 4)
+    nlin = math.ceil(n / ncol)
+    d = df.sort_values(tempo)
+    x = d[tempo].astype(float)
+    todos = pd.concat([d[c] for _, c in itens]).astype(float)
+    dec = _decimais_a4(todos)
+    topo = todos.max() * 1.18 if todos.max() > 0 else 1
+    fig, axs = plt.subplots(nlin, ncol, figsize=(_LARGURA_A4, (1.2 + 3.7 * nlin) * _CM), sharex=True, sharey=True,
+                            squeeze=False)
+    cor = _PALETA_IMPRESSAO[4]
+    anos = sorted(x.unique())
+    for k, ax in enumerate(axs.flat):
+        if k >= n:
+            ax.axis('off')
+            continue
+        rotulo, col = itens[k]
+        for _, outra in itens:
+            ax.plot(x, d[outra].astype(float), color=_CINZA_CONTEXTO, lw=0.6, zorder=1)
+        s = d[[tempo, col]].dropna()
+        ax.plot(s[tempo].astype(float), s[col].astype(float), color=cor, lw=1.4, zorder=3)
+        if len(s):
+            xf, yf = float(s[tempo].iloc[-1]), float(s[col].iloc[-1])
+            ax.plot([xf], [yf], 'o', ms=3.2, color=cor, mec='white', mew=0.8, zorder=4)
+            ax.annotate(_num_a4(yf, dec), (xf, yf), xytext=(3, 0), textcoords='offset points', ha='left',
+                        va='center', fontsize=6.8, fontweight='semibold', annotation_clip=False)
+        ax.set_title(_textwrap.fill(str(rotulo), 26), fontsize=7, fontweight='semibold', loc='left', color=_TINTA, pad=3)
+        ax.set_ylim(0, topo)
+        ax.set_xticks([anos[0], anos[-1]])
+        ax.set_xlim(anos[0] - 0.5, anos[-1] + (anos[-1] - anos[0]) * 0.22)
+        ax.tick_params(axis='x', labelsize=6.5)
+        ax.tick_params(axis='y', labelsize=6.5)
+        ax.xaxis.set_major_formatter(_FuncFormatter(lambda v, _: str(int(v))))
+    axs[0, 0].yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0 if topo >= 10 else 1)))
+    rotulo_y = _rotulo_a4(ylabel, nome_arquivo)
+    fig.text(0, 1.0, f'{rotulo_y}  ·  em cinza, as demais séries', fontsize=7.5, color=_TINTA2, ha='left', va='bottom')
+    fig.tight_layout(h_pad=1.0, w_pad=0.5)
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo_y)
+
+
+# ------------------------------------------------------------------ barras
+@_a4_seguro
+def _a4_barras(df, categoria, valor, titulo, nome_arquivo, fonte_dados):
+    d = df[[categoria, valor]].copy()
+    d = d[~d[categoria].map(_eh_total_a4)]
+    if nome_arquivo in _ESCALA_100_A4:
+        d[valor] = d[valor] * 100
+    cats = [_categoria_a4(c) for c in d[categoria]]
+    vals = d[valor].astype(float).tolist()
+    dec = _decimais_a4(vals)
+    horizontal = max(len(c) for c in cats) > 12 or len(cats) > 8
+    rotulo = _rotulo_a4(valor, nome_arquivo)
+    cor = _PALETA_IMPRESSAO[0]
+    if horizontal:
+        fig, ax = plt.subplots(figsize=(_LARGURA_A4, (1.2 + 0.62 * len(cats)) * _CM))
+        pos = list(range(len(cats)))[::-1]
+        ax.barh(pos, vals, color=cor, height=0.62)
+        ax.set_yticks(pos, [_textwrap.fill(c, 34) for c in cats])
+        ax.grid(axis='y', visible=False); ax.grid(axis='x', visible=True)
+        ax.tick_params(axis='y', length=0); ax.spines['bottom'].set_visible(False); ax.tick_params(axis='x', length=0)
+        for p, v in zip(pos, vals):
+            ax.annotate(_num_a4(v, dec), (v, p), xytext=(4, 0), textcoords='offset points', va='center',
+                        fontsize=7.5, fontweight='semibold')
+        ax.set_xlim(0, max(vals) * 1.18)
+        ax.xaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
+        ax.set_xlabel(rotulo, loc='left')
+    else:
+        fig, ax = plt.subplots(figsize=(_LARGURA_A4, 6.0 * _CM))
+        ax.bar(cats, vals, color=cor, width=0.6)
+        for c, v in zip(cats, vals):
+            ax.annotate(_num_a4(v, dec), (c, v), xytext=(0, 3), textcoords='offset points', ha='center',
+                        va='bottom', fontsize=7.5, fontweight='semibold')
+        ax.set_ylim(0, max(vals) * 1.15)
+        ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
+        ax.tick_params(axis='x', length=0)
+        ax.set_xlabel(_rotulo_a4(categoria))
+        _rotulo_y_a4(ax, rotulo)
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo)
+
+
+@_a4_seguro
+def _a4_barras_agrupadas(df, categoria, valor, agrupador, titulo, nome_arquivo, ylabel, ordem_categoria,
+                         ordem_agrupador, fonte_dados):
+    d = df[[categoria, agrupador, valor]].copy()
+    d = d[~d[categoria].map(_eh_total_a4) & ~d[agrupador].map(_eh_total_a4)]
+    cats = list(ordem_categoria) if ordem_categoria is not None else list(dict.fromkeys(d[categoria]))
+    grupos = list(ordem_agrupador) if ordem_agrupador is not None else list(dict.fromkeys(d[agrupador]))
+    grupos = [g for g in grupos if not _eh_total_a4(g)]
+    tab = d.pivot_table(index=categoria, columns=agrupador, values=valor, aggfunc='sum').reindex(index=cats, columns=grupos)
+    rotulo = _rotulo_a4(ylabel or valor, nome_arquivo)
+    dec = _decimais_a4(tab.values.ravel())
+    n_barras = len(cats) * len(grupos)
+    rot_cats = [_categoria_a4(c) for c in cats]
+    horizontal = max(len(c) for c in rot_cats) > 14
+    larg = 0.8 / max(len(grupos), 1)
+    if horizontal:
+        fig, ax = plt.subplots(figsize=(_LARGURA_A4, (1.6 + 0.3 * n_barras + 0.25 * len(cats)) * _CM))
+        base = np.arange(len(cats))[::-1]
+        for j, g in enumerate(grupos):
+            vals = tab[g].values.astype(float)
+            ys = base + (len(grupos) - 1) / 2 * larg - j * larg
+            ax.barh(ys, vals, height=larg * 0.9, color=_PALETA_IMPRESSAO[j % 8], label=str(g))
+            for yv, v in zip(ys, vals):
+                if not np.isnan(v):
+                    ax.annotate(_num_a4(v, dec), (v, yv), xytext=(3, 0), textcoords='offset points', va='center', fontsize=6.5)
+        ax.set_yticks(base, [_textwrap.fill(c, 30) for c in rot_cats])
+        ax.grid(axis='y', visible=False); ax.grid(axis='x', visible=True); ax.tick_params(axis='y', length=0)
+        ax.xaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
+        ax.set_xlim(0, np.nanmax(tab.values) * 1.15)
+        ax.set_xlabel(rotulo, loc='left')
+        ax.legend(loc='lower right', ncol=1)
+    else:
+        fig, ax = plt.subplots(figsize=(_LARGURA_A4, 6.8 * _CM))
+        base = np.arange(len(cats))
+        for j, g in enumerate(grupos):
+            vals = tab[g].values.astype(float)
+            xs = base - 0.4 + larg / 2 + j * larg
+            ax.bar(xs, vals, width=larg * 0.9, color=_PALETA_IMPRESSAO[j % 8], label=str(g))
+            if n_barras <= 16:
+                for xv, v in zip(xs, vals):
+                    if not np.isnan(v):
+                        ax.annotate(_num_a4(v, dec), (xv, v), xytext=(0, 2), textcoords='offset points',
+                                    ha='center', va='bottom', fontsize=6.3)
+        ax.set_xticks(base, [_textwrap.fill(c, 16) for c in rot_cats])
+        ax.tick_params(axis='x', length=0)
+        ax.set_ylim(0, np.nanmax(tab.values) * 1.15)
+        ax.yaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
+        _rotulo_y_a4(ax, rotulo)
+        ax.set_xlabel(_rotulo_a4(categoria))
+        longos = max((len(str(g)) for g in grupos), default=0) > 18   # nomes longos: uma entrada por linha
+        alcas, rotulos_leg = ax.get_legend_handles_labels()
+        ax.legend(alcas, [_textwrap.fill(str(r), 70) for r in rotulos_leg], loc='upper left',
+                  bbox_to_anchor=(0, -0.16), ncol=1 if longos else min(len(grupos), 4), handlelength=1.2)
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo)
+
+
+@_a4_seguro
+def _a4_ranking(df, categoria, valor, titulo, nome_arquivo, xlabel, linha_referencia, rotulo_referencia, cmap,
+                fonte_dados):
+    d = df.sort_values(valor, ascending=True)
+    vals = d[valor].astype(float).tolist()
+    dec = _decimais_a4(vals)
+    fig, ax = plt.subplots(figsize=(_LARGURA_A4, (1.0 + 0.5 * len(d)) * _CM))
+    pos = list(range(len(d)))
+    ax.barh(pos, vals, color=plt.get_cmap(cmap)(0.65), height=0.62)
+    ax.set_yticks(pos, [_textwrap.fill(str(c), 34) for c in d[categoria]])
+    for p, v in zip(pos, vals):
+        ax.annotate(_num_a4(v, dec), (v, p), xytext=(3, 0), textcoords='offset points', va='center', fontsize=7)
+    if linha_referencia is not None:
+        ax.axvline(linha_referencia, color=_TINTA, lw=0.7)
+        ax.annotate(rotulo_referencia or _num_a4(linha_referencia, 1), xy=(linha_referencia, 1.0),
+                    xycoords=('data', 'axes fraction'), xytext=(3, 0), textcoords='offset points', fontsize=6.8,
+                    color=_TINTA2, va='top')
+    ax.grid(axis='y', visible=False); ax.grid(axis='x', visible=True); ax.tick_params(axis='y', length=0)
+    ax.set_xlim(0, max(vals) * 1.15)
+    ax.xaxis.set_major_formatter(_FuncFormatter(lambda v, _: _num_a4(v, 0)))
+    rotulo = _rotulo_a4(xlabel or valor, nome_arquivo)
+    ax.set_xlabel(rotulo, loc='left')
+    _salva_a4(fig, nome_arquivo, 'grafico', titulo, fonte_dados, rotulo)
+
+
+# ------------------------------------------------------------------ mapas
+_TETO_PERCENTIL_A4 = 0.95   # D5: teto de cor dos mapas contínuos por bairro na impressão
+
+
+@_a4_seguro
+def _a4_mapa(gdf, coluna_valor, titulo, nome_arquivo, nivel, bins, cmap, legenda_titulo, fonte_dados, zero_branco,
+             caminho_uf, caminho_municipios):
+    gdf = gdf.to_crs(epsg=3857) if gdf.crs is not None and gdf.crs.to_epsg() != 3857 else gdf
+    minx, miny, maxx, maxy = gdf.total_bounds
+    padx, pady = (maxx - minx) * 0.02, (maxy - miny) * 0.06
+    aspecto = (maxx - minx + 2 * padx) / (maxy - miny + 2 * pady)
+    fig, ax = plt.subplots(figsize=(_LARGURA_A4, _LARGURA_A4 / aspecto))
+    fig.subplots_adjust(0, 0, 1, 1)
+    ax.set_xlim(minx - padx, maxx + padx); ax.set_ylim(miny - pady, maxy + pady)
+    borda = dict(linewidth=0.25, edgecolor='#5f5f5f')
+    sem_dado = dict(color='none', edgecolor='#8a8a8a', hatch='////', linewidth=0.3)
+    nota_teto = ''
+    rotulo_leg = str(legenda_titulo or coluna_valor)
+    if bins:
+        eh_zero = (gdf[coluna_valor] == 0) if zero_branco else pd.Series(False, index=gdf.index)
+        lim = [min(gdf[coluna_valor].min(), bins[0]) - 1] + list(bins) + [max(gdf[coluna_valor].max(), bins[-1])]
+        rot = ([f'Até {_numero_ptbr(bins[0])}'] + [f'{_numero_ptbr(bins[i-1]+1)} a {_numero_ptbr(bins[i])}' for i in range(1, len(bins))]
+               + [f'Mais de {_numero_ptbr(bins[-1])}'])
+        faixa = pd.cut(gdf[coluna_valor].where(~eh_zero), bins=lim, labels=rot, ordered=True)
+        cores = plt.get_cmap(cmap)(np.linspace(0.12, 0.92, len(rot)))
+        handles, labels = [], []
+        if zero_branco and eh_zero.any():
+            gdf[eh_zero].plot(ax=ax, color='white', zorder=2, **borda)
+            handles.append(_Patch(facecolor='white', edgecolor='#5f5f5f', linewidth=0.3)); labels.append('0 (sem casos)')
+        for i, r in enumerate(rot):
+            sel = gdf[faixa == r]
+            if len(sel):
+                sel.plot(ax=ax, color=cores[i], zorder=2, **borda)
+            handles.append(_Patch(facecolor=cores[i], edgecolor='#5f5f5f', linewidth=0.3)); labels.append(r)
+        falta = gdf[gdf[coluna_valor].isna()]
+        if len(falta):
+            falta.plot(ax=ax, zorder=2, **sem_dado)
+            handles.append(_Patch(facecolor='white', edgecolor='#8a8a8a', hatch='////', linewidth=0.3)); labels.append('Sem dado')
+        leg = ax.legend(handles, labels, title=rotulo_leg, loc='upper left', bbox_to_anchor=(0.012, 0.985),
+                        fontsize=7, title_fontsize=7.5, frameon=True, framealpha=0.94, edgecolor='none',
+                        handlelength=1.4, handleheight=0.9, borderpad=0.6, labelspacing=0.35, alignment='left')
+        leg.get_title().set_fontweight('semibold')
+    else:
+        valores = gdf[coluna_valor].dropna()
+        vmax = float(valores.max()) if len(valores) else 1.0
+        if nivel == 'bairro' and len(valores):
+            p = float(valores.quantile(_TETO_PERCENTIL_A4))
+            if p > 0 and vmax > p * 1.05:
+                vmax = p
+                nota_teto = f'escala de cor limitada ao percentil {int(_TETO_PERCENTIL_A4 * 100)} ({_num_a4(p, 1)})'
+        norma = _Normalize(0, vmax)
+        gdf.plot(column=coluna_valor, ax=ax, cmap=cmap, norm=norma, zorder=2, **borda)
+        gdf[gdf[coluna_valor].isna()].plot(ax=ax, zorder=2, **sem_dado)
+        cax = ax.inset_axes([0.03, 0.56, 0.022, 0.34])
+        cb = fig.colorbar(plt.cm.ScalarMappable(norm=norma, cmap=cmap), cax=cax, extend='max' if nota_teto else 'neither',
+                          extendfrac=0.06)
+        cb.outline.set_linewidth(0.3)
+        cax.tick_params(labelsize=7, length=2, width=0.4, colors=_TINTA)
+        halo = [pe.withStroke(linewidth=2.2, foreground='white')]
+        cb.set_ticks([t for t in cb.get_ticks() if 0 <= t <= vmax])
+        dec = 0 if vmax >= 10 else 1
+        cb.set_ticklabels([_num_a4(t, dec) for t in cb.get_ticks()])
+        for t in cax.get_yticklabels():
+            t.set_path_effects(halo)
+        if nota_teto:
+            cax.annotate(f'≥ {_num_a4(vmax, dec)}', xy=(1, 1.07), xycoords='axes fraction', xytext=(3, 0),
+                         textcoords='offset points', fontsize=7, va='center', color=_TINTA, path_effects=halo)
+        cax.annotate(rotulo_leg.replace('\n', ' '), xy=(0, 1.16), xycoords='axes fraction', fontsize=7.5,
+                     fontweight='semibold', va='bottom', ha='left', color=_TINTA, path_effects=halo)
+    # contexto: limite estadual, fundo cartográfico reduzido e clareado (menos tinta, mais contraste)
+    x0, x1 = ax.get_xlim(); y0, y1 = ax.get_ylim()
+    gpd.read_file(caminho_uf).to_crs(epsg=3857).clip(box(x0, y0, x1, y1)).boundary.plot(
+        ax=ax, color='#d4b106', linewidth=0.7, linestyle=(0, (3, 2)), zorder=1)
+    img, ext = ctx.bounds2img(x0, y0, x1, y1, source=_PROVEDORES_FUNDO['mapa_oceano_base'])
+    img = (img[..., :3].astype(float) * 0.62 + 255 * 0.38).astype('uint8')
+    ax.imshow(img, extent=ext, zorder=0, interpolation='none')   # 'none': sem reamostrar a 300 dpi (PDF ~0,4 MB)
+    ax.set_xlim(x0, x1); ax.set_ylim(y0, y1)
+    ax.annotate('N', xy=(0.965, 0.93), xytext=(0.965, 0.86), xycoords=ax.transAxes, textcoords=ax.transAxes,
+                ha='center', va='center', fontsize=8, fontweight='semibold', color=_TINTA,
+                arrowprops=dict(arrowstyle='-|>', color=_TINTA, lw=1.0, mutation_scale=10), zorder=5)
+    ax.add_artist(ScaleBar(math.cos(math.radians(-22.9)), units='m', location='lower right', box_alpha=0,
+                           color=_TINTA, scale_loc='top', border_pad=0.5, width_fraction=0.006, length_fraction=0.16,
+                           font_properties={'size': 6.5}))
+    _adiciona_rotulos_municipios_vizinhos(ax, ax.get_xlim(), ax.get_ylim(), cor='#5a6570', tamanho=6.5,
+                                          caminho_municipios=caminho_municipios)
+    for t in ax.texts:
+        if t.get_text() != 'N':
+            t.set_path_effects([pe.withStroke(linewidth=1.8, foreground='white')])
+    ax.annotate('Fundo: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ', xy=(0.006, 0.006),
+                xycoords='axes fraction', fontsize=4.8, color=_TINTA3, va='bottom')
+    ax.axis('off')
+    fonte = fonte_dados or ''
+    if nota_teto:
+        fonte = f'{fonte}. Nota: {nota_teto}; o valor real está na tabela do apêndice'.lstrip('. ')
+    _salva_a4(fig, nome_arquivo, 'mapa', titulo, fonte, rotulo_leg.replace('\n', ' '))
+
+# %% [markdown]
+# ### 🛡️ Proteção — carregadores e utilitários
+#
+# Funções do eixo Proteção (violência familiar/autoprovocada — Sinan/Tabnet por bairro;
+# violência territorial — Data.Rio/IPS por Região Administrativa) e utilitários de taxa e de
+# agregação geográfica. Ver `specs/2026-09-23_inclusao_dados_protecao/`.
+
+# %%
 import unicodedata
+
+_CAMINHO_GEO_BAIRROS = 'dados_locais/geo/limite_bairros_rio.geojson'
+
+# vínculo do provável autor -> arquivo Sinan/Tabnet (violência familiar, 0 a 5 anos)
+_VINCULOS_VIOLENCIA_FAMILIAR = {
+    'mae': 'violencia_familiar_mae.csv',
+    'pai': 'violencia_familiar_pai.csv',
+    'padrasto': 'violencia_familiar_padrasto.csv',
+    'irmao': 'violencia_familiar_irmao(a).csv',
+    'conjuge': 'violencia_familiar_conjuge.csv',
+    'exconjuge': 'violencia_familiar_exconjuge.csv',
+    'filho': 'violencia_familiar_filho(a).csv',
+}
+# vínculos agrupados em 'outros' (mãe e pai ficam de fora e nunca são somados entre si)
+_VINCULOS_OUTROS = ['padrasto', 'irmao', 'conjuge', 'exconjuge', 'filho']
+
+# grafia do IPS/Data.Rio que difere do geojson de bairros (regiao_adm), só para a checagem cruzada
+_ALIAS_RA_IPS = {'SANTA TERESA': 'SANTA TEREZA'}
+
+def _sem_acento_maiusculo(texto):
+    return ''.join(c for c in unicodedata.normalize('NFKD', str(texto)) if not unicodedata.combining(c)).upper().strip()
+
+def numeral_romano_para_int(s):
+    """Converte um numeral romano (ex.: 'XXXIV') em inteiro (34) -- usado no de-para RA do IPS."""
+    valores = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100}
+    s = s.strip().upper()
+    if not s or any(c not in valores for c in s):
+        raise ValueError(f'numeral romano inválido: {s!r}')
+    total = 0
+    for atual, proximo in zip(s, s[1:] + ' '):
+        v = valores[atual]
+        total += -v if proximo in valores and valores[proximo] > v else v
+    return total
+
+def _bairros_referencia(caminho_geojson=_CAMINHO_GEO_BAIRROS):
+    """Tabela dos 166 bairros do geojson (codbairro int, nome, codra int, cod_rp, area_plane)."""
+    g = gpd.read_file(caminho_geojson).drop(columns='geometry')
+    g['codbairro'] = g['codbairro'].astype(int)
+    g['codra'] = g['codra'].astype(int)
+    g['regiao_adm'] = g['regiao_adm'].str.strip()  # o geojson traz espaços à direita em algumas RAs
+    return g[['codbairro', 'nome', 'regiao_adm', 'codra', 'cod_rp', 'area_plane']].sort_values('codbairro').reset_index(drop=True)
+
+def carrega_sinan_bairro(caminho, categoria, anos_validos):
+    """Lê um export Sinan NET/Tabnet por bairro de residência (6 linhas de metadados, latin-1, formato
+    largo com colunas de ano esparsas) e devolve o formato longo `codbairro, bairro, ano, <categoria>`
+    numa grade completa dos 166 bairros do geojson x `anos_validos`, com 0 onde não havia linha
+    (bairro sem caso = 0, não ausente). A linha de filtro do export vai em `df.attrs['filtro']`."""
+    with open(caminho, encoding='latin-1') as f:
+        filtro = [next(f).strip() for _ in range(6)][4]
+    df = pd.read_csv(caminho, sep=';', encoding='latin-1', skiprows=6)
+    df = df.rename(columns={df.columns[0]: 'bairro_resid'})
+    df = df[df['bairro_resid'] != 'Total']
+    df[['codbairro', 'bairro']] = df['bairro_resid'].str.split(n=1, expand=True)
+    df['codbairro'] = df['codbairro'].astype(int)
+    colunas_ano = [c for c in df.columns if str(c).isdigit()]
+    longo = df.melt(id_vars=['codbairro'], value_vars=colunas_ano, var_name='ano', value_name=categoria)
+    longo['ano'] = longo['ano'].astype(int)
+    ref = _bairros_referencia()
+    assert set(longo['codbairro']) <= set(ref['codbairro']), 'código de bairro do Sinan fora do geojson'
+    grade = ref[['codbairro', 'nome']].rename(columns={'nome': 'bairro'}).merge(pd.DataFrame({'ano': list(anos_validos)}), how='cross')
+    out = grade.merge(longo, on=['codbairro', 'ano'], how='left')
+    out[categoria] = out[categoria].fillna(0).astype(int)
+    out.attrs['filtro'] = filtro
+    return out
+
+def carrega_violencia_familiar(pasta, anos_validos):
+    """Lê os 7 exports de violência familiar por vínculo (mãe, pai, padrasto, irmão(ã), cônjuge,
+    ex-cônjuge, filho(a)) e devolve um longo `vinculo, codbairro, bairro, ano, casos`. Acrescenta o
+    vínculo `outros` (padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a)) SEM remover os originais.
+    Os vínculos não são excludentes: nunca somar mãe + pai, nem tratar `outros` como total."""
+    partes = []
+    for vinculo, arquivo in _VINCULOS_VIOLENCIA_FAMILIAR.items():
+        d = carrega_sinan_bairro(Path(pasta) / arquivo, 'casos', anos_validos)
+        d.insert(0, 'vinculo', vinculo)
+        partes.append(d)
+    longo = pd.concat(partes, ignore_index=True)
+    outros = (longo[longo['vinculo'].isin(_VINCULOS_OUTROS)]
+              .groupby(['codbairro', 'bairro', 'ano'], as_index=False)['casos'].sum())
+    outros.insert(0, 'vinculo', 'outros')
+    return pd.concat([longo, outros], ignore_index=True)
+
+def carrega_violencia_territorial_ra(caminho):
+    """Lê `violencia_territorial.xlsx` (Data.Rio/IPS 2024, por Região Administrativa; todas as idades).
+    Devolve `codra, regiao_adm, taxa_homicidios, homicidios_acao_policial, homicidios_jovens_negros`
+    (32 RAs); a linha 'RIO DE JANEIRO' (referência municipal) vai em `df.attrs['municipio']`.
+    A chave é o numeral romano do IPS convertido em `codra`; o nome só serve de checagem cruzada."""
+    bruto = pd.read_excel(caminho, header=None)
+    linha_cab = next(i for i, v in bruto[1].items() if 'homic' in _sem_acento_maiusculo(v).lower())
+    dados = bruto.iloc[linha_cab + 1:, :4].dropna(how='all').copy()
+    dados.columns = ['regiao', 'taxa_homicidios', 'homicidios_acao_policial', 'homicidios_jovens_negros']
+    cols_num = ['taxa_homicidios', 'homicidios_acao_policial', 'homicidios_jovens_negros']
+    dados[cols_num] = dados[cols_num].astype(float)
+    eh_municipio = dados['regiao'].str.strip().str.upper() == 'RIO DE JANEIRO'
+    municipio = dados[eh_municipio].iloc[0]
+    ras = dados[~eh_municipio].copy()
+    ras['codra'] = ras['regiao'].str.split().str[0].map(numeral_romano_para_int)
+    ras['nome_ips'] = ras['regiao'].str.split(n=1).str[1].map(_sem_acento_maiusculo)
+    ref = _bairros_referencia()[['codra', 'regiao_adm']].drop_duplicates('codra')
+    ras = ras.merge(ref, on='codra', how='left')
+    assert ras['regiao_adm'].notna().all(), 'RA do IPS sem correspondência no geojson'
+    esperado = ras['regiao_adm'].map(_sem_acento_maiusculo)
+    assert (ras['nome_ips'].map(lambda n: _ALIAS_RA_IPS.get(n, n)) == esperado).all(), 'nome da RA diverge do geojson'
+    out = ras[['codra', 'regiao_adm'] + cols_num].sort_values('codra').reset_index(drop=True)
+    out.attrs['municipio'] = {c: float(municipio[c]) for c in cols_num}
+    return out
+
+def carrega_pop_0_4_bairro(caminho='dados_locais/censo/pop_censo_2022_datario.csv'):
+    """População de 0 a 4 anos por bairro (Censo 2022) -- `codbairro, pop_0_4`. Lê o CSV direto,
+    sem depender de `df_censo` ter sido calculado antes."""
+    d = pd.read_csv(caminho, encoding='latin-1', sep=';')
+    return d[['codbairro', '0 a 4 anos']].rename(columns={'0 a 4 anos': 'pop_0_4'}).astype({'codbairro': int})
+
+def taxa_por_mil(df, col_casos, col_pop, nome_taxa='taxa_por_mil'):
+    """Taxa por 1.000 = casos / população * 1000. Chamar SEMPRE depois de somar casos e população
+    no nível desejado (nunca média de taxas). População 0 ou ausente -> NaN (nunca inf)."""
+    df = df.copy()
+    pop = df[col_pop].where(df[col_pop] > 0)
+    df[nome_taxa] = df[col_casos] / pop * 1000
+    return df
+
+def bairro_para_nivel(df, nivel, chave='codbairro'):
+    """Anexa a `df` (tabela por bairro) a coluna administrativa do nível: 'ra' -> codra; 'cap' ->
+    cod_ap_sms (via `_RA_PARA_CAP` sobre codra); 'rp' -> cod_rp; 'ap' -> area_plane. Serve para
+    depois somar contagens com `agrega_bairros_por_nivel` (e só então recalcular taxas)."""
+    ref = _bairros_referencia()
+    ref['cod_ap_sms'] = ref['codra'].map(_RA_PARA_CAP)
+    coluna = _NIVEIS_AGREGACAO[nivel]['coluna_geo']
+    if coluna not in ref.columns:
+        raise ValueError(f'nível {nivel!r} não suportado por bairro_para_nivel')
+    return df.merge(ref[['codbairro', coluna]].rename(columns={'codbairro': chave}), on=chave, how='left')
+
+def serie_temporal_multipla_marcos(df,tempo,colunas,titulo,nome_arquivo,marcos=None,ylabel='Valor',legend_title='Vínculo',figsize=(12,6),formato='png', fonte_dados=None):
+    """Como `serie_temporal_multipla` (mesmo estilo/paleta), com linhas verticais tracejadas anotadas
+    em `marcos` ({ano: 'texto'}) -- ex.: possível quebra de série. Função à parte para não alterar a
+    assinatura da original."""
+    plt.figure(figsize=figsize)
+    for i,(rotulo,coluna) in enumerate(colunas.items()):
+        sns.lineplot(x=tempo,y=coluna,data=df,label=rotulo,marker='o',errorbar=None,
+                     color=_PALETA_CATEGORICA[i % len(_PALETA_CATEGORICA)])
+    topo = plt.gca().get_ylim()[1]
+    for ano,texto in (marcos or {}).items():
+        plt.axvline(ano, color='#6b6b6b', linestyle='--', linewidth=1.1, zorder=0)
+        plt.annotate(texto, xy=(ano, topo), xytext=(4, -6), textcoords='offset points', ha='left', va='top',
+                     fontsize=9, color='#3a3a3a', style='italic')
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    plt.xlabel(tempo,fontsize=12)
+    plt.ylabel(ylabel,fontsize=12)
+    plt.title(titulo,fontsize=15,fontfamily=_FONTE_TITULO,fontweight='bold',pad=12)
+    plt.legend(title=legend_title,fontsize=9,loc='upper left')
+    plt.grid(True,alpha=0.3)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout()
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_series(df, tempo, colunas, titulo, nome_arquivo=nome_arquivo, ylabel=ylabel, fonte_dados=fonte_dados,
+               marcos=marcos)
+    plt.show()
+
+def grafico_barra_ranking(df,categoria,valor,titulo,nome_arquivo,xlabel=None,linha_referencia=None,rotulo_referencia=None,cmap='OrRd',figsize=(10,9),formato='png', fonte_dados=None):
+    """Barras horizontais ordenadas (maior no topo), com linha vertical opcional de referência (ex.: valor
+    do município). Uma cor sequencial só (magnitude), do tema `cmap`."""
+    d = df.sort_values(valor, ascending=True)
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.barh(d[categoria].astype(str), d[valor], color=plt.get_cmap(cmap)(0.62))
+    if linha_referencia is not None:
+        ax.axvline(linha_referencia, color='#262626', linestyle='--', linewidth=1.2)
+        ax.annotate(rotulo_referencia or f'{linha_referencia:.1f}', xy=(linha_referencia, 0.02), xycoords=('data','axes fraction'),
+                    xytext=(4, 0), textcoords='offset points', ha='left', va='bottom', fontsize=9, color='#262626')
+    ax.set_xlabel(xlabel or valor, fontsize=12)
+    ax.set_title(titulo, fontsize=15, fontfamily=_FONTE_TITULO, fontweight='bold', pad=12)
+    ax.grid(True, axis='x', alpha=0.3)
+    ax.set_axisbelow(True)
+    _rodape_fonte(fonte_dados)
+    plt.tight_layout(rect=(0, 0.03, 1, 1))  # reserva a base para o rodapé de fonte
+    plt.savefig(f"visualizacoes/{nome_arquivo}.{formato}", dpi=200, bbox_inches='tight')
+    _a4_ranking(df, categoria, valor, titulo, nome_arquivo=nome_arquivo, xlabel=xlabel, linha_referencia=linha_referencia,
+                rotulo_referencia=rotulo_referencia, cmap=cmap, fonte_dados=fonte_dados)
+    plt.show()
+
+def agrega_violencia_familiar_nivel(df_bairro, df_pop, nivel, vinculos=('mae', 'pai', 'outros')):
+    """Agrega a tabela por bairro x ano de violência familiar (colunas `vinculos`) e a população 0-4
+    para 'ra' ou 'cap': soma casos e população por ano e SÓ ENTÃO recalcula a taxa por 1.000 de cada
+    vínculo (`taxa_por_mil_<vinculo>`), nunca média de taxas de bairro. Não soma vínculos entre si."""
+    base = bairro_para_nivel(df_bairro.merge(df_pop, on='codbairro'), nivel)
+    partes = []
+    for ano, d in base.groupby('ano'):
+        a = agrega_bairros_por_nivel(d, nivel, list(vinculos) + ['pop_0_4'])
+        a.insert(1, 'ano', ano)
+        partes.append(a)
+    out = pd.concat(partes, ignore_index=True)
+    for v in vinculos:
+        out = taxa_por_mil(out, v, 'pop_0_4', f'taxa_por_mil_{v}')
+    return out
+
+# %% [markdown]
+# ### 🗂️ CadÚnico — carregadores, recortes e privacidade
+#
+# Recortes por sexo, raça/cor e arranjo familiar × renda das famílias com crianças na primeira
+# infância, e a regra de supressão de células pequenas aplicada a toda saída CadÚnico
+# sub-municipal. Ver `specs/2026-09-23_recortes_cadunico/`.
+
+# %%
+# faixas de renda per capita do CTPE (`grupo_renda_pct`) -> rótulo para público não técnico.
+# R$ 218 = linha de extrema pobreza; R$ 810,50 = 1/2 salário mínimo de 2026 (R$ 1.621)
+_ORDEM_RENDA_CADUNICO = ['0-218', '219-810', '811-1621', '1621-3242', '3242+']
+_ROTULOS_RENDA_CADUNICO = {
+    '0-218': 'Extrema pobreza\n(até R$ 218)',
+    '219-810': 'Pobreza/baixa renda\n(R$ 218 a 810)',
+    '811-1621': '1/2 a 1 SM\n(R$ 810 a 1.621)',
+    '1621-3242': '1 a 2 SM\n(R$ 1.621 a 3.242)',
+    '3242+': 'Acima de 2 SM\n(mais de R$ 3.242)',
+}
+# nos cruzamentos (arranjo x renda) as faixas acima de 1/2 SM se juntam -- evita células pequenas
+_RENDA_CADUNICO_3_FAIXAS = {'0-218': '0-218', '219-810': '219-810',
+                            '811-1621': '811+', '1621-3242': '811+', '3242+': '811+'}
+_ROTULOS_RENDA_CADUNICO_3 = {'0-218': _ROTULOS_RENDA_CADUNICO['0-218'],
+                             '219-810': _ROTULOS_RENDA_CADUNICO['219-810'],
+                             '811+': 'Acima de 1/2 SM\n(mais de R$ 810)'}
+
+_ORDEM_ARRANJO_CADUNICO = ['Uma adulta (mulher)', 'Dois adultos (homem e mulher)', 'Dois adultos (outra composição)',
+                           'Um adulto (homem)', 'Três ou mais adultos', 'Sem adulto (18+)']
+_ORDEM_COMPOSICAO_SEXO = ['Só meninas', 'Só meninos', 'Meninas e meninos']
+_ORDEM_RACA_CADUNICO = ['Parda', 'Branca', 'Preta', 'Amarela', 'Indígena']
+
+_LIMIAR_SUPRESSAO_CADUNICO = 20  # spec recortes_cadunico §5: nenhuma célula sub-municipal < 20 publicada
+_ROTULO_SEM_BAIRRO_CADUNICO = 'Sem bairro identificado (CEP fora da lista)'
+_MESES_PTBR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+
+def fonte_cadunico_com_particao(data_particao):
+    """Texto de fonte das saídas CadÚnico com o mês da extração (ex. 'CadÚnico (extração CTPE,
+    jun/2026)') -- a silver só guarda uma partição, então a data é a única pista de quando o
+    retrato foi tirado."""
+    data = pd.Timestamp(data_particao)
+    return f"CadÚnico (extração CTPE, {_MESES_PTBR[data.month - 1]}/{data.year})"
+
+def carrega_cadunico_familias_0_6(engine):
+    """Todas as pessoas (de qualquer idade) das famílias com ao menos uma criança do grupo '0-6'.
+
+    O `df_original` da seção CadÚnico traz só as crianças; o arranjo familiar precisa dos adultos
+    da mesma família. O filtro é feito no SQL (subconsulta por `id_familia`) e só as colunas usadas
+    são lidas. Microdado: fica só em memória, nunca é gravado em disco (spec §5)."""
+    consulta = """
+        SELECT id_pessoa, id_familia, idade, grupo_idade, sexo, raca_cor, grupo_renda_pct,
+               n_pessoas_familia, cep, data_particao
+        FROM ctpe.silver_cadunico_geral
+        WHERE id_familia IN (SELECT id_familia FROM ctpe.silver_cadunico_geral WHERE grupo_idade = '0-6')
+    """
+    return pd.read_sql(consulta, engine)
+
+def classifica_arranjo_familiar(df_membros, idade_adulto=18):
+    """Uma linha por família, com o arranjo familiar *aproximado* pela composição do cadastro.
+
+    A silver não tem parentesco com o responsável familiar, então o arranjo é inferido contando
+    os membros com `idade_adulto`+ anos e o sexo deles: 'Uma adulta (mulher)' NÃO é o conceito de
+    família monoparental do MDS (que usa parentesco) -- um companheiro fora do cadastro não aparece
+    (spec §3 R3). Também devolve a composição de sexo das crianças (categorias exclusivas),
+    a faixa de renda per capita e o CEP das crianças (endereço da família).
+
+    Asserções: a renda per capita é única por família e o nº de linhas por família bate com
+    `n_pessoas_familia` (cadastro completo) -- se falharem, o proxy deixa de valer."""
+    d = df_membros.copy()
+    d['adulto'] = d['idade'] >= idade_adulto
+    d['adulta'] = d['adulto'] & (d['sexo'] == 'Feminino')
+    d['adulto_h'] = d['adulto'] & (d['sexo'] == 'Masculino')
+    d['crianca'] = d['grupo_idade'] == '0-6'
+    d['menina'] = d['crianca'] & (d['sexo'] == 'Feminino')
+    d['menino'] = d['crianca'] & (d['sexo'] == 'Masculino')
+
+    assert d.groupby('id_familia')['grupo_renda_pct'].nunique(dropna=False).max() == 1, \
+        'grupo_renda_pct não é único por família'
+    tamanho = d.groupby('id_familia').agg(n_linhas=('id_pessoa', 'count'), n_pessoas=('n_pessoas_familia', 'max'))
+    assert (tamanho['n_linhas'] == tamanho['n_pessoas']).all(), \
+        'cadastro incompleto: nº de membros na tabela != n_pessoas_familia'
+
+    fam = d.groupby('id_familia').agg(
+        n_adultos=('adulto', 'sum'), n_adultas=('adulta', 'sum'), n_adultos_h=('adulto_h', 'sum'),
+        n_criancas=('crianca', 'sum'), n_meninas=('menina', 'sum'), n_meninos=('menino', 'sum'),
+        idade_mais_velho=('idade', 'max'), grupo_renda_pct=('grupo_renda_pct', 'first'),
+    )
+    fam['cep'] = d[d['crianca']].groupby('id_familia')['cep'].first().astype(str)
+
+    def _arranjo(r):
+        if r.n_adultos == 0:
+            return 'Sem adulto (18+)'
+        if r.n_adultos == 1:
+            return 'Uma adulta (mulher)' if r.n_adultas == 1 else 'Um adulto (homem)'
+        if r.n_adultos == 2:
+            return 'Dois adultos (homem e mulher)' if (r.n_adultas == 1 and r.n_adultos_h == 1) else 'Dois adultos (outra composição)'
+        return 'Três ou mais adultos'
+    fam['arranjo'] = fam.apply(_arranjo, axis=1)
+    fam['composicao_sexo_criancas'] = np.select(
+        [fam['n_meninos'] == 0, fam['n_meninas'] == 0], ['Só meninas', 'Só meninos'], default='Meninas e meninos')
+    return fam.reset_index()
+
+def agrega_cadunico_familias(df_familias, coluna, ordem):
+    """Famílias, crianças (soma de `n_criancas`) e % de famílias por uma categoria EXCLUSIVA da
+    família (arranjo, composição de sexo) -- como cada família está numa categoria só, as linhas
+    somam e a linha 'Total' é válida."""
+    t = (df_familias.groupby(coluna).agg(**{'Famílias': ('id_familia', 'count'), 'Crianças': ('n_criancas', 'sum')})
+         .reindex(ordem).fillna(0).astype(int))
+    t['% das famílias'] = (t['Famílias'] / t['Famílias'].sum() * 100).round(1)
+    t.loc['Total'] = [t['Famílias'].sum(), t['Crianças'].sum(), 100.0]
+    return t.astype({'Famílias': int, 'Crianças': int})
+
+def agrega_cadunico_criancas(df_criancas, coluna, ordem, col_crianca='Crianças', col_familia='Famílias'):
+    """Crianças (`count`) e famílias com ao menos uma criança da categoria (`nunique`) por um
+    atributo DA CRIANÇA (sexo, raça/cor). As famílias NÃO são exclusivas entre categorias (uma
+    família com um menino e uma menina conta nas duas), por isso não há linha de total somado --
+    o total de famílias vai numa linha própria, calculado sobre a base inteira."""
+    t = (df_criancas.groupby(coluna).agg(**{'Crianças': (col_crianca, 'count'), 'Famílias com ao menos uma': (col_familia, 'nunique')})
+         .reindex(ordem).fillna(0).astype(int))
+    t['% das crianças'] = (t['Crianças'] / len(df_criancas) * 100).round(1)
+    t.loc['Total (famílias não somam)'] = [len(df_criancas), df_criancas[col_familia].nunique(), 100.0]
+    return t.astype({'Crianças': int, 'Famílias com ao menos uma': int})
+
+def atribui_bairro_por_cep(df, caminho='dados_locais/lista_bairros.csv'):
+    """Mesmo join CEP -> nome de bairro da seção CadÚnico (`lista_bairros.csv`, bairro dos
+    Correios), empacotado para reuso nos recortes novos. CEPs fora da lista ficam com `bairro`
+    NaN (~8% das crianças, ver nota A1 da seção) -- o bairro dos Correios nem sempre é o bairro
+    oficial IPP (viés documentado na nota A2)."""
+    ref = pd.read_csv(caminho, dtype={'cep': str})
+    out = df.copy()
+    out['cep'] = out['cep'].astype(str)
+    return out.merge(ref[['cep', 'bairro']], on='cep', how='left')
+
+def suprime_celulas_pequenas(df, colunas_denominador, colunas, limiar=_LIMIAR_SUPRESSAO_CADUNICO):
+    """Regra de privacidade do CadÚnico (spec recortes_cadunico §5): devolve uma CÓPIA com
+    `colunas` = NaN nas linhas em que qualquer coluna de `colunas_denominador` for < `limiar`, e
+    a coluna booleana `suprimido`. Usar só no que é publicado (CSV, mapa, relatório) -- cálculos e
+    agregações usam sempre o dado sem supressão."""
+    if isinstance(colunas_denominador, str):
+        colunas_denominador = [colunas_denominador]
+    out = df.copy()
+    inteiras = [c for c in colunas if pd.api.types.is_integer_dtype(out[c])]
+    mascara = (out[colunas_denominador] < limiar).any(axis=1)
+    out.loc[mascara, colunas] = np.nan
+    out[inteiras] = out[inteiras].astype('Int64')  # contagens seguem inteiras (vazio, não '15809.0')
+    out['suprimido'] = mascara
+    return out
+
+# %% [markdown]
+# ### 👥 População de referência (Ripsa/MS) — carregadores
+#
+# Estimativas populacionais Ripsa/Ministério da Saúde 2000-2025 (Nota Técnica Ripsa nº 01/2025), por
+# município, sexo e idade simples, via Tabnet (`popsvs2024br.def`). É o denominador de **toda taxa
+# municipal** do projeto; abaixo do município (bairro, AP, RP, RA, CAP) o denominador continua sendo o
+# Censo 2022 (decisão B1). Ver `specs/2026-09-24_populacao-referencia/` e a nota geral no início da seção Censo 2022.
+
+# %%
 import csv
 import re
 import time
 import urllib.parse
 import requests
+
+# Tabnet da Ripsa, versão 2000-2025 (NÃO usar `popsvsbr.def`, que é a versão antiga 2000-2021)
+_URL_TABNET_RIPSA = 'http://tabnet.datasus.gov.br/cgi/tabcgi.exe?ibge/cnv/popsvs2024br.def'
+_CAMINHO_EXTRATO_RIPSA = 'dados_locais//populacao//ripsa_populacao_rio.csv'
+# todos os filtros do formulário do Tabnet; os não usados vão como 'TODAS_AS_CATEGORIAS__'
+_FILTROS_TABNET_RIPSA = ['SRegião', 'SUnidade_da_Federação', 'SMunicípio', 'SCapital', 'SRegião_de_Saúde_(CIR)',
+                         'SMacrorregião_de_Saúde', 'SMicrorregião_IBGE', 'SRegião_Metropolitana_-_RIDE',
+                         'SMacrorregião_PNDR', 'SAmazônia_Legal', 'SSemiárido', 'SFaixa_de_Fronteira',
+                         'SZona_de_Fronteira', 'SMunicípio_de_extrema_pobreza', 'SSexo', 'SFaixa_Etária_1',
+                         'SFaixa_Etária_2', 'SIdade_simples']
+_SEXOS_TABNET_RIPSA = {'masculino': '1', 'feminino': '2'}
+
+def _consulta_tabnet_ripsa(anos, idades=None, sexo=None, cod_municipio_tabnet='3262', tentativas=5, espera=5):
+    """Um POST no Tabnet da Ripsa: linha = ano; coluna = idade simples (se `idades`) ou só o total.
+    Devolve um DataFrame indexado por ano, com uma coluna por idade (0, 1, ...) ou a coluna 'total'.
+
+    O corpo vai em latin-1 (os nomes de campo têm acento). O servidor derruba conexões às vezes
+    (`ConnectionResetError` em 2 de 5 consultas no levantamento), por isso as `tentativas`. O código
+    '3262' é o código interno do Tabnet para 330455 Rio de Janeiro."""
+    campos = [('Linha', 'Ano'), ('Coluna', 'Idade_simples' if idades is not None else '--Não-Ativa--'),
+              ('Incremento', 'População_residente')]
+    campos += [('Arquivos', f'pop{a % 100:02d}.dbf') for a in anos]
+    for filtro in _FILTROS_TABNET_RIPSA:
+        if filtro == 'SMunicípio':
+            campos.append((filtro, cod_municipio_tabnet))
+        elif filtro == 'SSexo' and sexo is not None:
+            campos.append((filtro, _SEXOS_TABNET_RIPSA[sexo]))
+        elif filtro == 'SIdade_simples' and idades is not None:
+            campos += [(filtro, str(i + 1)) for i in idades]  # opção 1 = 'Menos que 1 ano de idade'
+        else:
+            campos.append((filtro, 'TODAS_AS_CATEGORIAS__'))
+    campos += [('formato', 'prn'), ('mostre', 'Mostra')]
+    corpo = urllib.parse.urlencode(campos, encoding='latin-1')
+
+    for tentativa in range(1, tentativas + 1):
+        try:
+            r = requests.post(_URL_TABNET_RIPSA, data=corpo, timeout=120,
+                              headers={'Content-Type': 'application/x-www-form-urlencoded'})
+            r.raise_for_status()
+            break
+        except (requests.ConnectionError, requests.Timeout, requests.HTTPError):
+            if tentativa == tentativas:
+                raise
+            time.sleep(espera * tentativa)
+    texto = r.content.decode('latin-1')
+    bloco = re.search(r'<PRE>(.*?)</PRE>', texto, re.S | re.I)
+    if bloco is None:
+        raise ValueError('resposta do Tabnet sem bloco <PRE> (formulário mudou?)')
+    # leitor com aspas: o cabeçalho traz entidades HTML ('Popula&ccedil;&atilde;o') com ';' dentro das aspas
+    linhas = [l.strip() for l in bloco.group(1).splitlines() if l.strip().startswith('"')]
+    tabela = list(csv.reader(linhas, delimiter=';', quotechar='"'))
+    df = pd.DataFrame(tabela[1:], columns=tabela[0])
+    df = df[df.iloc[:, 0] != 'Total'].rename(columns={df.columns[0]: 'ano'})
+    df['ano'] = df['ano'].astype(int)
+    df = df.set_index('ano').replace('-', '0').astype(int)
+    if idades is not None:
+        df = df.drop(columns='Total')
+        df.columns = list(idades)
+    else:
+        df.columns = ['total']
+    return df
+
+def carrega_populacao_ripsa(anos=range(2000, 2026), idades=range(0, 7), caminho_extrato=_CAMINHO_EXTRATO_RIPSA,
+                            cod_municipio_tabnet='3262'):
+    """População residente do município do Rio de Janeiro, estimativas Ripsa/MS (1º de julho de cada ano),
+    em formato longo `ano, idade, sexo, populacao, data_consulta`:
+    - idade simples em `idades` (0 = menos de 1 ano) x sexo ('masculino'/'feminino');
+    - mais uma linha por ano com o total de todas as idades (`idade='total'`, `sexo='total'`).
+
+    Lê o extrato versionado `caminho_extrato` quando ele cobre `anos` e `idades` (o notebook roda sem
+    rede). Senão, consulta o Tabnet, confere a grade (anos x idades x 2 sexos) e que a soma dos sexos
+    bate com o total por idade, e regrava o extrato com a data da consulta -- a Ripsa revisa as
+    estimativas todo ano, então uma consulta nova pode mudar anos passados."""
+    anos, idades = list(anos), list(idades)
+    if os.path.exists(caminho_extrato):
+        ext = pd.read_csv(caminho_extrato, dtype={'idade': str, 'sexo': str})
+        idades_ext = {int(i) for i in ext['idade'] if i != 'total'}
+        if set(anos) <= set(ext['ano']) and set(idades) <= idades_ext:
+            manter = ext['ano'].isin(anos) & (ext['idade'].isin([str(i) for i in idades]) | (ext['idade'] == 'total'))
+            return ext[manter].reset_index(drop=True)
+        anos = sorted(set(anos) | set(ext['ano']))
+        idades = sorted(set(idades) | idades_ext)
+
+    partes = []
+    for sexo in _SEXOS_TABNET_RIPSA:
+        largo = _consulta_tabnet_ripsa(anos, idades, sexo, cod_municipio_tabnet)
+        longo = largo.reset_index().melt(id_vars='ano', var_name='idade', value_name='populacao')
+        longo.insert(2, 'sexo', sexo)
+        partes.append(longo)
+    por_sexo = pd.concat(partes, ignore_index=True)
+    total_idade = _consulta_tabnet_ripsa(anos, idades, None, cod_municipio_tabnet)
+    total_geral = _consulta_tabnet_ripsa(anos, None, None, cod_municipio_tabnet)
+
+    assert len(por_sexo) == len(anos) * len(idades) * 2 and set(por_sexo['ano']) == set(anos), \
+        'Ripsa: grade incompleta (anos x idades x sexos)'
+    soma_sexos = por_sexo.pivot_table(index='ano', columns='idade', values='populacao', aggfunc='sum')
+    assert (soma_sexos.reindex(index=total_idade.index, columns=total_idade.columns) == total_idade).all().all(), \
+        'Ripsa: soma dos sexos diferente do total por idade'
+
+    total = total_geral.reset_index().rename(columns={'total': 'populacao'})
+    total['idade'], total['sexo'] = 'total', 'total'
+    out = pd.concat([por_sexo, total[['ano', 'idade', 'sexo', 'populacao']]], ignore_index=True)
+    out['idade'] = out['idade'].astype(str)
+    out['data_consulta'] = pd.Timestamp.today().date().isoformat()
+    out = out.sort_values(['ano', 'sexo', 'idade']).reset_index(drop=True)
+    Path(caminho_extrato).parent.mkdir(parents=True, exist_ok=True)
+    out.to_csv(caminho_extrato, index=False)
+    return out
+
+def populacao_ripsa(df_ripsa, idade_min=0, idade_max=5, sexo='total', anos=None):
+    """Soma a população do longo de `carrega_populacao_ripsa` numa faixa etária (idades inteiras,
+    inclusive) e devolve `ano, populacao`. `idade_min=None` e `idade_max=None` -> total de todas as
+    idades. `sexo='total'` soma masculino + feminino."""
+    d = df_ripsa
+    if idade_min is None and idade_max is None:
+        d = d[d['idade'] == 'total']
+    else:
+        d = d[d['idade'] != 'total']
+        idade = d['idade'].astype(int)
+        d = d[(idade >= idade_min) & (idade <= idade_max)]
+        if sexo != 'total':
+            d = d[d['sexo'] == sexo]
+    if anos is not None:
+        d = d[d['ano'].isin(list(anos))]
+    return d.groupby('ano', as_index=False)['populacao'].sum()
+
+# %% [markdown]
+# ### 🎓 Censo Escolar (INEP) — carregadores
+#
+# Matrículas de 0 a 5 anos no município, direto dos microdados do Censo Escolar da Educação Básica/INEP
+# (uma linha por escola, com matrículas agregadas em faixas de idade desde a adequação à LGPD). Ver
+# `specs/2026-09-24_populacao-referencia/matriculas/`.
+
+# %%
 import zipfile
-from primeira_infancia import *  # noqa: F401,F403
+
+_URL_INEP_MICRODADOS = 'https://download.inep.gov.br/dados_abertos/'
+_ZIP_INEP_EXCECOES = {2025: 'microdados_censo_escolar_2025_.zip'}  # 2025 saiu com '_' no fim do nome
+_CAMINHO_EXTRATO_INEP = 'dados_locais//educacao//inep_matriculas_rio.csv'
+_DEPENDENCIAS_INEP = {1: 'federal', 2: 'estadual', 3: 'municipal', 4: 'privada'}
+# contagens por escola: faixas de idade (data padrão do Censo, última quarta-feira de maio) e etapas.
+# As colunas '_REF_31_03' de 2025 (idade em 31/03) não são usadas: não existem nos outros anos.
+_COLUNAS_MATRICULA_INEP = {'QT_MAT_BAS_0_3': 'mat_0_a_3', 'QT_MAT_BAS_4_5': 'mat_4_a_5', 'QT_MAT_INF': 'mat_inf',
+                           'QT_MAT_INF_CRE': 'mat_inf_creche', 'QT_MAT_INF_PRE': 'mat_inf_pre'}
+
+def _baixa_zip_inep(ano, pasta_cache, tentativas=5, espera=10):
+    """Baixa o ZIP de microdados do ano para o cache (gitignorado), se ainda não estiver lá."""
+    destino = Path(pasta_cache) / f'microdados_censo_escolar_{ano}.zip'
+    if destino.exists():
+        return destino
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    url = _URL_INEP_MICRODADOS + _ZIP_INEP_EXCECOES.get(ano, f'microdados_censo_escolar_{ano}.zip')
+    for tentativa in range(1, tentativas + 1):
+        try:
+            with requests.get(url, stream=True, timeout=300) as r:
+                r.raise_for_status()
+                parcial = destino.with_suffix('.zip.part')
+                with open(parcial, 'wb') as f:
+                    for bloco in r.iter_content(chunk_size=1 << 20):
+                        f.write(bloco)
+            parcial.rename(destino)
+            return destino
+        except (requests.ConnectionError, requests.Timeout, requests.HTTPError):
+            if tentativa == tentativas:
+                raise
+            time.sleep(espera * tentativa)
+
+def _le_matriculas_zip_inep(caminho_zip, ano, cod_municipio):
+    """Lê, de dentro do ZIP (sem extrair), o CSV com as contagens de matrícula por escola e devolve as
+    somas do município por dependência administrativa. Até 2024 as contagens estão em
+    `microdados_ed_basica_<ano>.csv` (.CSV em alguns anos); em 2025, na `Tabela_Matricula_<ano>*.csv`."""
+    padrao = re.compile(rf'(microdados_ed_basica_{ano}|tabela_matricula_{ano}[^/]*)\.csv$', re.I)
+    with zipfile.ZipFile(caminho_zip) as zf:
+        nomes = [n for n in zf.namelist() if padrao.search(n)]
+        if len(nomes) != 1:
+            raise ValueError(f'{ano}: esperado 1 CSV de matrículas no ZIP, achados {nomes}')
+        colunas = ['CO_MUNICIPIO', 'TP_DEPENDENCIA'] + list(_COLUNAS_MATRICULA_INEP)
+        with zf.open(nomes[0]) as f:
+            df = pd.read_csv(f, sep=';', encoding='latin-1', usecols=lambda c: c in colunas, low_memory=False)
+    faltando = set(colunas) - set(df.columns)
+    if {'QT_MAT_BAS_0_3', 'QT_MAT_BAS_4_5'} & faltando:
+        raise ValueError(f'{ano}: sem as colunas de faixa etária {sorted(faltando)} (P6)')
+    df = df[df['CO_MUNICIPIO'] == cod_municipio]
+    agregado = (df.groupby('TP_DEPENDENCIA')[[c for c in _COLUNAS_MATRICULA_INEP if c in df.columns]].sum()
+                .reindex(list(_DEPENDENCIAS_INEP), fill_value=0).astype(int).rename(columns=_COLUNAS_MATRICULA_INEP))
+    agregado = agregado.rename_axis('tp_dependencia').reset_index()
+    agregado.insert(0, 'ano', ano)
+    agregado.insert(2, 'dependencia', agregado['tp_dependencia'].map(_DEPENDENCIAS_INEP))
+    return agregado
+
+def carrega_censo_escolar_matriculas(anos, cod_municipio=3304557, pasta_cache='dados_locais//educacao//inep_microdados',
+                                     caminho_extrato=_CAMINHO_EXTRATO_INEP):
+    """Matrículas da educação básica no município por ano x dependência administrativa (federal,
+    estadual, municipal, privada): `ano, tp_dependencia, dependencia, mat_0_a_3, mat_4_a_5, mat_inf,
+    mat_inf_creche, mat_inf_pre` (as colunas `mat_inf*`, por etapa, ficam só como referência).
+
+    Lê o extrato versionado `caminho_extrato` quando ele cobre `anos` (o notebook roda sem rede e sem os
+    ZIPs). Senão, baixa os ZIPs faltantes para o cache gitignorado, lê cada ano de dentro do ZIP e
+    regrava o extrato. Só contagens agregadas por escola: não há dado pessoal."""
+    anos = list(anos)
+    extrato = pd.read_csv(caminho_extrato) if os.path.exists(caminho_extrato) else None
+    if extrato is not None and set(anos) <= set(extrato['ano']):
+        return extrato[extrato['ano'].isin(anos)].reset_index(drop=True)
+    ja_lidos = set(extrato['ano']) if extrato is not None else set()
+    partes = [extrato] if extrato is not None else []
+    for ano in sorted(set(anos) - ja_lidos):
+        partes.append(_le_matriculas_zip_inep(_baixa_zip_inep(ano, pasta_cache), ano, cod_municipio))
+    out = pd.concat(partes, ignore_index=True).sort_values(['ano', 'tp_dependencia']).reset_index(drop=True)
+    assert out.groupby('ano').size().eq(len(_DEPENDENCIAS_INEP)).all(), 'extrato INEP: ano sem as 4 dependências'
+    out.to_csv(caminho_extrato, index=False)
+    return out[out['ano'].isin(anos)].reset_index(drop=True)
+
+def resume_matriculas_0_a_5(df_matriculas, df_ripsa):
+    """Tabela final por ano: matrículas de 0 a 5 anos (total, 0-3, 4-5, pública, privada), população
+    Ripsa das mesmas faixas e a taxa bruta de atendimento (%) de cada faixa. A taxa de 0-5 é
+    (mat 0-3 + mat 4-5) ÷ (pop 0-3 + pop 4-5), nunca a média das taxas de 0-3 e 4-5."""
+    m = df_matriculas.assign(mat_0_a_5=df_matriculas['mat_0_a_3'] + df_matriculas['mat_4_a_5'])
+    publica = m['tp_dependencia'].isin([1, 2, 3])
+    out = m.groupby('ano').agg(matriculas=('mat_0_a_5', 'sum'), matriculas_0_a_3=('mat_0_a_3', 'sum'),
+                               matriculas_4_a_5=('mat_4_a_5', 'sum'))
+    out['matriculas_publica'] = m[publica].groupby('ano')['mat_0_a_5'].sum()
+    out['matriculas_privada'] = m[~publica].groupby('ano')['mat_0_a_5'].sum()
+    for faixa, (ini, fim) in {'0_a_3': (0, 3), '4_a_5': (4, 5), '0_a_5': (0, 5)}.items():
+        out[f'populacao_{faixa}'] = populacao_ripsa(df_ripsa, ini, fim).set_index('ano')['populacao']
+    for faixa in ['0_a_3', '4_a_5', '0_a_5']:
+        numerador = out['matriculas'] if faixa == '0_a_5' else out[f'matriculas_{faixa}']
+        out[f'taxa_atendimento_{faixa}'] = (numerador / out[f'populacao_{faixa}'] * 100).round(1)
+    return out.reset_index()
 
 # %% [markdown]
 # ### ⚙️ Setup
@@ -172,10 +2015,9 @@ df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4'
 df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).head(20)
 
 # %% [markdown]
-# #### 👶 População de 0 a 5 anos por idade/raça/sexo (IBGE SIDRA, 2022)
+# #### 👶 População 0-6 por idade/raça/sexo (IBGE SIDRA, 2022)
 #
-# Complementa o Censo por bairro acima com o detalhe por idade simples (0 a 5 anos, faixa padrão do projeto --
-# `specs/2026-09-29_pendencias` D9; a tabela 9606 traz também os 6 anos, que ficam de fora) e por
+# Complementa o Censo por bairro acima com o detalhe por idade simples (0 a 6 anos) e por
 # raça/sexo, direto das tabelas do IBGE SIDRA (Censo 2022, tabela 9606). **Só existe no nível
 # município** -- as exportações do SIDRA não trazem recorte por bairro/AP/RP/CAP, então não
 # há mapa aqui, só tabelas e gráficos comparativos.
@@ -186,47 +2028,33 @@ df_censo_sidra_sexo = carrega_sidra_longo('dados_locais//ibge_sidra//Censo//tabe
 
 fonte_sidra_censo = 'Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)'
 
-# D9 (specs/2026-09-29_pendencias): 0 a 5 anos; a linha "Total" da 9606 (todas as idades) vira o total de 0 a 5 anos.
-# Nomes de arquivo mantidos (`_0_6_`): são chaves do texto curado, do crosswalk e da apresentação
-_ORDEM_IDADE_SIDRA_0_5_POP = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
-
-def _populacao_sidra_0_a_5(df_longo, coluna_corte):
-    tabela = (df_longo[df_longo['idade'].isin(_ORDEM_IDADE_SIDRA_0_5_POP)]
-              .pivot(index='idade', columns=coluna_corte, values='valor').reindex(_ORDEM_IDADE_SIDRA_0_5_POP))
-    tabela.loc['Total 0 a 5 anos'] = tabela.sum()
-    tabela.columns.name = None
-    return tabela
-
-_populacao_sidra_0_a_5(df_censo_sidra_raca, 'Cor ou raça').to_csv('tabelas_finais//censo_sidra_populacao_0_6_raca_2022.csv')
-_populacao_sidra_0_a_5(df_censo_sidra_sexo, 'Sexo').to_csv('tabelas_finais//censo_sidra_populacao_0_6_sexo_2022.csv')
+df_censo_sidra_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//censo_sidra_populacao_0_6_raca_2022.csv')
+df_censo_sidra_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//censo_sidra_populacao_0_6_sexo_2022.csv')
 df_censo_sidra_raca.head()
 
 # %%
+_ORDEM_IDADE_SIDRA_0_6 = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
 
 grafico_barra_agrupado(
     df_censo_sidra_raca[df_censo_sidra_raca['Cor ou raça'] != 'Total'],
     categoria='idade', valor='valor', agrupador='Cor ou raça',
-    titulo='População residente de 0 a 5 anos por idade e raça/cor - Rio de Janeiro (Censo 2022)',
+    titulo='População residente de 0 a 6 anos por idade e raça/cor - Rio de Janeiro (Censo 2022)',
     nome_arquivo='censo_sidra_populacao_0_6_raca_2022', ylabel='Pessoas', legend_title='Raça/cor',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5_POP, fonte_dados=fonte_sidra_censo,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6, fonte_dados=fonte_sidra_censo,
 )
-
-# %% [markdown]
-# <!-- nota-curadoria:censo_sidra_populacao_0_6_raca_2022 -->
-# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem comparar a composição da população de 0 a 5 anos por raça/cor e idade. Entre menores de 1 ano, foram registrados 26.909 crianças brancas, 21.576 pardas e 5.762 pretas. Aos 5 anos, esses números passam para 29.746, 29.837 e 9.252, respectivamente. A comparação entre as idades permite observar mudanças na distribuição dos grupos de raça/cor ao longo da primeira infância. Os dados também possibilitam relacionar essa composição a outros indicadores do relatório que utilizem raça/cor e idade como dimensões de análise.
 
 # %%
 grafico_barra_agrupado(
     df_censo_sidra_sexo[df_censo_sidra_sexo['Sexo'] != 'Total'],
     categoria='idade', valor='valor', agrupador='Sexo',
-    titulo='População residente de 0 a 5 anos por idade e sexo - Rio de Janeiro (Censo 2022)',
+    titulo='População residente de 0 a 6 anos por idade e sexo - Rio de Janeiro (Censo 2022)',
     nome_arquivo='censo_sidra_populacao_0_6_sexo_2022', ylabel='Pessoas', legend_title='Sexo',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5_POP, fonte_dados=fonte_sidra_censo,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6, fonte_dados=fonte_sidra_censo,
 )
 
 # %% [markdown]
 # <!-- nota-curadoria:censo_sidra_populacao_0_6_sexo_2022 -->
-# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem detalhar a população de crianças de 0 a 5 anos no município do Rio de Janeiro por idade, raça/cor e sexo. A distribuição por idade possibilita observar a composição desse grupo ao longo dos primeiros anos de vida, enquanto os recortes por raça/cor e sexo ampliam a caracterização demográfica da primeira infância. Os dados são apresentados para o conjunto do município e complementam o recorte territorial de crianças de 0 a 4 anos analisado anteriormente. Essa caracterização é importante para contextualizar os indicadores de saúde, educação, proteção social e demais dimensões analisadas no relatório.
+# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem detalhar a população de crianças até 6 anos no município do Rio de Janeiro por idade, raça/cor e sexo. A distribuição por idade possibilita observar a composição desse grupo ao longo dos primeiros anos de vida, enquanto os recortes por raça/cor e sexo ampliam a caracterização demográfica da primeira infância. Os dados são apresentados para o conjunto do município e complementam o recorte territorial de crianças de 0 a 4 anos analisado anteriormente. Essa caracterização é importante para contextualizar os indicadores de saúde, educação, proteção social e demais dimensões analisadas no relatório.
 
 # %% [markdown]
 # #### 🗺️ Mapa coroplético (bairros)
@@ -382,39 +2210,37 @@ serie_temporal(
 # **Nota de curadoria:** A participação das crianças de 0 a 4 anos na população total do município diminuiu entre os Censos de 2000, 2010 e 2022. A proporção passou de aproximadamente 7,6% em 2000 para 5,8% em 2010 e 5,0% em 2022. O mapa complementa essa tendência ao mostrar diferenças na participação dessa faixa etária entre os bairros. A análise percentual permite comparar territórios de diferentes tamanhos populacionais, evidenciando o peso relativo das crianças de 0 a 4 anos em cada localidade. Esse indicador contribui para caracterizar a estrutura etária do município e contextualizar as demandas relacionadas à primeira infância.
 
 # %% [markdown]
-# #### 👶 População de 0 a 5 anos por ano (estimativas Ripsa/MS, 2000-2025)
+# #### 👶 População de 0 a 6 anos por ano (estimativas Ripsa/MS, 2000-2025)
 #
-# Série anual da população de 0 a 5 anos do município (idade simples; faixa padrão do projeto desde
-# `specs/2026-09-29_pendencias` D9 -- antes a série ia a 6 anos) e a participação de 0 a 5 anos no total da população
+# Série anual da população de 0 a 6 anos do município (idade simples), com o total de 0 a 5 anos (faixa
+# das taxas municipais do projeto) e a participação de 0 a 6 anos no total da população
 # (`specs/2026-09-24_populacao-referencia`, A2). Fonte e ressalvas na nota de população de referência, no início
 # desta seção: **os valores não se comparam com os dos Censos acima** (a Ripsa corrige a subcontagem do
-# Censo 2022). A participação é recalculada da soma (0 a 5 anos ÷ total), nunca média de anos. Nome do arquivo mantido
-# (`populacao_ripsa_0_a_6_*`: chave do crosswalk, do texto curado e da apresentação).
+# Censo 2022). A participação é recalculada da soma (0 a 6 anos ÷ total), nunca média de anos.
 
 # %%
 fonte_ripsa = 'Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025)'
 
 df_ripsa = carrega_populacao_ripsa()
-df_pop_infantil = (df_ripsa[(df_ripsa['idade'] != 'total') & (df_ripsa['idade'] != '6')]   # D9: 0 a 5 anos
+df_pop_infantil = (df_ripsa[(df_ripsa['idade'] != 'total')]
                    .assign(idade=lambda d: 'populacao_idade_' + d['idade'])
                    .pivot_table(index='ano', columns='idade', values='populacao', aggfunc='sum'))
 df_pop_infantil.columns.name = None
 df_pop_infantil['populacao_0_a_5'] = populacao_ripsa(df_ripsa, 0, 5).set_index('ano')['populacao']
-# 0 a 6 anos só como total, para a nota "a política fala em até 6 anos" da apresentação (D17); fora dos gráficos e tabelas
 df_pop_infantil['populacao_0_a_6'] = populacao_ripsa(df_ripsa, 0, 6).set_index('ano')['populacao']
 df_pop_infantil['populacao_total'] = populacao_ripsa(df_ripsa, None, None).set_index('ano')['populacao']
-df_pop_infantil['percentual_0_a_5'] = df_pop_infantil['populacao_0_a_5'] / df_pop_infantil['populacao_total'] * 100
+df_pop_infantil['percentual_0_a_6'] = df_pop_infantil['populacao_0_a_6'] / df_pop_infantil['populacao_total'] * 100
 df_pop_infantil = df_pop_infantil.reset_index()
 assert len(df_pop_infantil) == 26 and df_pop_infantil.loc[df_pop_infantil['ano'] == 2025, 'populacao_0_a_5'].item() == 393073
 df_pop_infantil.to_csv('tabelas_finais//populacao_ripsa_0_a_6_por_ano.csv', index=False)
-df_pop_infantil[['ano', 'populacao_0_a_5', 'populacao_total', 'percentual_0_a_5']]
+df_pop_infantil[['ano', 'populacao_0_a_5', 'populacao_0_a_6', 'populacao_total', 'percentual_0_a_6']]
 
 # %%
-serie_temporal(df_pop_infantil, 'ano', 'populacao_0_a_5', 'População de 0 a 5 anos por ano (estimativas Ripsa/MS)',
+serie_temporal(df_pop_infantil, 'ano', 'populacao_0_a_6', 'População de 0 a 6 anos por ano (estimativas Ripsa/MS)',
                nome_arquivo='populacao_ripsa_0_a_6_por_ano', fonte_dados=fonte_ripsa)
 
 # %%
-serie_temporal(df_pop_infantil, 'ano', 'percentual_0_a_5', 'Participação de 0 a 5 anos na população total (%, estimativas Ripsa/MS)',
+serie_temporal(df_pop_infantil, 'ano', 'percentual_0_a_6', 'Participação de 0 a 6 anos na população total (%, estimativas Ripsa/MS)',
                nome_arquivo='populacao_ripsa_0_a_6_percentual_por_ano', fonte_dados=fonte_ripsa)
 
 # %% [markdown]
@@ -459,9 +2285,8 @@ df =  df_original.copy()
 fonte_cadunico_particao = fonte_cadunico_com_particao(df_original['data_particao'].max())
 # nota de rodapé dos mapas CadÚnico por bairro (A2/A4)
 # (quebra de linha: numa linha só o rodapé invade a atribuição do basemap no canto inferior esquerdo)
-# a nota de proteção de dados (bairros pequenos somados por RA) vem em cada mapa, porque muda entre contagem e taxa
-# (specs/2026-09-29_privacidade_cadunico)
-fonte_mapa_cadunico = f"{fonte_cadunico_particao}.\nBairro atribuído pelo CEP (Correios), pode divergir do bairro oficial"
+fonte_mapa_cadunico = (f"{fonte_cadunico_particao}.\nBairro atribuído pelo CEP (Correios), pode divergir do bairro oficial; "
+                       f"bairros com menos de {_LIMIAR_SUPRESSAO_CADUNICO} famílias suprimidos")
 df_original
 
 # %%
@@ -501,7 +2326,7 @@ grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Famílias',
 
 # %% [markdown]
 # <!-- nota-curadoria:cadunico_familias_por_faixa_renda -->
-# **Nota de curadoria:** A partir do dado de famílias com crianças de 0 a 5 anos no CadÚnico é possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R$218, a linha de pobreza do Bolsa Família, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade. No que diz respeito às rendas mais altas a tendência é diminuindo conforme aumenta-se a renda, chegando a patamares estatisticamente irrelevantes.
+# **Nota de curadoria:** A partir do dado de famílias com crianças de 0 a 5 anos no CadÚnico é possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R$218, um dos critérios de extrema pobreza, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade. No que diz respeito às rendas mais altas a tendência é diminuindo conforme aumenta-se a renda, chegando a patamares estatisticamente irrelevantes.
 
 # %%
 grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Crianças',
@@ -586,8 +2411,8 @@ df_bairro.loc['Total'] = df_bairro.sum()
 assert df_bairro.loc['Total', 'Crianças'] == len(df), 'tabela por bairro não fecha com o total de crianças'
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-# o CSV publicado (`cadunico_por_bairro_2026.csv`) sai mais abaixo, depois da normalização dos nomes: a agregação dos
-# bairros pequenos precisa do `codbairro` (specs/2026-09-29_privacidade_cadunico); df_bairro em memória segue completo
+# recortes_cadunico A4: CSV publicado com supressão < 20 (df_bairro em memória segue completo)
+suprime_celulas_pequenas(df_bairro, 'Famílias', ['Crianças', 'Famílias']).to_csv('tabelas_finais/cadunico_por_bairro_2026.csv')
 
 # %% [markdown]
 # **Nota sobre a atribuição de bairro no CadÚnico** (reescrita em `specs/2026-09-23_recortes_cadunico`, A1/A2):
@@ -620,19 +2445,7 @@ df_bairro_mapa = df_bairro.drop(index=['Total', _ROTULO_SEM_BAIRRO_CADUNICO]).re
 df_bairro_mapa['bairro'] = df_bairro_mapa['bairro'].replace(_ALIAS_BAIRRO_CADUNICO)
 df_bairro_mapa = df_bairro_mapa[~df_bairro_mapa['bairro'].isin(_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA)]
 df_bairro_mapa = junta_codbairro_por_bairro(df_bairro_mapa, df_censo)
-assert df_bairro_mapa['codbairro'].is_unique, 'dois nomes dos Correios caíram no mesmo bairro oficial'
-
-# specs/2026-09-29_privacidade_cadunico D1 (constituição §6): bairro com < 20 crianças ou famílias não é publicado sozinho
-# nem fica vazio -- é somado com os outros bairros pequenos da mesma RA ("Demais bairros da RA X"; se ainda < 20, da AP;
-# depois do município). A mesma agregação serve à tabela por bairro e à do mapa
-df_bairro_mapa_pub = agrega_bairros_pequenos(df_bairro_mapa, ['Crianças', 'Famílias'], ['Crianças', 'Famílias'])
-tabela_publicada_por_bairro(df_bairro_mapa_pub, {
-    'Localidades sem bairro oficial': df_bairro.loc[df_bairro.index.isin(_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA),
-                                                    ['Crianças', 'Famílias']].sum().to_dict(),
-    _ROTULO_SEM_BAIRRO_CADUNICO: df_bairro.loc[_ROTULO_SEM_BAIRRO_CADUNICO, ['Crianças', 'Famílias']].to_dict(),
-    'Total': df_bairro.loc['Total', ['Crianças', 'Famílias']].to_dict(),
-}, ['Crianças', 'Famílias']).to_csv('tabelas_finais/cadunico_por_bairro_2026.csv', index=False)
-df_bairro_mapa_pub[df_bairro_mapa_pub['bairro'].str.startswith('Demais')]
+df_bairro_mapa.head()
 
 # %%
 df_bairro.sort_values(by='Crianças', ascending=False).head(10)
@@ -645,9 +2458,8 @@ df_bairro_ate_4 = df_ate_4.groupby(by=['bairro']).agg({'Crianças':'count','Fam�
 df_bairro_ate_4.loc['Total'] = df_bairro_ate_4.sum()
 #custom_order = ['0-218','219-810','811-1621','1621-3242','3242+','Total']
 #df_bairro = df_bairro.reindex(custom_order)
-# CSV publicado (`cadunico_por_bairro_ate_4_2026.csv`): sai com o mapa 0-4, da mesma agregação (privacidade_cadunico)
-_sem_bairro_ate_4 = df_ate_4[df_ate_4['bairro'].isna()]
-_localidades_ate_4 = df_bairro_ate_4.loc[df_bairro_ate_4.index.isin(_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA)].sum()
+# recortes_cadunico A4: CSV publicado com supressão < 20
+suprime_celulas_pequenas(df_bairro_ate_4, 'Famílias', ['Crianças', 'Famílias']).to_csv('tabelas_finais/cadunico_por_bairro_ate_4_2026.csv')
 # mesma normalização/exclusão de nomes sem correspondência oficial que df_bairro_mapa (nota acima) --
 # sem isso, o merge 'right' abaixo já dropava essas linhas em silêncio (nenhum erro, só sumia o dado)
 df_bairro_ate_4 = df_bairro_ate_4.rename(index=_ALIAS_BAIRRO_CADUNICO).drop(index=_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA, errors='ignore')
@@ -665,15 +2477,15 @@ df_bairro.loc[['Complexo do Alemão']]
 # #### 🗺️ Mapas por bairro
 
 # %%
-# mapa e gêmea (lida pelo site, que mostra o valor no tooltip) saem da mesma agregação (privacidade_cadunico): os bairros
-# somados na RA ficam sem cor no mapa de contagem -- o total do conjunto está nas linhas "Demais bairros" da gêmea
+# recortes_cadunico A4: mapa e gêmea (lida pelo HTML, que mostra o valor no tooltip) saem da mesma
+# tabela suprimida -- bairro com < 20 famílias fica sem cor ('Sem dado') e sem valor no tooltip
+df_bairro_mapa_pub = suprime_celulas_pequenas(df_bairro_mapa, 'Famílias', ['Crianças', 'Famílias'])
 df_bairro_mapa_pub.to_csv('tabelas_finais//tabela_mapa_cadunico_criancas_2026.csv', index=False)
 mapa_coropletico_bairros(
-    df_bairro_mapa_pub[df_bairro_mapa_pub['codbairro'].notna()], coluna_valor='Crianças',
-    titulo='Crianças (0 a 5 anos) no CadÚnico, por bairro',
+    df_bairro_mapa_pub, coluna_valor='Crianças', titulo='Crianças (0 a 5 anos) no CadÚnico, por bairro',
     nome_arquivo='mapa_cadunico_criancas_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'],
-    bins=[250, 750, 1500, 3000], legenda_titulo='Crianças', fonte_dados=fonte_mapa_cadunico + '. Bairros com menos de 20 crianças ou famílias no CadÚnico ficam sem cor: estão somados por Região Administrativa na tabela ("Demais bairros da RA …")',
+    bins=[250, 750, 1500, 3000], legenda_titulo='Crianças', fonte_dados=fonte_mapa_cadunico,
 )
 
 # %% [markdown]
@@ -692,34 +2504,22 @@ df_ate_4_mapa = df_bairro_ate_4[df_bairro_ate_4['bairro'] != 'Total'].copy()
 # usada nas células acima; o mapa segue a convenção do projeto de percentual em escala 0-100
 # (mesma de 'Percentual 0 a 4' do Censo)
 df_ate_4_mapa['Percentual Primeira Inf. Cadúnico'] = df_ate_4_mapa['Primeira Inf. Cadúnico'] * 100
-# privacidade_cadunico D1: bairros com < 20 crianças ou famílias no CadÚnico, ou < 20 crianças de 0 a 4 no Censo
-# (denominador), somados por RA -> AP -> município; bairro sem nenhuma criança no CadÚnico conta como 0
-df_ate_4_mapa[['Crianças', 'Famílias']] = df_ate_4_mapa[['Crianças', 'Famílias']].fillna(0)
-df_ate_4_mapa = agrega_bairros_pequenos(
-    df_ate_4_mapa.drop(columns=['Primeira Inf. Cadúnico', 'Percentual Primeira Inf. Cadúnico']),
-    ['Crianças', 'Famílias', '0 a 4 anos'], ['Crianças', 'Famílias', '0 a 4 anos'],
-    taxas={'Primeira Inf. Cadúnico': ('Crianças', '0 a 4 anos', 1),
-           'Percentual Primeira Inf. Cadúnico': ('Crianças', '0 a 4 anos', 100)})
+# recortes_cadunico A4: suprime quando o numerador (famílias CadÚnico) OU o denominador (pop. Censo 0-4) < 20
+df_ate_4_mapa = suprime_celulas_pequenas(df_ate_4_mapa, ['Famílias', '0 a 4 anos'],
+                                         ['Crianças', 'Famílias', 'Primeira Inf. Cadúnico', 'Percentual Primeira Inf. Cadúnico'])
 df_ate_4_mapa.to_csv('tabelas_finais//tabela_mapa_cadunico_criancas_0_a_4_2026.csv', index=False)
-tabela_publicada_por_bairro(df_ate_4_mapa[['bairro', 'codbairro', 'Crianças', 'Famílias', 'agregado_em', 'suprimido',
-                                           'bairros agregados']], {
-    'Localidades sem bairro oficial': _localidades_ate_4[['Crianças', 'Famílias']].to_dict(),
-    _ROTULO_SEM_BAIRRO_CADUNICO: {'Crianças': len(_sem_bairro_ate_4), 'Famílias': _sem_bairro_ate_4['Famílias'].nunique()},
-    'Total': {'Crianças': len(df_ate_4), 'Famílias': df_ate_4['Famílias'].nunique()},
-}, ['Crianças', 'Famílias']).to_csv('tabelas_finais/cadunico_por_bairro_ate_4_2026.csv', index=False)
 
 mapa_coropletico_bairros(
-    df_ate_4_mapa[df_ate_4_mapa['codbairro'].notna()], coluna_valor='Crianças', titulo='Crianças (0-4 anos) no CadÚnico, por bairro',
+    df_ate_4_mapa, coluna_valor='Crianças', titulo='Crianças (0-4 anos) no CadÚnico, por bairro',
     nome_arquivo='mapa_cadunico_criancas_0_a_4_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'],
-    bins=[200, 500, 1000, 2000], legenda_titulo='Crianças', fonte_dados=fonte_mapa_cadunico + '. Bairros com menos de 20 crianças ou famílias no CadÚnico ficam sem cor: estão somados por Região Administrativa na tabela ("Demais bairros da RA …")',
+    bins=[200, 500, 1000, 2000], legenda_titulo='Crianças', fonte_dados=fonte_mapa_cadunico,
 )
 mapa_coropletico_bairros(
-    df_ate_4_mapa[df_ate_4_mapa['codbairro'].notna()], coluna_valor='Percentual Primeira Inf. Cadúnico', titulo='% de crianças 0-4 anos no CadÚnico sobre a população 0-4 do Censo 2022, por bairro',
+    df_ate_4_mapa, coluna_valor='Percentual Primeira Inf. Cadúnico', titulo='% de crianças 0-4 anos no CadÚnico sobre a população 0-4 do Censo 2022, por bairro',
     nome_arquivo='mapa_percentual_cadunico_0_a_4_sobre_censo_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'],
-    legenda_titulo='% CadÚnico/Censo 2022', fonte_dados=fonte_mapa_cadunico + '; população 0 a 4 anos: Censo 2022 (IBGE/Data.Rio)'
-                                                  + '. Bairros com menos de 20 casos (no grupo, no complemento ou no total) mostram a taxa do conjunto dos bairros pequenos da sua Região Administrativa',
+    legenda_titulo='% CadÚnico/Censo 2022', fonte_dados=fonte_mapa_cadunico + '; população 0 a 4 anos: Censo 2022 (IBGE/Data.Rio)',
 )
 
 # %% [markdown]
@@ -886,15 +2686,14 @@ df_recortes_bairro = pd.concat([
 df_recortes_bairro['bairro'] = df_recortes_bairro['bairro'].replace(_ALIAS_BAIRRO_CADUNICO)
 df_recortes_bairro = df_recortes_bairro[~df_recortes_bairro['bairro'].isin(_BAIRROS_CADUNICO_SEM_CORRESPONDENCIA)]
 df_recortes_bairro = junta_codbairro_por_bairro(df_recortes_bairro, df_censo)
-# privacidade_cadunico D1/D2: o percentual publicado × o total publicado devolveria a contagem -- então o bairro entra no
-# conjunto da RA também quando o numerador OU o complemento (total - numerador) é < 20. Taxas sempre dos absolutos
-# (nunca média de percentuais), recalculadas das somas nos conjuntos
-df_recortes_bairro_pub = agrega_bairros_pequenos(
-    df_recortes_bairro, ['Crianças', 'Meninas', 'Crianças negras', 'Famílias', 'Famílias com uma adulta'],
-    ['Crianças', 'Famílias'],
-    pares=[('Meninas', 'Crianças'), ('Crianças negras', 'Crianças'), ('Famílias com uma adulta', 'Famílias')],
-    taxas={'% meninas': ('Meninas', 'Crianças', 100), '% crianças negras': ('Crianças negras', 'Crianças', 100),
-           '% famílias com uma adulta': ('Famílias com uma adulta', 'Famílias', 100)})
+# taxa sempre de absolutos (nunca média de percentuais)
+df_recortes_bairro['% meninas'] = df_recortes_bairro['Meninas'] / df_recortes_bairro['Crianças'] * 100
+df_recortes_bairro['% crianças negras'] = df_recortes_bairro['Crianças negras'] / df_recortes_bairro['Crianças'] * 100
+df_recortes_bairro['% famílias com uma adulta'] = df_recortes_bairro['Famílias com uma adulta'] / df_recortes_bairro['Famílias'] * 100
+
+_cols_recortes = ['Crianças', 'Meninas', 'Crianças negras', 'Famílias', 'Famílias com uma adulta',
+                  '% meninas', '% crianças negras', '% famílias com uma adulta']
+df_recortes_bairro_pub = suprime_celulas_pequenas(df_recortes_bairro, 'Famílias', _cols_recortes)
 df_recortes_bairro_pub.to_csv('tabelas_finais/tabela_mapa_cadunico_recortes_bairro_2026.csv', index=False)
 df_recortes_bairro_pub.sort_values('% famílias com uma adulta', ascending=False).head(10)
 
@@ -908,39 +2707,9 @@ for _coluna, _titulo, _arquivo, _legenda in [
      'mapa_percentual_cadunico_familias_uma_adulta_bairro_2026', '% uma adulta'),
 ]:
     mapa_coropletico_bairros(
-        df_recortes_bairro_pub[df_recortes_bairro_pub['codbairro'].notna()], coluna_valor=_coluna, titulo=_titulo,
-        nome_arquivo=_arquivo, chave='codbairro',
-        cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo=_legenda, fonte_dados=fonte_mapa_cadunico + '. Bairros com menos de 20 casos (no grupo, no complemento ou no total) mostram a taxa do conjunto dos bairros pequenos da sua Região Administrativa',
+        df_recortes_bairro_pub, coluna_valor=_coluna, titulo=_titulo, nome_arquivo=_arquivo, chave='codbairro',
+        cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo=_legenda, fonte_dados=fonte_mapa_cadunico,
     )
-
-# %% [markdown]
-# #### 📌 Dados pontuais (ago/2026): moradia e deficiência
-#
-# Extração **pontual** do CadÚnico enviada pela equipe (município do Rio, referência 08/2026), feita fora da rotina —
-# não vem do banco CTPE, então esta célula roda sem `.env` (`specs/2026-09-29_dados_adhoc`). Entra só por acréscimo
-# (nenhuma outra saída muda) e será substituída pela extração automatizada no 4º trimestre de 2026 (ROADMAP).
-# Metadados (`is_adhoc`, `ref_date`, `replacement_pending`) e o aviso público: `dados_locais/cadunico/adhoc_2026_08.json`.
-#
-# - Faixas da extração: **0 a 3 e 4 a 6 anos** — a de 4 a 6 inclui os 6 anos, fora do padrão 0 a 5 (exceção com nota, D1).
-# - Correções na leitura (a planilha fica como veio): fossa séptica, pessoas `'17..149'` → 17.149 (A1); aba
-#   "FOSSA RUDIMENTA" era cópia da fossa séptica, descartada (A2); cisterna com 0 crianças e 1.323 famílias → crianças
-#   não informadas (A3).
-# - Nível município: sem supressão (a regra < 20 vale abaixo do município). Única taxa: % com BPC entre as crianças
-#   com deficiência (numerador e denominador da mesma extração).
-# - Famílias e pessoas com deficiência são de **todas as idades** (não "famílias com criança com deficiência"): só
-#   contexto; os itens do catálogo seguem pendentes (D2).
-
-# %%
-df_moradia_adhoc = carrega_moradia_cadunico_adhoc()
-df_moradia_adhoc_domicilio, df_moradia_adhoc_territorio = tabelas_cadunico_adhoc(df_moradia_adhoc)
-df_deficiencia_adhoc, df_deficiencia_adhoc_contexto = carrega_deficiencia_cadunico_adhoc()
-for _df, _nome in [(df_moradia_adhoc_domicilio, 'cadunico_adhoc_moradia_domicilio_2026_08'),
-                   (df_moradia_adhoc_territorio, 'cadunico_adhoc_moradia_territorio_2026_08'),
-                   (df_deficiencia_adhoc, 'cadunico_adhoc_deficiencia_2026_08'),
-                   (df_deficiencia_adhoc_contexto, 'cadunico_adhoc_deficiencia_contexto_2026_08')]:
-    _df.to_csv(f'tabelas_finais/{_nome}.csv', index=False)
-print(df_moradia_adhoc.attrs['aviso'])
-df_deficiencia_adhoc
 
 # %% [markdown]
 # ### 🏥 DataSus - tabnet
@@ -1061,9 +2830,8 @@ df_baixo_ano.to_csv('tabelas_finais/nascidos_abaixo_peso_por_ano.csv')
 df_baixo_ano.head(25)
 
 # %%
-# D3/D12 (specs/2026-09-29_pendencias): única exceção à base zero -- eixo cortado, com a marca e a nota na fonte
 serie_temporal(df_baixo_ano,tempo='ano',valor='percentual abaixo do peso', titulo='Percentual Nascidos com baixo peso por ano',
-               nome_arquivo='nascidos_abaixo_peso_percentual_por_ano', fonte_dados=fonte_datasus_bairro, base_zero=False)
+               nome_arquivo='nascidos_abaixo_peso_percentual_por_ano', fonte_dados=fonte_datasus_bairro)
 
 # %% [markdown]
 # <!-- nota-curadoria:nascidos_abaixo_peso_percentual_por_ano -->
@@ -1205,23 +2973,18 @@ serie_temporal_multipla(
 # percentual só existe a partir de 2011 (início da série de nascidos vivos por raça/cor da mãe)
 df_percentual_raca_municipio = df_mortalidade_raca_municipio[df_mortalidade_raca_municipio['ano'] >= 2011]
 
-# E14 (specs/exclusoes.md, specs/2026-09-29_pendencias D2): "Não informada" fica só no gráfico de óbitos -- óbitos sem
-# raça (SIM) ÷ nascidos sem raça (SINASC) não é taxa comparável
-rotulos_raca_taxa = {rotulo: raca for rotulo, raca in rotulos_raca.items() if raca != 'nao_informado'}
-
 serie_temporal_multipla(
     df_percentual_raca_municipio,
     tempo='ano',
-    colunas={rotulo: f'taxa_mortalidade_{raca}' for rotulo, raca in rotulos_raca_taxa.items()},
+    colunas={rotulo: f'taxa_mortalidade_{raca}' for rotulo, raca in rotulos_raca.items()},
     titulo='Taxa de mortalidade infantil (0-364 dias) por raça/cor, por mil nascidos vivos - Rio de Janeiro (2011-2025)',
     nome_arquivo='percentual_mortalidade_raca_ano',   # nome do arquivo mantido (chave do texto curado e do crosswalk)
-    ylabel='Óbitos por mil nascidos vivos',
-    fonte_dados=f'{fonte_datasus_bairro}. Nota: a categoria "Não informada" aparece só no gráfico de óbitos',
+    ylabel='Óbitos por mil nascidos vivos', fonte_dados=fonte_datasus_bairro,
 )
 
 # %% [markdown]
 # <!-- nota-curadoria:percentual_mortalidade_raca_ano -->
-# **Nota de curadoria:** A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, as taxas de crianças brancas e pardas permaneceram próximas, variando de 17,6 a 11,3 e de 19,8 a 14,3 óbitos por mil nascidos vivos, respectivamente. Para crianças pretas, a taxa variou entre 5,0 e 14,3 por mil, enquanto a categoria amarela e indígena, agrupada por ter poucos registros, apresenta oscilações maiores associadas ao pequeno número de casos. A categoria “não informada” aparece só no gráfico de óbitos: a razão entre óbitos e nascidos sem raça/cor informada não é uma taxa comparável às demais. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
+# **Nota de curadoria:** A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, as taxas de crianças brancas e pardas permaneceram próximas, variando de 17,6 a 11,3 e de 19,8 a 14,3 óbitos por mil nascidos vivos, respectivamente. Para crianças pretas, a taxa variou entre 5,0 e 14,3 por mil, enquanto a categoria amarela e indígena, agrupada por ter poucos registros, apresenta oscilações maiores associadas ao pequeno número de casos. A categoria “não informada” também apresenta forte variação, relacionada à quantidade de nascidos classificados nessa categoria. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
 
 # %% [markdown]
 # ##### 🗺️ Mapa por bairro (2025) — total de óbitos, todas as raças
@@ -1628,10 +3391,6 @@ grafico_barra_agrupado(
 )
 
 # %% [markdown]
-# <!-- nota-curadoria:obitos_causas_evitaveis_subgrupo_faixa_2025 -->
-# **Nota de curadoria:** Em 2025, a distribuição das causas evitáveis varia de forma importante entre as faixas etárias. Nos primeiros dias de vida, predominam os óbitos relacionados à atenção à mulher na gestação, com 183 registros entre 0 e 6 dias e 64 entre 7 e 27 dias. Já entre 28 e 364 dias, ganham maior peso as causas reduzíveis por ações de promoção vinculadas às ações de atenção, com 56 óbitos, e por diagnóstico e tratamento adequado, com 43 registros. O gráfico evidencia, portanto, uma mudança no perfil das causas evitáveis conforme a idade da criança: no período neonatal, destacam-se fatores ligados à gestação, parto e atenção ao recém-nascido, enquanto após os 28 aumentam relativamente às causas relacionadas à promoção, diagnóstico e tratamento.
-
-# %% [markdown]
 # ##### Óbitos por causas evitáveis na primeira infância, por Área Programática de Saúde (CAP)
 
 # %% [markdown]
@@ -1670,10 +3429,6 @@ serie_temporal_multipla(
     legend_title='Subgrupo',
     figsize=(14,7), fonte_dados=fonte_evitaveis,
 )
-
-# %% [markdown]
-# <!-- nota-curadoria:obitos_evitaveis_menores_5_subgrupo_ano -->
-# **Nota de curadoria:** Entre 2006 e 2025, os óbitos de menores de 5 anos apresentaram tendência geral de redução. As demais causas não claramente evitáveis permaneceram entre os principais componentes, chegando a 277 registros em 2025. Entre as causas evitáveis, destacam-se aquelas relacionadas à atenção à mulher na gestação, que atingiram 266 óbitos em 2025. Também houve redução importante nos óbitos relacionados à atenção ao recém-nascido, que passaram de 198 em 2006 para 55 em 2025, enquanto as causas mal definidas recuaram para 22 registros.
 
 # %%
 serie_temporal(
@@ -1756,11 +3511,6 @@ df_grupo_cap_faixa_wide.to_csv('tabelas_finais//mortalidade_evitaveis_grupo_cap_
 df_grupo_cap_faixa_wide.head()
 
 # %%
-# nota de legenda das figuras de menores de 5 anos (observação da curadoria, specs/2026-09-28_nova_estrutura §6): o
-# recorte soma os de menores de 1 ano e de 1 a 4 anos
-def fonte_evitaveis_faixa(sufixo):
-    return fonte_evitaveis + ('. Nota: agrega os recortes de menores de 1 ano e de 1 a 4 anos' if sufixo == 'menores_5_anos' else '')
-
 for sufixo, info in faixas_primeira_infancia.items():
     df_faixa_grupo = df_grupo_cap_faixa_wide[df_grupo_cap_faixa_wide['faixa_etaria'] == info['rotulo']]
 
@@ -1773,7 +3523,7 @@ for sufixo, info in faixas_primeira_infancia.items():
         nome_arquivo=f'obitos_evitaveis_cap_{sufixo}_ano',
         ylabel='Óbitos',
         legend_title='CAP',
-        figsize=(14,7), fonte_dados=fonte_evitaveis_faixa(sufixo),
+        figsize=(14,7), fonte_dados=fonte_evitaveis,
     )
 
     df_percentual_evitaveis_wide = df_faixa_grupo.pivot(index='ano', columns='cod_ap_sms', values='percentual_evitaveis').reset_index()
@@ -1785,7 +3535,7 @@ for sufixo, info in faixas_primeira_infancia.items():
         nome_arquivo=f'percentual_evitaveis_cap_{sufixo}_ano',
         ylabel='Percentual (%)',
         legend_title='CAP',
-        figsize=(14,7), fonte_dados=fonte_evitaveis_faixa(sufixo),
+        figsize=(14,7), fonte_dados=fonte_evitaveis,
     )
 
 # %%
@@ -1878,7 +3628,7 @@ for sufixo, info in faixas_primeira_infancia.items():
         bins=info['bins_absoluto'],
         legenda_titulo='Óbitos',
         caminho_geojson=_CAMINHO_GEO_CAP,
-        fonte_dados=fonte_evitaveis_faixa(sufixo),
+        fonte_dados=fonte_evitaveis,
     )
     mapa_coropletico_bairros(
         df_faixa_2025, coluna_valor='percentual_evitaveis', nivel='cap',
@@ -1887,7 +3637,7 @@ for sufixo, info in faixas_primeira_infancia.items():
         cmap=_CORES_TEMA_MAPA['mortalidade'],
         legenda_titulo='% dos óbitos',
         caminho_geojson=_CAMINHO_GEO_CAP,
-        fonte_dados=fonte_evitaveis_faixa(sufixo),
+        fonte_dados=fonte_evitaveis,
     )
 
 # %% [markdown]
@@ -2336,18 +4086,17 @@ df_cobertura_vacinal_wide.to_csv('tabelas_finais//cobertura_vacinal_epi_por_ano.
 df_cobertura_vacinal_wide.head()
 
 # %%
-# De volta em 2026-09-29 (specs/2026-09-29_alinhamento_pdf_site D2; antes comentada, E1): o site já desenhava a série
-colunas_vacinas = {c: c for c in df_cobertura_vacinal_wide.columns if c != 'ano'}
-serie_temporal_multipla(
-    df_cobertura_vacinal_wide,
-    tempo='ano',
-    colunas=colunas_vacinas,
-    titulo='Cobertura vacinal por imunobiológico - Rio de Janeiro (2016-2026)',
-    nome_arquivo='cobertura_vacinal_epi_ano',
-    ylabel='Cobertura (%)',
-    legend_title='Imunobiológico',
-    figsize=(14,7), fonte_dados=fonte_cobertura_vacinal,
-)
+# colunas_vacinas = {c: c for c in df_cobertura_vacinal_wide.columns if c != 'ano'}
+# serie_temporal_multipla(
+#     df_cobertura_vacinal_wide,
+#     tempo='ano',
+#     colunas=colunas_vacinas,
+#     titulo='Cobertura vacinal por imunobiológico - Rio de Janeiro (2016-2026)',
+#     nome_arquivo='cobertura_vacinal_epi_ano',
+#     ylabel='Cobertura (%)',
+#     legend_title='Imunobiológico',
+#     figsize=(14,7), fonte_dados=fonte_cobertura_vacinal,
+# )
 
 # %% [markdown]
 # <!-- nota-curadoria:cobertura_vacinal_epi_ano -->
@@ -2389,17 +4138,16 @@ grafico_barra_agrupado(
 # ### 🎓 PNAD Contínua, Censo Escolar e INEP
 
 # %% [markdown]
-# Frequência e taxa de frequência escolar (Censo 2022, IBGE/SIDRA) e matrículas (Censo Escolar/INEP), 0 a 5 anos.
+# Frequência escolar (PNAD Contínua, até 6 anos) e matrículas (Censo Escolar/INEP, 0 a 5 anos) de crianças pequenas.
 
 # %% [markdown]
-# #### Frequência escolar e taxa de frequência de 0 a 5 anos (IBGE SIDRA, Censo 2022)
+# #### Frequência escolar de 0 a 5 anos e taxa de frequência de 0 a 6 anos (IBGE SIDRA, Censo 2022)
 #
-# Idade simples, por raça/cor e sexo. Faixa 0 a 5 anos (`specs/2026-09-29_pendencias` D9): a tabela 10056 (taxa) vai
-# até 6 anos, que fica de fora. **Taxa (D14):** a publicada pelo IBGE (10056) para cada grupo e idade; os agregados --
-# "Total 0 a 5 anos" e "Amarela e indígena" (E12/D15) -- somam taxa × população (9606) e dividem pela população. Não
-# se divide frequentam (10057) por população (9606): as tabelas vêm de bases diferentes do Censo e a razão passa de
-# 100% em alguns grupos. Até 2026-09-29 havia aqui também um gráfico rotulado "PNAD Contínua" que trazia, na verdade,
-# a coluna Total da 10056 (D16, E15) -- substituído pela taxa total por idade abaixo.
+# Comparativo mais recente e granular (idade simples, por raça/sexo) que a série PNAD abaixo
+# -- mas de fonte e desenho diferentes: o Censo é enumeração completa (não amostral) de um
+# único ano (2022), enquanto a PNAD Contínua é uma pesquisa amostral com série histórica e
+# recorte estadual/nacional (não municipal). Não são diretamente comparáveis ano a ano; usar
+# o SIDRA para o retrato mais fino de 2022, a PNAD para tendência ao longo do tempo.
 
 # %%
 fonte_sidra_educacao = 'Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)'
@@ -2411,18 +4159,13 @@ df_sidra_taxa_sexo = carrega_sidra_longo('dados_locais//ibge_sidra//Educacao_fre
 
 df_sidra_freq_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//sidra_frequencia_escola_0_5_raca_2022.csv')
 df_sidra_freq_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//sidra_frequencia_escola_0_5_sexo_2022.csv')
-# D14/D15: taxa 0 a 5 anos, com "Total 0 a 5 anos" e "Amarela e indígena" agregados de taxa × população (9606).
-# Nomes de arquivo mantidos (`_0_6_`: chaves do texto curado, do crosswalk e do site)
-df_taxa_freq_raca = taxa_frequencia_0_a_5(df_sidra_taxa_raca, df_censo_sidra_raca, 'Cor ou raça',
-                                          agrupa={'Amarela e indígena': ['Amarela', 'Indígena']})
-df_taxa_freq_sexo = taxa_frequencia_0_a_5(df_sidra_taxa_sexo, df_censo_sidra_sexo, 'Sexo')
-assert (df_taxa_freq_raca.drop(columns='idade').max() <= 100).all() and (df_taxa_freq_sexo.drop(columns='idade').max() <= 100).all()
-df_taxa_freq_raca.to_csv('tabelas_finais//sidra_taxa_frequencia_0_6_raca_2022.csv', index=False)
-df_taxa_freq_sexo.to_csv('tabelas_finais//sidra_taxa_frequencia_0_6_sexo_2022.csv', index=False)
-df_taxa_freq_raca
+df_sidra_taxa_raca.pivot(index='idade', columns='Cor ou raça', values='valor').to_csv('tabelas_finais//sidra_taxa_frequencia_0_6_raca_2022.csv')
+df_sidra_taxa_sexo.pivot(index='idade', columns='Sexo', values='valor').to_csv('tabelas_finais//sidra_taxa_frequencia_0_6_sexo_2022.csv')
+df_sidra_taxa_raca.head()
 
 # %%
 _ORDEM_IDADE_SIDRA_0_5 = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
+_ORDEM_IDADE_SIDRA_0_6_EDU = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos', '6 anos']
 
 grafico_barra_agrupado(
     df_sidra_freq_raca[df_sidra_freq_raca['Cor ou raça'] != 'Total'],
@@ -2432,10 +4175,6 @@ grafico_barra_agrupado(
     ordem_categoria=_ORDEM_IDADE_SIDRA_0_5, fonte_dados=fonte_sidra_educacao,
 )
 
-# %% [markdown]
-# <!-- nota-curadoria:sidra_frequencia_escola_0_5_raca_2022 -->
-# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem analisar a frequência à escola/creche entre crianças de 0 a 5 anos, considerando idade e raça/cor. O número de crianças frequentando escola/creche aumenta conforme a idade, passando de 4.358 entre crianças de 0 ano para 66.163 aos 5 anos. No total do recorte, foram registradas 233.509 crianças, sendo 104.981 brancas, 96.352 pardas e 31.757 pretas. A organização dos dados por idade e raça/cor permite comparar a participação dos diferentes grupos ao longo da primeira infância e relacionar esse indicador a outros recortes educacionais e demográficos.
-
 # %%
 grafico_barra_agrupado(
     df_sidra_freq_sexo[df_sidra_freq_sexo['Sexo'] != 'Total'],
@@ -2444,10 +4183,6 @@ grafico_barra_agrupado(
     nome_arquivo='sidra_frequencia_escola_0_5_sexo_2022', ylabel='Pessoas', legend_title='Sexo',
     ordem_categoria=_ORDEM_IDADE_SIDRA_0_5, fonte_dados=fonte_sidra_educacao,
 )
-
-# %% [markdown]
-# <!-- nota-curadoria:sidra_frequencia_escola_0_5_sexo_2022 -->
-# **Nota de curadoria:** Os dados do Censo Demográfico 2022 permitem analisar a frequência à escola/creche entre crianças de 0 a 5 anos segundo sexo e idade. O número de crianças frequentando aumenta ao longo das idades, passando de 4.358 aos 0 anos para 66.163 aos 5 anos. No total, foram registradas 120.304 crianças do sexo masculino e 113.205 do sexo feminino. A comparação por idade permite observar diferenças entre os sexos ao longo da primeira infância e relacionar esse recorte ao número total de crianças frequentando escola/creche. Os dados também podem ser analisados junto às taxas de frequência escolar por sexo.
 
 # %%
 # populacao-referencia D3: item do catálogo "Crianças até 6 anos frequentando escola/creche (geral)" --
@@ -2462,55 +4197,43 @@ grafico_barra(df_sidra_freq_total, categoria='idade', valor='Crianças',
               nome_arquivo='sidra_frequencia_escola_0_5_total_2022', fonte_dados=fonte_sidra_educacao)
 
 # %%
-# D15: amarela e indígena (89 a 125 crianças por idade, somadas) fora das barras por idade; o agregado de 0 a 5 anos
-# vai na nota da fonte e na tabela
-_taxa_amarela_indigena = df_taxa_freq_raca.set_index('idade').loc['Total 0 a 5 anos', 'Amarela e indígena']
-_taxa_amarela_indigena_txt = f'{_taxa_amarela_indigena:.1f}'.replace('.', ',')
 grafico_barra_agrupado(
-    df_taxa_freq_raca[df_taxa_freq_raca['idade'] != 'Total 0 a 5 anos']
-        .melt(id_vars='idade', value_vars=['Branca', 'Parda', 'Preta'], var_name='Cor ou raça', value_name='valor'),
+    df_sidra_taxa_raca[df_sidra_taxa_raca['Cor ou raça'] != 'Total'],
     categoria='idade', valor='valor', agrupador='Cor ou raça',
-    titulo='Taxa de frequência escolar bruta (0 a 5 anos), por idade e raça/cor - Rio de Janeiro (Censo 2022)',
+    titulo='Taxa de frequência escolar bruta (0-6 anos), por idade e raça/cor - Rio de Janeiro (Censo 2022)',
     nome_arquivo='sidra_taxa_frequencia_0_6_raca_2022', ylabel='Taxa (%)', legend_title='Raça/cor',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5,
-    fonte_dados=f'{fonte_sidra_educacao}. Nota: amarela e indígena (grupos pequenos) só no total de 0 a 5 anos: '
-                f'{_taxa_amarela_indigena_txt}%',
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU, fonte_dados=fonte_sidra_educacao,
 )
-
-# %% [markdown]
-# <!-- nota-curadoria:sidra_taxa_frequencia_0_6_raca_2022 -->
-# **Nota de curadoria:** A taxa de frequência escolar bruta aumenta conforme a idade, passando de 8,04% entre crianças de 0 ano para 90,57% aos 5 anos. No conjunto de 0 a 5 anos, a taxa foi de 59,30%, com diferenças entre os grupos de raça/cor: 62,26% entre crianças pretas, 59,10% entre pardas e 58,70% entre brancas. A comparação por idade permite analisar como a frequência escolar se modifica ao longo da primeira infância e como esse comportamento varia entre os grupos de raça/cor. Os dados podem ser relacionados ao número absoluto de crianças frequentando escola/creche para complementar a análise.
 
 # %%
 grafico_barra_agrupado(
-    df_taxa_freq_sexo[df_taxa_freq_sexo['idade'] != 'Total 0 a 5 anos']
-        .melt(id_vars='idade', value_vars=['Homens', 'Mulheres'], var_name='Sexo', value_name='valor'),
+    df_sidra_taxa_sexo[df_sidra_taxa_sexo['Sexo'] != 'Total'],
     categoria='idade', valor='valor', agrupador='Sexo',
-    titulo='Taxa de frequência escolar bruta (0 a 5 anos), por idade e sexo - Rio de Janeiro (Censo 2022)',
+    titulo='Taxa de frequência escolar bruta (0-6 anos), por idade e sexo - Rio de Janeiro (Censo 2022)',
     nome_arquivo='sidra_taxa_frequencia_0_6_sexo_2022', ylabel='Taxa (%)', legend_title='Sexo',
-    ordem_categoria=_ORDEM_IDADE_SIDRA_0_5, fonte_dados=fonte_sidra_educacao,
+    ordem_categoria=_ORDEM_IDADE_SIDRA_0_6_EDU, fonte_dados=fonte_sidra_educacao,
 )
 
 # %% [markdown]
-# <!-- nota-curadoria:sidra_taxa_frequencia_0_6_sexo_2022 -->
-# **Nota de curadoria:** A taxa de frequência escolar bruta aumenta conforme a idade, passando de 8,04% aos 0 anos para 90,57% aos 5 anos. No conjunto de 0 a 5 anos, a taxa foi de 59,81% entre os meninos e 58,78% entre as meninas. A diferença entre os sexos varia ao longo das idades: aos 4 anos, a taxa foi de 82,51% entre meninos e 83,35% entre meninas, enquanto aos 5 anos foi de 91,56% entre meninos e 89,49% entre meninas. A comparação por idade e sexo permite analisar como a frequência escolar se modifica ao longo da primeira infância.
-
-# %% [markdown]
-# #### Taxa de frequência escolar por idade (total, Censo 2022)
-#
-# D16 (`specs/2026-09-29_pendencias`, E15): substitui o gráfico "PNAD Contínua" (`pnad_frequencia_escolar_por_idade`,
-# lido de `dados_locais/educacao/pnad_taxa_frequencia_escolar_ate_6_anos.csv`), que trazia exatamente a coluna Total
-# da tabela 10056 do Censo 2022 com a fonte errada. Mesmo dado, fonte certa, 0 a 5 anos.
+# #### Taxa de frequência escolar
 
 # %%
-df_taxa_freq_total = (df_taxa_freq_sexo[['idade', 'Total']].rename(columns={'Total': 'Taxa (%)'}))
-df_taxa_freq_total.to_csv('tabelas_finais//sidra_taxa_frequencia_0_5_total_2022.csv', index=False)
-grafico_barra(df=df_taxa_freq_total[df_taxa_freq_total['idade'] != 'Total 0 a 5 anos'], categoria='idade', valor='Taxa (%)',
-              titulo='Taxa de frequência escolar bruta por idade, 0 a 5 anos - Rio de Janeiro (Censo 2022)',
-              nome_arquivo='sidra_taxa_frequencia_0_5_total_2022', fonte_dados=fonte_sidra_educacao)
+fonte_pnad = 'PNAD Contínua (IBGE)'
+
+df_freq_escolar = pd.read_csv('dados_locais//educacao//pnad_taxa_frequencia_escolar_ate_6_anos.csv', sep=';')
+df_freq_escolar = df_freq_escolar[(df_freq_escolar['Idade'] != '0 a 3 anos')
+                                  & (df_freq_escolar['Idade'] != '4 a 5 anos')
+                                  & (df_freq_escolar['Idade'] != '6 anos')]
+df_freq_escolar['Total'] = df_freq_escolar['Total'].str.replace(',','.').astype('Float64')/100
+df_freq_escolar.to_csv('tabelas_finais//frequencia_escolar_pnad_por_idade.csv', index=False)
+df_freq_escolar
+
+# %%
+grafico_barra(df=df_freq_escolar,categoria='Idade',valor='Total',titulo="Frequência escolar por idade, 0 a 6 anos (PNAD Contínua)",
+              nome_arquivo='pnad_frequencia_escolar_por_idade', fonte_dados=fonte_pnad)
 
 # %% [markdown]
-# <!-- nota-curadoria:sidra_taxa_frequencia_0_5_total_2022 -->
+# <!-- nota-curadoria:pnad_frequencia_escolar_por_idade -->
 # **Nota de curadoria:** A frequência escolar na primeira infância apresenta uma trajetória de crescimento acelerado à medida que a idade da criança vai aumentando. Esse movimento pode ser explicado pela necessidade de retorno dos pais, em especial das mães, ao mercado de trabalho e garantia do direito constitucional ao desenvolvimento para as crianças. A partir dos 4 anos, quando há a obrigatoriedade legal da pré-escola a taxa sobe para cerca de 83%, atingindo 90% aos 5 anos. A despeito do alto percentual, é um ponto de atenção ter uma déficit de 17% e 10% de crianças em idade escolar obrigatória que não a estejam frequentando.
 
 # %% [markdown]
@@ -2581,9 +4304,8 @@ serie_temporal_multipla(
 #    em outros municípios; o denominador são os residentes. As datas de referência diferem (fim de maio e 1º
 #    de julho).
 # 4. **Revisões:** a Ripsa revisa as estimativas todo ano, então uma consulta nova pode mudar anos passados.
-# 5. **Diferença com a taxa de frequência do Censo 2022** (acima; até 2026-09-29 rotulada "PNAD" por engano, D16): aquela
-#    é declarada no domicílio; esta é registro administrativo ÷ estimativa. Ordem de grandeza coerente (~83% aos 4 anos
-#    e ~91% aos 5).
+# 5. **Diferença com a PNAD** (taxa de frequência escolar, acima): aquela é declarada no domicílio; esta é
+#    registro administrativo ÷ estimativa. Ordem de grandeza coerente (PNAD ~83% aos 4 anos e ~90% aos 5).
 # 6. **Metas do PNE** (Lei 13.005/2014, Meta 1): 50% de atendimento em creche (0-3) e universalização da
 #    pré-escola (4-5), como linhas de referência no gráfico.
 
@@ -2923,6 +4645,10 @@ print('Bairros com menos de 100 crianças de 0 a 4 anos (taxa instável):', bair
 # ##### 🗺️ Mapas de taxa por bairro (M8-M10) — colorbar contínua (taxa)
 
 # %%
+def _limite_escala_p95(serie):
+    """Limite superior da escala de cor: percentil 95 arredondado para cima (múltiplo de 5)."""
+    return int(math.ceil(serie.quantile(0.95) / 5) * 5)
+
 for _nome, _rotulo, _periodo in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai', '2025'), ('outros_2021_2025', 'outros vínculos', '2021-2025')]:
     _col = f'taxa_por_mil_{_nome}'
     _lim = _limite_escala_p95(df_vf_taxa_bairro[_col])
