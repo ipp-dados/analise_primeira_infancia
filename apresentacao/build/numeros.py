@@ -204,6 +204,30 @@ def evitaveis_0_364_primeiro_ano():
     return str(int(_csv("mortalidade_causas_evitaveis_grupo_ano.csv")["ano"].min()))
 
 
+# menores de 1 ano: total e % da MESMA tabela do gráfico do slide (soma das faixas 0-6, 7-27 e 28-364 dias); os de
+# menores de 5 anos vêm do extrato por CAP -- listas de evitáveis diferentes, por isso o slide não subtrai uma da outra
+def _evitaveis_0_364_2025():
+    d = _ultimo(_csv("mortalidade_causas_evitaveis_grupo_ano.csv"))
+    return d["1. Causas evitáveis"], d.drop("ano").sum()
+
+
+@numero
+def obitos_0_364_2025():
+    return fmt_int(_evitaveis_0_364_2025()[1])
+
+
+@numero
+def pct_evitaveis_0_364_2025():
+    ev, total = _evitaveis_0_364_2025()
+    return fmt_pct(ev / total * 100, 0)
+
+
+@numero
+def obitos_menores5_2025():
+    d = _csv("mortalidade_evitaveis_cap_2025.csv")
+    return fmt_int(d[d["faixa_etaria"] == "menores de 5 anos"]["total"].sum())
+
+
 @numero
 def evitaveis_menores5_2025():
     d = _csv("mortalidade_evitaveis_cap_2025.csv")
@@ -244,6 +268,20 @@ def pct_cadunico_pobreza():
     d = _csv("cadunico_por_faixa_renda_2026.csv")
     d = d[d["faixa de renda"] != "Total"]
     return fmt_pct(d.loc[d["faixa de renda"] == "0-218", "Crianças"].sum() / d["Crianças"].sum() * 100, 0)
+
+
+# o gráfico do slide conta famílias; o destaque do texto, crianças -- a nota dá o número de famílias em pobreza
+@numero
+def familias_pobreza():
+    d = _csv("cadunico_por_faixa_renda_2026.csv")
+    return fmt_int(d.loc[d["faixa de renda"] == "0-218", "Famílias"].sum())
+
+
+@numero
+def pct_familias_pobreza():
+    d = _csv("cadunico_por_faixa_renda_2026.csv")
+    d = d[d["faixa de renda"] != "Total"]
+    return fmt_pct(d.loc[d["faixa de renda"] == "0-218", "Famílias"].sum() / d["Famílias"].sum() * 100, 0)
 
 
 def _arranjo(nome):

@@ -14,6 +14,19 @@ Organização em duas partes:
 
 # A fazer
 
+## 0a. Filtro de residência nos exports por bairro do Tabnet (`specs/2026-09-30_filtro_residencia_tabnet`)
+
+Aberta e implementada em 2026-09-30: os 20 exports por bairro do SIM/SINASC (Tabnet SMS-Rio) vinham sem o filtro de
+município de residência (entravam não residentes). Reextraídos com `extrai_tabnet.py`; tabelas, site, PDF, deck e 22
+textos curados atualizados (mortalidade infantil 2025: 13,1 → 12,3‰; nascidos vivos 65.507 → 58.700). Falta: revisão
+dos textos pela equipe (status "atualizado").
+
+## 0b. Desempenho do site (`specs/2026-09-30_desempenho_site`) — concluída em 2026-09-30
+
+Desenho por aba (gráficos e mapas de abas fechadas nascem ao abrir ou no tempo ocioso), tooltip de mapa por delegação,
+fontes servidas pelo próprio site. DOM no carregamento 63,9 mil → 10,4 mil nós; primeira pintura ~430 → ~275 ms.
+Pendente (achado): deep link de Alimentação/SISVAN termina sob a barra fixa (já acontecia antes).
+
 ## 0. Versão de demonstração no ar pela branch `demo` (`specs/2026-09-29_demo`)
 
 Planejada em 2026-09-29 (D1-D11). É uma branch `demo`, exclusiva e só de ida, com texto provisório no lugar do lorem,
