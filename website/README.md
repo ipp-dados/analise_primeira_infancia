@@ -52,6 +52,20 @@ mantém os assets do site no git — não remover (e `!/website/build/favicon_op
 - **Números** de `data/charts.js`: `2000.0` → `2000` (mesmo número em JS). Arredondar floats longos foi testado e
   descartado (mudava o antialiasing de algumas linhas).
 
+## Desempenho do carregamento (`specs/2026-09-30_desempenho_site`)
+
+- **Desenho por aba**: os dados de todas as abas continuam no carregamento (`data/charts.js`), mas o gráfico ou mapa de
+  uma aba ainda não aberta só é desenhado quando ela abre (evento `tabchange`) ou, antes disso, no tempo ocioso depois
+  do `load` (um gráfico ou mapa por vez, `preDesenha` em `js/charts.js`). O CSV dos mapas sai no carregamento. Antes,
+  94% do DOM (34 mil elementos, 5.344 regiões de mapa) nascia oculto e travava a página ~1 s num celular médio.
+- **Tooltip dos mapas por delegação**: 3 listeners por `<svg>`, não por região.
+- **Fontes do próprio site**: `assets/fonts/*.woff2` (latin e latin-ext, os mesmos arquivos do Google Fonts) e
+  os `@font-face` no `<style>` do `<head>` (fonte: `build/fontes.css`), gerados por
+  `specs/2026-09-30_desempenho_site/baixa_fontes.py`. Sem `preload` (atrasava a primeira pintura). Antes: `@import` do Google no `main.css` (5 requisições em 2 origens de terceiros, só depois do CSS
+  do site).
+- Novo gráfico/mapa: chame `lineChart`/`barChart`/`groupedBarChart` como antes; não desenhe direto no carregamento.
+  Scripts de medição (antes × depois, capturas, CPU 4×): `specs/2026-09-30_desempenho_site/medicao/`.
+
 ## Convenções dos gráficos (`specs/2026-09-25_website_graficos`)
 
 - **Formato do valor** (`format` da série / `fmt` do mapa): `int` contagem; `pct1` percentual (`%`); `pm1` taxa por
@@ -116,7 +130,7 @@ PDF (`relatorio/latex/build/gera_latex.py`). Na versão final: `false` e regerar
 
 ## Regras de site estático (spec §4.10)
 
-Só `html css js svg png jpg` publicados; caminhos sempre relativos e em minúsculas (o Pages
+Só `html css js svg png jpg ico woff2` publicados; caminhos sempre relativos e em minúsculas (o Pages
 diferencia maiúsculas, o Windows não); rotas só por `#hash` (`#<eixo>`, `#<eixo>/<id-h3>`); nada de
-`fetch` para arquivo local; nada de CDN novo (só Google Fonts). O workflow falha se aparecer um tipo
+`fetch` para arquivo local; nenhum recurso de terceiros (as fontes são do próprio site desde `specs/2026-09-30_desempenho_site`). O workflow falha se aparecer um tipo
 de arquivo fora da lista.
