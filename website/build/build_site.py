@@ -2455,6 +2455,9 @@ doc = f"""<!doctype html>
 <link rel="icon" href="{_v('favicon.ico')}" sizes="32x32">
 <link rel="icon" href="{_v('assets/images/favicon.svg')}" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{_v('assets/images/apple-touch-icon.png')}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,500;9..144,600;9..144,700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap">
 <link rel="stylesheet" href="{_v('css/main.css')}">
 <link rel="stylesheet" href="{_v('css/layout.css')}">
 <link rel="stylesheet" href="{_v('css/components.css')}">
