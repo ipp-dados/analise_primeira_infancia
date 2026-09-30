@@ -207,19 +207,6 @@ Os números de gráficos e mapas saem da estrutura do relatório (estrutura_eixo
 </div>
 
 ---
-<!-- _class: numero -->
-
-<div class="kicker">Parte II · Cadastro Único</div>
-
-<div class="grande">{{n:razao_cadunico}}</div>
-
-<div class="legenda-grande">das crianças de até 72 meses da cidade estão no Cadastro Único — <strong>{{n:cadunico_criancas_0_5}}</strong> crianças em <strong>{{n:cadunico_familias}}</strong> famílias. É muito, mas <strong>não é a cidade toda</strong>.</div>
-
-<p class="nota">Até 72 meses = 0 a 5 anos completos.</p>
-
-<!-- fonte: Cadastro Único (extração CTPE, jun/2026); Ripsa/Ministério da Saúde (2025) -->
-
----
 <div class="kicker">Parte II · Onde estão</div>
 
 # As crianças estão na Zona Oeste — e pesam mais nas periferias
@@ -273,7 +260,20 @@ Eram **{{n:nascidos_pico}}** em {{n:nascidos_pico_ano}}. Os nascimentos se conce
 </div>
 
 ---
-<div class="kicker">Parte II · Desigualdade</div>
+<!-- _class: numero -->
+
+<div class="kicker">Parte II · Cadastro Único</div>
+
+<div class="grande">{{n:razao_cadunico}}</div>
+
+<div class="legenda-grande">das crianças de até 72 meses da cidade estão no Cadastro Único — <strong>{{n:cadunico_criancas_0_5}}</strong> crianças em <strong>{{n:cadunico_familias}}</strong> famílias. É muito, mas <strong>não é a cidade toda</strong>.</div>
+
+<p class="nota">Até 72 meses = 0 a 5 anos completos.</p>
+
+<!-- fonte: Cadastro Único (extração CTPE, jun/2026); Ripsa/Ministério da Saúde (2025) -->
+
+---
+<div class="kicker">Parte II · Cadastro Único</div>
 
 # Onde está a primeira infância do Cadastro Único
 
