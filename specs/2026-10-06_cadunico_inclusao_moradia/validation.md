@@ -26,9 +26,9 @@ Critérios de aceite; "Resultado" preenchido ao fim.
 | V6 | Mapas de % com escala contínua; join por `codbairro` | OK — `bins=None`; `codbairro` da ponte, nomes da camada oficial |
 | V7 | Crosswalk: 6 itens em Inclusão/Moradia, nenhum `pendente`, nenhum `dado_pontual` | OK — 3 + 3 itens, sem `status: pendente` nem `dado_pontual`; `gera_latex.py --sem-pdf` aceita o crosswalk (exit 0, `gerado/` restaurado: PDF fora da rodada) |
 | V8 | Site de `staging_main`: blocos novos com lorem; sem `data-dado-pontual`; desktop e celular conferidos; orçamento | OK — 6 seções, lorem nos textos novos, 0 `data-dado-pontual`, 1,43 MB publicados (gzip 720 KB); desktop conferido em captura. Celular: captura headless corta a largura em todas as abas (inclusive as não alteradas) — blocos novos usam só componentes já cobertos por `mobile.css` |
-| V9 | `demo`: faixa com 13 de outubro de 2026 e atualização de conteúdo; nota nas abas; build sem lorem/pendente | |
-| V10 | PDF da `demo`: página de aviso com a nova data; demais páginas iguais | |
-| V11 | Nada da `demo` em `staging_main` (merge só de ida) | |
+| V9 | `demo`: faixa com 13 de outubro de 2026 e atualização de conteúdo; nota nas abas; build sem lorem/pendente | OK (demo, commit 2a19a0d) — faixa "Versão 1.0 prevista para 13 de outubro de 2026, com a atualização de conteúdo e textos"; nota "Dados atualizados" nas 2 abas; "Demo OK: 83 textos provisórios, sem lorem, sem pendentes" |
+| V10 | PDF da `demo`: página de aviso com a nova data; demais páginas iguais | OK — só a página de aviso trocada (`demo_pdf.compila_aviso` + troca da última página); páginas 1-19 idênticas em pixels, 13 marcadores mantidos. Sem recompilar o relatório (D9) |
+| V11 | Nada da `demo` em `staging_main` (merge só de ida) | OK — `git merge-base --is-ancestor demo staging_main` falso; `website/build/demo.py` ausente em `staging_main` |
 
 ## Para a rodada de textos (D5)
 
