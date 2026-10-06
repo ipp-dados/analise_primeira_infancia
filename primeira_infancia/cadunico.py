@@ -21,6 +21,8 @@ __all__ = [
     '_LIMIAR_SUPRESSAO_CADUNICO',
     '_ROTULO_SEM_BAIRRO_CADUNICO',
     '_MESES_PTBR',
+    '_GRUPO_0_5_CADUNICO',
+    'normaliza_renda_cadunico',
     'fonte_cadunico_com_particao',
     'carrega_cadunico_familias_0_6',
     'classifica_arranjo_familiar',
@@ -35,6 +37,16 @@ __all__ = [
     'carrega_moradia_cadunico_adhoc',
     'carrega_deficiencia_cadunico_adhoc',
     'tabelas_cadunico_adhoc',
+    '_TIPOS_DEFICIENCIA_CADUNICO',
+    '_COMPONENTES_INADEQUACAO_FJP',
+    '_COMPONENTES_DEFICIT_FJP',
+    'carrega_criancas_cadunico_silver',
+    'sim_base',
+    'tabela_deficiencia_cadunico',
+    'tabela_tipos_deficiencia_cadunico',
+    'tabela_moradia_cadunico',
+    'tabela_componentes_fjp',
+    'por_bairro_sim_base',
 ]
 
 
@@ -70,6 +82,27 @@ _LIMIAR_SUPRESSAO_CADUNICO = 20  # spec recortes_cadunico §5: nenhuma célula s
 
 _ROTULO_SEM_BAIRRO_CADUNICO = 'Sem bairro identificado (CEP fora da lista)'
 
+# grupo das crianças de 0 a 5 anos na `silver_cadunico_geral` (`grupo_idade`). Era '0-6' até a partição de jun/2026; a
+# silver refeita (jul/2026) chama de '0-5' -- com o nome antigo a seção CadÚnico lia 0 linhas
+# (specs/2026-10-06_cadunico_inclusao_moradia A1)
+_GRUPO_0_5_CADUNICO = '0-5'
+
+# rótulos de `grupo_renda_pct` na silver refeita (jul/2026) -> códigos usados desde a rodada recortes_cadunico (ordem,
+# rótulos para o público, CSVs e site continuam com os códigos). specs/2026-10-06_cadunico_inclusao_moradia
+_CODIGO_RENDA_CADUNICO = {'até 218': '0-218', '218,01 a 810': '219-810', '810,01 a 1.621': '811-1621',
+                          '1.621,01 a 3.242': '1621-3242', 'acima de 3.242': '3242+'}
+
+
+def normaliza_renda_cadunico(df, coluna='grupo_renda_pct'):
+    """Cópia de `df` com `coluna` nos códigos de `_ORDEM_RENDA_CADUNICO`. Aceita os rótulos novos da silver e os
+    códigos antigos; qualquer outro valor (fora vazio) é erro -- faixa nova não pode sumir do gráfico em silêncio."""
+    out = df.copy()
+    out[coluna] = out[coluna].replace(_CODIGO_RENDA_CADUNICO)
+    desconhecidas = set(out[coluna].dropna()) - set(_ORDEM_RENDA_CADUNICO)
+    if desconhecidas:
+        raise ValueError(f'faixas de renda desconhecidas em {coluna}: {sorted(desconhecidas)}')
+    return out
+
 _MESES_PTBR = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
 def fonte_cadunico_com_particao(data_particao):
@@ -80,18 +113,18 @@ def fonte_cadunico_com_particao(data_particao):
     return f"CadÚnico (extração CTPE, {_MESES_PTBR[data.month - 1]}/{data.year})"
 
 def carrega_cadunico_familias_0_6(engine):
-    """Todas as pessoas (de qualquer idade) das famílias com ao menos uma criança do grupo '0-6'.
+    """Todas as pessoas (de qualquer idade) das famílias com ao menos uma criança do grupo de 0 a 5 anos.
 
     O `df_original` da seção CadÚnico traz só as crianças; o arranjo familiar precisa dos adultos
     da mesma família. O filtro é feito no SQL (subconsulta por `id_familia`) e só as colunas usadas
     são lidas. Microdado: fica só em memória, nunca é gravado em disco (spec §5)."""
-    consulta = """
+    consulta = f"""
         SELECT id_pessoa, id_familia, idade, grupo_idade, sexo, raca_cor, grupo_renda_pct,
                n_pessoas_familia, cep, data_particao
         FROM silver_cadunico_geral
-        WHERE id_familia IN (SELECT id_familia FROM silver_cadunico_geral WHERE grupo_idade = '0-6')
+        WHERE id_familia IN (SELECT id_familia FROM silver_cadunico_geral WHERE grupo_idade = '{_GRUPO_0_5_CADUNICO}')
     """
-    return pd.read_sql(consulta, engine)
+    return normaliza_renda_cadunico(pd.read_sql(consulta, engine))
 
 def classifica_arranjo_familiar(df_membros, idade_adulto=18):
     """Uma linha por família, com o arranjo familiar *aproximado* pela composição do cadastro.
@@ -102,19 +135,20 @@ def classifica_arranjo_familiar(df_membros, idade_adulto=18):
     (spec §3 R3). Também devolve a composição de sexo das crianças (categorias exclusivas),
     a faixa de renda per capita e o CEP das crianças (endereço da família).
 
-    Asserções: a renda per capita é única por família e o nº de linhas por família bate com
+    Linhas contadas por `size`, não por `id_pessoa`: na silver de jul/2026 o `id_pessoa` não é único e tem um vazio
+    (specs/2026-10-06_cadunico_inclusao_moradia). Asserções: a renda per capita é única por família e o nº de linhas por família bate com
     `n_pessoas_familia` (cadastro completo) -- se falharem, o proxy deixa de valer."""
     d = df_membros.copy()
     d['adulto'] = d['idade'] >= idade_adulto
     d['adulta'] = d['adulto'] & (d['sexo'] == 'Feminino')
     d['adulto_h'] = d['adulto'] & (d['sexo'] == 'Masculino')
-    d['crianca'] = d['grupo_idade'] == '0-6'
+    d['crianca'] = d['grupo_idade'] == _GRUPO_0_5_CADUNICO
     d['menina'] = d['crianca'] & (d['sexo'] == 'Feminino')
     d['menino'] = d['crianca'] & (d['sexo'] == 'Masculino')
 
     assert d.groupby('id_familia')['grupo_renda_pct'].nunique(dropna=False).max() == 1, \
         'grupo_renda_pct não é único por família'
-    tamanho = d.groupby('id_familia').agg(n_linhas=('id_pessoa', 'count'), n_pessoas=('n_pessoas_familia', 'max'))
+    tamanho = d.groupby('id_familia').agg(n_linhas=('id_familia', 'size'), n_pessoas=('n_pessoas_familia', 'max'))
     assert (tamanho['n_linhas'] == tamanho['n_pessoas']).all(), \
         'cadastro incompleto: nº de membros na tabela != n_pessoas_familia'
 
@@ -423,3 +457,156 @@ def tabelas_cadunico_adhoc(df_moradia):
         columns={'indicador': 'Serviço', 'categoria': 'Forma', **rot})
     return dom.reset_index(drop=True), ter.reset_index(drop=True)
 
+
+
+# ---- silver nova (pessoas + famílias, partição jul/2026): Inclusão e Moradia -- specs/2026-10-06_cadunico_inclusao_moradia
+# Substitui o dado pontual de ago/2026 no site (D1). Unidade: crianças de 0 a 5 anos (`faixa_etaria = '0-5'`) e famílias
+# com ao menos uma delas; atributos do domicílio vêm da família da criança. Bairro pela ponte CEP -> código oficial do
+# banco (`dim_bridge_ceps_bairros`, D2) -- join por código, não por nome.
+
+_TIPOS_DEFICIENCIA_CADUNICO = {
+    'deficiencia_fisica': 'Física',
+    'deficiencia_mental': 'Mental ou intelectual',
+    'deficiencia_transtorno_mental': 'Transtorno mental',
+    'deficiencia_sindrome_down': 'Síndrome de Down',
+    'deficiencia_baixa_visao': 'Baixa visão',
+    'deficiencia_surdez_leve': 'Surdez leve',
+    'deficiencia_surdez_profunda': 'Surdez severa/profunda',
+    'deficiencia_cegueira': 'Cegueira',
+}
+
+# componentes da inadequação (Fundação João Pinheiro), com o grupo a que pertencem
+_COMPONENTES_INADEQUACAO_FJP = {
+    'fjp_inadequacao_agua': ('Abastecimento de água', 'Infraestrutura'),
+    'fjp_inadequacao_esgoto': ('Esgotamento sanitário', 'Infraestrutura'),
+    'fjp_inadequacao_lixo': ('Coleta de lixo', 'Infraestrutura'),
+    'fjp_inadequacao_energia': ('Energia elétrica', 'Infraestrutura'),
+    'fjp_inadequacao_banheiro': ('Sem banheiro exclusivo', 'Edilícia'),
+    'fjp_inadequacao_comodos': ('Cômodos', 'Edilícia'),
+    'fjp_inadequacao_piso': ('Piso inadequado', 'Edilícia'),
+}
+
+_COMPONENTES_DEFICIT_FJP = {
+    'fjp_deficit_onus_aluguel': 'Ônus excessivo com aluguel',
+    'fjp_deficit_improvisado': 'Domicílio improvisado',
+    'fjp_deficit_rustico': 'Domicílio rústico',
+    'fjp_deficit_coabitacao': 'Coabitação',
+}
+
+# indicadores do resumo de moradia: coluna -> (rótulo, valor que conta como caso)
+_INDICADORES_MORADIA_CADUNICO = {
+    'fjp_inadequacao': ('Inadequação habitacional (FJP)', 'Sim'),
+    'fjp_inadequacao_infraestrutura': ('Inadequação de infraestrutura', 'Sim'),
+    'fjp_inadequacao_edilicia': ('Inadequação edilícia', 'Sim'),
+    'fjp_deficit': ('Déficit habitacional (FJP)', 'Sim'),
+    'adensamento_excessivo': ('Adensamento excessivo (mais de 3 pessoas por dormitório)', 'Sim'),
+    'banheiro': ('Domicílio sem banheiro', 'Não'),
+    'agua_canalizada': ('Domicílio sem água canalizada', 'Não'),
+}
+
+
+def carrega_criancas_cadunico_silver(engine):
+    """Uma linha por criança de 0 a 5 anos da silver nova (pessoas ⨝ famílias ⨝ ponte CEP -> bairro), só com as colunas
+    de Inclusão e Moradia. A ponte tem CEPs repetidos com o mesmo código, daí o DISTINCT (sem ele a criança duplica).
+    Microdado: fica só em memória, nunca é gravado em disco (constituição §6)."""
+    colunas_fam = (['familia_bpc_deficiente', 'adensamento_excessivo', 'banheiro', 'agua_canalizada', 'data_particao',
+                    'fjp_inadequacao', 'fjp_inadequacao_infraestrutura', 'fjp_inadequacao_edilicia', 'fjp_deficit']
+                   + list(_COMPONENTES_INADEQUACAO_FJP) + list(_COMPONENTES_DEFICIT_FJP))
+    consulta = f"""
+        SELECT p.id_familia, p.idade, p.tem_deficiencia, {', '.join('p.' + c for c in _TIPOS_DEFICIENCIA_CADUNICO)},
+               {', '.join('f.' + c for c in colunas_fam)}, b.codigo_bairro AS codbairro
+        FROM silver_cadunico_pessoas p
+        JOIN silver_cadunico_familias f USING (id_familia)
+        LEFT JOIN (SELECT DISTINCT cep, codigo_bairro FROM dim_bridge_ceps_bairros) b ON b.cep = f.cep
+        WHERE p.faixa_etaria = '0-5'
+    """
+    df = pd.read_sql(consulta, engine)
+    df['codbairro'] = df['codbairro'].astype('Int64')
+    return df
+
+
+def sim_base(serie, sim='Sim'):
+    """(casos, base): `base` conta só as respostas válidas -- 'Não informado', 'Não se aplica' e vazio ficam fora (D7;
+    mesmo critério do "Não informada" em E14 de specs/2026-09-29_pendencias)."""
+    return int((serie == sim).sum()), int(serie.isin(['Sim', 'Não']).sum())
+
+
+def _linha_pct(rotulo, casos, base, col_casos):
+    return {'Indicador': rotulo, col_casos: casos, 'Base': base, '%': round(100 * casos / base, 1) if base else np.nan}
+
+
+def tabela_deficiencia_cadunico(criancas):
+    """(crianças, famílias) -- R1/R2. Crianças com deficiência entre as de 0 a 5; famílias com ao menos uma criança de 0 a
+    5 com deficiência e, dessas, as que recebem BPC por deficiência (atributo da família, A3: vazio = não informado)."""
+    casos, base = sim_base(criancas['tem_deficiencia'])
+    t_cri = pd.DataFrame([
+        {'Indicador': 'Crianças de 0 a 5 anos no CadÚnico', 'Crianças': len(criancas), 'Base': np.nan, '%': np.nan},
+        _linha_pct('Crianças com deficiência', casos, base, 'Crianças'),
+    ])
+    fam = criancas.groupby('id_familia').agg(defic=('tem_deficiencia', lambda s: (s == 'Sim').any()),
+                                             bpc=('familia_bpc_deficiente', 'first'))
+    com_def = fam[fam['defic']]
+    bpc, bpc_base = sim_base(com_def['bpc'])
+    t_fam = pd.DataFrame([
+        {'Indicador': 'Famílias com criança de 0 a 5 anos', 'Famílias': len(fam), 'Base': np.nan, '%': np.nan},
+        _linha_pct('Famílias com criança com deficiência', len(com_def), len(fam), 'Famílias'),
+        _linha_pct('Delas, recebem BPC por deficiência', bpc, bpc_base, 'Famílias'),
+        {'Indicador': 'Delas, sem informação de BPC', 'Famílias': len(com_def) - bpc_base, 'Base': np.nan, '%': np.nan},
+    ])
+    for t in (t_cri, t_fam):
+        for c in t.columns[1:3]:
+            t[c] = t[c].astype('Int64')
+    return t_cri, t_fam
+
+
+def tabela_tipos_deficiencia_cadunico(criancas):
+    """R3: crianças de 0 a 5 com deficiência, por tipo. Uma criança pode ter mais de um tipo -- as linhas não somam."""
+    com_def = criancas[criancas['tem_deficiencia'] == 'Sim']
+    t = pd.DataFrame([{'Tipo de deficiência': rot, 'Crianças': int((com_def[c] == 'Sim').sum())}
+                      for c, rot in _TIPOS_DEFICIENCIA_CADUNICO.items()])
+    t['% das crianças com deficiência'] = (100 * t['Crianças'] / len(com_def)).round(1)
+    return t.sort_values('Crianças', ascending=False, kind='stable').reset_index(drop=True)
+
+
+def tabela_moradia_cadunico(criancas):
+    """R6: resumo de moradia -- crianças de 0 a 5 e famílias com ao menos uma, por indicador (casos, base válida, %)."""
+    fam = criancas.drop_duplicates('id_familia')
+    linhas = []
+    for col, (rot, sim) in _INDICADORES_MORADIA_CADUNICO.items():
+        c, cb = sim_base(criancas[col], sim)
+        f, fb = sim_base(fam[col], sim)
+        linhas.append({'Indicador': rot, 'Crianças': c, 'Base (crianças)': cb, '% das crianças': round(100 * c / cb, 1),
+                       'Famílias': f, 'Base (famílias)': fb, '% das famílias': round(100 * f / fb, 1)})
+    return pd.DataFrame(linhas)
+
+
+def tabela_componentes_fjp(criancas, componentes):
+    """R4/R6: crianças de 0 a 5 por componente da inadequação ou do déficit (FJP); componentes não exclusivos.
+    `componentes`: {coluna: rótulo} ou {coluna: (rótulo, grupo)}."""
+    linhas = []
+    for col, rot in componentes.items():
+        rot, grupo = rot if isinstance(rot, tuple) else (rot, None)
+        c, b = sim_base(criancas[col])
+        linhas.append({'Componente': rot, **({'Grupo': grupo} if grupo else {}), 'Crianças': c, 'Base (crianças)': b,
+                       '% das crianças': round(100 * c / b, 1)})
+    return pd.DataFrame(linhas)
+
+
+def por_bairro_sim_base(criancas, coluna, rotulo, sim='Sim'):
+    """Contagens por bairro oficial (ponte do banco) de um indicador -- crianças, casos (`rotulo`) e base válida
+    (`Base (rotulo)`) --, com o nome do bairro da camada oficial: insumo de `agrega_bairros_pequenos`. Crianças sem
+    bairro na ponte ficam de fora (o município está nas tabelas de resumo)."""
+    import json
+    d = criancas[criancas['codbairro'].notna()]
+    t = d.groupby('codbairro').agg(**{
+        'Crianças': (coluna, 'size'),
+        rotulo: (coluna, lambda s: int((s == sim).sum())),
+        f'Base ({rotulo})': (coluna, lambda s: int(s.isin(['Sim', 'Não']).sum())),
+    }).reset_index()
+    feats = json.load(open('dados_locais/geo/limite_bairros_rio.geojson', encoding='utf-8'))['features']
+    nomes = {int(f['properties']['codbairro']): f['properties']['nome'] for f in feats}
+    t['codbairro'] = t['codbairro'].astype(int)
+    t.insert(0, 'bairro', t['codbairro'].map(nomes))
+    if t['bairro'].isna().any():
+        raise ValueError(f"código de bairro da ponte fora da camada oficial: {sorted(t.loc[t['bairro'].isna(), 'codbairro'])}")
+    return t
