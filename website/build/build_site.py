@@ -1700,7 +1700,10 @@ option_card(_entries_mapas_cap_faixa, 'mapa')
 emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo")
 
 # ---- CadÚnico: recortes por sexo, raça/cor, arranjo familiar e renda (specs/2026-09-23_recortes_cadunico) ----
-FONTE_CADUNICO = "CadÚnico (extração CTPE, jun/2026)"
+# mês da extração lido da partição (era "jun/2026" fixo até specs/2026-10-06_cadunico_inclusao_moradia)
+_PARTICAO_CADUNICO = pd.Timestamp(read("cadunico_razao_populacao_0_a_5_2026.csv")["data_particao"].iloc[0])
+_MES_CADUNICO = f"{['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][_PARTICAO_CADUNICO.month - 1]}/{_PARTICAO_CADUNICO.year}"
+FONTE_CADUNICO = f"CadÚnico (extração CTPE, {_MES_CADUNICO})"
 FONTE_MAPA_CADUNICO = (FONTE_CADUNICO + ". Bairro atribuído pelo CEP (Correios), pode divergir do bairro oficial; "
                        "bairros com menos de 20 crianças ou famílias somados aos da mesma Região Administrativa "
                        "(proteção de dados do Cadastro Único)")
@@ -1718,7 +1721,7 @@ def _mapa_cadunico_pct(col, titulo, legenda):
 # populacao-referencia A4: razão municipal CadÚnico / população Ripsa
 h3("Crianças de 0 a 5 anos no CadÚnico em relação à população do município")
 nota_metodologica(
-    "Crianças cadastradas no CadÚnico (jun/2026) divididas pela população estimada de 0 a 5 anos do município em 2025 "
+    f"Crianças cadastradas no CadÚnico ({_MES_CADUNICO}) divididas pela população estimada de 0 a 5 anos do município em 2025 "
     "(Ripsa/Ministério da Saúde). É uma razão entre um cadastro e uma estimativa, com um ano de diferença — não é a cobertura exata do cadastro."
 )
 _razao_cad = read("cadunico_razao_populacao_0_a_5_2026.csv")
@@ -1806,35 +1809,59 @@ option_card([
 
 h2('🤝 Inclusão')
 
-emite_bloco_pendente("Crianças no CadÚnico com alguma deficiência")
-emite_bloco_pendente("Famílias no CadÚnico com criança com deficiência")
-emite_bloco_pendente("Crianças no CadÚnico por tipo de deficiência")
+# specs/2026-10-06_cadunico_inclusao_moradia: silvers novas do CadÚnico (pessoas + famílias, jul/2026) no lugar dos
+# pendentes e do dado pontual de ago/2026 (D1). Bairro pela ponte CEP -> código oficial do CTPE (D2), não pelos Correios
+FONTE_MAPA_CADUNICO_SILVER = (FONTE_CADUNICO + ". Bairro pelo CEP da família (correspondência CEP-bairro do CTPE); "
+                              "bairros com menos de 20 casos (no grupo, no complemento ou na base) mostram a taxa do "
+                              "conjunto dos bairros pequenos da mesma Região Administrativa (proteção de dados do Cadastro Único)")
+_def_cri = read("cadunico_deficiencia_criancas_0_a_5_2026.csv").set_index("Indicador")
+_def_fam = read("cadunico_deficiencia_familias_0_a_5_2026.csv").set_index("Indicador")
+_def_tipos = read("cadunico_tipos_deficiencia_0_a_5_2026.csv")
+_def_mapa = read("tabela_mapa_cadunico_deficiencia_bairro_2026.csv")
 
-# dados_adhoc (specs/2026-09-29_dados_adhoc): extração pontual de ago/2026, só acréscimo -- os pendentes acima ficam (D2/D3)
-FONTE_CADUNICO_ADHOC = "Cadastro Único — extração pontual, referência 08/2026"
-h3('Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026)')
-aviso_dado_pontual("2026_08")
-_def = read("cadunico_adhoc_deficiencia_2026_08.csv").set_index("Faixa etária")
-_def_ctx = read("cadunico_adhoc_deficiencia_contexto_2026_08.csv").set_index("Medida")["Valor"]
-_def_tot = _def.loc["Total (0 a 6 anos)"]
-# pedido do usuário (2026-09-29): crianças de 0 a 6 e as faixas 0 a 3 / 4 a 6 em destaque; famílias e pessoas (todas as
-# idades) como dado secundário
-_faixas_def = lambda col: [(f, _def.loc[f, col]) for f in ("0 a 3 anos", "4 a 6 anos")]
+def _mapa_cadunico_silver(df, col, titulo, legenda):
+    return mapa_svg(df, "codbairro", col, "cadunico", titulo, legenda, FONTE_MAPA_CADUNICO_SILVER, fmt="pct1",
+                    col_suprimido="suprimido", col_agregado="agregado_em")
+
+h3("Crianças no CadÚnico com alguma deficiência")
+_cd = _def_cri.loc["Crianças com deficiência"]
 cartoes_indicador([
-    {"valor": _def_tot["Crianças com deficiência"], "rotulo": "crianças de 0 a 6 anos com deficiência",
-     "faixas": _faixas_def("Crianças com deficiência")},
-    {"valor": _def_tot["Com BPC"], "rotulo": "delas recebem o Benefício de Prestação Continuada (BPC)",
-     "faixas": _faixas_def("Com BPC"),
-     "detalhe": f'{_fmt_ptbr(_def_tot["% com BPC"], 1)}% das crianças com deficiência'},
-    {"valor": _def_ctx["Famílias com pessoa com deficiência"], "rotulo": "famílias com pessoa com deficiência",
-     "detalhe": "todas as idades — contexto", "contexto": True},
-    {"valor": _def_ctx["Pessoas com deficiência (todas as idades)"], "rotulo": "pessoas com deficiência",
-     "detalhe": "todas as idades — contexto", "contexto": True},
+    {"valor": _cd["Crianças"], "rotulo": "crianças de 0 a 5 anos com deficiência no CadÚnico",
+     "detalhe": f'{_fmt_ptbr(_cd["%"], 1)}% das {_fmt_ptbr(_cd["Base"])} crianças de 0 a 5 anos cadastradas'},
 ])
-barras_razao([(f, _def.loc[f, "Com BPC"], _def.loc[f, "Crianças com deficiência"]) for f in ("0 a 3 anos", "4 a 6 anos")],
-             "Cobertura do BPC entre as crianças com deficiência no CadÚnico, por faixa etária", FONTE_CADUNICO_ADHOC)
-tabela_com_texto(lambda: plain_table(_fmt_tabela(_def.reset_index(), pct=("% com BPC",)), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_deficiencia_2026_08")
-tabela_com_texto(lambda: plain_table(_fmt_tabela(_def_ctx.reset_index()), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_deficiencia_contexto_2026_08")
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_def_cri.reset_index(), pct=("%",)), fonte=FONTE_CADUNICO),
+                 "cadunico_deficiencia_criancas_0_a_5_2026")
+option_card([
+    ("% com deficiência", lambda: _mapa_cadunico_silver(_def_mapa, "% crianças com deficiência",
+        "% de crianças de 0 a 5 anos com deficiência no CadÚnico, por bairro", "% com deficiência"),
+     "mapa_percentual_cadunico_criancas_deficiencia_bairro_2026"),
+], 'mapa')
+
+h3("Famílias no CadÚnico com criança com deficiência")
+nota_metodologica(
+    "O Benefício de Prestação Continuada (BPC) por deficiência é registrado para a família, não para a criança: o número "
+    "conta as famílias com criança com deficiência que recebem o benefício, para qualquer membro. Famílias sem a "
+    "informação ficam fora do percentual."
+)
+_fd, _fb = _def_fam.loc["Famílias com criança com deficiência"], _def_fam.loc["Delas, recebem BPC por deficiência"]
+cartoes_indicador([
+    {"valor": _fd["Famílias"], "rotulo": "famílias com criança de 0 a 5 anos com deficiência",
+     "detalhe": f'{_fmt_ptbr(_fd["%"], 1)}% das famílias com criança de 0 a 5 anos no CadÚnico'},
+    {"valor": _fb["Famílias"], "rotulo": "delas recebem o BPC por deficiência",
+     "detalhe": f'{_fmt_ptbr(_fb["%"], 1)}% das {_fmt_ptbr(_fb["Base"])} com a informação'},
+])
+barras_razao([("Recebem BPC por deficiência", _fb["Famílias"], _fb["Base"])],
+             "Famílias com criança de 0 a 5 anos com deficiência que recebem o BPC", FONTE_CADUNICO)
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_def_fam.reset_index(), pct=("%",)), fonte=FONTE_CADUNICO),
+                 "cadunico_deficiencia_familias_0_a_5_2026")
+
+h3("Crianças no CadÚnico por tipo de deficiência")
+nota_metodologica("Uma criança pode ter mais de um tipo de deficiência: as barras não somam o total de crianças com deficiência.")
+option_card([
+    ("Crianças", lambda: bar_chart([{'label': r["Tipo de deficiência"], 'value': r["Crianças"]} for _, r in _def_tipos.iterrows()],
+                                   fonte=FONTE_CADUNICO, titulo="Crianças de 0 a 5 anos com deficiência, por tipo"),
+     "cadunico_criancas_por_tipo_deficiencia"),
+], 'grafico')
 
 # ===================================================== FAMILIA E CUIDADOS ==
 
@@ -2129,45 +2156,69 @@ option_card([
 
 h2('🏠 Moradia')
 
-emite_bloco_pendente("Crianças no CadÚnico em domicílios com inadequação habitacional")
-emite_bloco_pendente("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)")
-emite_bloco_pendente("Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)")
+# specs/2026-10-06_cadunico_inclusao_moradia: silver de famílias do CadÚnico (jul/2026), metodologia da Fundação João
+# Pinheiro já classificada no CTPE; substitui os pendentes e o dado pontual de ago/2026 (D1)
+_mor = read("cadunico_moradia_resumo_0_a_5_2026.csv").set_index("Indicador")
+_inad_comp = read("cadunico_inadequacao_componentes_0_a_5_2026.csv")
+_def_comp = read("cadunico_deficit_componentes_0_a_5_2026.csv")
+_inad_mapa = read("tabela_mapa_cadunico_inadequacao_bairro_2026.csv")
+_aden_mapa = read("tabela_mapa_cadunico_adensamento_bairro_2026.csv")
 
-# dados_adhoc (specs/2026-09-29_dados_adhoc): extração pontual de ago/2026, só acréscimo -- os pendentes acima ficam (D3)
-_C03, _C46 = "Crianças de 0 a 3 anos", "Crianças de 4 a 6 anos"
+def _cartao_moradia(indicador, rotulo):
+    l = _mor.loc[indicador]
+    return {"valor": l["Crianças"], "rotulo": rotulo,
+            "detalhe": f'{_fmt_ptbr(l["% das crianças"], 1)}% das crianças · {_fmt_ptbr(l["Famílias"])} famílias'}
 
-def _cartao_moradia(linha, rotulo):
-    """Crianças de 0 a 6 (0 a 3 + 4 a 6, mesma extração) em destaque, com as faixas; famílias e pessoas como dado
-    secundário (pedido do usuário, 2026-09-29)."""
-    return {"valor": linha[_C03] + linha[_C46], "rotulo": rotulo,
-            "faixas": [("0 a 3 anos", linha[_C03]), ("4 a 6 anos", linha[_C46])],
-            "detalhe": f'{_fmt_ptbr(linha["Famílias"])} famílias · {_fmt_ptbr(linha["Pessoas"])} pessoas'}
+h3("Crianças no CadÚnico em domicílios com inadequação habitacional")
+nota_metodologica(
+    "Inadequação habitacional pela metodologia da Fundação João Pinheiro: domicílio sem acesso adequado a água, esgoto, "
+    "coleta de lixo ou energia (infraestrutura) ou sem banheiro exclusivo, com cômodos insuficientes ou piso inadequado "
+    "(edilícia). Um domicílio pode ter mais de um componente. Domicílios improvisados ou coletivos entram no déficit, "
+    "não aqui; respostas não informadas ficam fora do percentual."
+)
+cartoes_indicador([
+    _cartao_moradia("Inadequação habitacional (FJP)", "crianças de 0 a 5 anos em domicílio com inadequação habitacional"),
+    _cartao_moradia("Inadequação de infraestrutura", "em inadequação de infraestrutura"),
+    _cartao_moradia("Inadequação edilícia", "em inadequação edilícia"),
+])
+option_card([
+    ("Componentes", lambda: bar_chart([{'label': r["Componente"], 'value': r["Crianças"]} for _, r in _inad_comp.iterrows()],
+                                      fonte=FONTE_CADUNICO, titulo="Crianças de 0 a 5 anos em domicílio com inadequação, por componente"),
+     "cadunico_criancas_inadequacao_componentes"),
+], 'grafico')
+option_card([
+    ("% inadequação", lambda: _mapa_cadunico_silver(_inad_mapa, "% crianças em inadequação habitacional",
+        "% de crianças de 0 a 5 anos no CadÚnico em domicílio com inadequação habitacional, por bairro", "% inadequação"),
+     "mapa_percentual_cadunico_inadequacao_bairro_2026"),
+], 'mapa')
 
-def _tabela_moradia(df):
-    """Crianças primeiro (0 a 6 = 0 a 3 + 4 a 6), famílias e pessoas no fim."""
-    df = df.copy()
-    df.insert(1, "Crianças de 0 a 6 anos", df[_C03] + df[_C46])
-    return df[[df.columns[0], "Crianças de 0 a 6 anos", _C03, _C46, "Famílias", "Pessoas"]]
+h3("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)")
+cartoes_indicador([_cartao_moradia("Adensamento excessivo (mais de 3 pessoas por dormitório)",
+                                   "crianças de 0 a 5 anos em domicílio com mais de 3 pessoas por dormitório")])
+option_card([
+    ("% adensamento", lambda: _mapa_cadunico_silver(_aden_mapa, "% crianças em adensamento excessivo",
+        "% de crianças de 0 a 5 anos no CadÚnico em domicílio com adensamento excessivo, por bairro", "% adensamento"),
+     "mapa_percentual_cadunico_adensamento_bairro_2026"),
+], 'mapa')
 
-h3('Famílias e crianças no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, ago/2026)')
-aviso_dado_pontual("2026_08")
-_dom = read("cadunico_adhoc_moradia_domicilio_2026_08.csv").set_index("Situação do domicílio")
-cartoes_indicador([_cartao_moradia(_dom.loc["Sem banheiro"], "crianças de 0 a 6 anos em domicílio sem banheiro"),
-                   _cartao_moradia(_dom.loc["Sem água canalizada"], "crianças de 0 a 6 anos em domicílio sem água canalizada")])
-tabela_com_texto(lambda: plain_table(_fmt_tabela(_tabela_moradia(_dom.reset_index())), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_domicilio_2026_08")
-
-h3('Famílias e crianças no CadÚnico por forma de abastecimento de água e de escoamento sanitário (dado pontual, ago/2026)')
-aviso_dado_pontual("2026_08")
-_ter = read("cadunico_adhoc_moradia_territorio_2026_08.csv")
-_esg = _ter[_ter["Serviço"] == "Escoamento sanitário"].set_index("Forma")
-cartoes_indicador([_cartao_moradia(_esg.loc["Vala a céu aberto"], "crianças de 0 a 6 anos com esgoto em vala a céu aberto"),
-                   _cartao_moradia(_esg.loc["Jogado em rio ou mar"], "crianças de 0 a 6 anos com esgoto jogado em rio ou mar"),
-                   _cartao_moradia(_esg.loc["Fossa rudimentar"], "crianças de 0 a 6 anos com esgoto em fossa rudimentar")])
-# uma coluna de texto só (a tabela alinha à direita toda coluna depois da 1ª)
-_ter_site = _ter.assign(Forma=_ter["Serviço"] + ": " + _ter["Forma"].str.lower()).drop(columns="Serviço")
-tabela_com_texto(lambda: plain_table(_fmt_tabela(_tabela_moradia(_ter_site)), fonte=FONTE_CADUNICO_ADHOC), "cadunico_adhoc_moradia_territorio_2026_08")
-nota_metodologica("Só as formas fora da rede geral (a extração não trouxe a rede geral). Cisterna: a extração registra "
-                  "0 crianças em 1.323 famílias, valor tratado como não informado (—).")
+h3("Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)")
+nota_metodologica(
+    "Déficit habitacional pela metodologia da Fundação João Pinheiro: domicílio improvisado ou rústico, coabitação "
+    "familiar ou ônus excessivo com aluguel (renda baixa e aluguel acima de 30% dela). Indicadores não exclusivos: um "
+    "domicílio pode estar em mais de um."
+)
+cartoes_indicador([
+    _cartao_moradia("Déficit habitacional (FJP)", "crianças de 0 a 5 anos em domicílio em déficit habitacional"),
+    _cartao_moradia("Domicílio sem banheiro", "em domicílio sem banheiro"),
+    _cartao_moradia("Domicílio sem água canalizada", "em domicílio sem água canalizada"),
+])
+tabela_com_texto(lambda: plain_table(_fmt_tabela(_mor.reset_index(), pct=("% das crianças", "% das famílias")),
+                                     fonte=FONTE_CADUNICO), "cadunico_moradia_resumo_0_a_5_2026")
+option_card([
+    ("Componentes do déficit", lambda: bar_chart([{'label': r["Componente"], 'value': r["Crianças"]} for _, r in _def_comp.iterrows()],
+                                                 fonte=FONTE_CADUNICO, titulo="Crianças de 0 a 5 anos em domicílio em déficit habitacional, por componente"),
+     "cadunico_criancas_deficit_componentes"),
+], 'grafico')
 
 # ============================================================== ASSEMBLE ==
 

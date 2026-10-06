@@ -539,3 +539,10 @@ faixas em destaque (D5, D6).
 Branch `demo`, exclusiva e só de ida (constituição §7): site sem lorem (76 textos provisórios descritivos em
 `website/build/textos_demo.json`, o curado tem precedência), pendentes ocultos, faixa maior com a V.1 prevista para
 6/10/2026, PDF até a página impressa 18 + página de aviso, e Pages publicando a partir dela. Curadoria (JSON/DOCX) intocada.
+
+## 2026-10-06 — `specs/2026-10-06_cadunico_inclusao_moradia` (CadÚnico: pipeline novo para Inclusão e Moradia)
+
+- Silver do CadÚnico refeita (partição 2026-07-10): grupo `'0-6'` → `'0-5'` (a seção lia 0 linhas), faixas de renda
+  com rótulos novos (normalizadas para os códigos de sempre), `id_pessoa` sem unicidade (contagem por linha).
+- Inclusão e Moradia a partir de `silver_cadunico_pessoas`/`_familias`: 3 gráficos, 3 mapas de % por bairro (ponte CEP →
+  código do CTPE), 4 tabelas; substituem os 6 pendentes e os 3 itens de dado pontual no site. PDF não regerado.
