@@ -1355,7 +1355,7 @@ option_card([
 ], 'grafico')
 
 # populacao-referencia A2/D2: série anual Ripsa (item "Crianças até 6 anos (número)")
-h3('População de 0 a 5 anos por ano (estimativas Ripsa/MS)', antigo='população-de-0-a-6-anos-por-ano-estimativas-ripsams')   # D9 (specs/2026-09-29_pendencias): 0 a 5 anos
+h3('População até 72 meses por ano (estimativas Ripsa/MS)', antigo=['população-de-0-a-6-anos-por-ano-estimativas-ripsams', 'população-de-0-a-5-anos-por-ano-estimativas-ripsams'])   # D9 (specs/2026-09-29_pendencias): 0 a 5 anos
 nota_metodologica(
     "Estimativas populacionais da Ripsa/Ministério da Saúde, que corrigem a subcontagem de crianças pequenas do Censo 2022 — "
     "por isso os valores ficam acima dos do Censo e não se comparam diretamente com eles. Só existem para o município como um todo."
@@ -1363,13 +1363,13 @@ nota_metodologica(
 FONTE_RIPSA = "Estimativas populacionais Ripsa/Ministério da Saúde (2000-2025)"
 df_pop_ripsa = read("populacao_ripsa_0_a_6_por_ano.csv")
 option_card([
-    ("0 a 5 anos", lambda: line_chart(df_pop_ripsa["ano"], [{'label': 'Crianças de 0 a 5 anos', 'values': df_pop_ripsa['populacao_0_a_5']}],
-        opts={'height': 220, 'maxXLabels': 8, 'table': True}, fonte=FONTE_RIPSA, unidade="Crianças de 0 a 5 anos"), "populacao_ripsa_0_a_6_por_ano"),
-    ("% da população", lambda: line_chart(df_pop_ripsa["ano"], [{'label': 'Crianças de 0 a 5 anos', 'values': df_pop_ripsa['percentual_0_a_5'], 'format': 'pct1'}],
+    ("Até 72 meses", lambda: line_chart(df_pop_ripsa["ano"], [{'label': 'Crianças até 72 meses', 'values': df_pop_ripsa['populacao_0_a_5']}],
+        opts={'height': 220, 'maxXLabels': 8, 'table': True}, fonte=FONTE_RIPSA, unidade="Crianças até 72 meses"), "populacao_ripsa_0_a_6_por_ano"),
+    ("% da população", lambda: line_chart(df_pop_ripsa["ano"], [{'label': 'Crianças até 72 meses', 'values': df_pop_ripsa['percentual_0_a_5'], 'format': 'pct1'}],
         opts={'height': 200, 'maxXLabels': 8, 'table': True}, fonte=FONTE_RIPSA, unidade="% da população do município"), "populacao_ripsa_0_a_6_percentual_por_ano"),
 ], 'grafico')
 
-h3('Crianças de 0 a 5 anos por idade, raça/cor e sexo (Censo 2022)', antigo=['população-0-6-por-idaderaçasexo-ibge-sidra-2022', 'crianças-de-0-a-6-anos-por-idade-raçacor-e-sexo-censo-2022'])
+h3('Crianças até 72 meses por idade, raça/cor e sexo (Censo 2022)', antigo=['população-0-6-por-idaderaçasexo-ibge-sidra-2022', 'crianças-de-0-a-6-anos-por-idade-raçacor-e-sexo-censo-2022', 'crianças-de-0-a-5-anos-por-idade-raçacor-e-sexo-censo-2022'])
 FONTE_SIDRA_CENSO = "Censo Demográfico 2022 (IBGE/SIDRA, tabela 9606)"
 _ORDEM_IDADE_SIDRA_0_5_POP = ['Menos de 1 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']   # D9: 0 a 5 anos
 
@@ -1719,16 +1719,16 @@ def _mapa_cadunico_pct(col, titulo, legenda):
                     fmt="pct1", col_suprimido="suprimido", col_agregado="agregado_em")
 
 # populacao-referencia A4: razão municipal CadÚnico / população Ripsa
-h3("Crianças de 0 a 5 anos no CadÚnico em relação à população do município")
+h3("Crianças até 72 meses no CadÚnico em relação à população do município", antigo='crianças-de-0-a-5-anos-no-cadúnico-em-relação-à-população-do-município')
 nota_metodologica(
-    f"Crianças cadastradas no CadÚnico ({_MES_CADUNICO}) divididas pela população estimada de 0 a 5 anos do município em 2025 "
+    f"Crianças cadastradas no CadÚnico ({_MES_CADUNICO}) divididas pela população estimada até 72 meses do município em 2025 "
     "(Ripsa/Ministério da Saúde). É uma razão entre um cadastro e uma estimativa, com um ano de diferença — não é a cobertura exata do cadastro."
 )
 _razao_cad = read("cadunico_razao_populacao_0_a_5_2026.csv")
 _tab_razao_cad = pd.DataFrame({
-    "Crianças de 0 a 5 anos no CadÚnico": _razao_cad["criancas_cadunico_0_a_5"].map(_fmt_ptbr),
+    "Crianças até 72 meses no CadÚnico": _razao_cad["criancas_cadunico_0_a_5"].map(_fmt_ptbr),
     "Famílias": _razao_cad["familias_cadunico"].map(_fmt_ptbr),
-    "População de 0 a 5 anos (2025)": _razao_cad["populacao_ripsa_0_a_5"].map(_fmt_ptbr),
+    "População até 72 meses (2025)": _razao_cad["populacao_ripsa_0_a_5"].map(_fmt_ptbr),
     "Crianças no CadÚnico por 100 crianças": _razao_cad["razao_percentual"].map(lambda v: _fmt_ptbr(v, 1) + "%"),
 })
 tabela_com_texto(lambda: plain_table(_tab_razao_cad, fonte=FONTE_CADUNICO + "; população: estimativas Ripsa/Ministério da Saúde (2025)"),
@@ -1761,7 +1761,7 @@ df_map_cadunico_criancas = read("tabela_mapa_cadunico_criancas_2026.csv")
 df_map_cadunico_0_4 = read("tabela_mapa_cadunico_criancas_0_a_4_2026.csv")
 option_card([
     ("Crianças 0-5", lambda: mapa_svg(df_map_cadunico_criancas, "codbairro", "Crianças", "cadunico",
-        "Crianças (0 a 5 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[250, 750, 1500, 3000],
+        "Crianças (até 72 meses) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[250, 750, 1500, 3000],
         col_suprimido="suprimido", col_agregado="agregado_em"), "mapa_cadunico_criancas_bairro_2026"),
     ("Crianças 0-4", lambda: mapa_svg(df_map_cadunico_0_4, "codbairro", "Crianças", "cadunico",
         "Crianças (0 a 4 anos) no CadÚnico, por bairro", "Crianças", FONTE_MAPA_CADUNICO, bins=[200, 500, 1000, 2000],
@@ -1769,9 +1769,9 @@ option_card([
     # recortes_cadunico D6: mapa "% s/ Censo" retirado do relatório (até 510% por viés CEP -> bairro; fica só no notebook)
 ], 'mapa')
 
-h3("Famílias no CadÚnico com crianças de 0 a 5 anos, por sexo", antigo="famílias-no-cadúnico-com-crianças-até-6-anos-por-sexo")
+h3("Famílias no CadÚnico com crianças até 72 meses, por sexo", antigo=['famílias-no-cadúnico-com-crianças-até-6-anos-por-sexo', 'famílias-no-cadúnico-com-crianças-de-0-a-5-anos-por-sexo'])
 nota_metodologica(
-    "Sexo da criança, de 0 a 5 anos completos: quem já fez 6 anos não está nesta extração (o catálogo diz \"até 6 anos\"). "
+    "Sexo da criança, até 72 meses (0 a 5 anos completos): quem já fez 6 anos não está nesta extração (o catálogo diz \"até 6 anos\"). "
     "As famílias estão classificadas pelo sexo das suas crianças (só meninas, só meninos ou meninas e meninos) — "
     "cada família conta uma vez só."
 )
@@ -1787,7 +1787,7 @@ option_card([
 ], 'grafico')
 # mapa % meninas cortado na revisão visual (recortes_cadunico T12.3): ~49% em todo bairro
 
-h3("Famílias no CadÚnico com crianças de 0 a 5 anos, por raça/cor", antigo="famílias-no-cadúnico-com-crianças-até-6-anos-por-raçacor")
+h3("Famílias no CadÚnico com crianças até 72 meses, por raça/cor", antigo=['famílias-no-cadúnico-com-crianças-até-6-anos-por-raçacor', 'famílias-no-cadúnico-com-crianças-de-0-a-5-anos-por-raçacor'])
 nota_metodologica(
     "Raça/cor da criança. Uma família com crianças de raça/cor diferentes aparece em mais de uma categoria, por isso as "
     "famílias não somam o total. Negra = preta + parda. Por bairro, só o percentual de crianças negras é publicado "
@@ -1801,7 +1801,7 @@ option_card([
     ), "cadunico_criancas_por_raca_cor"),
 ], 'grafico')
 option_card([
-    ("% negras", lambda: _mapa_cadunico_pct("% crianças negras", "% de crianças negras (pretas e pardas) de 0 a 5 anos no CadÚnico, por bairro", "% negras"),
+    ("% negras", lambda: _mapa_cadunico_pct("% crianças negras", "% de crianças negras (pretas e pardas) até 72 meses no CadÚnico, por bairro", "% negras"),
      "mapa_percentual_cadunico_criancas_negras_bairro_2026"),
 ], 'mapa')
 
@@ -1826,14 +1826,14 @@ def _mapa_cadunico_silver(df, col, titulo, legenda, teto=None, nota=""):
 h3("Crianças no CadÚnico com alguma deficiência")
 _cd = _def_cri.loc["Crianças com deficiência"]
 cartoes_indicador([
-    {"valor": _cd["Crianças"], "rotulo": "crianças de 0 a 5 anos com deficiência no CadÚnico",
-     "detalhe": f'{_fmt_ptbr(_cd["%"], 1)}% das {_fmt_ptbr(_cd["Base"])} crianças de 0 a 5 anos cadastradas'},
+    {"valor": _cd["Crianças"], "rotulo": "crianças até 72 meses com deficiência no CadÚnico",
+     "detalhe": f'{_fmt_ptbr(_cd["%"], 1)}% das {_fmt_ptbr(_cd["Base"])} crianças até 72 meses cadastradas'},
 ])
 tabela_com_texto(lambda: plain_table(_fmt_tabela(_def_cri.reset_index(), pct=("%",)), fonte=FONTE_CADUNICO),
                  "cadunico_deficiencia_criancas_0_a_5_2026")
 option_card([
     ("% com deficiência", lambda: _mapa_cadunico_silver(_def_mapa, "% crianças com deficiência",
-        "% de crianças de 0 a 5 anos com deficiência no CadÚnico, por bairro", "% com deficiência"),
+        "% de crianças até 72 meses com deficiência no CadÚnico, por bairro", "% com deficiência"),
      "mapa_percentual_cadunico_criancas_deficiencia_bairro_2026"),
 ], 'mapa')
 
@@ -1845,13 +1845,13 @@ nota_metodologica(
 )
 _fd, _fb = _def_fam.loc["Famílias com criança com deficiência"], _def_fam.loc["Delas, recebem BPC por deficiência"]
 cartoes_indicador([
-    {"valor": _fd["Famílias"], "rotulo": "famílias com criança de 0 a 5 anos com deficiência",
-     "detalhe": f'{_fmt_ptbr(_fd["%"], 1)}% das famílias com criança de 0 a 5 anos no CadÚnico'},
+    {"valor": _fd["Famílias"], "rotulo": "famílias com criança até 72 meses com deficiência",
+     "detalhe": f'{_fmt_ptbr(_fd["%"], 1)}% das famílias com criança até 72 meses no CadÚnico'},
     {"valor": _fb["Famílias"], "rotulo": "delas recebem o BPC por deficiência",
      "detalhe": f'{_fmt_ptbr(_fb["%"], 1)}% das {_fmt_ptbr(_fb["Base"])} com a informação'},
 ])
 barras_razao([("Recebem BPC por deficiência", _fb["Famílias"], _fb["Base"])],
-             "Famílias com criança de 0 a 5 anos com deficiência que recebem o BPC", FONTE_CADUNICO)
+             "Famílias com criança até 72 meses com deficiência que recebem o BPC", FONTE_CADUNICO)
 tabela_com_texto(lambda: plain_table(_fmt_tabela(_def_fam.reset_index(), pct=("%",)), fonte=FONTE_CADUNICO),
                  "cadunico_deficiencia_familias_0_a_5_2026")
 
@@ -1859,7 +1859,7 @@ h3("Crianças no CadÚnico por tipo de deficiência")
 nota_metodologica("Uma criança pode ter mais de um tipo de deficiência: as barras não somam o total de crianças com deficiência.")
 option_card([
     ("Crianças", lambda: bar_chart([{'label': r["Tipo de deficiência"], 'value': r["Crianças"]} for _, r in _def_tipos.iterrows()],
-                                   fonte=FONTE_CADUNICO, titulo="Crianças de 0 a 5 anos com deficiência, por tipo"),
+                                   fonte=FONTE_CADUNICO, titulo="Crianças até 72 meses com deficiência, por tipo"),
      "cadunico_criancas_por_tipo_deficiencia"),
 ], 'grafico')
 
@@ -1873,7 +1873,7 @@ FONTE_SIDRA_EDU = "Censo Demográfico 2022 (IBGE/SIDRA, tabelas 10056/10057)"
 _ORDEM_IDADE_SIDRA_0_5 = ['0 ano', '1 ano', '2 anos', '3 anos', '4 anos', '5 anos']
 
 # populacao-referencia D3: total por idade da SIDRA 10057 (item "frequentando escola/creche (geral)")
-h3('Crianças de 0 a 5 anos que frequentam escola/creche (Censo 2022)')
+h3('Crianças até 72 meses que frequentam escola/creche (Censo 2022)', antigo='crianças-de-0-a-5-anos-que-frequentam-escolacreche-censo-2022')
 df_freq_total = _ordenar_idade(read("sidra_frequencia_escola_0_5_total_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
 option_card([("Por idade", lambda: bar_chart([{'label': r["idade"], 'value': r["Crianças"]} for _, r in df_freq_total.iterrows()],
     fonte=FONTE_SIDRA_EDU, unidade="Crianças que frequentam escola ou creche"), "sidra_frequencia_escola_0_5_total_2022")], 'grafico')
@@ -1885,7 +1885,7 @@ _taxa_raca_csv = read("sidra_taxa_frequencia_0_6_raca_2022.csv")
 _taxa_amarela_indigena = _taxa_raca_csv.set_index("idade").loc["Total 0 a 5 anos", "Amarela e indígena"]
 df_taxa_raca = _ordenar_idade(_taxa_raca_csv, _ORDEM_IDADE_SIDRA_0_5)
 tr_cols = ["Branca", "Parda", "Preta"]
-FONTE_TAXA_RACA = (FONTE_SIDRA_EDU + ". Nota: amarela e indígena (grupos pequenos) só no total de 0 a 5 anos: "
+FONTE_TAXA_RACA = (FONTE_SIDRA_EDU + ". Nota: amarela e indígena (grupos pequenos) só no total até 72 meses: "
                    + f"{_taxa_amarela_indigena:.1f}".replace(".", ",") + "%")
 df_taxa_sexo = _ordenar_idade(read("sidra_taxa_frequencia_0_6_sexo_2022.csv"), _ORDEM_IDADE_SIDRA_0_5)
 ts_cols = ["Homens", "Mulheres"]
@@ -1901,16 +1901,16 @@ df_taxa_total = _ordenar_idade(read("sidra_taxa_frequencia_0_5_total_2022.csv"),
 option_card([("Taxa por idade", lambda: bar_chart([{'label': r["idade"], 'value': r["Taxa (%)"]} for _, r in df_taxa_total.iterrows()], fonte=FONTE_SIDRA_EDU, fmt='pct1', unidade="% das crianças da idade que frequentam escola ou creche"), "sidra_taxa_frequencia_0_5_total_2022")], 'grafico')
 
 # populacao-referencia Parte E (matriculas/): série 2007-2025 refeita dos microdados do INEP
-h3('Matrículas de crianças de 0 a 5 anos (Censo Escolar/INEP)')
+h3('Matrículas de crianças até 72 meses (Censo Escolar/INEP)', antigo='matrículas-de-crianças-de-0-a-5-anos-censo-escolarinep')
 nota_metodologica(
-    "0 a 5 anos (creche e pré-escola): os dados abertos do INEP não separam as crianças de 6 anos das de 7 a 10. "
+    "Até 72 meses (0 a 5 anos, creche e pré-escola): os dados abertos do INEP não separam as crianças de 6 anos das de 7 a 10. "
     "A série inteira (2007-2025) foi refeita a partir dos microdados do Censo Escolar, com a mesma definição em todos os anos."
 )
 FONTE_MATRICULAS = "Censo Escolar da Educação Básica (INEP), microdados"
 df_mat = read("matriculas_0_a_5_por_ano.csv").sort_values("ano")
 option_card([
-    ("Total 0 a 5 anos", lambda: line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}],
-        opts={'height': 220, 'maxXLabels': 8, 'table': True}, fonte=FONTE_MATRICULAS, unidade="Matrículas de crianças de 0 a 5 anos"), "matriculas_0_a_5_por_ano"),
+    ("Total até 72 meses", lambda: line_chart(df_mat["ano"], [{'label': 'Matrículas', 'values': df_mat['matriculas']}],
+        opts={'height': 220, 'maxXLabels': 8, 'table': True}, fonte=FONTE_MATRICULAS, unidade="Matrículas de crianças até 72 meses"), "matriculas_0_a_5_por_ano"),
     ("Creche e pré-escola", lambda: line_chart(df_mat["ano"], [
         {'label': '0 a 3 anos (creche)', 'values': df_mat['matriculas_0_a_3']}, {'label': '4 a 5 anos (pré-escola)', 'values': df_mat['matriculas_4_a_5']}],
         opts={'height': 240, 'maxXLabels': 8, 'table': True}, fonte=FONTE_MATRICULAS, unidade="Matrículas"), "matriculas_0_a_5_creche_pre_por_ano"),
@@ -1919,7 +1919,7 @@ option_card([
         opts={'height': 240, 'maxXLabels': 8, 'table': True}, fonte=FONTE_MATRICULAS, unidade="Matrículas"), "matriculas_0_a_5_rede_por_ano"),
 ], 'grafico')
 
-h3('Taxa bruta de atendimento escolar de 0 a 5 anos')
+h3('Taxa bruta de atendimento escolar até 72 meses', antigo='taxa-bruta-de-atendimento-escolar-de-0-a-5-anos')
 nota_metodologica(
     "Matrículas em escolas do Rio divididas pela população estimada de residentes da mesma idade (Ripsa/Ministério da Saúde). "
     "É uma taxa bruta: inclui crianças de outros municípios que estudam no Rio. As linhas tracejadas são as metas do Plano Nacional de "
@@ -1928,7 +1928,7 @@ nota_metodologica(
 option_card([("Por faixa de idade", lambda: line_chart(df_mat["ano"], [
     {'label': '0 a 3 anos (creche)', 'values': df_mat['taxa_atendimento_0_a_3'], 'format': 'pct1'},
     {'label': '4 a 5 anos (pré-escola)', 'values': df_mat['taxa_atendimento_4_a_5'], 'format': 'pct1'},
-    {'label': '0 a 5 anos', 'values': df_mat['taxa_atendimento_0_a_5'], 'format': 'pct1'}],
+    {'label': 'Até 72 meses', 'values': df_mat['taxa_atendimento_0_a_5'], 'format': 'pct1'}],
     opts={'height': 280, 'maxXLabels': 8, 'table': True,
           'refLines': [{'value': 50, 'label': 'Meta PNE creche: 50%'}, {'value': 100, 'label': 'Meta PNE pré-escola: 100%'}]},
     fonte="Censo Escolar (INEP), microdados; população: estimativas Ripsa/Ministério da Saúde", unidade="Matrículas por 100 crianças residentes (%)"), "taxa_atendimento_0_a_5_por_ano")], 'grafico')
@@ -1943,7 +1943,7 @@ option_card([
         fonte=FONTE_EPI, unidade="Cobertura vacinal (%)"), "cobertura_vacinal_epi_ano"),
 ], 'grafico')
 
-h3("Famílias no CadÚnico com crianças de 0 a 5 anos, por renda e arranjo familiar", antigo="famílias-no-cadúnico-com-crianças-até-6-anos-por-renda-e-arranjo-familiar")
+h3("Famílias no CadÚnico com crianças até 72 meses, por renda e arranjo familiar", antigo=['famílias-no-cadúnico-com-crianças-até-6-anos-por-renda-e-arranjo-familiar', 'famílias-no-cadúnico-com-crianças-de-0-a-5-anos-por-renda-e-arranjo-familiar'])
 nota_metodologica(
     "Arranjo familiar aproximado pela composição do cadastro: número e sexo das pessoas de 18 anos ou mais na família. "
     "\"Uma adulta\" NÃO é o conceito oficial de família monoparental (que depende do parentesco, ausente nesta extração) — "
@@ -1964,7 +1964,7 @@ option_card([
                                                   titulo="% das famílias de cada arranjo, por renda per capita", unidade="% das famílias do arranjo"), "cadunico_familias_arranjo_renda"),
 ], 'grafico')
 option_card([
-    ("% uma adulta", lambda: _mapa_cadunico_pct("% famílias com uma adulta", "Famílias com crianças de 0 a 5 anos no CadÚnico: % com uma só adulta, por bairro", "% uma adulta"),
+    ("% uma adulta", lambda: _mapa_cadunico_pct("% famílias com uma adulta", "Famílias com crianças até 72 meses no CadÚnico: % com uma só adulta, por bairro", "% uma adulta"),
      "mapa_percentual_cadunico_familias_uma_adulta_bairro_2026"),
 ], 'mapa')
 
@@ -1972,14 +1972,14 @@ option_card([
 
 h2('🛡️ Proteção')
 
-FONTE_SINAN = "Sinan NET/Tabnet (SMS-Rio), notificações de residentes no município do Rio de Janeiro, 0 a 5 anos"
-FONTE_SINAN_CENSO = "Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 4 anos: Censo Demográfico 2022 (IBGE/Data.Rio)"
+FONTE_SINAN = "Sinan NET/Tabnet (SMS-Rio), notificações de residentes no município do Rio de Janeiro, até 72 meses"
+FONTE_SINAN_CENSO = "Sinan NET/Tabnet (SMS-Rio), até 72 meses; população 0 a 4 anos: Censo Demográfico 2022 (IBGE/Data.Rio)"
 FONTE_IPS = "Data.Rio / Índice de Progresso Social (IPS), 2024, por Região Administrativa (todas as idades)"
 
 # ---- Violência familiar (Sinan) --------------------------------------------
-h3('Violência familiar (0 a 5 anos, Sinan)')
+h3('Violência familiar (até 72 meses, Sinan)', antigo='violência-familiar-0-a-5-anos-sinan')
 nota_metodologica(
-    "Faixa 0 a 5 anos agregada (o recorte menor de 1 ano × 1 a 5 anos está pendente). Os vínculos do provável autor NÃO são excludentes "
+    "Faixa até 72 meses agregada (o recorte menor de 1 ano × 1 a 5 anos está pendente). Os vínculos do provável autor NÃO são excludentes "
     "e não existe \"total de violência familiar\": nunca somar mãe + pai; \"outros\" (padrasto + irmão(ã) + cônjuge + ex-cônjuge + filho(a)) "
     "pode contar a mesma notificação mais de uma vez. Possível quebra de série em 2017 (salto de 600 para 1.514 notificações de mãe) — "
     "hipótese de mudança de ficha/notificação, a confirmar com a fonte. 2026 é ano parcial e fica fora da série. Contagem absoluta não é risco."
@@ -2001,21 +2001,21 @@ option_card([
 # ---- Taxa de notificações ---------------------------------------------------
 h3('Taxa de notificações de violência familiar (por mil crianças)', antigo='taxa-de-notificações-de-violência-por-1000-crianças')
 nota_metodologica(
-    "Ressalva de denominador: numerador com crianças de 0 a 5 anos (Sinan) e denominador com 0 a 4 anos (Censo 2022) — a taxa superestima ~20%, "
+    "Ressalva de denominador: numerador com crianças até 72 meses (Sinan) e denominador com 0 a 4 anos (Censo 2022) — a taxa superestima ~20%, "
     "de forma uniforme, então o ranking entre territórios se preserva. \"Outros\" usa o acumulado 2021-2025. Bairros com menos de 100 crianças têm taxa instável: "
     "por isso o mapa de taxa é por Região Administrativa, e a lista de bairros abaixo considera só bairros com 100 crianças ou mais. "
     "O denominador por bairro/RA/CAP é a população do Censo 2022, fixa: o Censo subconta crianças pequenas (o que puxa a taxa para cima) e é de 2022, enquanto as notificações são de 2025 (o que puxa para baixo). Por isso as taxas por território servem para comparar territórios entre si, e não com a taxa do município, que usa a estimativa populacional Ripsa/MS do mesmo ano. "
 )
 # populacao-referencia A3: taxa municipal com população Ripsa de 0 a 5 anos (mesma faixa e ano do numerador)
-h5('Município: notificações por mil crianças de 0 a 5 anos (2011-2025)')
+h5('Município: notificações por mil crianças até 72 meses (2011-2025)')
 df_vf_taxa_mun = read("violencia_familiar_taxa_municipio_ano.csv")
 option_card([("Mãe, pai e outros", lambda: line_chart(df_vf_taxa_mun["ano"], [
     {'label': 'Mãe', 'values': df_vf_taxa_mun['taxa_por_mil_mae'], 'format': 'pm1'},
     {'label': 'Pai', 'values': df_vf_taxa_mun['taxa_por_mil_pai'], 'format': 'pm1'},
     {'label': 'Outros vínculos', 'values': df_vf_taxa_mun['taxa_por_mil_outros'], 'format': 'pm1'}],
     opts={'height': 260, 'maxXLabels': 8, 'table': True, 'yDecimals': 1},
-    fonte="Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 5 anos: estimativas Ripsa/Ministério da Saúde",
-    unidade="Notificações por mil crianças de 0 a 5 anos"),
+    fonte="Sinan NET/Tabnet (SMS-Rio), até 72 meses; população até 72 meses: estimativas Ripsa/Ministério da Saúde",
+    unidade="Notificações por mil crianças até 72 meses"),
     "violencia_familiar_taxa_municipio_ano")], 'grafico')
 
 # E6 (specs/exclusoes.md): mapas de taxa por bairro retirados (bairros com poucas crianças: Joá 500‰); a taxa fica
@@ -2075,7 +2075,7 @@ for _c in ['Mãe', 'Pai', 'Outros', 'Crianças 0-4 (Censo 2022)']:
 tabela_com_texto(lambda: plain_table(_tab_cap, fonte=FONTE_SINAN_CENSO), "violencia_familiar_por_cap")
 
 # ---- Notificações de lesão autoprovocada -----------------------------------
-h3('Notificações de violência interpessoal/autoprovocada (0 a 5 anos, Sinan)')
+h3('Notificações de violência interpessoal/autoprovocada (até 72 meses, Sinan)', antigo='notificações-de-violência-interpessoalautoprovocada-0-a-5-anos-sinan')
 nota_metodologica(
     "Parcial: o arquivo cobre apenas lesão autoprovocada (a violência interpessoal total e o recorte menor de 1 ano × 1 a 5 anos estão pendentes). "
     "Série muito esparsa: 40 notificações em 2018-2026, 33 delas em 2026 (ano parcial, usado aqui como referência). O salto em 2026 pode refletir "
@@ -2085,11 +2085,11 @@ df_autoprov = read("notif_autoprovocada_por_bairro_ano.csv")
 _ap_antes = int(df_autoprov.loc[df_autoprov["ano"] < 2026, "casos"].sum()); _ap_2026 = int(df_autoprov.loc[df_autoprov["ano"] == 2026, "casos"].sum())
 option_card([("2018-2025 × 2026", lambda: bar_chart([
     {'label': '2018-2025 (8 anos)', 'value': _ap_antes}, {'label': '2026 (ano parcial)', 'value': _ap_2026}],
-    fonte="Sinan NET/Tabnet (SMS-Rio); 2026 parcial", titulo="Lesão autoprovocada notificada, 0 a 5 anos", unidade="Notificações no período"), "notif_autoprovocada_antes_2026_vs_2026")], 'grafico')
+    fonte="Sinan NET/Tabnet (SMS-Rio); 2026 parcial", titulo="Lesão autoprovocada notificada, até 72 meses", unidade="Notificações no período"), "notif_autoprovocada_antes_2026_vs_2026")], 'grafico')
 df_m_auto = read("tabela_mapa_notif_autoprovocada_2026.csv")
 option_card([("Bairro (2026)", lambda: mapa_svg(df_m_auto, "codbairro", "casos", "protecao",
     "Lesão autoprovocada notificada por bairro (2026, ano parcial)", "Notificações (2026)",
-    "Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos", bins=[1, 3], zero_branco=True), "mapa_notif_autoprovocada_bairro_2026")], 'mapa')
+    "Sinan NET/Tabnet (SMS-Rio), até 72 meses", bins=[1, 3], zero_branco=True), "mapa_notif_autoprovocada_bairro_2026")], 'mapa')
 
 emite_bloco_pendente("Taxa de notificações de violência (todas as naturezas)")
 emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e idade)")
@@ -2101,7 +2101,7 @@ h2('🧸 Direito ao Brincar')
 # ---- Violência territorial (Data.Rio/IPS) ---------------------------------
 h3('Violência territorial (Data.Rio/IPS, 2024)')
 nota_metodologica(
-    "ATENÇÃO: são dados gerais da população, de todas as idades — NÃO são específicos de crianças (0 a 5 anos) nem de jovens; "
+    "ATENÇÃO: são dados gerais da população, de todas as idades — NÃO são específicos de crianças (até 72 meses) nem de jovens; "
     "o indicador \"homicídios de jovens negros\" também se refere à população geral. Um único ano (2024), sem série. "
     "Nível Região Administrativa; a RA XXI Paquetá não tem dado no IPS."
 )
@@ -2180,45 +2180,48 @@ def _cartao_moradia(indicador, rotulo):
 
 h3("Crianças no CadÚnico em domicílios com inadequação habitacional")
 nota_metodologica(
-    "Inadequação habitacional pela metodologia da Fundação João Pinheiro: domicílio sem acesso adequado a água, esgoto, "
-    "coleta de lixo ou energia (infraestrutura) ou sem banheiro exclusivo, com cômodos insuficientes ou piso inadequado "
-    "(edilícia). Um domicílio pode ter mais de um componente. Domicílios improvisados ou coletivos entram no déficit, "
-    "não aqui; respostas não informadas ficam fora do percentual."
+    "Inadequação habitacional, aproximação da metodologia da Fundação João Pinheiro feita com as variáveis do Cadastro "
+    "Único: água sem canalização ou fora da rede geral, esgoto em fossa rudimentar, vala, rio ou mar, lixo queimado, "
+    "enterrado ou jogado, iluminação não elétrica (infraestrutura); sem banheiro, todos os cômodos usados como "
+    "dormitório, piso de terra (edilícia). Só entram domicílios urbanos, permanentes e não rústicos; um domicílio pode "
+    "ter mais de um componente; respostas não informadas ficam fora do percentual."
 )
 cartoes_indicador([
-    _cartao_moradia("Inadequação habitacional (FJP)", "crianças de 0 a 5 anos em domicílio com inadequação habitacional"),
+    _cartao_moradia("Inadequação habitacional (FJP)", "crianças até 72 meses em domicílio com inadequação habitacional"),
     _cartao_moradia("Inadequação de infraestrutura", "em inadequação de infraestrutura"),
     _cartao_moradia("Inadequação edilícia", "em inadequação edilícia"),
 ])
 option_card([
     ("Componentes", lambda: bar_chart([{'label': r["Componente"], 'value': r["Crianças"]} for _, r in _inad_comp.iterrows()],
-                                      fonte=FONTE_CADUNICO, titulo="Crianças de 0 a 5 anos em domicílio com inadequação, por componente"),
+                                      fonte=FONTE_CADUNICO, titulo="Crianças até 72 meses em domicílio com inadequação, por componente"),
      "cadunico_criancas_inadequacao_componentes"),
 ], 'grafico')
 option_card([
     ("% inadequação", lambda: _mapa_cadunico_silver(_inad_mapa, "% crianças em inadequação habitacional",
-        "% de crianças de 0 a 5 anos no CadÚnico em domicílio com inadequação habitacional, por bairro", "% inadequação",
+        "% de crianças até 72 meses no CadÚnico em domicílio com inadequação habitacional, por bairro", "% inadequação",
         teto=_TETO_INAD, nota=_NOTA_INAD),
      "mapa_percentual_cadunico_inadequacao_bairro_2026"),
 ], 'mapa')
 
-h3("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)")
-cartoes_indicador([_cartao_moradia("Adensamento excessivo (mais de 3 pessoas por dormitório)",
-                                   "crianças de 0 a 5 anos em domicílio com mais de 3 pessoas por dormitório")])
+h3("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (mais de 2 pessoas por dormitório)", antigo="crianças-no-cadúnico-em-domicílios-com-adensamento-habitacional-excessivo-acima-de-3-por-dormitório")
+cartoes_indicador([_cartao_moradia("Adensamento excessivo (mais de 2 pessoas por dormitório)",
+                                   "crianças até 72 meses em domicílio com mais de 2 pessoas por dormitório")])
 option_card([
     ("% adensamento", lambda: _mapa_cadunico_silver(_aden_mapa, "% crianças em adensamento excessivo",
-        "% de crianças de 0 a 5 anos no CadÚnico em domicílio com adensamento excessivo, por bairro", "% adensamento"),
+        "% de crianças até 72 meses no CadÚnico em domicílio com adensamento excessivo, por bairro", "% adensamento"),
      "mapa_percentual_cadunico_adensamento_bairro_2026"),
 ], 'mapa')
 
 h3("Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)")
 nota_metodologica(
-    "Déficit habitacional pela metodologia da Fundação João Pinheiro: domicílio improvisado ou rústico, coabitação "
-    "familiar ou ônus excessivo com aluguel (renda baixa e aluguel acima de 30% dela). Indicadores não exclusivos: um "
-    "domicílio pode estar em mais de um."
+    "Déficit habitacional, aproximação da metodologia da Fundação João Pinheiro: domicílio improvisado; rústico "
+    "(parede de taipa não revestida, madeira aproveitada, palha ou outro material); coabitação (duas ou mais famílias "
+    "no domicílio e mais de 2 pessoas por dormitório); ônus excessivo com aluguel (domicílio urbano, renda familiar de "
+    "até 3 salários mínimos e aluguel acima de 30% dela). Adensamento excessivo: mais de 2 pessoas por dormitório, em "
+    "qualquer domicílio. Indicadores não exclusivos: um domicílio pode estar em mais de um."
 )
 cartoes_indicador([
-    _cartao_moradia("Déficit habitacional (FJP)", "crianças de 0 a 5 anos em domicílio em déficit habitacional"),
+    _cartao_moradia("Déficit habitacional (FJP)", "crianças até 72 meses em domicílio em déficit habitacional"),
     _cartao_moradia("Domicílio sem banheiro", "em domicílio sem banheiro"),
     _cartao_moradia("Domicílio sem água canalizada", "em domicílio sem água canalizada"),
 ])
@@ -2226,7 +2229,7 @@ tabela_com_texto(lambda: plain_table(_fmt_tabela(_mor.reset_index(), pct=("% das
                                      fonte=FONTE_CADUNICO), "cadunico_moradia_resumo_0_a_5_2026")
 option_card([
     ("Componentes do déficit", lambda: bar_chart([{'label': r["Componente"], 'value': r["Crianças"]} for _, r in _def_comp.iterrows()],
-                                                 fonte=FONTE_CADUNICO, titulo="Crianças de 0 a 5 anos em domicílio em déficit habitacional, por componente"),
+                                                 fonte=FONTE_CADUNICO, titulo="Crianças até 72 meses em domicílio em déficit habitacional, por componente"),
      "cadunico_criancas_deficit_componentes"),
 ], 'grafico')
 
@@ -2541,7 +2544,7 @@ doc = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{TITULO_SITE}</title>
-<meta name="description" content="Indicadores de primeira infância (0 a 5 anos) do município do Rio de Janeiro, por eixo da política municipal.">
+<meta name="description" content="Indicadores de primeira infância (até 72 meses) do município do Rio de Janeiro, por eixo da política municipal.">
 <link rel="icon" href="{_v('favicon.ico')}" sizes="32x32">
 <link rel="icon" href="{_v('assets/images/favicon.svg')}" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{_v('assets/images/apple-touch-icon.png')}">
