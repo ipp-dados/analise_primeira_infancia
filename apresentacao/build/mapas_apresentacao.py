@@ -59,6 +59,18 @@ MAPAS = {
         titulo="Taxa de homicídios por RA (2024) — população geral", tema="protecao",
         legenda="Por 100 mil hab.\ntodas as idades,\nnão só crianças", rotulo="regiao_adm",
         fonte="Data.Rio, 2024, por Região Administrativa (todas as idades)"),
+    # specs/2026-10-06_deck_alimentacao_brincar: só a variante variantes/direito_brincar.md; mesmo desenho do mapa acima
+    # (teto de Tukey, fonte sem o IPS)
+    "apres_violencia_territorial_acao_policial_ra_2024": dict(
+        tabela="tabela_mapa_violencia_territorial_ra_2024.csv", coluna="homicidios_acao_policial", chave="codra",
+        nivel="ra", titulo="Homicídios por ação policial por RA (2024) — população geral", tema="protecao",
+        legenda="Taxa (Data.Rio)\ntodas as idades,\nnão só crianças", rotulo="regiao_adm",
+        fonte="Data.Rio, 2024, por Região Administrativa (todas as idades)"),
+    "apres_violencia_territorial_jovens_negros_ra_2024": dict(
+        tabela="tabela_mapa_violencia_territorial_ra_2024.csv", coluna="homicidios_jovens_negros", chave="codra",
+        nivel="ra", titulo="Homicídios de jovens negros por RA (2024)", tema="protecao",
+        legenda="Taxa (Data.Rio)\nnão é dado\nde crianças", rotulo="regiao_adm",
+        fonte="Data.Rio, 2024, por Região Administrativa"),
     # slide_revision R3/D6: os mapas do Censo em terracota (o tema censo do projeto é Blues)
     "apres_censo_0_4_absoluto": dict(
         tabela="censo_por_bairro.csv", coluna="0 a 4 anos", chave="codbairro", nivel="bairro",
@@ -103,7 +115,32 @@ MAPAS = {
               "da mesma Região Administrativa"),
 }
 
+def _sisvan_pct(partes, nome):
+    """specs/2026-10-06_deck_alimentacao_brincar: % recalculado de contagem ÷ total (duas colunas de % publicadas têm
+    erro na origem: desnutrição 2023, obesidade 2009) e sem 2026, ano parcial -- o slide cita o último ano completo."""
+    def f(df):
+        d = df[df["ano"] <= 2025].copy()
+        d[nome] = d[partes].sum(axis=1) / d["total"] * 100
+        return d
+    return f
+
+
+_FONTE_SISVAN = "SISVAN/DATASUS, crianças até 72 meses acompanhadas na atenção básica; % recalculado das contagens"
+
 GRAFICOS = {
+    # specs/2026-10-06_deck_alimentacao_brincar: só a variante variantes/alimentacao.md
+    "apres_sisvan_desnutricao_ano": dict(
+        tabela="sisvan_desnutricao_por_ano.csv", tempo="ano", colunas={"Peso baixo ou muito baixo": "pct"},
+        prepara=_sisvan_pct(["peso_muito_baixo_bruto", "peso_baixo_bruto"], "pct"),
+        titulo="% das crianças acompanhadas com peso baixo ou muito baixo para a idade (SISVAN, 2008-2025)",
+        ylabel="% das crianças acompanhadas", fonte=_FONTE_SISVAN + "; peso para a idade"),
+    "apres_sisvan_sobrepeso_ano": dict(
+        tabela="sisvan_sobrepeso_por_ano.csv", tempo="ano",
+        colunas={"Sobrepeso ou obesidade": "pct_excesso", "Obesidade": "pct_obesidade"},
+        prepara=lambda df: _sisvan_pct(["obesidade_bruto"], "pct_obesidade")(
+            _sisvan_pct(["sobrepeso_bruto", "obesidade_bruto"], "pct_excesso")(df)),
+        titulo="% das crianças acompanhadas com sobrepeso ou obesidade (SISVAN, 2008-2025)",
+        ylabel="% das crianças acompanhadas", fonte=_FONTE_SISVAN + "; índice de massa corporal para a idade"),
     # pedido do usuário (2026-09-29): uma linha só, mãe + pai somados
     "apres_violencia_familiar_mae_pai_taxa_ano": dict(
         tabela="violencia_familiar_taxa_municipio_ano.csv", prepara=_vf_mae_pai_municipio, tempo="ano",
@@ -149,7 +186,10 @@ def gera(nome):
         if len(altos):
             if cfg["nivel"] == "bairro":
                 nomes = _nomes_bairros()
-                regioes = [nomes.get(int(c), str(c)) for c in df.loc[altos.sort_values(ascending=False).index, cfg["chave"]]]
+                # código fora do geojson (ex. 998, bairro ignorado no Tabnet) não está no mapa: não entra na lista
+                # (achado em specs/2026-10-06_deck_alimentacao_brincar)
+                regioes = [nomes[int(c)] for c in df.loc[altos.sort_values(ascending=False).index, cfg["chave"]]
+                           if int(c) in nomes]
             elif cfg.get("rotulo"):
                 regioes = df.loc[altos.sort_values(ascending=False).index, cfg["rotulo"]].str.strip().str.title().tolist()
             else:
