@@ -191,18 +191,18 @@ Percentuais recalculados das contagens (o site mostra a obesidade de 2009 como 0
 -->
 
 ---
-<div class="kicker">Eixo Alimentação · Dado pontual</div>
+<div class="kicker">Eixo Alimentação · Dado pontual · Territórios Sociais</div>
 
 # Famílias em insegurança alimentar nos territórios atendidos — fase de expansão
 
 <div class="lado baixo">
 <div>
 
-Concentração das famílias em insegurança alimentar **nos territórios atendidos**, por Coordenadoria de Área Programática de Saúde (CAP).
+Dado do programa **Territórios Sociais** (IPP/ONU-Habitat): concentração das famílias em insegurança alimentar **nos territórios atendidos pelo programa**, na fase de expansão.
 
-As maiores concentrações aparecem nas CAPs **5.3, 5.1, 3.2, 2.2 e 4.0**.
+As maiores concentrações aparecem nas Coordenadorias de Área Programática de Saúde (CAPs) **5.3, 5.1, 3.2, 2.2 e 4.0**.
 
-<p class="nota">Dado pontual, recebido como imagem: mostra só os territórios atendidos, não a cidade inteira — áreas sem cor não significam ausência de insegurança alimentar.</p>
+<p class="nota">Dado pontual: mostra só os territórios do programa, não a cidade inteira — áreas sem cor não significam ausência de insegurança alimentar.</p>
 
 </div>
 
@@ -210,13 +210,13 @@ As maiores concentrações aparecem nas CAPs **5.3, 5.1, 3.2, 2.2 e 4.0**.
 
 </div>
 
-<!-- fonte: dado pontual (fonte e data a confirmar com a equipe responsável); mapa de calor por CAP -->
+<!-- fonte: Territórios Sociais (IPP/ONU-Habitat), fase de expansão; dado pontual; mapa de calor -->
 
 <!-- revisar -->
 
 <!--
 Dado ad hoc (apresentacao/variantes/alimentacao_adhoc/). Só nesta apresentação: dado pontual não vai para o relatório nem
-para a versão final do site (constitution §3). Confirmar com a equipe: programa/fonte, data, o que é "fase de expansão" e
+para a versão final do site (constitution §3). Fonte: Territórios Sociais (IPP/ONU-Habitat), informada pelo usuário em 2026-10-06. Confirmar com a equipe: data, o que é "fase de expansão" e
 como foi medida a insegurança alimentar (escala, ex. EBIA). A leitura das CAPs é visual (mapa de calor, sem números).
 -->
 

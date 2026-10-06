@@ -37,8 +37,8 @@ Falta:
 ## 000b. Apresentações breves de Alimentação e Direito ao Brincar (`specs/2026-10-06_deck_alimentacao_brincar`)
 
 Implementada em 2026-10-06 (variantes `alimentacao.md` e `direito_brincar.md`, publicadas em `apresentacao/`). Falta:
-1. **Confirmar com a equipe** a fonte, a data e o método do dado pontual "Famílias em insegurança alimentar nos
-   territórios atendidos — fase de expansão" (o rodapé do slide diz "a confirmar").
+1. **Confirmar com a equipe** a data e o método do dado pontual "Famílias em insegurança alimentar nos territórios
+   atendidos — fase de expansão" (fonte: Territórios Sociais, IPP/ONU-Habitat, já no slide).
 2. **Unidade** das taxas de homicídios por ação policial e de jovens negros (Data.Rio/IPS): o deck diz só "taxa".
 3. **Achado — SISVAN no `analise.py`**: colunas de % com erro na origem (desnutrição 2023: 3,74% × 5,7% pelas
    contagens; obesidade 2009: 0,07% × 7,0%) — site, PDF e textos curados mostram os valores errados; recalcular o % das
