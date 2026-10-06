@@ -128,7 +128,15 @@ def figura(nome):
                 else:
                     im.save(destino, optimize=True)
             return f"img/{destino.name}"
-    raise FileNotFoundError(f"fig:{nome} não existe em mapas/ nem em visualizacoes/")
+    # imagem recebida pronta (dado pontual de outra equipe), guardada junto da variante que a usa
+    # (specs/2026-10-06_deck_alimentacao_brincar: variantes/alimentacao_adhoc/)
+    for origem in sorted((APRES / "variantes").glob(f"*/{nome}.*")):
+        if origem.suffix.lower() in (".jpg", ".jpeg", ".png"):
+            destino = IMG / origem.name
+            if not destino.exists() or destino.stat().st_mtime < origem.stat().st_mtime:
+                shutil.copy(origem, destino)
+            return f"img/{destino.name}"
+    raise FileNotFoundError(f"fig:{nome} não existe em mapas/, visualizacoes/ nem em variantes/*/")
 
 
 def qr(url):
