@@ -36,6 +36,10 @@ Falta:
 
 ## 00. Pendente para 2026-10-01: push e deploy
 
+**2026-10-06: push feito** (`staging_main`, `demo`, `planning`, `spec/cadunico_inclusao_moradia`,
+`spec/desempenho_site`, `spec/filtro_residencia_tabnet`). **Falta só o deploy** (item 4: Actions → "Deploy relatório",
+branch `demo`; sem `gh` nesta máquina). Os itens 1-3 abaixo ficam como registro.
+
 Tudo está commitado **só localmente** (decisão do usuário em 2026-09-30: não enviar hoje). Falta:
 (1) `git push origin staging_main` (rodadas `spec/desempenho_site` e `spec/filtro_residencia_tabnet` já mescladas);
 (2) `git push origin demo` (merge de `staging_main` com site e PDF regerados na demo);
