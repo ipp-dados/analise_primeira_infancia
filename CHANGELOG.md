@@ -533,3 +533,10 @@ Dado pontual (`- dado_pontual:`) nunca entra no PDF (o gerador o descarta; PDF d
 versão final do site: sem a faixa "em desenvolvimento", `build_site.py` e o deploy param (constituição §3,
 `specs/2026-09-29_dados_adhoc` D7). Deck: um slide para Inclusão e outro para Moradia; site com crianças de 0 a 6 e
 faixas em destaque (D5, D6).
+
+## 2026-10-06 — `specs/2026-10-06_cadunico_inclusao_moradia` (CadÚnico: pipeline novo para Inclusão e Moradia)
+
+- Silver do CadÚnico refeita (partição 2026-07-10): grupo `'0-6'` → `'0-5'` (a seção lia 0 linhas), faixas de renda
+  com rótulos novos (normalizadas para os códigos de sempre), `id_pessoa` sem unicidade (contagem por linha).
+- Inclusão e Moradia a partir de `silver_cadunico_pessoas`/`_familias`: 3 gráficos, 3 mapas de % por bairro (ponte CEP →
+  código do CTPE), 4 tabelas; substituem os 6 pendentes e os 3 itens de dado pontual no site. PDF não regerado.

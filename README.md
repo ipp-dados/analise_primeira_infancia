@@ -128,6 +128,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.33.0 | 2026-10-06 | CadÚnico refeito (partição jul/2026): filtro 0 a 5 corrigido; Inclusão (deficiência, tipo, BPC) e Moradia (inadequação e déficit FJP, adensamento) com as silvers novas e bairro pelo código oficial, no lugar dos pendentes e do dado pontual (`specs/2026-10-06_cadunico_inclusao_moradia`). |
 | 0.32.0 | 2026-09-29 | Dados pontuais do CadÚnico (ago/2026) em Inclusão (deficiência e BPC) e Moradia (banheiro, água, esgoto), só por acréscimo, com aviso de dado pontual até a extração automatizada (4º tri de 2026) (`specs/2026-09-29_dados_adhoc`). |
 | 0.31.0 | 2026-09-29 | Proteção de dados do CadÚnico: bairros com menos de 20 crianças ou famílias somados por Região Administrativa, também quando um percentual revelaria contagem pequena (`specs/2026-09-29_privacidade_cadunico`). |
 | 0.30.1 | 2026-09-29 | PDF alinhado ao site: ordem de Prioridade, cobertura vacinal de volta, tabelas no corpo da seção, seção vazia fora; quadros de pendente com texto formal no site e no PDF (`specs/2026-09-29_alinhamento_pdf_site`). |

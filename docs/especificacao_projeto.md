@@ -62,13 +62,13 @@ DOCX, em que ordem e com que título.
 |---|---|---:|---:|---:|---:|---:|
 | 🧭 Introdução (panorama, não é eixo) | quantas crianças há, onde vivem, quem são (sexo, raça/cor) e quantas nascem | 7 | 0 | 7 | 4 | 9 |
 | 🎯 Prioridade | gestantes e crianças em vulnerabilidade: mortalidade materna, neonatal, infantil e por causas evitáveis; CadÚnico (razão sobre a população, crianças, famílias, renda, sexo, raça/cor) | 15 | 1 | 36 | 13 | 46 |
-| 🤝 Inclusão | crianças com deficiência (CadÚnico) | 3 | 3 | 0 | 0 | 0 |
+| 🤝 Inclusão | crianças e famílias com deficiência, tipo, BPC (CadÚnico) | 3 | 0 | 1 | 1 | 4 |
 | 👨‍👩‍👧 Família e Cuidados | frequência escolar (total, raça/cor, sexo, taxa total do Censo 2022), matrículas e atendimento, cobertura vacinal, CadÚnico por renda e arranjo familiar | 8 | 0 | 11 | 1 | 10 |
 | 🛡️ Proteção | violência familiar (por vínculo do autor, taxas, bairros e CAP), notificações | 7 | 2 | 6 | 7 | 13 |
 | 🧸 Direito ao Brincar | violência territorial (IPS, por RA) | 1 | 0 | 0 | 3 | 1 |
 | 🍽️ Alimentação | baixo peso ao nascer, desnutrição e sobrepeso (SISVAN) | 6 | 0 | 4 | 2 | 6 |
-| 🏠 Moradia | inadequação e adensamento habitacional | 3 | 3 | 0 | 0 | 0 |
-| **Total** | | **50** | **9** | **64** | **30** | **85** |
+| 🏠 Moradia | inadequação e déficit habitacional (FJP), adensamento (CadÚnico) | 3 | 0 | 2 | 2 | 5 |
+| **Total** | | **50** | **3** | **67** | **33** | **94** |
 
 "Pendente" (`status: pendente` no crosswalk) é indicador do catálogo ainda sem dado: aparece no site e no PDF como
 caixa "indicador em desenvolvimento", com uma frase pública fixa seguida do `motivo:` do item (texto formal,
@@ -101,7 +101,7 @@ site) com um padrão que liga o texto `fonte_dados` de cada figura à entrada. `
 | `sms_rio_sinan` | SINAN (SMS-Rio) | notificações de violência familiar e autoprovocada | `dados_locais/protecao/` |
 | `ms_sisvan` | SISVAN (MS) | estado nutricional de crianças | `dados_locais/sisvan/` |
 | `sms_rio_epi_vacinal` | SI-PNI/EPI (SMS-Rio) | cobertura vacinal | `dados_locais/vacinacao/` |
-| `mds_cadunico` | Cadastro Único (extração CTPE) | famílias e crianças por renda, idade, sexo, raça/cor, arranjo, bairro | **banco PostgreSQL do CTPE** (não é arquivo) |
+| `mds_cadunico` | Cadastro Único (extração CTPE) | famílias e crianças por renda, idade, sexo, raça/cor, arranjo, bairro; deficiência, BPC, déficit e inadequação habitacional (FJP), adensamento (silvers de pessoas e famílias, desde 2026-10-06) | **banco PostgreSQL do CTPE** (não é arquivo); bairro das saídas novas pela ponte `dim_bridge_ceps_bairros` |
 | `mds_cadunico_adhoc` | Cadastro Único, extração pontual (ref. 08/2026) | crianças com deficiência e BPC; famílias, pessoas e crianças por banheiro, água e esgoto (município; faixas 0-3 e 4-6) — **temporário**, a substituir pela extração automatizada (4º tri de 2026) | `dados_locais/cadunico/` (planilha + manifesto `adhoc_2026_08.json`) |
 | `ibge_pnadc` | PNAD Contínua (IBGE) | **não usada desde 2026-09-29**: o arquivo "PNAD" trazia a taxa do Censo 2022 (E15) | `dados_locais/educacao/` |
 | `inep_censo_escolar` | Censo Escolar (INEP, microdados) | matrículas 0-5 anos, 2007-2025 | `dados_locais/educacao/` (extrato; ZIPs baixados só se faltarem) |
@@ -414,10 +414,11 @@ componente (6-7), uma regra (8) ou um processo (9-10). A data no topo diz a que 
   automaticamente, ao site só à mão.
 - **Textos**: blocos ainda em lorem ipsum (resumo, achados, aberturas e sínteses dos eixos, parte das figuras); a
   lista sai no build do PDF. Alertas abertos em `relatorio/controle_revisao.json`.
-- **Dados pontuais** (`specs/2026-09-29_dados_adhoc`): Inclusão e Moradia têm itens "(dado pontual, ago/2026)" de uma
-  extração fora da rotina, com aviso público (`- dado_pontual:` no crosswalk); saem com a extração automatizada (ROADMAP).
+- **Dados pontuais** (`specs/2026-09-29_dados_adhoc`): mecanismo para extrações fora da rotina, com aviso público
+  (`- dado_pontual:` no crosswalk). Os de ago/2026 de Inclusão e Moradia saíram do site em 2026-10-06 (`specs/2026-10-06_cadunico_inclusao_moradia`); o deck
+  ainda os usa.
   **Nunca vão para o PDF** e **bloqueiam a versão final do site** (build e deploy param sem a faixa; constituição §3).
-- **Indicadores pendentes**: 9 (os 3 de Moradia, os 3 de deficiência, 2 de violência e 1 de mortalidade).
+- **Indicadores pendentes**: 3 (2 de violência e 1 de mortalidade; os 6 de Inclusão e Moradia saíram em 2026-10-06).
 - **Denominador sub-municipal**: o Censo 2022 fixo subconta crianças pequenas; a estimativa por bairro a partir da
   Ripsa está no `ROADMAP.md` (Próximas features, item 2).
 - **Organização**: a reorganização das pastas de dados e saídas (fase 1c) e o empacotamento de scripts para outros
