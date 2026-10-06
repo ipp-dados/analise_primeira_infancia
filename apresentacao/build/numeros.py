@@ -797,6 +797,215 @@ def incl_tipo3_n():
     return _incl_tipo(2, "n")
 
 
+# ---------------------------------------------------------------- variante Alimentação (specs/2026-10-06_deck_alimentacao_brincar)
+def _bp():
+    return _csv("nascidos_abaixo_peso_por_ano.csv").sort_values("ano")
+
+
+@numero
+def alim_bp_ano():
+    return str(int(_bp().iloc[-1]["ano"]))
+
+
+@numero
+def alim_bp_ano_ini():
+    return str(int(_bp().iloc[0]["ano"]))
+
+
+@numero
+def alim_bp_pct_ini():
+    return fmt_pct(_bp().iloc[0]["percentual abaixo do peso"])
+
+
+@numero
+def alim_bp_pico():
+    """'10,4% (2023)': maior percentual da série."""
+    r = _bp().loc[_bp()["percentual abaixo do peso"].idxmax()]
+    return f'{fmt_pct(r["percentual abaixo do peso"])} ({int(r["ano"])})'
+
+
+@numero
+def alim_bp_min():
+    r = _bp().loc[_bp()["percentual abaixo do peso"].idxmin()]
+    return f'{fmt_pct(r["percentual abaixo do peso"])} ({int(r["ano"])})'
+
+
+def _bp_bairros():
+    return _csv("tabela_mapa_nascidos_baixo_peso_2025.csv").dropna(subset=["codigo"])
+
+
+@numero
+def alim_bp_top3_bairros_n():
+    t = _bp_bairros().nlargest(3, "nascidos abaixo peso")
+    itens = [f'{b.title()} ({fmt_int(n)})' for b, n in zip(t["bairro"], t["nascidos abaixo peso"])]
+    return ", ".join(itens[:-1]) + " e " + itens[-1]
+
+
+@numero
+def alim_bp_mediana_bairros():
+    return fmt_pct(_bp_bairros()["percentual abaixo do peso"].median())
+
+
+# SISVAN: o percentual é recalculado de contagem ÷ total (algumas colunas de % publicadas têm erro de digitação na
+# origem: 2023 desnutrição, 2009 obesidade -- achado desta rodada). 2026 é ano parcial: o deck cita o último ano completo.
+_SISVAN_ANO = 2025
+
+
+def _sisvan(nome):
+    d = _csv(nome)
+    return d[d["ano"] == _SISVAN_ANO].iloc[0]
+
+
+@numero
+def alim_sisvan_ano():
+    return str(_SISVAN_ANO)
+
+
+@numero
+def alim_sisvan_total():
+    return fmt_int(_sisvan("sisvan_desnutricao_por_ano.csv")["total"])
+
+
+@numero
+def alim_desnut_n():
+    r = _sisvan("sisvan_desnutricao_por_ano.csv")
+    return fmt_int(r["peso_muito_baixo_bruto"] + r["peso_baixo_bruto"])
+
+
+@numero
+def alim_desnut_pct():
+    r = _sisvan("sisvan_desnutricao_por_ano.csv")
+    return fmt_pct((r["peso_muito_baixo_bruto"] + r["peso_baixo_bruto"]) / r["total"] * 100)
+
+
+@numero
+def alim_desnut_muito_baixo_pct():
+    r = _sisvan("sisvan_desnutricao_por_ano.csv")
+    return fmt_pct(r["peso_muito_baixo_bruto"] / r["total"] * 100)
+
+
+@numero
+def alim_desnut_pico():
+    """'15,5% (2018)': maior percentual da série (recalculado), fora do comportamento dos outros anos."""
+    d = _csv("sisvan_desnutricao_por_ano.csv")
+    pct = (d["peso_muito_baixo_bruto"] + d["peso_baixo_bruto"]) / d["total"] * 100
+    return f'{fmt_pct(pct.max())} ({int(d.loc[pct.idxmax(), "ano"])})'
+
+
+@numero
+def alim_sobrepeso_n():
+    r = _sisvan("sisvan_sobrepeso_por_ano.csv")
+    return fmt_int(r["sobrepeso_bruto"] + r["obesidade_bruto"])
+
+
+@numero
+def alim_sobrepeso_pct():
+    r = _sisvan("sisvan_sobrepeso_por_ano.csv")
+    return fmt_pct((r["sobrepeso_bruto"] + r["obesidade_bruto"]) / r["total"] * 100)
+
+
+@numero
+def alim_obesidade_n():
+    return fmt_int(_sisvan("sisvan_sobrepeso_por_ano.csv")["obesidade_bruto"])
+
+
+@numero
+def alim_obesidade_pct():
+    r = _sisvan("sisvan_sobrepeso_por_ano.csv")
+    return fmt_pct(r["obesidade_bruto"] / r["total"] * 100)
+
+
+@numero
+def alim_risco_sobrepeso_pct():
+    r = _sisvan("sisvan_sobrepeso_por_ano.csv")
+    return fmt_pct(r["risco sobrepeso_bruto"] / r["total"] * 100)
+
+
+# ---------------------------------------------------------------- variante Direito ao Brincar (mesma rodada)
+def _terr():
+    return _csv("violencia_territorial_por_ra_2024.csv")
+
+
+def _terr_mun(col):
+    d = _terr()
+    return d.loc[d["codra"].isna(), col].iloc[0]
+
+
+def _terr_ras():
+    return _terr().dropna(subset=["codra"])
+
+
+def _nome_ra(nome):
+    """'CIDADE DE DEUS' -> 'Cidade de Deus' (title() deixaria 'De')."""
+    return " ".join(w if i == 0 or w.lower() not in ("de", "da", "do", "das", "dos") else w.lower()
+                    for i, w in enumerate(nome.strip().title().split()))
+
+
+def _terr_max(col):
+    r = _terr_ras().loc[_terr_ras()[col].idxmax()]
+    return f"{_nome_ra(r['regiao_adm'])} ({fmt_dec(r[col], 1)})"
+
+
+def _terr_acima(col):
+    return fmt_int((_terr_ras()[col] > _terr_mun(col)).sum())
+
+
+@numero
+def brin_homicidios_mun():
+    return fmt_dec(_terr_mun("taxa_homicidios"), 1)
+
+
+@numero
+def brin_homicidios_max():
+    return _terr_max("taxa_homicidios")
+
+
+@numero
+def brin_homicidios_acima():
+    return _terr_acima("taxa_homicidios")
+
+
+@numero
+def brin_policial_mun():
+    return fmt_dec(_terr_mun("homicidios_acao_policial"), 1)
+
+
+@numero
+def brin_policial_max():
+    return _terr_max("homicidios_acao_policial")
+
+
+@numero
+def brin_policial_acima():
+    return _terr_acima("homicidios_acao_policial")
+
+
+@numero
+def brin_policial_zero():
+    """RAs sem homicídio por ação policial em 2024."""
+    return fmt_int((_terr_ras()["homicidios_acao_policial"] == 0).sum())
+
+
+@numero
+def brin_jovens_negros_mun():
+    return fmt_dec(_terr_mun("homicidios_jovens_negros"), 1)
+
+
+@numero
+def brin_jovens_negros_max():
+    return _terr_max("homicidios_jovens_negros")
+
+
+@numero
+def brin_jovens_negros_acima():
+    return _terr_acima("homicidios_jovens_negros")
+
+
+@numero
+def brin_n_ras():
+    return fmt_int(len(_terr_ras()))
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     for k in _NUMEROS:
