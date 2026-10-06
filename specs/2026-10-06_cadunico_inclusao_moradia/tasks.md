@@ -28,7 +28,7 @@ Legenda: [x] feito · [ ] a fazer
 
 ## B5 — Documentação e integração
 - [x] T5.1 ROADMAP, `specs/exclusoes.md`, `docs/especificacao_projeto.md`, CHANGELOG/README
-- [ ] T5.2 `validation.md` preenchido; merge `--no-ff` em `staging_main`
+- [x] T5.2 `validation.md` preenchido; merge `--no-ff` em `staging_main`
 
 ## B6 — Demo
 - [ ] T6.1 Merge `staging_main` → `demo`
