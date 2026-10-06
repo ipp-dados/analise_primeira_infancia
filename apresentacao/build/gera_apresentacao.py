@@ -257,7 +257,10 @@ def main():
            "title": meta.get("titulo", ""), "footer": meta.get("rodape", "")}
     nome = Path(a.arquivo).stem
     md = BUILD / f"{nome}.md"
-    md.write_text("---\n" + yaml.safe_dump(cab, allow_unicode=True, sort_keys=False) + "---\n" + corpo, encoding="utf-8")
+    # width alto: o safe_dump quebra linhas > 80 colunas (rodapé longo) e o Marp então ignora o tema em silêncio
+    # (achado em specs/2026-10-06_deck_inclusao)
+    md.write_text("---\n" + yaml.safe_dump(cab, allow_unicode=True, sort_keys=False, width=10**6) + "---\n" + corpo,
+                  encoding="utf-8")
     n_slides = len(re.findall(r"^---\s*$", corpo, re.M)) + 1
 
     npx = shutil.which("npx") or "npx"
