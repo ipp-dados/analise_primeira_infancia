@@ -14,4 +14,4 @@ Piso,fjp_inadequacao_piso,Inadequação,Edilícia,"Urbano, permanente e não rú
 Inadequação de infraestrutura,fjp_inadequacao_infraestrutura,Inadequação,Síntese,"Urbano, permanente e não rústico",algum componente de infraestrutura = Sim,Indicador ao menos um
 Inadequação edilícia,fjp_inadequacao_edilicia,Inadequação,Síntese,"Urbano, permanente e não rústico",algum componente edilício = Sim,Indicador ao menos um
 Inadequação habitacional,fjp_inadequacao,Inadequação,Síntese,"Urbano, permanente e não rústico",algum dos sete componentes = Sim,Indicador ao menos um
-Adensamento excessivo,adensamento_excessivo,Complementar,—,Todos os domicílios,n_pessoas_domicilio / n_dormitorios > 2,Não é componente FJP; catálogo da equipe diz acima de 3 (divergência levada ao usuário)
+Adensamento excessivo,adensamento_excessivo,Complementar,—,Todos os domicílios,n_pessoas_domicilio / n_dormitorios > 2,Não é componente FJP; catálogo dizia acima de 3 -- usuário decidiu mais de 2 (2026-10-06)

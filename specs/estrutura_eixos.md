@@ -496,7 +496,7 @@
 - nota: metodologia da Fundação João Pinheiro (variáveis já classificadas em `silver_cadunico_familias`); "Não informado"/"Não se aplica" fora da base (D7); era pendente até specs/2026-10-06_cadunico_inclusao_moradia
 
 ### Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (mais de 2 pessoas por dormitório)
-- nota: nome no catálogo da equipe: "… (acima de 3 por dormitório)"; o indicador do CTPE usa mais de 2 pessoas por dormitório (limite de densidade da FJP; Analise_cad_unico, spec 2026-10-06_disability-housing §5.3) e o título diz o que o dado mede -- divergência com o catálogo levada ao usuário (specs/2026-10-06_cadunico_inclusao_moradia D11)
+- nota: nome no catálogo da equipe: "… (acima de 3 por dormitório)"; o indicador do CTPE usa mais de 2 pessoas por dormitório (limite de densidade da FJP; Analise_cad_unico, spec 2026-10-06_disability-housing §5.3) e o título diz o que o dado mede -- decisão do usuário (2026-10-06): fica mais de 2, também no título (specs/2026-10-06_cadunico_inclusao_moradia D11)
 - fonte: Cadastro Único (extração CTPE, jul/2026)
 - mapa: `mapa_percentual_cadunico_adensamento_bairro_2026.png`
 - tabela: `tabela_mapa_cadunico_adensamento_bairro_2026.csv`
