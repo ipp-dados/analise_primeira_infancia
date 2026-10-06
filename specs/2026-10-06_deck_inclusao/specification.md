@@ -21,6 +21,11 @@ BPC por deficiência. Na mesma conversa: o adensamento excessivo fica com o tít
 | D5 | Publicado como `apresentacao/apresentacao_primeira_infancia_inclusao.pptx/.pdf` (`--publicar` de uma variante não sobrescreve o deck principal) | entregável versionado, como o deck principal |
 | D6 | Texto: "até 72 meses"; BPC dito como benefício **da família**; diferença com o dado pontual de ago/2026 **fora** dos slides (pendente de revisão do usuário) — só na nota do apresentador | regras do deck; ROADMAP |
 
+Revisão pedida pelo usuário (2026-10-06, depois da 1ª versão):
+- **D7** — o mapa de percentual deixa claro que é percentual (título "Percentual de…", texto "% das crianças cadastradas…
+  — não o número de crianças"); **mapa de número** (classes discretas, convenção do projeto) num slide anterior.
+- **D8** — slide de **resumo dos indicadores** (tabela com número, % e base) antes do encerramento. Total: 10 slides.
+
 ## 3. Fora do escopo
 
 Atualizar o deck principal; Moradia (só se pedido); site/PDF (não mudam nesta rodada, salvo o fechamento de D11).

@@ -104,16 +104,42 @@ Surdez, cegueira e baixa visão são grupos pequenos na cidade: aparecem só no 
 -->
 
 ---
-<div class="kicker">Eixo Inclusão · Território</div>
+<div class="kicker">Eixo Inclusão · Território · Número</div>
 
-# Crianças com deficiência por bairro
+# Onde estão as crianças com deficiência: número por bairro
 
 <div class="lado">
 <div>
 
-Entre as crianças cadastradas, o percentual com deficiência tem mediana de **{{n:incl_mediana_bairros}}** nos bairros: de {{n:incl_bairro_min}} a {{n:incl_bairro_max}}.
+**Número de crianças** até 72 meses com deficiência no cadastro. Os maiores números estão em {{n:incl_top3_bairros_n}} — bairros com muitas crianças cadastradas.
 
-<p class="nota">Bairros com menos de 20 casos aparecem somados aos da mesma Região Administrativa ({{n:incl_n_bairros_sozinhos}} bairros são mostrados sozinhos). O registro depende de diagnóstico e de acesso ao cadastro: diferenças pequenas entre bairros pedem cautela.</p>
+<p class="nota">Bairros com menos de 20 casos ficam sem cor: estão somados aos da mesma Região Administrativa ({{n:incl_n_bairros_somados}} bairros, {{n:incl_criancas_conjuntos}} crianças, na tabela do site).</p>
+
+</div>
+
+![](fig:apres_cadunico_deficiencia_n_bairro)
+
+</div>
+
+<!-- revisar -->
+
+<!--
+O número acompanha o tamanho do bairro e do cadastro: a Zona Oeste concentra crianças cadastradas. Para comparar bairros, o próximo slide usa o percentual.
+-->
+
+---
+<div class="kicker">Eixo Inclusão · Território · Percentual</div>
+
+# Percentual de crianças com deficiência por bairro
+
+<div class="lado">
+<div>
+
+**% das crianças cadastradas** (até 72 meses) que têm deficiência, em cada bairro — não o número de crianças.
+
+A mediana dos bairros é **{{n:incl_mediana_bairros}}**: de {{n:incl_bairro_min}} a {{n:incl_bairro_max}}.
+
+<p class="nota">Bairros com menos de 20 casos mostram o percentual do conjunto dos bairros pequenos da sua Região Administrativa.</p>
 
 </div>
 
@@ -124,7 +150,7 @@ Entre as crianças cadastradas, o percentual com deficiência tem mediana de **{
 <!-- revisar -->
 
 <!--
-Bairro atribuído pelo CEP da família (correspondência CEP-bairro do CTPE). Crianças com CEP fora da correspondência não têm bairro identificado e entram só no total do município.
+Percentual = crianças com deficiência ÷ crianças cadastradas do bairro (mesma base). Cautela: o registro depende de diagnóstico e de acesso ao cadastro; diferenças pequenas entre bairros não são conclusivas. Bairro atribuído pelo CEP da família (correspondência CEP-bairro do CTPE); crianças com CEP fora da correspondência entram só no total do município.
 -->
 
 ---
@@ -178,6 +204,33 @@ Leitura para a gestão: a maior parte das famílias com criança com deficiênci
 
 <!--
 Interno (não falar sem a revisão do usuário): a extração pontual de agosto de 2026 tinha 25.995 crianças de 0 a 6 anos com deficiência; a extração rotineira tem 7.919 de 0 a 5. A faixa de 6 anos não explica a diferença -- pendente de revisão (ROADMAP).
+-->
+
+---
+<div class="kicker">Eixo Inclusão · Resumo</div>
+
+# Resumo dos indicadores
+
+<div style="font-size:19px">
+
+| Indicador | Número | % | Base do percentual |
+| :-- | --: | --: | :-- |
+| Crianças até 72 meses no Cadastro Único | {{n:incl_criancas_cadunico}} | — | — |
+| Crianças com deficiência | **{{n:incl_criancas_deficiencia}}** | {{n:incl_pct_criancas_deficiencia}} | crianças cadastradas |
+| Tipo mais registrado: {{n:incl_tipo1_nome}} | {{n:incl_tipo1_n}} | {{n:incl_tipo1_pct}} | crianças com deficiência |
+| Deficiência {{n:incl_tipo2_nome}} | {{n:incl_tipo2_n}} | {{n:incl_tipo2_pct}} | crianças com deficiência |
+| Deficiência {{n:incl_tipo3_nome}} | {{n:incl_tipo3_n}} | {{n:incl_tipo3_pct}} | crianças com deficiência |
+| Famílias com criança com deficiência | **{{n:incl_familias_deficiencia}}** | {{n:incl_pct_familias_deficiencia}} | {{n:incl_familias_cadunico}} famílias com criança até 72 meses |
+| Recebem o BPC por deficiência | **{{n:incl_bpc_familias}}** | {{n:incl_pct_bpc}} | {{n:incl_bpc_base}} famílias com a informação |
+| Não recebem o BPC | {{n:incl_sem_bpc}} | {{n:incl_pct_sem_bpc}} | {{n:incl_bpc_base}} famílias com a informação |
+| Sem informação de BPC | {{n:incl_bpc_sem_info}} | — | — |
+
+</div>
+
+<!-- fonte: Cadastro Único (extração CTPE, {{n:incl_particao}}); tipos não exclusivos (uma criança pode ter mais de um) -->
+
+<!--
+Os números do eixo numa só tabela, para consulta. Mesmos valores das tabelas da aba Inclusão do site.
 -->
 
 ---
