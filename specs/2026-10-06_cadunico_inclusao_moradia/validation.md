@@ -34,6 +34,8 @@ Critérios de aceite; "Resultado" preenchido ao fim.
 
 Textos curados que citam números do CadÚnico de jun/2026 (status a revisar):
 - `cadunico_criancas_por_idade`: 11.328 crianças de 0 anos → **15.415**; 43.187 de 5 anos → **43.242** (jul/2026).
+  **Atualizado em 2026-10-06** (pedido do usuário): `textos_curados.json` e nota de `analise.py`, mesma redação;
+  `controle_revisao.json` → `ajustes_manuais`, status "atualizado", "revisar".
 - Textos provisórios da `demo` com números do CadÚnico: atualizados na própria `demo` (D8).
 - Notas técnicas de `analise.py` com números de jun/2026 (famílias sem adulto 713, CEPs fora da lista 15.809, nota de
   curadoria por idade) ficam como registro datado; a rodada de textos revisa.
@@ -45,4 +47,8 @@ Textos curados que citam números do CadÚnico de jun/2026 (status a revisar):
 - **A8** — `id_pessoa` deixou de ser chave (150.691 distintos em 200.784 crianças; 1 vazio na tabela): a conferência de
   tamanho de família contava `id_pessoa`; passou a contar linhas. Contagens de crianças não mudam (nenhum vazio entre elas).
 - **A9** — Alto da Boa Vista: 44,1% das crianças em inadequação (83 de 188), passa sozinho na regra de privacidade; é
-  dado, não erro.
+  dado, não erro. **Decisão do usuário (2026-10-06): tratar como valor atípico** — no mapa (PNG, A4 e site) fica na cor
+  máxima e a escala vai até o maior dos demais bairros (Vargem Grande, 20,8%), com o nome e o valor no rodapé
+  (`_OUTLIERS_INADEQUACAO_CADUNICO`, parâmetro novo `teto` de `mapa_coropletico_bairros`). Antes a escala ia a 44% e
+  apagava a cidade; o percentil 95 (11,6%) foi testado e descartado: marcava 9 bairros como acima da escala.
+- **A2 — pendente de revisão do usuário** (2026-10-06).
