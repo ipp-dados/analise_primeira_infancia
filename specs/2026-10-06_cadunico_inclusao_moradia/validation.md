@@ -52,3 +52,16 @@ Textos curados que citam números do CadÚnico de jun/2026 (status a revisar):
   (`_OUTLIERS_INADEQUACAO_CADUNICO`, parâmetro novo `teto` de `mapa_coropletico_bairros`). Antes a escala ia a 44% e
   apagava a cidade; o percentil 95 (11,6%) foi testado e descartado: marcava 9 bairros como acima da escala.
 - **A2 — pendente de revisão do usuário** (2026-10-06).
+
+## Ajustes de 2026-10-06 (D10, D11)
+
+| Verificação | Resultado |
+|---|---|
+| "0 a 5 anos" em texto escrito do site (fora de texto curado) | 0 — restam só **textos curados** (8 chaves, abaixo) e 2 notas que explicam a faixa |
+| "até 72 meses" no site | 36 no HTML, 5 nos gráficos; 11 títulos renomeados com id antigo |
+| Rótulos FJP = regra do ETL do CTPE | conferidos contra `Analise_cad_unico/src/cadunico_etl/moradia.py` (commit 11c4e8a) |
+
+Textos curados com "0 a 5 anos" (rodada de textos; 8): `cadunico_familias_por_faixa_renda`,
+`cadunico_familias_por_idade`, `censo_sidra_populacao_0_6_raca_2022`, `censo_sidra_populacao_0_6_sexo_2022`,
+`sidra_frequencia_escola_0_5_raca_2022`, `sidra_frequencia_escola_0_5_sexo_2022`, `sidra_taxa_frequencia_0_6_raca_2022`,
+`sidra_taxa_frequencia_0_6_sexo_2022`.
