@@ -279,31 +279,24 @@
 ## 🤝 Inclusão
 
 ### Crianças no CadÚnico com alguma deficiência
-- fonte: Cadastro Único
-- status: pendente
-- motivo: Os dados de deficiência dependem de uma nova extração do Cadastro Único, ainda não disponível.
-- nota: baixar dados — Léo
+- fonte: Cadastro Único (extração CTPE, jul/2026)
+- mapa: `mapa_percentual_cadunico_criancas_deficiencia_bairro_2026.png`
+- tabela_no_texto: `cadunico_deficiencia_criancas_0_a_5_2026.csv`
+- tabela: `cadunico_deficiencia_criancas_0_a_5_2026.csv`
+- tabela: `tabela_mapa_cadunico_deficiencia_bairro_2026.csv`
+- nota: silver nova (`silver_cadunico_pessoas`, partição 2026-07-10), crianças de 0 a 5 anos; bairro pela ponte CEP → código do CTPE (D2); era pendente até specs/2026-10-06_cadunico_inclusao_moradia
 
 ### Famílias no CadÚnico com criança com deficiência
-- fonte: Cadastro Único
-- status: pendente
-- motivo: Os dados de deficiência dependem de uma nova extração do Cadastro Único, ainda não disponível.
-- nota: baixar dados — Léo
+- fonte: Cadastro Único (extração CTPE, jul/2026)
+- tabela_no_texto: `cadunico_deficiencia_familias_0_a_5_2026.csv`
+- tabela: `cadunico_deficiencia_familias_0_a_5_2026.csv`
+- nota: famílias com ao menos uma criança de 0 a 5 com deficiência; inclui as que recebem BPC por deficiência (atributo da família, A3) — substitui o item pontual "com deficiência e acesso ao BPC" (ago/2026, D1); era pendente até specs/2026-10-06_cadunico_inclusao_moradia
 
 ### Crianças no CadÚnico por tipo de deficiência
-- fonte: Cadastro Único
-- status: pendente
-- motivo: Os dados de deficiência dependem de uma nova extração do Cadastro Único, ainda não disponível.
-- nota: baixar dados — Léo
-
-### Crianças no CadÚnico com deficiência e acesso ao BPC (dado pontual, ago/2026)
-- fonte: Cadastro Único — extração pontual, referência 08/2026
-- dado_pontual: 2026_08
-- tabela_no_texto: `cadunico_adhoc_deficiencia_2026_08.csv`
-- tabela: `cadunico_adhoc_deficiencia_2026_08.csv`
-- tabela_no_texto: `cadunico_adhoc_deficiencia_contexto_2026_08.csv`
-- tabela: `cadunico_adhoc_deficiencia_contexto_2026_08.csv`
-- nota: extração pontual enviada pela equipe (valores no pedido, specs/2026-09-29_dados_adhoc); faixas 0-3 e 4-6 (inclui 6 anos, D1); famílias e pessoas com deficiência são de todas as idades, só contexto — os 3 itens pendentes acima continuam pendentes (D2); só acréscimo (D1/D3)
+- fonte: Cadastro Único (extração CTPE, jul/2026)
+- visualização: `cadunico_criancas_por_tipo_deficiencia.png`
+- tabela: `cadunico_tipos_deficiencia_0_a_5_2026.csv`
+- nota: tipos não exclusivos (as barras não somam); era pendente até specs/2026-10-06_cadunico_inclusao_moradia
 
 ## 👨‍👩‍👧 Família e Cuidados
 
@@ -495,33 +488,23 @@
 ## 🏠 Moradia
 
 ### Crianças no CadÚnico em domicílios com inadequação habitacional
-- fonte: Cadastro Único
-- status: pendente
-- motivo: As características do domicílio dependem de uma nova extração do Cadastro Único, prevista para uma próxima edição.
-- nota: Posterior
+- fonte: Cadastro Único (extração CTPE, jul/2026)
+- visualização: `cadunico_criancas_inadequacao_componentes.png`
+- mapa: `mapa_percentual_cadunico_inadequacao_bairro_2026.png`
+- tabela: `cadunico_inadequacao_componentes_0_a_5_2026.csv`
+- tabela: `tabela_mapa_cadunico_inadequacao_bairro_2026.csv`
+- nota: metodologia da Fundação João Pinheiro (variáveis já classificadas em `silver_cadunico_familias`); "Não informado"/"Não se aplica" fora da base (D7); era pendente até specs/2026-10-06_cadunico_inclusao_moradia
 
 ### Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (acima de 3 por dormitório)
-- fonte: Cadastro Único
-- status: pendente
-- motivo: As características do domicílio dependem de uma nova extração do Cadastro Único, prevista para uma próxima edição.
-- nota: Posterior
+- fonte: Cadastro Único (extração CTPE, jul/2026)
+- mapa: `mapa_percentual_cadunico_adensamento_bairro_2026.png`
+- tabela: `tabela_mapa_cadunico_adensamento_bairro_2026.csv`
+- nota: valor do município na tabela de indicadores agregados (item seguinte); era pendente até specs/2026-10-06_cadunico_inclusao_moradia
 
 ### Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)
-- fonte: (não informada no catálogo)
-- status: pendente
-- motivo: Previsto para uma próxima edição, a partir do Cadastro Único.
-- nota: Posterior (apenas cad)
-
-### Famílias e crianças no CadÚnico em domicílios sem banheiro ou sem água canalizada (dado pontual, ago/2026)
-- fonte: Cadastro Único — extração pontual, referência 08/2026
-- dado_pontual: 2026_08
-- tabela_no_texto: `cadunico_adhoc_moradia_domicilio_2026_08.csv`
-- tabela: `cadunico_adhoc_moradia_domicilio_2026_08.csv`
-- nota: extração pontual enviada pela equipe (`dados_locais/cadunico/domicilios_cadunico_2026_08.xlsx`, specs/2026-09-29_dados_adhoc); indicadores do pedido `domicilio_sem_banheiro` (domiciliar) e `domicilio_sem_agua_encanada` (territorial); faixas 0-3 e 4-6 (D1); os 3 itens pendentes acima continuam pendentes (D3)
-
-### Famílias e crianças no CadÚnico por forma de abastecimento de água e de escoamento sanitário (dado pontual, ago/2026)
-- fonte: Cadastro Único — extração pontual, referência 08/2026
-- dado_pontual: 2026_08
-- tabela_no_texto: `cadunico_adhoc_moradia_territorio_2026_08.csv`
-- tabela: `cadunico_adhoc_moradia_territorio_2026_08.csv`
-- nota: só as formas fora da rede geral (a extração não trouxe a rede geral); cisterna com crianças não informadas (A3); fossa séptica, pessoas corrigido de '17..149' (A1); aba duplicada descartada (A2)
+- fonte: Cadastro Único (extração CTPE, jul/2026)
+- visualização: `cadunico_criancas_deficit_componentes.png`
+- tabela_no_texto: `cadunico_moradia_resumo_0_a_5_2026.csv`
+- tabela: `cadunico_moradia_resumo_0_a_5_2026.csv`
+- tabela: `cadunico_deficit_componentes_0_a_5_2026.csv`
+- nota: resumo (inadequação e grupos, déficit habitacional FJP, adensamento, sem banheiro, sem água canalizada) e componentes do déficit; substitui os itens pontuais de saneamento (ago/2026, D1) — as formas de abastecimento e escoamento ficaram fora por excesso (spec §4); era pendente até specs/2026-10-06_cadunico_inclusao_moradia

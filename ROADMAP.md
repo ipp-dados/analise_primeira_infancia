@@ -14,6 +14,23 @@ Organização em duas partes:
 
 # A fazer
 
+## 000. Rodada atual — CadÚnico: pipeline novo para Inclusão e Moradia (`specs/2026-10-06_cadunico_inclusao_moradia`)
+
+Aberta e implementada em 2026-10-06. A silver do CadÚnico foi refeita (partição 2026-07-10): o grupo `'0-6'` virou
+`'0-5'` e a seção CadÚnico lia 0 linhas; faixas de renda com rótulos novos; `id_pessoa` não é mais chave única. Tudo
+corrigido. Inclusão (deficiência, tipo, BPC da família) e Moradia (inadequação e déficit FJP, adensamento) saem das
+silvers novas `silver_cadunico_pessoas`/`_familias`, com bairro pela ponte CEP → código do CTPE, e substituem os 6
+pendentes e os 3 itens de dado pontual no site; textos novos em lorem (site) e provisórios (demo; V.1 em 13/10/2026).
+Falta:
+1. **Rodada de textos** (próxima spec): textos das 10 chaves novas e revisão dos textos curados que citam números do
+   CadÚnico de jun/2026 (lista em `specs/2026-10-06_cadunico_inclusao_moradia/validation.md`).
+2. **PDF** (não atualizado nesta rodada, D9): entradas das tabelas novas em `relatorio/latex/build/tabelas.py` e fonte
+   em `fontes.bib`; regerar e publicar com OK.
+3. **Deck**: o slide "Primeiros números de Inclusão e Moradia" ainda lê o dado pontual (`cadunico_adhoc_*`).
+4. Diferença entre o dado pontual (25.995 crianças de 0 a 6 com deficiência, ago/2026) e a silver (7.919 de 0 a 5,
+   jul/2026) — perguntar à equipe que fez a extração (A2).
+5. Push de `staging_main`/`demo` e deploy (seção abaixo), com OK.
+
 ## 00. Pendente para 2026-10-01: push e deploy
 
 Tudo está commitado **só localmente** (decisão do usuário em 2026-09-30: não enviar hoje). Falta:
@@ -114,8 +131,10 @@ Não dependem de código; entram no projeto quando chegarem.
    identidade visual, relatório ABNT em LaTeX a partir de um crosswalk `.md`, round-trip de curadoria em DOCX,
    deck Marp com números calculados. Definir fronteiras, nomes, versionamento e onde publicar (repositório
    próprio, pip via git).
-4. **Substituir os dados pontuais do CadÚnico (ref. 08/2026) pela extração automatizada — 4º tri de 2026.
-   Bloqueia a versão final do site** (regra D7, constituição §3: sem a faixa "em desenvolvimento" o build e o deploy
+4. **Substituir os dados pontuais do CadÚnico (ref. 08/2026) pela extração automatizada — site feito em 2026-10-06**
+   (`specs/2026-10-06_cadunico_inclusao_moradia` D1: Inclusão e Moradia usam as silvers novas; nenhum bloco de dado pontual no site, o bloqueio da versão final
+   saiu). Falta o deck e, depois dele, apagar os arquivos listados abaixo. Texto original do item:
+   **Bloqueia a versão final do site** (regra D7, constituição §3: sem a faixa "em desenvolvimento" o build e o deploy
    param enquanto houver dado pontual; no PDF ele nunca entra)
    (`specs/2026-09-29_dados_adhoc`, implementada em 2026-09-29 na branch `spec/dados-adhoc`). Hoje Inclusão e Moradia
    mostram, por acréscimo, uma extração pontual (fora do banco CTPE) com o aviso "Dado pontual". Ao substituir:
@@ -141,10 +160,16 @@ Não dependem de código; entram no projeto quando chegarem.
    Correios (`lista_bairros.csv`), que deixa 8,1% das crianças sem bairro e desloca bairros-favela para os
    vizinhos (Maré → Bonsucesso, Rocinha → Gávea; Vila Kennedy/Jabour/Gericinó/Ilha de Guaratiba/Lapa ausentes).
    Refazer por join espacial ou código de bairro do CTPE; só então o mapa "% CadÚnico/Censo" volta ao relatório.
-2. **Pedido ao CTPE** (F2): extração com parentesco/responsável familiar (arranjo real), deficiência (3 itens de
-   Inclusão) e características do domicílio (2 itens de Moradia).
+   **2026-10-06:** o CTPE tem a ponte `dim_bridge_ceps_bairros` (CEP → código oficial); já usada nas saídas novas de
+   Inclusão e Moradia (`specs/2026-10-06_cadunico_inclusao_moradia` D2). Falta levar as saídas CadÚnico antigas para ela (muda mapas e textos curados).
+2. **Pedido ao CTPE** (F2): extração com parentesco/responsável familiar (arranjo real). Deficiência e domicílio
+   chegaram nas silvers novas (2026-10-06, `specs/2026-10-06_cadunico_inclusao_moradia`).
 3. **Filtro de cadastro da silver** (F3): confirmar com o CTPE se `silver_cadunico_geral` já exclui cadastros
-   inativos/desatualizados.
+   inativos/desatualizados. **2026-10-06:** a bronze da mesma partição só tem `Cadastrado`/`ativo`, com o mesmo nº de
+   pessoas das silvers — confirmar com o CTPE se é filtro da carga.
+4. **Cortados por excesso em 2026-10-06** (`specs/exclusoes.md` E17-E19): ajudas recebidas pela pessoa com
+   deficiência; formas de abastecimento e escoamento; mapa do déficit e mapas por componente; recortes por idade,
+   raça/cor ou renda das variáveis novas.
 
 ### Mortalidade
 - Séries temporais comparando subgrupos específicos entre regiões ao longo do tempo.
