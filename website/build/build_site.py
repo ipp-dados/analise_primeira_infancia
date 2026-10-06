@@ -2341,6 +2341,8 @@ for i, (start, titulo, sid) in enumerate(_SECOES_EIXO):
     _itens = [_html_mod.escape(l) for l in _achados_cur] or (demo.itens(f"achados_{_k_eixo}") if demo.ATIVO else _lorem_bullets(sid))
     achados = callout("findings", "lightbulb", "Principais achados",
                       "<ul>" + "".join(f"<li>{b}</li>" for b in _itens) + "</ul>")
+    if demo.ATIVO:   # demo: nota de dados atualizados no topo da aba (specs/2026-10-06_cadunico_inclusao_moradia D4)
+        achados = demo.nota_eixo(_k_eixo, callout) + achados
     # texto de abertura do eixo, logo abaixo dos achados (specs/2026-09-28_melhorias_site U2): chave
     # introducao_<eixo> de blocos_relatorio (a mesma do PDF e do DOCX); sem texto curado, lorem de 90 palavras com a
     # mesma semente do PDF

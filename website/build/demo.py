@@ -58,8 +58,17 @@ def itens(chave):
 def banner_html():
     return ('<div class="dev-banner" data-demo role="alert">'   # class exata: o deploy procura class="dev-banner"
             f'<span class="dev-banner-linha">⚠️ {_html.escape(_CFG["faixa"])}</span>'
-            f'<span class="dev-banner-data">Versão 1.0 prevista para {data_v1_extenso()}</span>'
+            f'<span class="dev-banner-data">{_html.escape(_CFG.get("faixa_data", "Versão 1.0 prevista para {data}").format(data=data_v1_extenso()))}</span>'
             '</div>')
+
+def nota_eixo(chave, callout):
+    """Nota no topo da aba de um eixo (`demo_textos.notas_eixo`, chave = chave_eixo; ex. pipeline refeito em Inclusão e
+    Moradia, specs/2026-10-06_cadunico_inclusao_moradia D4). Vazio se o eixo não tem nota."""
+    t = _CFG.get("notas_eixo", {}).get(chave)
+    if not t:
+        return ""
+    return callout("note", "calendar", "Dados atualizados",
+                   f'<p>{_html.escape(t.format(data=data_v1_extenso()))}</p>', extra=' data-demo-nota-eixo')
 
 # palavras distintivas do gerador de lorem (build_site._LOREM_WORDS) -- nenhuma delas é português
 _LOREM_RE = re.compile(r"\b(lorem|ipsum|dolor|consectetur|adipiscing|eiusmod|incididunt|labore|dolore|aliqua|"
