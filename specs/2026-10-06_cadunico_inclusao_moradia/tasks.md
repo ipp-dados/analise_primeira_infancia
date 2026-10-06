@@ -31,8 +31,8 @@ Legenda: [x] feito · [ ] a fazer
 - [x] T5.2 `validation.md` preenchido; merge `--no-ff` em `staging_main`
 
 ## B6 — Demo
-- [ ] T6.1 Merge `staging_main` → `demo`
-- [ ] T6.2 `publicacao.json`: `lancamento_v1 = 2026-10-13`, faixa com próxima atualização de conteúdo e textos, nota das abas
-- [ ] T6.3 `demo.py`: nota nas abas Inclusão e Moradia
-- [ ] T6.4 `textos_demo.json`: chaves novas; números CadÚnico atualizados
-- [ ] T6.5 Regerar site da demo (conferência passa) e o aviso do PDF (`demo_pdf.py`)
+- [x] T6.1 Merge `staging_main` → `demo`
+- [x] T6.2 `publicacao.json`: `lancamento_v1 = 2026-10-13`, faixa com próxima atualização de conteúdo e textos, nota das abas
+- [x] T6.3 `demo.py`: nota nas abas Inclusão e Moradia
+- [x] T6.4 `textos_demo.json`: chaves novas; números CadÚnico atualizados
+- [x] T6.5 Regerar site da demo (conferência passa) e o aviso do PDF (só a página de aviso, D9)
