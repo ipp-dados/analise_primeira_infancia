@@ -549,7 +549,7 @@ grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: C
 
 # %% [markdown]
 # <!-- nota-curadoria:cadunico_criancas_por_idade -->
-# **Nota de curadoria:** A quantidade de crianças no Cadúnico vai crescendo à medida que a idade vai aumentando. Um total de 11.328 crianças de 0 anos estão no CadÚnico, ao passo que quando se trata de crianças de 5 anos o número salta para 43.187 crianças. É importante frisar que esse dado não pode afirmar que os nascimentos estão diminuindo ou aumentando, haja vista o universo utilizado aqui diz respeito apenas às crianças que estão cadastradas no CadÚnico. Diversos podem ser os motivos para esse movimento: momento de inclusão da família no CadÚnico, atualização cadastral, dentre outros.
+# **Nota de curadoria:** A quantidade de crianças no Cadúnico vai crescendo à medida que a idade vai aumentando. Um total de 15.415 crianças de 0 anos estão no CadÚnico, ao passo que quando se trata de crianças de 5 anos o número salta para 43.242 crianças. É importante frisar que esse dado não pode afirmar que os nascimentos estão diminuindo ou aumentando, haja vista o universo utilizado aqui diz respeito apenas às crianças que estão cadastradas no CadÚnico. Diversos podem ser os motivos para esse movimento: momento de inclusão da família no CadÚnico, atualização cadastral, dentre outros.
 
 # %% [markdown]
 # #### Razão municipal: crianças de 0 a 5 anos no CadÚnico sobre a população (Ripsa)
@@ -1031,12 +1031,25 @@ for _col, _rot, _titulo, _legenda, _nome in [
     _pub = agrega_bairros_pequenos(_t, ['Crianças', _rot, f'Base ({_rot})'], ['Crianças'], pares=[(_rot, f'Base ({_rot})')],
                                    taxas={_pct: (_rot, f'Base ({_rot})', 100)})
     _pub.to_csv(f'tabelas_finais/tabela_mapa_cadunico_{_nome}_bairro_2026.csv', index=False)
+    _nota_mapa = '.\nMais de 3 pessoas por dormitório'
+    _teto = None
+    if _nome == 'inadequacao':
+        # outlier (decisão do usuário, 2026-10-06): Alto da Boa Vista, 44,1% (83 de 188 crianças), é ~2x o segundo maior
+        # e apagava o resto da escala. Só ele sai da escala: a cor vai até o maior dos outros bairros e ele fica na cor
+        # máxima, nomeado no rodapé; o valor real segue na tabela gêmea e no tooltip do site (mesmo teto lá)
+        _vals = _pub.loc[_pub['codbairro'].notna(), ['codbairro', 'bairro', _pct]]
+        _outl = _vals[_vals['codbairro'].isin(_OUTLIERS_INADEQUACAO_CADUNICO)]
+        _teto = float(_vals.loc[~_vals['codbairro'].isin(_OUTLIERS_INADEQUACAO_CADUNICO), _pct].max())
+        assert (_outl[_pct] > _teto).all(), 'o outlier deixou de ser o maior valor -- rever _OUTLIERS_INADEQUACAO_CADUNICO'
+        _pct1 = lambda v: f"{v:.1f}".replace('.', ',') + '%'
+        _nota_mapa = ('.\nInadequação: metodologia da Fundação João Pinheiro. Valor atípico, na cor máxima: '
+                      + '; '.join(f"{b} ({_pct1(v)})" for b, v in zip(_outl['bairro'], _outl[_pct]))
+                      + f'; escala de cor até {_pct1(_teto)}')
     mapa_coropletico_bairros(
         _pub[_pub['codbairro'].notna()], coluna_valor=_pct, titulo=_titulo,
         nome_arquivo=f'mapa_percentual_cadunico_{_nome}_bairro_2026', chave='codbairro',
-        cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo=_legenda,
-        fonte_dados=fonte_mapa_cadunico_silver + ('.\nInadequação: metodologia da Fundação João Pinheiro'
-                                                  if _nome == 'inadequacao' else '.\nMais de 3 pessoas por dormitório'))
+        cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo=_legenda, teto=_teto,
+        fonte_dados=fonte_mapa_cadunico_silver + _nota_mapa)
 
 # %% [markdown]
 # #### 📌 Dados pontuais (ago/2026): moradia e deficiência
