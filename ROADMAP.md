@@ -30,8 +30,8 @@ Falta:
 4. **Pendente — revisão do usuário** (2026-10-06): diferença entre o dado pontual (25.995 crianças de 0 a 6 com
    deficiência, ago/2026) e a silver (7.919 de 0 a 5, jul/2026); a faixa de 6 anos não explica 3× (A2).
 5. Push de `staging_main`/`demo` e deploy (seção abaixo), com OK — a conferir depois (usuário, 2026-10-06).
-6. **Limite do adensamento excessivo** (D11): o CTPE usa mais de 2 pessoas por dormitório; o catálogo diz "acima de 3".
-   Decidir: manter 2 (o site já diz "mais de 2") ou pedir ao CTPE o de 3 (`Analise_cad_unico`, `LIMITE_DENSIDADE`).
+6. ~~Limite do adensamento excessivo~~ — **decidido em 2026-10-06: mais de 2 pessoas por dormitório** (o limite do CTPE),
+   também no título (D11).
 7. Textos curados com "0 a 5 anos" → "até 72 meses" (D10; lista em `validation.md`) e títulos das PNG do relatório.
 
 ## 00. Pendente para 2026-10-01: push e deploy

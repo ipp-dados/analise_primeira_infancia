@@ -75,8 +75,8 @@ Decididas depois da implementação (usuário, 2026-10-06):
 - **D11** — critérios FJP explicados e exportados (`docs/criterios_fjp_cadunico.md`/`.csv`), a partir do ETL do CTPE
   (`Analise_cad_unico`, `src/cadunico_etl/moradia.py`). Rótulos ajustados à regra real (sem banheiro, não "exclusivo";
   todos os cômodos como dormitório; iluminação não elétrica; piso de terra). **Adensamento**: o CTPE usa **mais de 2
-  pessoas por dormitório**; o catálogo diz "acima de 3". O site diz o que o dado mede (mais de 2); a escolha do limite fica
-  com o usuário (ROADMAP).
+  pessoas por dormitório**; o catálogo diz "acima de 3". O site diz o que o dado mede (mais de 2). **Decidido pelo usuário
+  (2026-10-06): fica mais de 2, também como título.**
 
 ## 3. Requisitos — escopo proposto
 
