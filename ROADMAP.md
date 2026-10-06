@@ -34,6 +34,16 @@ Falta:
    também no título (D11).
 7. Textos curados com "0 a 5 anos" → "até 72 meses" (D10; lista em `validation.md`) e títulos das PNG do relatório.
 
+## 000b. Apresentações breves de Alimentação e Direito ao Brincar (`specs/2026-10-06_deck_alimentacao_brincar`)
+
+Implementada em 2026-10-06 (variantes `alimentacao.md` e `direito_brincar.md`, publicadas em `apresentacao/`). Falta:
+1. **Confirmar com a equipe** a fonte, a data e o método do dado pontual "Famílias em insegurança alimentar nos
+   territórios atendidos — fase de expansão" (o rodapé do slide diz "a confirmar").
+2. **Unidade** das taxas de homicídios por ação policial e de jovens negros (Data.Rio/IPS): o deck diz só "taxa".
+3. **Achado — SISVAN no `analise.py`**: colunas de % com erro na origem (desnutrição 2023: 3,74% × 5,7% pelas
+   contagens; obesidade 2009: 0,07% × 7,0%) — site, PDF e textos curados mostram os valores errados; recalcular o % das
+   contagens na seção SISVAN. O deck já recalcula.
+
 ## 00. Pendente para 2026-10-01: push e deploy
 
 **2026-10-06: push feito** (`staging_main`, `demo`, `planning`, `spec/cadunico_inclusao_moradia`,
