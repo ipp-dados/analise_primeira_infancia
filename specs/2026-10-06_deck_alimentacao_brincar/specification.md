@@ -23,6 +23,10 @@ referência: "Famílias em insegurança alimentar nos Territórios atendidos - F
 | D8 | Direito ao Brincar: as taxas de ação policial e de jovens negros aparecem como "taxa (Data.Rio)", sem "por 100 mil" | a planilha do Data.Rio não traz a unidade dessas duas; a confirmar na ficha do indicador |
 | D9 | Correção no gerador de mapas: a nota de valores extremos só nomeia regiões que existem no mapa (o "998", bairro ignorado do Tabnet, aparecia na lista) | achado no slide de baixo peso; afeta também o deck principal na próxima geração (só o rodapé) |
 
+Revisão pedida pelo usuário (2026-10-06, depois da 1ª versão):
+- **D10** — o slide 8 diz que o dado é do programa **Territórios Sociais (IPP/ONU-Habitat)**: kicker, texto e rodapé
+  ("Fonte: Territórios Sociais (IPP/ONU-Habitat), fase de expansão"). A data e o método seguem a confirmar.
+
 ## 3. Fora do escopo
 
 Corrigir as colunas de % do SISVAN no `analise.py` (vai para o ROADMAP); atualizar o deck principal; site e PDF.
