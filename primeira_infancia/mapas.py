@@ -87,7 +87,8 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
                               cmap='Oranges', legenda_titulo=None, fundo='mapa_oceano_base', alpha=None, fonte_dados=None,
                               caminho_geojson='dados_locais/geo/limite_bairros_rio.geojson',
                               caminho_uf='dados_locais/geo/limite_uf_brasil.geojson',
-                              caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson', formato='png', zero_branco=False):
+                              caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson', formato='png', zero_branco=False,
+                              teto=None):
     """Gera um mapa coroplético do Rio (limites IPP/Data.Rio, simplificados) e salva em mapas/.
 
     `nivel`: 'bairro' (padrão) | 'ap' (Área de Planejamento, 5 regiões) | 'rp' (Região de
@@ -112,6 +113,9 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
     `zero_branco` (só com `bins`, contagens absolutas): quando True, valores iguais a 0 ficam brancos, com
     entrada própria '0 (sem casos)' na legenda, em vez de cair na primeira classe ('Até X'). Padrão False
     (comportamento anterior, usado pelos demais mapas).
+    `teto` (só escala contínua): limite superior da cor -- valores acima ficam na cor máxima e a colorbar ganha a ponta
+    de "acima de" (outlier, ex. Alto da Boa Vista na inadequação habitacional; specs/2026-10-06_cadunico_inclusao_moradia).
+    Vai também para a variante A4. None (padrão) = escala até o máximo, como antes; diga no `fonte_dados` quem passou.
 
     A figura usa proporção larga (~1,46:1, próxima de A4 paisagem) e é exportada a 300 DPI com
     `bbox_inches='tight'`, para que só o título ocupe espaço fora do mapa em si.
@@ -207,8 +211,9 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
         cax = ax.inset_axes([cax_x0, cax_y0, cax_largura, cax_altura])
         gdf.plot(
             column=coluna_valor, ax=ax, cmap=cmap, linewidth=0.4, edgecolor='#616161', legend=True, alpha=alpha,
-            zorder=2, missing_kwds=missing_kwds, cax=cax,
-            legend_kwds={'label': legenda_titulo or coluna_valor},
+            zorder=2, missing_kwds=missing_kwds, cax=cax, vmax=teto,
+            legend_kwds={'label': legenda_titulo or coluna_valor,
+                         **({'extend': 'max'} if teto is not None and gdf[coluna_valor].max() > teto else {})},
         )
         halo = [pe.withStroke(linewidth=3, foreground='white')]
         cax.tick_params(labelsize=9, colors='#111111')
@@ -260,5 +265,5 @@ def mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None,
     plt.savefig(f"mapas/{nome_arquivo}.{formato}", dpi=300, bbox_inches='tight', pad_inches=0.15)
     _a4_mapa(gdf_a4, coluna_valor, titulo, nome_arquivo=nome_arquivo, nivel=nivel, bins=bins, cmap=cmap,
              legenda_titulo=legenda_titulo, fonte_dados=fonte_dados, zero_branco=zero_branco,
-             caminho_uf=caminho_uf, caminho_municipios=caminho_municipios)
+             caminho_uf=caminho_uf, caminho_municipios=caminho_municipios, teto=teto)
     plt.show()
