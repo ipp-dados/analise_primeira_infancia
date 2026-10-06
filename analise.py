@@ -424,7 +424,9 @@ serie_temporal(df_pop_infantil, 'ano', 'percentual_0_a_5', 'Participação de 0 
 # ### 🗂️ Cadúnico
 
 # %% [markdown]
-# Fonte: CadÚnico via banco CTPE (`silver_cadunico_geral`), recorte de crianças de 0 a 5 anos (grupo `'0-6'` do CTPE).
+# Fonte: CadÚnico via banco CTPE (`silver_cadunico_geral`), recorte de crianças de 0 a 5 anos (grupo `'0-5'` do CTPE;
+# `'0-6'` até a partição de jun/2026). Inclusão e Moradia usam as silvers `silver_cadunico_pessoas`/`_familias`
+# (subseção própria no fim, `specs/2026-10-06_cadunico_inclusao_moradia`).
 #
 # > **Nota:** requer conexão ativa com o banco CTPE (credenciais em `.env`) para reproduzir; não roda apenas com os arquivos em `dados_locais/`.
 # > O driver é `psycopg` 3 (`requirements.txt`) -- rode com o kernel/env `analises_env`; o Python base do
@@ -442,18 +444,26 @@ serie_temporal(df_pop_infantil, 'ano', 'percentual_0_a_5', 'Participação de 0 
 # ela já exclui cadastros inativos ou desatualizados -- a confirmar com o CTPE. Vale para todos os números
 # CadÚnico do projeto.
 #
+# **Atualização 2026-10-06 (`specs/2026-10-06_cadunico_inclusao_moradia`, A1):** a silver foi refeita na partição
+# **2026-07-10** e o grupo passou a se chamar `'0-5'` (mesmas idades, 0 a 5 completos; nascidos de 2020-07-11 a
+# 2026-06-30) -- com o nome antigo a seção lia 0 linhas. O nome vem de `_GRUPO_0_5_CADUNICO`. Sobre S9: a bronze da
+# mesma partição só tem cadastros `Cadastrado`/`ativo`, e as silvers têm o mesmo nº de pessoas (2.188.165).
+#
 # **Privacidade:** toda saída CadÚnico abaixo do nível município passa por `suprime_celulas_pequenas`
 # (< 20 famílias vira vazio + coluna `suprimido`) antes de ir para `tabelas_finais/`/mapas.
 
 # %% [markdown]
-# #### Recorte 0 a 5 anos (grupo `'0-6'` do CTPE)
+# #### Recorte 0 a 5 anos (grupo `'0-5'` do CTPE)
 
 # %%
 fonte_cadunico = 'CadÚnico (extração CTPE)'
 
 #Banco CTPE
 engine = connect_db_ctpe()
-df_original = pd.read_sql("SELECT * FROM silver_cadunico_geral WHERE grupo_idade='0-6'", engine)
+# a silver de jul/2026 trocou os rótulos das faixas de renda; normaliza para os códigos de sempre
+df_original = normaliza_renda_cadunico(
+    pd.read_sql(f"SELECT * FROM silver_cadunico_geral WHERE grupo_idade='{_GRUPO_0_5_CADUNICO}'", engine))
+assert len(df_original), f"silver_cadunico_geral sem o grupo {_GRUPO_0_5_CADUNICO!r} (o nome do grupo mudou?)"
 df =  df_original.copy()
 # recortes_cadunico D5: fonte com o mês da extração (a silver guarda uma única partição)
 fonte_cadunico_particao = fonte_cadunico_com_particao(df_original['data_particao'].max())
@@ -544,7 +554,7 @@ grafico_barra(df_idade,categoria='idade',valor='Crianças', titulo='CADÚNICO: C
 # %% [markdown]
 # #### Razão municipal: crianças de 0 a 5 anos no CadÚnico sobre a população (Ripsa)
 #
-# Número-resumo do eixo Inclusão (`specs/2026-09-24_populacao-referencia`, A4): crianças do grupo `'0-6'` do CadÚnico
+# Número-resumo do eixo Inclusão (`specs/2026-09-24_populacao-referencia`, A4): crianças do grupo `'0-5'` do CadÚnico
 # (na prática **0 a 5 anos completos**, ver a nota de idade no início da seção) ÷ população de 0 a 5 anos
 # do município em 2025 (estimativas Ripsa/MS). Ressalvas:
 # - **Um ano de diferença:** o cadastro é da partição de 2026 e a estimativa mais recente da Ripsa é de
@@ -561,7 +571,7 @@ fonte_cadunico_ripsa = f'{fonte_cadunico_particao}; população 0 a 5 anos: esti
 
 _ano_pop_cadunico = 2025
 _pop_0_5 = populacao_ripsa(carrega_populacao_ripsa(), 0, 5, anos=[_ano_pop_cadunico])['populacao'].item()
-assert df_original['idade'].between(0, 5).all(), "grupo '0-6' do CadÚnico fora de 0 a 5 anos"
+assert df_original['idade'].between(0, 5).all(), f"grupo {_GRUPO_0_5_CADUNICO!r} do CadÚnico fora de 0 a 5 anos"
 df_cadunico_razao = pd.DataFrame([{
     'data_particao': str(pd.Timestamp(df_original['data_particao'].max()).date()),
     'criancas_cadunico_0_a_5': len(df_original),
@@ -914,7 +924,125 @@ for _coluna, _titulo, _arquivo, _legenda in [
     )
 
 # %% [markdown]
+# #### ♿🏠 Inclusão e Moradia (silvers de pessoas e famílias, jul/2026)
+#
+# Eixos **Inclusão** e **Moradia** (`specs/2026-10-06_cadunico_inclusao_moradia`): as silvers novas do CTPE
+# (`silver_cadunico_pessoas` e `silver_cadunico_familias`, partição 2026-07-10) trazem deficiência (com o tipo), BPC por
+# deficiência e as variáveis de domicílio já classificadas pela metodologia da **Fundação João Pinheiro** (déficit e
+# inadequação habitacional, com os componentes) e o adensamento excessivo. Substituem no site o dado pontual de
+# ago/2026 (D1; a célula seguinte fica, mas sai do site).
+#
+# - **Unidade:** crianças de 0 a 5 anos (`faixa_etaria = '0-5'`) e famílias com ao menos uma delas; o domicílio é o da
+#   família da criança (D6).
+# - **Percentuais** sempre de absolutos, com "Não informado"/"Não se aplica" fora da base (D7); a base sai na tabela.
+#   "Não se aplica" na inadequação = domicílio improvisado ou coletivo, que a FJP conta no déficit.
+# - **BPC** é atributo da família (`familia_bpc_deficiente`, A3): publicado como famílias com criança com deficiência
+#   que recebem BPC por deficiência (de qualquer membro); sem informação fica fora do percentual.
+# - **Bairro:** ponte CEP → código oficial do banco (`dim_bridge_ceps_bairros`, D2), join por `codbairro`. Cobre ~90%
+#   das crianças; as demais ficam só no total do município. As saídas CadÚnico acima seguem com `lista_bairros.csv`.
+# - **Privacidade:** por bairro, `agrega_bairros_pequenos` com o par (casos, base) -- casos e complemento ≥ 20.
+# - Totais do município conferidos com `gold_cadunico_indicadores` (recorte `primeira_infancia`) na implementação.
+
+# %%
+df_criancas_silver = carrega_criancas_cadunico_silver(engine)
+fonte_cadunico_silver = fonte_cadunico_com_particao(df_criancas_silver['data_particao'].max())
+# rodapé dos mapas desta subseção: bairro pela ponte do banco (oficial), não pelos Correios como em fonte_mapa_cadunico
+# (quebras de linha: numa linha só o rodapé invade a atribuição do basemap)
+fonte_mapa_cadunico_silver = (f"{fonte_cadunico_silver}. Bairro pelo CEP da família (correspondência CEP-bairro do CTPE)."
+                              "\nBairros com menos de 20 casos (no grupo, no complemento ou na base) mostram a taxa"
+                              "\ndo conjunto dos bairros pequenos da sua Região Administrativa")
+assert len(df_criancas_silver) == len(df_original), 'silver de pessoas e silver geral divergem no nº de crianças de 0 a 5'
+print(f"{_numero_ptbr(len(df_criancas_silver))} crianças, {_numero_ptbr(df_criancas_silver['id_familia'].nunique())} famílias; "
+      f"{df_criancas_silver['codbairro'].notna().mean():.1%} com bairro pela ponte")
+
+# %% [markdown]
+# ##### Inclusão: crianças com deficiência, tipo e BPC
+
+# %%
+df_deficiencia_criancas, df_deficiencia_familias = tabela_deficiencia_cadunico(df_criancas_silver)
+df_tipos_deficiencia = tabela_tipos_deficiencia_cadunico(df_criancas_silver)
+df_deficiencia_criancas.to_csv('tabelas_finais/cadunico_deficiencia_criancas_0_a_5_2026.csv', index=False)
+df_deficiencia_familias.to_csv('tabelas_finais/cadunico_deficiencia_familias_0_a_5_2026.csv', index=False)
+df_tipos_deficiencia.to_csv('tabelas_finais/cadunico_tipos_deficiencia_0_a_5_2026.csv', index=False)
+print(df_deficiencia_criancas.to_string(index=False), df_deficiencia_familias.to_string(index=False), sep="\n\n")
+df_tipos_deficiencia
+
+# %%
+# tipos não exclusivos (uma criança pode ter mais de um): as barras não somam o total de crianças com deficiência
+grafico_barra(df_tipos_deficiencia.assign(**{'Tipo de deficiência': df_tipos_deficiencia['Tipo de deficiência'].str.replace(' ', '\n', n=1)}),
+              categoria='Tipo de deficiência', valor='Crianças',
+              titulo='CADÚNICO: Crianças de 0 a 5 anos com deficiência, por tipo',
+              nome_arquivo='cadunico_criancas_por_tipo_deficiencia',
+              fonte_dados=fonte_cadunico_silver + '. Uma criança pode ter mais de um tipo: as barras não somam')
+
+# %%
+_def_bairro = por_bairro_sim_base(df_criancas_silver, 'tem_deficiencia', 'Crianças com deficiência')
+df_deficiencia_bairro_pub = agrega_bairros_pequenos(
+    _def_bairro, ['Crianças', 'Crianças com deficiência', 'Base (Crianças com deficiência)'], ['Crianças'],
+    pares=[('Crianças com deficiência', 'Base (Crianças com deficiência)')],
+    taxas={'% crianças com deficiência': ('Crianças com deficiência', 'Base (Crianças com deficiência)', 100)})
+df_deficiencia_bairro_pub.to_csv('tabelas_finais/tabela_mapa_cadunico_deficiencia_bairro_2026.csv', index=False)
+mapa_coropletico_bairros(
+    df_deficiencia_bairro_pub[df_deficiencia_bairro_pub['codbairro'].notna()], coluna_valor='% crianças com deficiência',
+    titulo='% de crianças de 0 a 5 anos com deficiência no CadÚnico, por bairro',
+    nome_arquivo='mapa_percentual_cadunico_criancas_deficiencia_bairro_2026', chave='codbairro',
+    cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo='% com deficiência', fonte_dados=fonte_mapa_cadunico_silver)
+
+# %% [markdown]
+# ##### Moradia: inadequação, déficit e adensamento (FJP)
+
+# %%
+df_moradia_resumo = tabela_moradia_cadunico(df_criancas_silver)
+df_inadequacao_componentes = tabela_componentes_fjp(df_criancas_silver, _COMPONENTES_INADEQUACAO_FJP)
+df_deficit_componentes = tabela_componentes_fjp(df_criancas_silver, _COMPONENTES_DEFICIT_FJP)
+df_moradia_resumo.to_csv('tabelas_finais/cadunico_moradia_resumo_0_a_5_2026.csv', index=False)
+df_inadequacao_componentes.to_csv('tabelas_finais/cadunico_inadequacao_componentes_0_a_5_2026.csv', index=False)
+df_deficit_componentes.to_csv('tabelas_finais/cadunico_deficit_componentes_0_a_5_2026.csv', index=False)
+print(df_moradia_resumo.to_string(index=False), df_inadequacao_componentes.to_string(index=False), sep="\n\n")
+df_deficit_componentes
+
+# %%
+grafico_barra(df_inadequacao_componentes.assign(Componente=df_inadequacao_componentes['Componente'].str.replace(' ', '\n', n=1)),
+              categoria='Componente', valor='Crianças',
+              titulo='CADÚNICO: Crianças de 0 a 5 anos em domicílio com inadequação habitacional, por componente',
+              nome_arquivo='cadunico_criancas_inadequacao_componentes',
+              fonte_dados=fonte_cadunico_silver + '. Metodologia da Fundação João Pinheiro; componentes não exclusivos')
+
+# %%
+grafico_barra(df_deficit_componentes.assign(Componente=df_deficit_componentes['Componente'].str.replace(' ', '\n', n=1)),
+              categoria='Componente', valor='Crianças',
+              titulo='CADÚNICO: Crianças de 0 a 5 anos em domicílio em déficit habitacional, por componente',
+              nome_arquivo='cadunico_criancas_deficit_componentes',
+              fonte_dados=fonte_cadunico_silver + '. Metodologia da Fundação João Pinheiro; componentes não exclusivos')
+
+# %%
+# um mapa (e uma tabela gêmea) por indicador: a agregação dos bairros pequenos depende do par de cada um -- juntos, o
+# adensamento (89% dos bairros passam sozinhos) herdaria os conjuntos da inadequação (59%)
+for _col, _rot, _titulo, _legenda, _nome in [
+    ('fjp_inadequacao', 'Crianças em inadequação habitacional',
+     '% de crianças de 0 a 5 anos no CadÚnico em domicílio com inadequação habitacional, por bairro', '% inadequação',
+     'inadequacao'),
+    ('adensamento_excessivo', 'Crianças em adensamento excessivo',
+     '% de crianças de 0 a 5 anos no CadÚnico em domicílio com adensamento excessivo, por bairro', '% adensamento',
+     'adensamento'),
+]:
+    _t = por_bairro_sim_base(df_criancas_silver, _col, _rot)
+    _pct = '% ' + _rot[0].lower() + _rot[1:]
+    _pub = agrega_bairros_pequenos(_t, ['Crianças', _rot, f'Base ({_rot})'], ['Crianças'], pares=[(_rot, f'Base ({_rot})')],
+                                   taxas={_pct: (_rot, f'Base ({_rot})', 100)})
+    _pub.to_csv(f'tabelas_finais/tabela_mapa_cadunico_{_nome}_bairro_2026.csv', index=False)
+    mapa_coropletico_bairros(
+        _pub[_pub['codbairro'].notna()], coluna_valor=_pct, titulo=_titulo,
+        nome_arquivo=f'mapa_percentual_cadunico_{_nome}_bairro_2026', chave='codbairro',
+        cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo=_legenda,
+        fonte_dados=fonte_mapa_cadunico_silver + ('.\nInadequação: metodologia da Fundação João Pinheiro'
+                                                  if _nome == 'inadequacao' else '.\nMais de 3 pessoas por dormitório'))
+
+# %% [markdown]
 # #### 📌 Dados pontuais (ago/2026): moradia e deficiência
+#
+# > **Fora do site desde 2026-10-06** (`specs/2026-10-06_cadunico_inclusao_moradia` D1): Inclusão e Moradia usam a
+# > silver nova (subseção acima). A célula fica pela história e porque o deck (`apresentacao/`) ainda lê estas CSVs.
 #
 # Extração **pontual** do CadÚnico enviada pela equipe (município do Rio, referência 08/2026), feita fora da rotina —
 # não vem do banco CTPE, então esta célula roda sem `.env` (`specs/2026-09-29_dados_adhoc`). Entra só por acréscimo
