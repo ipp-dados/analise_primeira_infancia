@@ -40,6 +40,7 @@ __all__ = [
     '_TIPOS_DEFICIENCIA_CADUNICO',
     '_COMPONENTES_INADEQUACAO_FJP',
     '_COMPONENTES_DEFICIT_FJP',
+    '_OUTLIERS_INADEQUACAO_CADUNICO',
     'carrega_criancas_cadunico_silver',
     'sim_base',
     'tabela_deficiencia_cadunico',
@@ -492,6 +493,11 @@ _COMPONENTES_DEFICIT_FJP = {
     'fjp_deficit_rustico': 'Domicílio rústico',
     'fjp_deficit_coabitacao': 'Coabitação',
 }
+
+# bairros tratados como valor atípico no mapa de % de inadequação (decisão do usuário, 2026-10-06): ficam na cor
+# máxima, nomeados no rodapé, e a escala vai até o maior dos demais. 34 = Alto da Boa Vista (44,1%, ~2x o 2º maior).
+# O site usa o mesmo código (website/build/build_site.py, mapa de inadequação)
+_OUTLIERS_INADEQUACAO_CADUNICO = [34]
 
 # indicadores do resumo de moradia: coluna -> (rótulo, valor que conta como caso)
 _INDICADORES_MORADIA_CADUNICO = {

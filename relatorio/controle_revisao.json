@@ -1014,6 +1014,19 @@
     "residencia_2026-09-30"
    ],
    "obs": "2026-09-30: números refeitos com o filtro de município de residência no Tabnet (specs/2026-09-30_filtro_residencia_tabnet); mesma redação; revisar"
+  },
+  "cadunico_criancas_por_idade": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_1",
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "cadunico_2026-10-06"
+   ],
+   "obs": "2026-10-06: números da partição de jul/2026 do CadÚnico (specs/2026-10-06_cadunico_inclusao_moradia): 11.328 -> 15.415 crianças de 0 anos, 43.187 -> 43.242 de 5 anos; mesma redação; revisar"
   }
  }
 }

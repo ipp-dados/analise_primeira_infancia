@@ -1812,9 +1812,9 @@ _def_fam = read("cadunico_deficiencia_familias_0_a_5_2026.csv").set_index("Indic
 _def_tipos = read("cadunico_tipos_deficiencia_0_a_5_2026.csv")
 _def_mapa = read("tabela_mapa_cadunico_deficiencia_bairro_2026.csv")
 
-def _mapa_cadunico_silver(df, col, titulo, legenda):
-    return mapa_svg(df, "codbairro", col, "cadunico", titulo, legenda, FONTE_MAPA_CADUNICO_SILVER, fmt="pct1",
-                    col_suprimido="suprimido", col_agregado="agregado_em")
+def _mapa_cadunico_silver(df, col, titulo, legenda, teto=None, nota=""):
+    return mapa_svg(df, "codbairro", col, "cadunico", titulo, legenda, FONTE_MAPA_CADUNICO_SILVER + nota, fmt="pct1",
+                    col_suprimido="suprimido", col_agregado="agregado_em", teto=teto)
 
 h3("Crianças no CadÚnico com alguma deficiência")
 _cd = _def_cri.loc["Crianças com deficiência"]
@@ -2156,6 +2156,15 @@ _inad_comp = read("cadunico_inadequacao_componentes_0_a_5_2026.csv")
 _def_comp = read("cadunico_deficit_componentes_0_a_5_2026.csv")
 _inad_mapa = read("tabela_mapa_cadunico_inadequacao_bairro_2026.csv")
 _aden_mapa = read("tabela_mapa_cadunico_adensamento_bairro_2026.csv")
+# valor atípico (decisão do usuário, 2026-10-06; mesmo código de _OUTLIERS_INADEQUACAO_CADUNICO em
+# primeira_infancia/cadunico.py): Alto da Boa Vista na cor máxima, escala até o maior dos demais bairros
+_OUTLIERS_INAD = [34]
+_inad_b = _inad_mapa[_inad_mapa["codbairro"].notna()]
+_inad_out = _inad_b[_inad_b["codbairro"].isin(_OUTLIERS_INAD)]
+_TETO_INAD = float(_inad_b.loc[~_inad_b["codbairro"].isin(_OUTLIERS_INAD), "% crianças em inadequação habitacional"].max())
+_NOTA_INAD = ("; valor atípico, na cor máxima: " + "; ".join(
+    f'{r["bairro"]} ({_fmt_ptbr(r["% crianças em inadequação habitacional"], 1)}%)' for _, r in _inad_out.iterrows())
+    + f"; escala de cor até {_fmt_ptbr(_TETO_INAD, 1)}%")
 
 def _cartao_moradia(indicador, rotulo):
     l = _mor.loc[indicador]
@@ -2181,7 +2190,8 @@ option_card([
 ], 'grafico')
 option_card([
     ("% inadequação", lambda: _mapa_cadunico_silver(_inad_mapa, "% crianças em inadequação habitacional",
-        "% de crianças de 0 a 5 anos no CadÚnico em domicílio com inadequação habitacional, por bairro", "% inadequação"),
+        "% de crianças de 0 a 5 anos no CadÚnico em domicílio com inadequação habitacional, por bairro", "% inadequação",
+        teto=_TETO_INAD, nota=_NOTA_INAD),
      "mapa_percentual_cadunico_inadequacao_bairro_2026"),
 ], 'mapa')
 
