@@ -1,0 +1,17 @@
+indicador,coluna_silver,bloco,grupo,universo,regra_sim,fidelidade_fjp
+Domicílio improvisado,fjp_deficit_improvisado,Déficit habitacional,Componente,Todos os domicílios,especie_domicilio = Particular Improvisado,Igual à FJP (que usa o CadÚnico)
+Domicílio rústico,fjp_deficit_rustico,Déficit habitacional,Componente,Domicílio particular permanente,"material_parede em {Taipa não-revestida, Madeira aproveitada, Palha, Outro material}",Aproximação: parede que não é alvenaria nem madeira aparelhada
+Coabitação,fjp_deficit_coabitacao,Déficit habitacional,Componente,Todos os domicílios,n_familias_domicilio >= 2 e n_pessoas_domicilio / n_dormitorios > 2,Aproximação: FJP usa parentesco (PNAD); CadÚnico só tem nº de famílias
+Ônus excessivo com aluguel,fjp_deficit_onus_aluguel,Déficit habitacional,Componente,Domicílio urbano e particular permanente,despesa_aluguel > 0 e renda_familiar <= 3 salários mínimos e despesa_aluguel > 30% da renda_familiar,Aproximação: renda da família (FJP: renda do domicílio)
+Déficit habitacional,fjp_deficit,Déficit habitacional,Síntese,Todos os domicílios,algum componente do déficit = Sim,Indicador ao menos um
+Iluminação não elétrica,fjp_inadequacao_energia,Inadequação,Infraestrutura,"Urbano, permanente e não rústico","iluminacao em {Óleo, Querosene Ou Gás; Vela; Outra Forma}",Elétrica sem medidor é adequada
+Água,fjp_inadequacao_agua,Inadequação,Infraestrutura,"Urbano, permanente e não rústico","agua_canalizada = Não ou abastecimento_agua em {Poço Ou Nascente, Cisterna, Outra Forma}",Alinhada à FJP
+Esgoto,fjp_inadequacao_esgoto,Inadequação,Infraestrutura,"Urbano, permanente e não rústico","escoamento_sanitario em {Fossa rudimentar, Vala a céu aberto, Direto para um rio lago ou mar, Outra forma}",Rede coletora e fossa séptica são adequadas
+Lixo,fjp_inadequacao_lixo,Inadequação,Infraestrutura,"Urbano, permanente e não rústico","destino_lixo em {queimado ou enterrado na propriedade, jogado em terreno baldio ou logradouro, jogado em rio lago ou mar}",Tem outro destino é adequado
+Banheiro,fjp_inadequacao_banheiro,Inadequação,Edilícia,"Urbano, permanente e não rústico",banheiro = Não,Aproximação: CadÚnico não diz se o banheiro é exclusivo
+Cômodos,fjp_inadequacao_comodos,Inadequação,Edilícia,"Urbano, permanente e não rústico",n_comodos > 0 e n_comodos = n_dormitorios,Todos os cômodos usados como dormitório
+Piso,fjp_inadequacao_piso,Inadequação,Edilícia,"Urbano, permanente e não rústico",material_piso = Terra,Alinhada à FJP
+Inadequação de infraestrutura,fjp_inadequacao_infraestrutura,Inadequação,Síntese,"Urbano, permanente e não rústico",algum componente de infraestrutura = Sim,Indicador ao menos um
+Inadequação edilícia,fjp_inadequacao_edilicia,Inadequação,Síntese,"Urbano, permanente e não rústico",algum componente edilício = Sim,Indicador ao menos um
+Inadequação habitacional,fjp_inadequacao,Inadequação,Síntese,"Urbano, permanente e não rústico",algum dos sete componentes = Sim,Indicador ao menos um
+Adensamento excessivo,adensamento_excessivo,Complementar,—,Todos os domicílios,n_pessoas_domicilio / n_dormitorios > 2,Não é componente FJP; catálogo da equipe diz acima de 3 (divergência levada ao usuário)

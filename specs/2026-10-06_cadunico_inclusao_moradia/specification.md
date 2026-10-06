@@ -66,6 +66,18 @@ Decididas na planificação (para revisão):
 - **D9** — PDF: não regerado em `staging_main`. Na `demo`, só a página de aviso muda (data); as 18 páginas impressas
   ficam como estão.
 
+Decididas depois da implementação (usuário, 2026-10-06):
+- **D10** — **"até 72 meses"** no lugar de "0 a 5 anos" em todo texto escrito do site (títulos, sumário, cartões, notas,
+  títulos de gráfico e mapa, rótulos de tabela da silver nova), em todas as abas; os títulos renomeados guardam o id
+  antigo (`antigo=`). Ficam: "0 a 4 anos" (Censo por bairro), "menores de 5 anos" (mortalidade), faixas em dias, chaves de
+  dado, as notas que explicam a faixa ("até 72 meses (0 a 5 anos completos)") e os **textos curados** (rodada de textos).
+  As PNG de outras seções (PDF, deck) ficam para a atualização do relatório.
+- **D11** — critérios FJP explicados e exportados (`docs/criterios_fjp_cadunico.md`/`.csv`), a partir do ETL do CTPE
+  (`Analise_cad_unico`, `src/cadunico_etl/moradia.py`). Rótulos ajustados à regra real (sem banheiro, não "exclusivo";
+  todos os cômodos como dormitório; iluminação não elétrica; piso de terra). **Adensamento**: o CTPE usa **mais de 2
+  pessoas por dormitório**; o catálogo diz "acima de 3". O site diz o que o dado mede (mais de 2); a escolha do limite fica
+  com o usuário (ROADMAP).
+
 ## 3. Requisitos — escopo proposto
 
 Todas as saídas: fonte `fonte_cadunico_com_particao` (jul/2026), nível município ou bairro (ponte), privacidade §6.

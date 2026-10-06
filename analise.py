@@ -971,7 +971,7 @@ df_tipos_deficiencia
 # tipos não exclusivos (uma criança pode ter mais de um): as barras não somam o total de crianças com deficiência
 grafico_barra(df_tipos_deficiencia.assign(**{'Tipo de deficiência': df_tipos_deficiencia['Tipo de deficiência'].str.replace(' ', '\n', n=1)}),
               categoria='Tipo de deficiência', valor='Crianças',
-              titulo='CADÚNICO: Crianças de 0 a 5 anos com deficiência, por tipo',
+              titulo='CADÚNICO: Crianças até 72 meses com deficiência, por tipo',
               nome_arquivo='cadunico_criancas_por_tipo_deficiencia',
               fonte_dados=fonte_cadunico_silver + '. Uma criança pode ter mais de um tipo: as barras não somam')
 
@@ -984,7 +984,7 @@ df_deficiencia_bairro_pub = agrega_bairros_pequenos(
 df_deficiencia_bairro_pub.to_csv('tabelas_finais/tabela_mapa_cadunico_deficiencia_bairro_2026.csv', index=False)
 mapa_coropletico_bairros(
     df_deficiencia_bairro_pub[df_deficiencia_bairro_pub['codbairro'].notna()], coluna_valor='% crianças com deficiência',
-    titulo='% de crianças de 0 a 5 anos com deficiência no CadÚnico, por bairro',
+    titulo='% de crianças até 72 meses com deficiência no CadÚnico, por bairro',
     nome_arquivo='mapa_percentual_cadunico_criancas_deficiencia_bairro_2026', chave='codbairro',
     cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo='% com deficiência', fonte_dados=fonte_mapa_cadunico_silver)
 
@@ -1004,14 +1004,14 @@ df_deficit_componentes
 # %%
 grafico_barra(df_inadequacao_componentes.assign(Componente=df_inadequacao_componentes['Componente'].str.replace(' ', '\n', n=1)),
               categoria='Componente', valor='Crianças',
-              titulo='CADÚNICO: Crianças de 0 a 5 anos em domicílio com inadequação habitacional, por componente',
+              titulo='CADÚNICO: Crianças até 72 meses em domicílio com inadequação habitacional, por componente',
               nome_arquivo='cadunico_criancas_inadequacao_componentes',
               fonte_dados=fonte_cadunico_silver + '. Metodologia da Fundação João Pinheiro; componentes não exclusivos')
 
 # %%
 grafico_barra(df_deficit_componentes.assign(Componente=df_deficit_componentes['Componente'].str.replace(' ', '\n', n=1)),
               categoria='Componente', valor='Crianças',
-              titulo='CADÚNICO: Crianças de 0 a 5 anos em domicílio em déficit habitacional, por componente',
+              titulo='CADÚNICO: Crianças até 72 meses em domicílio em déficit habitacional, por componente',
               nome_arquivo='cadunico_criancas_deficit_componentes',
               fonte_dados=fonte_cadunico_silver + '. Metodologia da Fundação João Pinheiro; componentes não exclusivos')
 
@@ -1020,10 +1020,10 @@ grafico_barra(df_deficit_componentes.assign(Componente=df_deficit_componentes['C
 # adensamento (89% dos bairros passam sozinhos) herdaria os conjuntos da inadequação (59%)
 for _col, _rot, _titulo, _legenda, _nome in [
     ('fjp_inadequacao', 'Crianças em inadequação habitacional',
-     '% de crianças de 0 a 5 anos no CadÚnico em domicílio com inadequação habitacional, por bairro', '% inadequação',
+     '% de crianças até 72 meses no CadÚnico em domicílio com inadequação habitacional, por bairro', '% inadequação',
      'inadequacao'),
     ('adensamento_excessivo', 'Crianças em adensamento excessivo',
-     '% de crianças de 0 a 5 anos no CadÚnico em domicílio com adensamento excessivo, por bairro', '% adensamento',
+     '% de crianças até 72 meses no CadÚnico em domicílio com adensamento excessivo, por bairro', '% adensamento',
      'adensamento'),
 ]:
     _t = por_bairro_sim_base(df_criancas_silver, _col, _rot)
@@ -1031,7 +1031,7 @@ for _col, _rot, _titulo, _legenda, _nome in [
     _pub = agrega_bairros_pequenos(_t, ['Crianças', _rot, f'Base ({_rot})'], ['Crianças'], pares=[(_rot, f'Base ({_rot})')],
                                    taxas={_pct: (_rot, f'Base ({_rot})', 100)})
     _pub.to_csv(f'tabelas_finais/tabela_mapa_cadunico_{_nome}_bairro_2026.csv', index=False)
-    _nota_mapa = '.\nMais de 3 pessoas por dormitório'
+    _nota_mapa = '.\nMais de 2 pessoas por dormitório'
     _teto = None
     if _nome == 'inadequacao':
         # outlier (decisão do usuário, 2026-10-06): Alto da Boa Vista, 44,1% (83 de 188 crianças), é ~2x o segundo maior
