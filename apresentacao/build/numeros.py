@@ -750,6 +750,53 @@ def incl_n_bairros_sozinhos():
     return fmt_int(len(_incl_bairros()))
 
 
+@numero
+def incl_top3_bairros_n():
+    """'Campo Grande (446), Santa Cruz (421) e Guaratiba (273)': bairros com mais crianças com deficiência."""
+    t = _incl_bairros().nlargest(3, "Crianças com deficiência")
+    itens = [f'{b} ({fmt_int(n)})' for b, n in zip(t["bairro"], t["Crianças com deficiência"])]
+    return ", ".join(itens[:-1]) + " e " + itens[-1]
+
+
+@numero
+def incl_n_bairros_somados():
+    d = _csv("tabela_mapa_cadunico_deficiencia_bairro_2026.csv")
+    return fmt_int(d["agregado_em"].notna().sum())
+
+
+@numero
+def incl_criancas_conjuntos():
+    """Crianças com deficiência nos conjuntos 'Demais bairros…' (bairros pequenos somados por RA)."""
+    d = _csv("tabela_mapa_cadunico_deficiencia_bairro_2026.csv")
+    return fmt_int(d.loc[d["codbairro"].isna(), "Crianças com deficiência"].sum())
+
+
+@numero
+def incl_familias_cadunico():
+    return fmt_int(_incl_familias().iloc[0]["Famílias"])
+
+
+@numero
+def incl_pct_sem_bpc():
+    f = _incl_familias().loc["Delas, recebem BPC por deficiência"]
+    return fmt_pct(100 - f["%"])
+
+
+@numero
+def incl_tipo1_n():
+    return _incl_tipo(0, "n")
+
+
+@numero
+def incl_tipo2_n():
+    return _incl_tipo(1, "n")
+
+
+@numero
+def incl_tipo3_n():
+    return _incl_tipo(2, "n")
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     for k in _NUMEROS:
