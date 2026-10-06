@@ -85,6 +85,15 @@ MAPAS = {
         fonte=_FONTE_SINAN + ", por bairro de residência (2025); soma dos vínculos mãe e pai"),
     # specs/2026-10-06_deck_inclusao: só a variante variantes/inclusao.md; tira as linhas de conjunto ("Demais bairros…",
     # sem codbairro) -- os bairros somados já trazem a taxa do conjunto
+    # contagem (classes discretas, convenção do projeto); bairros somados por RA ficam sem cor -- o total do conjunto
+    # está na tabela e na nota do slide
+    "apres_cadunico_deficiencia_n_bairro": dict(
+        tabela="tabela_mapa_cadunico_deficiencia_bairro_2026.csv", prepara=lambda d: d[d["codbairro"].notna()].copy(),
+        coluna="Crianças com deficiência", chave="codbairro", nivel="bairro",
+        titulo="Crianças até 72 meses com deficiência no CadÚnico, por bairro (número)", tema="cadunico",
+        bins=[30, 50, 100, 200], legenda="Crianças com\ndeficiência",
+        fonte="CadÚnico (extração CTPE, jul/2026); bairro pelo CEP da família; bairros com menos de 20 casos somados aos "
+              "da mesma Região Administrativa ficam sem cor"),
     "apres_cadunico_deficiencia_bairro": dict(
         tabela="tabela_mapa_cadunico_deficiencia_bairro_2026.csv", prepara=lambda d: d[d["codbairro"].notna()].copy(),
         coluna="% crianças com deficiência", chave="codbairro", nivel="bairro",
