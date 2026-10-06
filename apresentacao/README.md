@@ -47,4 +47,10 @@ mapa com terra azul, nota explicando todo tratamento de valores extremos.
 
 Copie `apresentacao.md` para `variantes/<nome>.md`, mude o cabeçalho (`secretaria`, `publico`, `blocos`, `data`) e
 apague ou acrescente slides. Gere com `python apresentacao/build/gera_apresentacao.py variantes/<nome>.md`.
-Exemplo: `variantes/exemplo_secretaria.md` (secretaria na capa, sem o roteiro de demonstração).
+Exemplo: `variantes/exemplo_secretaria.md` (secretaria na capa, sem o roteiro de demonstração). O caminho é a partir da
+raiz do repositório: `python apresentacao/build/gera_apresentacao.py apresentacao/variantes/<nome>.md`.
+
+**Variante breve do eixo Inclusão** (`variantes/inclusao.md`, 8 slides, `specs/2026-10-06_deck_inclusao`): números `incl_*`
+de `build/numeros.py` e o mapa `apres_cadunico_deficiencia_bairro`; publicada como
+`apresentacao_primeira_infancia_inclusao.pptx/.pdf`. Rodapé longo no cabeçalho é seguro (o gerador não quebra mais a
+linha do YAML, que fazia o Marp ignorar o tema).

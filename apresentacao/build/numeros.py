@@ -612,6 +612,144 @@ def adhoc_bpc_n_4_6():
     return fmt_int(_deficiencia_adhoc().loc["4 a 6 anos", "Com BPC"])
 
 
+# ---------------------------------------------------------------- Inclusão (silver do CadÚnico, jul/2026)
+# specs/2026-10-06_deck_inclusao: só a variante variantes/inclusao.md usa estas chaves; crianças até 72 meses
+def _incl_criancas():
+    return _csv("cadunico_deficiencia_criancas_0_a_5_2026.csv").set_index("Indicador")
+
+
+def _incl_familias():
+    return _csv("cadunico_deficiencia_familias_0_a_5_2026.csv").set_index("Indicador")
+
+
+def _incl_tipos():
+    return _csv("cadunico_tipos_deficiencia_0_a_5_2026.csv")
+
+
+def _incl_bairros():
+    """Bairros publicados sozinhos (fora dos conjuntos "Demais bairros…" da regra de privacidade)."""
+    d = _csv("tabela_mapa_cadunico_deficiencia_bairro_2026.csv")
+    return d[d["codbairro"].notna() & d["agregado_em"].isna()]
+
+
+@numero
+def incl_particao():
+    """Mês da extração (partição da silver), por extenso: 'julho de 2026'."""
+    meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro",
+             "novembro", "dezembro"]
+    d = pd.Timestamp(_csv("cadunico_razao_populacao_0_a_5_2026.csv")["data_particao"].iloc[0])
+    return f"{meses[d.month - 1]} de {d.year}"
+
+
+@numero
+def incl_criancas_cadunico():
+    return fmt_int(_incl_criancas().iloc[0]["Crianças"])
+
+
+@numero
+def incl_criancas_deficiencia():
+    return fmt_int(_incl_criancas().loc["Crianças com deficiência", "Crianças"])
+
+
+@numero
+def incl_pct_criancas_deficiencia():
+    return fmt_pct(_incl_criancas().loc["Crianças com deficiência", "%"])
+
+
+@numero
+def incl_familias_deficiencia():
+    return fmt_int(_incl_familias().loc["Famílias com criança com deficiência", "Famílias"])
+
+
+@numero
+def incl_pct_familias_deficiencia():
+    return fmt_pct(_incl_familias().loc["Famílias com criança com deficiência", "%"])
+
+
+@numero
+def incl_bpc_familias():
+    return fmt_int(_incl_familias().loc["Delas, recebem BPC por deficiência", "Famílias"])
+
+
+@numero
+def incl_bpc_base():
+    return fmt_int(_incl_familias().loc["Delas, recebem BPC por deficiência", "Base"])
+
+
+@numero
+def incl_pct_bpc():
+    return fmt_pct(_incl_familias().loc["Delas, recebem BPC por deficiência", "%"])
+
+
+@numero
+def incl_bpc_sem_info():
+    return fmt_int(_incl_familias().loc["Delas, sem informação de BPC", "Famílias"])
+
+
+@numero
+def incl_sem_bpc():
+    f = _incl_familias()
+    return fmt_int(f.loc["Delas, recebem BPC por deficiência", "Base"] - f.loc["Delas, recebem BPC por deficiência", "Famílias"])
+
+
+def _incl_tipo(i, campo):
+    t = _incl_tipos().iloc[i]
+    return {"nome": t["Tipo de deficiência"].lower(), "n": fmt_int(t["Crianças"]),
+            "pct": fmt_pct(t["% das crianças com deficiência"], 0)}[campo]
+
+
+@numero
+def incl_tipo1_nome():
+    return _incl_tipo(0, "nome")
+
+
+@numero
+def incl_tipo1_pct():
+    return _incl_tipo(0, "pct")
+
+
+@numero
+def incl_tipo2_nome():
+    return _incl_tipo(1, "nome")
+
+
+@numero
+def incl_tipo2_pct():
+    return _incl_tipo(1, "pct")
+
+
+@numero
+def incl_tipo3_nome():
+    return _incl_tipo(2, "nome")
+
+
+@numero
+def incl_tipo3_pct():
+    return _incl_tipo(2, "pct")
+
+
+@numero
+def incl_mediana_bairros():
+    return fmt_pct(_incl_bairros()["% crianças com deficiência"].median())
+
+
+@numero
+def incl_bairro_min():
+    b = _incl_bairros().sort_values("% crianças com deficiência").iloc[0]
+    return f'{b["bairro"]} ({fmt_pct(b["% crianças com deficiência"])})'
+
+
+@numero
+def incl_bairro_max():
+    b = _incl_bairros().sort_values("% crianças com deficiência").iloc[-1]
+    return f'{b["bairro"]} ({fmt_pct(b["% crianças com deficiência"])})'
+
+
+@numero
+def incl_n_bairros_sozinhos():
+    return fmt_int(len(_incl_bairros()))
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     for k in _NUMEROS:
