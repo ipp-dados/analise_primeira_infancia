@@ -7,4 +7,4 @@
 | V3 | Mapa com escala contínua, nota de extremos (Tukey) e de bairros somados; fonte com a partição | OK — escala contínua, Tukey (teto 5,3; 6 bairros nomeados no rodapé), nota de bairros somados por RA |
 | V4 | Conferência visual dos slides (PNG) | OK — 8 PNG conferidas. Achado: o tema não era aplicado (rodapé longo quebrado pelo `yaml.safe_dump` -> Marp ignorava o front matter); corrigido no gerador (`width`) |
 | V5 | `apresentacao.md` e os PDFs/PPTX do deck principal não mudam | OK — `apresentacao.md` e `apresentacao_primeira_infancia.pdf/.pptx` sem mudança (o rodapé do deck principal é curto: mesmo front matter) |
-| V6 | Demo: site regerado sem lorem/pendente; nada da demo em `staging_main` | |
+| V6 | Demo: site regerado sem lorem/pendente; nada da demo em `staging_main` | OK — "Demo OK: 83 textos provisórios, sem lorem, sem pendentes"; site sem mudança de conteúdo nesta rodada; `demo` fora da história de `staging_main` |
