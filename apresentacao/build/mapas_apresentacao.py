@@ -83,6 +83,15 @@ MAPAS = {
         chave="codbairro", nivel="bairro", titulo="Notificações de violência familiar por bairro — mãe ou pai (2025)",
         tema="protecao", bins=[10, 30, 60, 120], zero_branco=True, legenda="Notificações\n(mãe + pai)",
         fonte=_FONTE_SINAN + ", por bairro de residência (2025); soma dos vínculos mãe e pai"),
+    # specs/2026-10-06_deck_inclusao: só a variante variantes/inclusao.md; tira as linhas de conjunto ("Demais bairros…",
+    # sem codbairro) -- os bairros somados já trazem a taxa do conjunto
+    "apres_cadunico_deficiencia_bairro": dict(
+        tabela="tabela_mapa_cadunico_deficiencia_bairro_2026.csv", prepara=lambda d: d[d["codbairro"].notna()].copy(),
+        coluna="% crianças com deficiência", chave="codbairro", nivel="bairro",
+        titulo="% de crianças até 72 meses com deficiência no CadÚnico, por bairro", tema="cadunico",
+        legenda="% com deficiência",
+        fonte="CadÚnico (extração CTPE, jul/2026); bairro pelo CEP da família; bairros com menos de 20 casos somados aos "
+              "da mesma Região Administrativa"),
 }
 
 GRAFICOS = {

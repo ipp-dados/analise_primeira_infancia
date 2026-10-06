@@ -62,8 +62,8 @@ permanentes e não rústicos**; fora dele, "Não se aplica" (é o caso dos impro
 | Adensamento excessivo | **mais de 2 pessoas por dormitório** (pessoas no domicílio ÷ dormitórios), em qualquer domicílio |
 
 O limite de 2 é o de densidade que a FJP usa na coabitação. **O catálogo de indicadores da equipe diz "acima de 3 por
-dormitório"** (o critério da FJP para adensamento de domicílio próprio): a diferença foi levada ao usuário
-(`specs/2026-10-06_cadunico_inclusao_moradia` D11). Os títulos do site dizem o que o dado mede (mais de 2).
+dormitório"** (o critério da FJP para adensamento de domicílio próprio). **Decisão do usuário (2026-10-06): fica o limite
+de mais de 2, também no título** (`specs/2026-10-06_cadunico_inclusao_moradia` D11).
 
 ## 4. Resultado para as crianças até 72 meses (partição de 10/07/2026)
 
