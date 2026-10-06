@@ -476,22 +476,23 @@ _TIPOS_DEFICIENCIA_CADUNICO = {
     'deficiencia_cegueira': 'Cegueira',
 }
 
-# componentes da inadequação (Fundação João Pinheiro), com o grupo a que pertencem
+# componentes da inadequação (Fundação João Pinheiro), com o grupo a que pertencem. Rótulos = regra do ETL do CTPE
+# (repositório Analise_cad_unico, src/cadunico_etl/moradia.py; critérios em docs/criterios_fjp_cadunico.md)
 _COMPONENTES_INADEQUACAO_FJP = {
-    'fjp_inadequacao_agua': ('Abastecimento de água', 'Infraestrutura'),
-    'fjp_inadequacao_esgoto': ('Esgotamento sanitário', 'Infraestrutura'),
-    'fjp_inadequacao_lixo': ('Coleta de lixo', 'Infraestrutura'),
-    'fjp_inadequacao_energia': ('Energia elétrica', 'Infraestrutura'),
-    'fjp_inadequacao_banheiro': ('Sem banheiro exclusivo', 'Edilícia'),
-    'fjp_inadequacao_comodos': ('Cômodos', 'Edilícia'),
-    'fjp_inadequacao_piso': ('Piso inadequado', 'Edilícia'),
+    'fjp_inadequacao_agua': ('Água sem canalização ou fora da rede geral', 'Infraestrutura'),
+    'fjp_inadequacao_esgoto': ('Esgoto inadequado (fossa rudimentar, vala, rio ou mar)', 'Infraestrutura'),
+    'fjp_inadequacao_lixo': ('Lixo queimado, enterrado ou jogado', 'Infraestrutura'),
+    'fjp_inadequacao_energia': ('Iluminação não elétrica', 'Infraestrutura'),
+    'fjp_inadequacao_banheiro': ('Sem banheiro', 'Edilícia'),
+    'fjp_inadequacao_comodos': ('Todos os cômodos usados como dormitório', 'Edilícia'),
+    'fjp_inadequacao_piso': ('Piso de terra', 'Edilícia'),
 }
 
 _COMPONENTES_DEFICIT_FJP = {
     'fjp_deficit_onus_aluguel': 'Ônus excessivo com aluguel',
     'fjp_deficit_improvisado': 'Domicílio improvisado',
     'fjp_deficit_rustico': 'Domicílio rústico',
-    'fjp_deficit_coabitacao': 'Coabitação',
+    'fjp_deficit_coabitacao': 'Coabitação (aproximação)',
 }
 
 # bairros tratados como valor atípico no mapa de % de inadequação (decisão do usuário, 2026-10-06): ficam na cor
@@ -505,7 +506,7 @@ _INDICADORES_MORADIA_CADUNICO = {
     'fjp_inadequacao_infraestrutura': ('Inadequação de infraestrutura', 'Sim'),
     'fjp_inadequacao_edilicia': ('Inadequação edilícia', 'Sim'),
     'fjp_deficit': ('Déficit habitacional (FJP)', 'Sim'),
-    'adensamento_excessivo': ('Adensamento excessivo (mais de 3 pessoas por dormitório)', 'Sim'),
+    'adensamento_excessivo': ('Adensamento excessivo (mais de 2 pessoas por dormitório)', 'Sim'),
     'banheiro': ('Domicílio sem banheiro', 'Não'),
     'agua_canalizada': ('Domicílio sem água canalizada', 'Não'),
 }
@@ -546,7 +547,7 @@ def tabela_deficiencia_cadunico(criancas):
     5 com deficiência e, dessas, as que recebem BPC por deficiência (atributo da família, A3: vazio = não informado)."""
     casos, base = sim_base(criancas['tem_deficiencia'])
     t_cri = pd.DataFrame([
-        {'Indicador': 'Crianças de 0 a 5 anos no CadÚnico', 'Crianças': len(criancas), 'Base': np.nan, '%': np.nan},
+        {'Indicador': 'Crianças até 72 meses no CadÚnico', 'Crianças': len(criancas), 'Base': np.nan, '%': np.nan},
         _linha_pct('Crianças com deficiência', casos, base, 'Crianças'),
     ])
     fam = criancas.groupby('id_familia').agg(defic=('tem_deficiencia', lambda s: (s == 'Sim').any()),
@@ -554,7 +555,7 @@ def tabela_deficiencia_cadunico(criancas):
     com_def = fam[fam['defic']]
     bpc, bpc_base = sim_base(com_def['bpc'])
     t_fam = pd.DataFrame([
-        {'Indicador': 'Famílias com criança de 0 a 5 anos', 'Famílias': len(fam), 'Base': np.nan, '%': np.nan},
+        {'Indicador': 'Famílias com criança até 72 meses', 'Famílias': len(fam), 'Base': np.nan, '%': np.nan},
         _linha_pct('Famílias com criança com deficiência', len(com_def), len(fam), 'Famílias'),
         _linha_pct('Delas, recebem BPC por deficiência', bpc, bpc_base, 'Famílias'),
         {'Indicador': 'Delas, sem informação de BPC', 'Famílias': len(com_def) - bpc_base, 'Base': np.nan, '%': np.nan},
