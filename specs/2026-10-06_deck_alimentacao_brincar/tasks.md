@@ -9,4 +9,5 @@ Legenda: [x] feito · [ ] a fazer
 - [x] T5 Variantes `alimentacao.md` e `direito_brincar.md`
 - [x] T6 Gerar, conferir (PNG) e publicar
 - [x] T7 README, ROADMAP, commit, merge em `staging_main`
-- [ ] T8 Confirmar com a equipe: fonte/data do dado de insegurança alimentar; unidade das taxas de ação policial e jovens negros
+- [x] T9 Fonte do dado pontual no slide 8: Territórios Sociais (IPP/ONU-Habitat) (D10)
+- [ ] T8 Confirmar com a equipe: data e método do dado de insegurança alimentar; unidade das taxas de ação policial e jovens negros
