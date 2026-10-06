@@ -22,14 +22,14 @@ corrigido. Inclusão (deficiência, tipo, BPC da família) e Moradia (inadequaç
 silvers novas `silver_cadunico_pessoas`/`_familias`, com bairro pela ponte CEP → código do CTPE, e substituem os 6
 pendentes e os 3 itens de dado pontual no site; textos novos em lorem (site) e provisórios (demo; V.1 em 13/10/2026).
 Falta:
-1. **Rodada de textos** (próxima spec): textos das 10 chaves novas e revisão dos textos curados que citam números do
-   CadÚnico de jun/2026 (lista em `specs/2026-10-06_cadunico_inclusao_moradia/validation.md`).
+1. **Rodada de textos** (próxima spec): textos das 10 chaves novas. O único texto curado com números de jun/2026
+   (`cadunico_criancas_por_idade`) já foi atualizado (mesma redação, status "atualizado").
 2. **PDF** (não atualizado nesta rodada, D9): entradas das tabelas novas em `relatorio/latex/build/tabelas.py` e fonte
    em `fontes.bib`; regerar e publicar com OK.
 3. **Deck**: o slide "Primeiros números de Inclusão e Moradia" ainda lê o dado pontual (`cadunico_adhoc_*`).
-4. Diferença entre o dado pontual (25.995 crianças de 0 a 6 com deficiência, ago/2026) e a silver (7.919 de 0 a 5,
-   jul/2026) — perguntar à equipe que fez a extração (A2).
-5. Push de `staging_main`/`demo` e deploy (seção abaixo), com OK.
+4. **Pendente — revisão do usuário** (2026-10-06): diferença entre o dado pontual (25.995 crianças de 0 a 6 com
+   deficiência, ago/2026) e a silver (7.919 de 0 a 5, jul/2026); a faixa de 6 anos não explica 3× (A2).
+5. Push de `staging_main`/`demo` e deploy (seção abaixo), com OK — a conferir depois (usuário, 2026-10-06).
 
 ## 00. Pendente para 2026-10-01: push e deploy
 
