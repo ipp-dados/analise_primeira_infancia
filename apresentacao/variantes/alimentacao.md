@@ -200,7 +200,7 @@ Percentuais recalculados das contagens (o site mostra a obesidade de 2009 como 0
 
 Dado do programa **Territórios Sociais** (IPP/ONU-Habitat): concentração das famílias em insegurança alimentar **nos territórios atendidos pelo programa**, na fase de expansão.
 
-As maiores concentrações aparecem nas Coordenadorias de Área Programática de Saúde (CAPs) **5.3, 5.1, 3.2, 2.2 e 4.0**.
+O mapa mostra os limites das Coordenadorias de Área Programática de Saúde (CAP).
 
 <p class="nota">Dado pontual: mostra só os territórios do programa, não a cidade inteira — áreas sem cor não significam ausência de insegurança alimentar.</p>
 
@@ -216,8 +216,38 @@ As maiores concentrações aparecem nas Coordenadorias de Área Programática de
 
 <!--
 Dado ad hoc (apresentacao/variantes/alimentacao_adhoc/). Só nesta apresentação: dado pontual não vai para o relatório nem
-para a versão final do site (constitution §3). Fonte: Territórios Sociais (IPP/ONU-Habitat), informada pelo usuário em 2026-10-06. Confirmar com a equipe: data, o que é "fase de expansão" e
-como foi medida a insegurança alimentar (escala, ex. EBIA). A leitura das CAPs é visual (mapa de calor, sem números).
+para a versão final do site (constitution §3). Fonte: Territórios Sociais (IPP/ONU-Habitat), informada pelo usuário em
+2026-10-06. Confirmar com a equipe: data, o que é "fase de expansão" e como foi medida a insegurança alimentar (escala,
+ex. EBIA). A leitura do próximo slide é visual (mapa de calor, sem números).
+-->
+
+---
+<div class="kicker">Eixo Alimentação · Dado pontual · Territórios Sociais</div>
+
+# CAP 5.3: muitos territórios; leste: menos territórios, concentração mais alta
+
+<div class="lado baixo">
+<div>
+
+Na **CAP 5.3** há **muitos territórios** com insegurança alimentar.
+
+Na **porção leste** da cidade (CAPs 3.2, 1.0 e 2.2) há **menos territórios** com o problema, mas com **concentração mais alta** de famílias em insegurança alimentar.
+
+<p class="nota">Leitura visual do mapa de calor (sem números), só nos territórios do programa.</p>
+
+</div>
+
+![](fig:inseguranca_alimentar_territorios_expansao)
+
+</div>
+
+<!-- fonte: Territórios Sociais (IPP/ONU-Habitat), fase de expansão; dado pontual; mapa de calor -->
+
+<!-- revisar -->
+
+<!--
+Leitura pedida pelo usuário (2026-10-06): espalhamento na CAP 5.3 (muitos focos) × poucos focos, mais intensos, a leste
+(o ponto mais alto, em amarelo, fica entre as CAPs 3.2 e 1.0).
 -->
 
 ---

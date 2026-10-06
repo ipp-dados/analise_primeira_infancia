@@ -55,7 +55,7 @@ de `build/numeros.py` e o mapa `apres_cadunico_deficiencia_bairro`; publicada co
 `apresentacao_primeira_infancia_inclusao.pptx/.pdf`. Rodapé longo no cabeçalho é seguro (o gerador não quebra mais a
 linha do YAML, que fazia o Marp ignorar o tema).
 
-**Variantes breves de Alimentação e Direito ao Brincar** (`variantes/alimentacao.md`, 11 slides;
+**Variantes breves de Alimentação e Direito ao Brincar** (`variantes/alimentacao.md`, 12 slides;
 `variantes/direito_brincar.md`, 8 slides; `specs/2026-10-06_deck_alimentacao_brincar`): mesma estrutura da de Inclusão,
 números `alim_*`/`brin_*`, séries SISVAN e mapas de violência territorial só do deck; publicadas como
 `apresentacao_primeira_infancia_alimentacao.*` e `apresentacao_primeira_infancia_direito_brincar.*`. Imagem pronta

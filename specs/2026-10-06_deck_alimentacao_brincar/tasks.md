@@ -10,4 +10,5 @@ Legenda: [x] feito · [ ] a fazer
 - [x] T6 Gerar, conferir (PNG) e publicar
 - [x] T7 README, ROADMAP, commit, merge em `staging_main`
 - [x] T9 Fonte do dado pontual no slide 8: Territórios Sociais (IPP/ONU-Habitat) (D10)
+- [x] T10 Slide do dado pontual dividido em dois: apresentação do dado e leitura CAP 5.3 × leste (D11)
 - [ ] T8 Confirmar com a equipe: data e método do dado de insegurança alimentar; unidade das taxas de ação policial e jovens negros
