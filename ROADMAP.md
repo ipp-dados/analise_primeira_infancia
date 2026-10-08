@@ -34,6 +34,19 @@ Falta:
    também no título (D11).
 7. Textos curados com "0 a 5 anos" → "até 72 meses" (D10; lista em `validation.md`) e títulos das PNG do relatório.
 
+## 000a. Apresentações de Família e Cuidados e de Moradia (`specs/2026-10-07_deck_familia_moradia`)
+
+Implementada em 2026-10-07: `familia_cuidados.md` (14 slides) publicada em `apresentacao/`; `moradia.md` (13 slides)
+escrita, sem gerar. Falta:
+1. **Bloqueio — banco do CTPE**: em 2026-10-07 o banco só tem `bronze_cadunico` e `silver_cadunico_geral` (partição
+   2026-06-12, grupo `'0-6'`); as silvers `silver_cadunico_pessoas`/`_familias` (2026-07-10) sumiram e o `analise.py` para
+   no `assert` do grupo `'0-5'`. Sem elas não há tabelas de Moradia nem de Inclusão em `tabelas_finais/`. Confirmar com o
+   CTPE; depois rodar o `analise.py` e gerar/publicar `moradia.md`.
+2. Dados dos **Territórios Sociais** para os dois slides reservados de Moradia.
+3. Confirmar com a SMS as **metas de cobertura vacinal** usadas no deck (PNI: 90% BCG e rotavírus, 95% demais).
+4. Achado: a variante de Inclusão cita a partição pela tabela da razão (`incl_particao`, hoje "junho de 2026"), mas os
+   dados de Inclusão são da silver de jul/2026.
+
 ## 000b. Apresentações breves de Alimentação e Direito ao Brincar (`specs/2026-10-06_deck_alimentacao_brincar`)
 
 Implementada em 2026-10-06 (variantes `alimentacao.md` e `direito_brincar.md`, publicadas em `apresentacao/`). Falta:

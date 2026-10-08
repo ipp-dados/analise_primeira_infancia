@@ -1006,8 +1006,401 @@ def brin_n_ras():
     return fmt_int(len(_terr_ras()))
 
 
+def _lista(itens):
+    return ", ".join(itens[:-1]) + " e " + itens[-1] if len(itens) > 1 else itens[0]
+
+
+# ---------------------------------------------------------------- variante Família e Cuidados (specs/2026-10-07_deck_familia_moradia)
+# composição familiar (CadÚnico), matrículas por rede na pandemia e cobertura vacinal; também usa as chaves do deck
+# principal (razao_cadunico, pct_familias_uma_adulta, atend_*...)
+def _recortes_bairros():
+    """Bairros publicados sozinhos (fora dos conjuntos "Demais bairros…" da regra de privacidade)."""
+    d = _csv("tabela_mapa_cadunico_recortes_bairro_2026.csv")
+    return d[d["codbairro"].notna() & d["agregado_em"].isna()]
+
+
+@numero
+def fam_criancas_uma_adulta():
+    return fmt_int(_arranjo("Uma adulta (mulher)")["Crianças"])
+
+
+@numero
+def fam_pct_criancas_uma_adulta():
+    a = _csv("cadunico_familias_por_arranjo_2026.csv").set_index("arranjo familiar")
+    return fmt_pct(a.loc["Uma adulta (mulher)", "Crianças"] / a.loc["Total", "Crianças"] * 100)
+
+
+@numero
+def fam_familias_dois_adultos():
+    return fmt_int(_arranjo("Dois adultos (homem e mulher)")["Famílias"])
+
+
+@numero
+def fam_pct_um_adulto_homem():
+    return fmt_pct(_arranjo("Um adulto (homem)")["% das famílias"])
+
+
+def _arranjo_renda(arranjo, chave_faixa="0-218"):
+    sys.path.insert(0, str(RAIZ))
+    from primeira_infancia.cadunico import _ROTULOS_RENDA_CADUNICO_3
+    rotulo = _ROTULOS_RENDA_CADUNICO_3[chave_faixa].replace("\n", " ")
+    d = _csv("cadunico_familias_arranjo_renda_2026.csv")
+    return d[(d["arranjo"] == arranjo) & (d["faixa de renda per capita"] == rotulo)].iloc[0]
+
+
+@numero
+def fam_uma_adulta_pobreza_n():
+    return fmt_int(_arranjo_renda("Uma adulta (mulher)")["Famílias"])
+
+
+@numero
+def fam_pct_dois_adultos_pobreza():
+    return fmt_pct(_arranjo_renda("Dois adultos (homem e mulher)")["% no arranjo"], 0)
+
+
+@numero
+def fam_pct_uma_adulta_entre_pobres():
+    """Das famílias em pobreza (todas as composições), % com uma mulher como única adulta."""
+    sys.path.insert(0, str(RAIZ))
+    from primeira_infancia.cadunico import _ROTULOS_RENDA_CADUNICO_3
+    d = _csv("cadunico_familias_arranjo_renda_2026.csv")
+    d = d[d["faixa de renda per capita"] == _ROTULOS_RENDA_CADUNICO_3["0-218"].replace("\n", " ")]
+    return fmt_pct(d.loc[d["arranjo"] == "Uma adulta (mulher)", "Famílias"].sum() / d["Famílias"].sum() * 100, 0)
+
+
+@numero
+def fam_uma_adulta_mediana_bairros():
+    return fmt_pct(_recortes_bairros()["% famílias com uma adulta"].median(), 0)
+
+
+@numero
+def fam_uma_adulta_bairro_min():
+    b = _recortes_bairros().sort_values("% famílias com uma adulta").iloc[0]
+    return f'{b["bairro"]} ({fmt_pct(b["% famílias com uma adulta"], 0)})'
+
+
+@numero
+def fam_uma_adulta_bairro_max():
+    b = _recortes_bairros().sort_values("% famílias com uma adulta").iloc[-1]
+    return f'{b["bairro"]} ({fmt_pct(b["% famílias com uma adulta"], 0)})'
+
+
+@numero
+def fam_uma_adulta_n_acima_80():
+    """Bairros (publicados sozinhos) em que 80% ou mais das famílias cadastradas têm uma só adulta."""
+    return fmt_int((_recortes_bairros()["% famílias com uma adulta"] >= 80).sum())
+
+
+@numero
+def fam_uma_adulta_top5_bairros_pct():
+    t = _recortes_bairros().nlargest(5, "% famílias com uma adulta")
+    return _lista([f'{b} ({fmt_pct(p, 0)})' for b, p in zip(t["bairro"], t["% famílias com uma adulta"])])
+
+
+def _uma_adulta_por_ap():
+    """% por Área de Planejamento, dos absolutos dos bairros publicados sozinhos (nunca média de percentuais)."""
+    import json
+    feats = json.load(open(RAIZ / "dados_locais/geo/limite_bairros_rio.geojson", encoding="utf-8"))["features"]
+    ap = {int(f["properties"]["codbairro"]): str(f["properties"]["area_plane"]) for f in feats}
+    d = _recortes_bairros().assign(ap=lambda x: x["codbairro"].astype(int).map(ap))
+    s = d.groupby("ap")[["Famílias", "Famílias com uma adulta"]].sum()
+    return s["Famílias com uma adulta"] / s["Famílias"] * 100
+
+
+@numero
+def fam_uma_adulta_ap_faixa():
+    """'79% a 82%': menor e maior % entre as 5 Áreas de Planejamento."""
+    p = _uma_adulta_por_ap()
+    return f"{fmt_pct(p.min(), 0)} a {fmt_pct(p.max(), 0)}"
+
+
+@numero
+def fam_n_bairros_sozinhos():
+    return fmt_int(len(_recortes_bairros()))
+
+
+@numero
+def fam_uma_adulta_top3_bairros_n():
+    t = _recortes_bairros().nlargest(3, "Famílias com uma adulta")
+    return _lista([f'{b} ({fmt_int(n)})' for b, n in zip(t["bairro"], t["Famílias com uma adulta"])])
+
+
+@numero
+def fam_n_bairros_somados():
+    return fmt_int(_csv("tabela_mapa_cadunico_recortes_bairro_2026.csv")["agregado_em"].notna().sum())
+
+
+@numero
+def fam_uma_adulta_conjuntos():
+    """Famílias com uma só adulta nos conjuntos 'Demais bairros…' (bairros pequenos somados)."""
+    d = _csv("tabela_mapa_cadunico_recortes_bairro_2026.csv")
+    return fmt_int(d.loc[d["codbairro"].isna(), "Famílias com uma adulta"].sum())
+
+
+# matrículas por rede: o choque da pandemia (2019 -> 2021) e a volta da rede privada
+def _mat_ano(ano):
+    d = _mat_serie()
+    return d[d["ano"] == ano].iloc[0]
+
+
+def _variacao(col, de, para):
+    return (_mat_ano(para)[col] / _mat_ano(de)[col] - 1) * 100
+
+
+@numero
+def fam_mat_privada_2019():
+    return fmt_int(_mat_ano(2019)["matriculas_privada"])
+
+
+@numero
+def fam_mat_publica_2019():
+    return fmt_int(_mat_ano(2019)["matriculas_publica"])
+
+
+@numero
+def fam_mat_publica_2021():
+    return fmt_int(_mat_ano(2021)["matriculas_publica"])
+
+
+@numero
+def fam_mat_privada_2022():
+    return fmt_int(_mat_ano(2022)["matriculas_privada"])
+
+
+@numero
+def fam_queda_privada_2019_2021():
+    return fmt_pct(-_variacao("matriculas_privada", 2019, 2021), 0)
+
+
+@numero
+def fam_queda_publica_2019_2021():
+    return fmt_pct(-_variacao("matriculas_publica", 2019, 2021), 1)
+
+
+@numero
+def fam_perda_privada_2019_2021():
+    return fmt_int(_mat_ano(2019)["matriculas_privada"] - _mat_ano(2021)["matriculas_privada"])
+
+
+@numero
+def fam_perda_publica_2019_2021():
+    return fmt_int(_mat_ano(2019)["matriculas_publica"] - _mat_ano(2021)["matriculas_publica"])
+
+
+@numero
+def fam_alta_privada_2021_2022():
+    return fmt_pct(_variacao("matriculas_privada", 2021, 2022), 0)
+
+
+@numero
+def fam_queda_publica_2021_2025():
+    return fmt_pct(-_variacao("matriculas_publica", 2021, 2025), 0)
+
+
+def _pct_publica(ano):
+    r = _mat_ano(ano)
+    return r["matriculas_publica"] / r["matriculas"] * 100
+
+
+@numero
+def fam_pct_publica_2019():
+    return fmt_pct(_pct_publica(2019), 0)
+
+
+@numero
+def fam_pct_publica_2021():
+    return fmt_pct(_pct_publica(2021), 0)
+
+
+@numero
+def fam_pop_0_5_queda_2019_2025():
+    """Queda da população de 0 a 5 anos (Ripsa) no mesmo período -- contexto da queda da rede pública."""
+    return fmt_pct((1 - _mat_ano(2025)["populacao_0_a_5"] / _mat_ano(2019)["populacao_0_a_5"]) * 100, 0)
+
+
+# cobertura vacinal (EPI/SVS-Rio). 2026 é ano em curso: o deck cita o último ano completo. Metas do Programa Nacional
+# de Imunizações: 90% para BCG e rotavírus, 95% para as demais (usadas também no gráfico do deck)
+VAC_ANO = 2025
+VAC_ANO_PRE = 2019     # antes da pandemia: o gráfico do deck mostra 2019, o pior ano e 2025
+METAS_VACINAS = {"BCG": 90, "ROTAVÍRUS": 90}
+META_PADRAO = 95
+NOMES_VACINAS = {
+    "BCG": "BCG", "DTP 1ºREF": "DTP (1º reforço)", "FEBRE AMARELA": "Febre amarela", "HEPATITE A": "Hepatite A",
+    "MENINGO C": "Meningocócica C", "PNEUMO 10": "Pneumocócica 10", "POLIOMIELITE": "Poliomielite",
+    "ROTAVÍRUS": "Rotavírus", "TRÍPLICE VIRAL D1": "Tríplice viral (1ª dose)",
+    "TRÍPLICE VIRAL D2": "Tríplice viral (2ª dose)", "VARICELA": "Varicela",
+}
+
+
+def tabela_vacinas():
+    """Uma linha por vacina: cobertura antes da pandemia, no pior ano (mediana das vacinas mais baixa entre 2019 e
+    2024) e no último ano completo, com a meta. Fonte única do gráfico e dos números do deck."""
+    d = _csv("cobertura_vacinal_epi_por_ano.csv").set_index("ano")
+    vac = [c for c in d.columns if c in NOMES_VACINAS]
+    pior = int(d.loc[2019:2024, vac].median(axis=1).idxmin())
+    t = pd.DataFrame({"vacina": [NOMES_VACINAS[v] for v in vac],
+                      "pre": d.loc[VAC_ANO_PRE, vac].values, "pior": d.loc[pior, vac].values,
+                      "atual": d.loc[VAC_ANO, vac].values,
+                      "meta": [METAS_VACINAS.get(v, META_PADRAO) for v in vac]})
+    t["atinge"] = t["atual"] >= t["meta"]
+    t.attrs["ano_pior"] = pior
+    return t.sort_values("atual").reset_index(drop=True)
+
+
+@numero
+def fam_vac_ano():
+    return str(VAC_ANO)
+
+
+@numero
+def fam_vac_ano_pior():
+    return str(tabela_vacinas().attrs["ano_pior"])
+
+
+@numero
+def fam_vac_n():
+    return fmt_int(len(tabela_vacinas()))
+
+
+@numero
+def fam_vac_n_meta():
+    return fmt_int(tabela_vacinas()["atinge"].sum())
+
+
+@numero
+def fam_vac_n_meta_pior():
+    t = tabela_vacinas()
+    return fmt_int((t["pior"] >= t["meta"]).sum())
+
+
+@numero
+def fam_vac_abaixo():
+    """Vacinas abaixo da meta no último ano completo, da mais distante para a mais próxima."""
+    t = tabela_vacinas()
+    t = t[~t["atinge"]].assign(dist=lambda x: x["meta"] - x["atual"]).sort_values("dist", ascending=False)
+    return _lista([f'{v} ({fmt_pct(a)})' for v, a in zip(t["vacina"], t["atual"])])
+
+
+@numero
+def fam_vac_atingem():
+    t = tabela_vacinas()
+    t = t[t["atinge"]].sort_values("atual", ascending=False)
+    return _lista(t["vacina"].tolist())
+
+
+@numero
+def fam_vac_mediana_pior():
+    t = tabela_vacinas()
+    return fmt_pct(t["pior"].median(), 0)
+
+
+@numero
+def fam_vac_mediana_atual():
+    return fmt_pct(tabela_vacinas()["atual"].median(), 0)
+
+
+@numero
+def fam_vac_mediana_pre():
+    return fmt_pct(tabela_vacinas()["pre"].median(), 0)
+
+
+# ---------------------------------------------------------------- variante Moradia (mesma rodada)
+# silver do CadÚnico (specs/2026-10-06_cadunico_inclusao_moradia): crianças até 72 meses e o domicílio da família;
+# metodologia da Fundação João Pinheiro (FJP)
+def _mor_resumo():
+    return _csv("cadunico_moradia_resumo_0_a_5_2026.csv").set_index("Indicador")
+
+
+_MOR = {"inad": "Inadequação habitacional (FJP)", "infra": "Inadequação de infraestrutura",
+        "edil": "Inadequação edilícia", "deficit": "Déficit habitacional (FJP)",
+        "aden": "Adensamento excessivo (mais de 2 pessoas por dormitório)", "banheiro": "Domicílio sem banheiro",
+        "agua": "Domicílio sem água canalizada"}
+
+
+def _mor(ind, campo):
+    r = _mor_resumo().loc[_MOR[ind]]
+    return {"n": fmt_int(r["Crianças"]), "pct": fmt_pct(r["% das crianças"]), "base": fmt_int(r["Base (crianças)"]),
+            "fam": fmt_int(r["Famílias"]), "fam_pct": fmt_pct(r["% das famílias"])}[campo]
+
+
+def _registra_mor():
+    """mor_<indicador>_<campo> para todo indicador do resumo (ex. mor_inad_n, mor_aden_pct, mor_deficit_fam)."""
+    for ind in _MOR:
+        for campo in ("n", "pct", "base", "fam", "fam_pct"):
+            _NUMEROS[f"mor_{ind}_{campo}"] = (lambda i, c: lambda: _mor(i, c))(ind, campo)
+
+
+_registra_mor()
+
+
+def _mor_componentes(nome):
+    return _csv(f"cadunico_{nome}_componentes_0_a_5_2026.csv").sort_values("Crianças", ascending=False)
+
+
+def _mor_comp(nome, i, campo):
+    r = _mor_componentes(nome).iloc[i]
+    return {"nome": r["Componente"].lower(), "n": fmt_int(r["Crianças"]), "pct": fmt_pct(r["% das crianças"])}[campo]
+
+
+for _nome, _pref in (("inadequacao", "inadcomp"), ("deficit", "defcomp")):
+    for _i in range(2):
+        for _campo in ("nome", "n", "pct"):
+            _NUMEROS[f"mor_{_pref}{_i + 1}_{_campo}"] = (lambda n, i, c: lambda: _mor_comp(n, i, c))(_nome, _i, _campo)
+
+
+def _mor_bairros(nome, todos=False):
+    d = _csv(f"tabela_mapa_cadunico_{nome}_bairro_2026.csv")
+    return d[d["codbairro"].notna()] if todos else d[d["codbairro"].notna() & d["agregado_em"].isna()]
+
+
+def _mor_col_pct(d):
+    return next(c for c in d.columns if c.startswith("% "))
+
+
+def _mor_col_n(d):
+    return next(c for c in d.columns if c.startswith("Crianças em "))
+
+
+def _mor_mediana(nome):
+    d = _mor_bairros(nome)
+    return fmt_pct(d[_mor_col_pct(d)].median())
+
+
+def _mor_extremo(nome, i):
+    d = _mor_bairros(nome)
+    b = d.sort_values(_mor_col_pct(d)).iloc[i]
+    return f'{b["bairro"]} ({fmt_pct(b[_mor_col_pct(d)])})'
+
+
+def _mor_top3(nome):
+    d = _mor_bairros(nome)
+    t = d.nlargest(3, _mor_col_n(d))
+    return _lista([f'{b} ({fmt_int(n)})' for b, n in zip(t["bairro"], t[_mor_col_n(d)])])
+
+
+def _mor_somados(nome):
+    return fmt_int(_csv(f"tabela_mapa_cadunico_{nome}_bairro_2026.csv")["agregado_em"].notna().sum())
+
+
+def _mor_sozinhos(nome):
+    return fmt_int(len(_mor_bairros(nome)))
+
+
+for _nome, _pref in (("inadequacao", "inad"), ("adensamento", "aden")):
+    _NUMEROS[f"mor_{_pref}_mediana_bairros"] = (lambda n: lambda: _mor_mediana(n))(_nome)
+    _NUMEROS[f"mor_{_pref}_bairro_min"] = (lambda n: lambda: _mor_extremo(n, 0))(_nome)
+    _NUMEROS[f"mor_{_pref}_bairro_max"] = (lambda n: lambda: _mor_extremo(n, -1))(_nome)
+    _NUMEROS[f"mor_{_pref}_bairro_2o"] = (lambda n: lambda: _mor_extremo(n, -2))(_nome)
+    _NUMEROS[f"mor_{_pref}_top3_bairros_n"] = (lambda n: lambda: _mor_top3(n))(_nome)
+    _NUMEROS[f"mor_{_pref}_n_bairros_somados"] = (lambda n: lambda: _mor_somados(n))(_nome)
+    _NUMEROS[f"mor_{_pref}_n_bairros_sozinhos"] = (lambda n: lambda: _mor_sozinhos(n))(_nome)
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     for k in _NUMEROS:
-        print(f"{k:32s} {valor(k)}")
+        try:
+            print(f"{k:32s} {valor(k)}")
+        except FileNotFoundError as erro:   # tabela de uma variante ainda não gerada: lista as demais chaves
+            print(f"{k:32s} [falta {Path(erro.filename).name}]")
     print(pendentes_por_eixo())

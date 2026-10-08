@@ -61,3 +61,9 @@ números `alim_*`/`brin_*`, séries SISVAN e mapas de violência territorial só
 `apresentacao_primeira_infancia_alimentacao.*` e `apresentacao_primeira_infancia_direito_brincar.*`. Imagem pronta
 recebida de outra equipe (dado pontual) fica numa pasta ao lado da variante (`variantes/alimentacao_adhoc/`) e entra com
 `![](fig:<nome do arquivo sem extensão>)`.
+
+**Variantes de Família e Cuidados e de Moradia** (`variantes/familia_cuidados.md`, 14 slides, ~15 min;
+`variantes/moradia.md`, 13 slides; `specs/2026-10-07_deck_familia_moradia`): números `fam_*`/`mor_*`; gráficos próprios
+do deck (matrículas por rede na pandemia, cobertura vacinal × meta do PNI, pobreza por arranjo familiar) com a opção
+`desenha` de `GRAFICOS`; mapas de composição familiar e de moradia por bairro. Moradia tem dois slides reservados para
+os dados dos Territórios Sociais e só gera com as tabelas de Moradia da silver do CadÚnico em `tabelas_finais/`.

@@ -496,7 +496,9 @@ _TETO_PERCENTIL_A4 = 0.95   # D5: teto de cor dos mapas contínuos por bairro na
 
 @_a4_seguro
 def _a4_mapa(gdf, coluna_valor, titulo, nome_arquivo, nivel, bins, cmap, legenda_titulo, fonte_dados, zero_branco,
-             caminho_uf, caminho_municipios, teto=None):
+             caminho_uf, caminho_municipios, teto=None, piso=None):
+    # piso (opcional, specs/2026-10-07_deck_familia_moradia): início da escala contínua quando todos os valores
+    # estão numa faixa alta (ex. 63-88%); sem ele a escala começa em zero. Só os mapas do deck usam
     # teto (opcional, specs/2026-09-28_apresentacao): limite explícito da escala contínua -- usado pelos mapas da
     # apresentação (ex. RA Centro como outlier no IPS); sem ele, o comportamento de sempre (percentil 95 por bairro).
     # Com teto >= máximo (Tukey sem outliers, specs/2026-09-29_slide_revision), a escala vai até o máximo, sem o P95
@@ -546,7 +548,7 @@ def _a4_mapa(gdf, coluna_valor, titulo, nome_arquivo, nivel, bins, cmap, legenda
             if p > 0 and vmax > p * 1.05:
                 vmax = p
                 nota_teto = f'escala de cor limitada ao percentil {int(_TETO_PERCENTIL_A4 * 100)} ({_num_a4(p, 1)})'
-        norma = _Normalize(0, vmax)
+        norma = _Normalize(piso or 0, vmax)
         gdf.plot(column=coluna_valor, ax=ax, cmap=cmap, norm=norma, zorder=2, **borda)
         gdf[gdf[coluna_valor].isna()].plot(ax=ax, zorder=2, **sem_dado)
         cax = ax.inset_axes([0.03, 0.56, 0.022, 0.34])
@@ -555,7 +557,7 @@ def _a4_mapa(gdf, coluna_valor, titulo, nome_arquivo, nivel, bins, cmap, legenda
         cb.outline.set_linewidth(0.3)
         cax.tick_params(labelsize=7, length=2, width=0.4, colors=_TINTA)
         halo = [pe.withStroke(linewidth=2.2, foreground='white')]
-        cb.set_ticks([t for t in cb.get_ticks() if 0 <= t <= vmax])
+        cb.set_ticks([t for t in cb.get_ticks() if (piso or 0) <= t <= vmax])
         dec = 0 if vmax >= 10 else 1
         cb.set_ticklabels([_num_a4(t, dec) for t in cb.get_ticks()])
         for t in cax.get_yticklabels():
