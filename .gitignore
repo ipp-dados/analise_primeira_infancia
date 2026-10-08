@@ -26,3 +26,9 @@ relatorio/latex/*.aux
 relatorio/latex/*.log
 relatorio/latex/*.fls
 relatorio/latex/*.fdb_latexmk
+
+# specs/2026-10-08_deck_moradia D9: microdado por domicílio do Territórios Sociais (com deficiência) não é versionado;
+# o roteiro e as notas da reunião (com nomes) também ficam fora
+/apresentacao/variantes/moradia/*.xlsx
+/apresentacao/variantes/moradia/*.pdf
+/apresentacao/variantes/moradia/stakeholder.md

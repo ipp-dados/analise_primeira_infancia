@@ -137,3 +137,12 @@ section.qr .lado { grid-template-columns: 1fr 1fr 0.8fr; }
 .solucao { margin-top: 30px; background: var(--navy); color: #fff; border-radius: 14px; padding: 20px 28px; text-align: center; }
 .solucao b { display: block; font-family: 'Fraunces', serif; font-weight: 600; font-size: 44px; line-height: 1.1; }
 .solucao span { display: block; font-size: 20px; color: #cfe8f7; margin-top: 6px; }
+/* glossário em duas colunas, uma por fonte (specs/2026-10-08_deck_moradia):
+   <div class="conceitos"><div style="--c:..."><h3>Fonte</h3><p><b>Termo</b> texto</p>...</div>...</div> */
+.conceitos { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 14px; }
+.conceitos > div { border-top: 6px solid var(--c, var(--c1)); background: var(--surface-2); border-radius: 12px;
+  padding: 12px 20px 8px; }
+.conceitos h3 { font-family: 'Fraunces', serif; font-size: 24px; color: var(--navy); margin: 0 0 2px; }
+.conceitos .sub { font-size: 15px; color: var(--ink-3); margin: 0 0 10px; }
+.conceitos p { font-size: 17.5px; line-height: 1.36; margin: 0 0 11px; }
+.conceitos p b { color: var(--navy); }
