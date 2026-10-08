@@ -44,6 +44,19 @@ Implementada em 2026-10-06 (variantes `alimentacao.md` e `direito_brincar.md`, p
    contagens; obesidade 2009: 0,07% × 7,0%) — site, PDF e textos curados mostram os valores errados; recalcular o % das
    contagens na seção SISVAN. O deck já recalcula.
 
+## 000c. Apresentação de Moradia + Territórios Sociais (`specs/2026-10-08_deck_moradia`)
+
+Publicada em 2026-10-08 (`variantes/moradia.md`, 24 slides; `apresentacao_primeira_infancia_moradia.*`). A planilha do
+Territórios Sociais não é versionada (`.gitignore`): para regerar o deck, ela precisa estar em `variantes/moradia/`. Falta:
+1. **Dados da equipe do programa** (fora do deck por decisão do usuário, sem menção a "a receber"): total de domicílios
+   com inadequação (geral e por condição) e ações de mitigação do Casa Carioca. Mapa da equipe (TEA) recebido e no deck.
+2. **Confirmar** se a deficiência da planilha é da criança ou de qualquer morador (o deck diz "domicílio com registro de
+   deficiência") e o período/territórios do levantamento.
+3. **Site — mapas de número no eixo Moradia** (pedido do usuário, 2026-10-08): ao lado dos mapas de % de inadequação
+   habitacional e de adensamento excessivo, um mapa do **número de crianças** por bairro (classes discretas, bairros
+   somados por RA sem cor), como os do deck (`apres_cadunico_inadequacao_n_bairro`, `apres_cadunico_adensamento_n_bairro`
+   em `build/mapas_apresentacao.py`). Muda `analise.py` (mapas e `tabela_mapa_*`), `specs/estrutura_eixos.md`, o site e o PDF.
+
 ## 00. Pendente para 2026-10-01: push e deploy
 
 **2026-10-06: push feito** (`staging_main`, `demo`, `planning`, `spec/cadunico_inclusao_moradia`,
