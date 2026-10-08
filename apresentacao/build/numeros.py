@@ -1006,6 +1006,231 @@ def brin_n_ras():
     return fmt_int(len(_terr_ras()))
 
 
+# ---------------------------------------------------------------- variante Moradia (specs/2026-10-08_deck_moradia)
+# Cadastro Único (silver, jul/2026): crianças até 72 meses; mesma tabela de resumo do eixo Moradia do site
+def _mora(indicador, campo):
+    return _csv("cadunico_moradia_resumo_0_a_5_2026.csv").set_index("Indicador").loc[indicador, campo]
+
+
+_MORA = {"inad": "Inadequação habitacional (FJP)", "infra": "Inadequação de infraestrutura",
+         "edil": "Inadequação edilícia", "deficit": "Déficit habitacional (FJP)",
+         "adens": "Adensamento excessivo (mais de 2 pessoas por dormitório)", "banheiro": "Domicílio sem banheiro",
+         "agua": "Domicílio sem água canalizada"}
+
+
+def _mora_n(k):
+    return fmt_int(_mora(_MORA[k], "Crianças"))
+
+
+def _mora_pct(k):
+    return fmt_pct(_mora(_MORA[k], "% das crianças"))
+
+
+def _registra(nome, f):
+    """Chave gerada em laço (mora_inad_n, ts_cond1_pct...): o registro usa o nome da função."""
+    f.__name__ = nome
+    numero(f)
+
+
+for _k in _MORA:
+    _registra(f"mora_{_k}_n", lambda k=_k: _mora_n(k))
+    _registra(f"mora_{_k}_pct", lambda k=_k: _mora_pct(k))
+
+
+@numero
+def mora_criancas_base():
+    return fmt_int(_mora(_MORA["inad"], "Base (crianças)"))
+
+
+@numero
+def mora_inad_familias():
+    return fmt_int(_mora(_MORA["inad"], "Famílias"))
+
+
+@numero
+def mora_aluguel_pct():
+    d = _csv("cadunico_deficit_componentes_0_a_5_2026.csv").set_index("Componente")
+    return fmt_pct(d.loc["Ônus excessivo com aluguel", "% das crianças"])
+
+
+@numero
+def mora_aluguel_n():
+    d = _csv("cadunico_deficit_componentes_0_a_5_2026.csv").set_index("Componente")
+    return fmt_int(d.loc["Ônus excessivo com aluguel", "Crianças"])
+
+
+def _mora_bairros(nome):
+    d = _csv(f"tabela_mapa_cadunico_{nome}_bairro_2026.csv")
+    return d[d["codbairro"].notna() & d["agregado_em"].isna()]
+
+
+def _mora_top3(nome, col):
+    t = _mora_bairros(nome).nlargest(3, col)
+    itens = [f'{b} ({fmt_int(n)})' for b, n in zip(t["bairro"], t[col])]
+    return ", ".join(itens[:-1]) + " e " + itens[-1]
+
+
+@numero
+def mora_inad_top3_bairros_n():
+    return _mora_top3("inadequacao", "Crianças em inadequação habitacional")
+
+
+@numero
+def mora_adens_top3_bairros_n():
+    return _mora_top3("adensamento", "Crianças em adensamento excessivo")
+
+
+@numero
+def mora_inad_mediana_bairros():
+    return fmt_pct(_mora_bairros("inadequacao")["% crianças em inadequação habitacional"].median())
+
+
+@numero
+def mora_adens_mediana_bairros():
+    return fmt_pct(_mora_bairros("adensamento")["% crianças em adensamento excessivo"].median())
+
+
+def _mora_somados(nome, col):
+    d = _csv(f"tabela_mapa_cadunico_{nome}_bairro_2026.csv")
+    return d["agregado_em"].notna().sum(), d.loc[d["codbairro"].isna(), col].sum()
+
+
+@numero
+def mora_inad_n_bairros_somados():
+    return fmt_int(_mora_somados("inadequacao", "Crianças em inadequação habitacional")[0])
+
+
+@numero
+def mora_inad_criancas_conjuntos():
+    return fmt_int(_mora_somados("inadequacao", "Crianças em inadequação habitacional")[1])
+
+
+@numero
+def mora_adens_n_bairros_somados():
+    return fmt_int(_mora_somados("adensamento", "Crianças em adensamento excessivo")[0])
+
+
+@numero
+def mora_adens_criancas_conjuntos():
+    return fmt_int(_mora_somados("adensamento", "Crianças em adensamento excessivo")[1])
+
+
+# Territórios Sociais (dado pontual, planilha recebida em 2026-10-07; build/territorios_sociais.py)
+def _ts():
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import territorios_sociais
+    return territorios_sociais
+
+
+@numero
+def ts_domicilios():
+    return fmt_int(len(_ts().dados()))
+
+
+@numero
+def ts_criancas():
+    return fmt_int(_ts().dados()["total_criancas_0_a_5"].sum())
+
+
+@numero
+def ts_pct_uma_crianca():
+    d = _ts().dados()
+    return fmt_pct((d["total_criancas_0_a_5"] == 1).mean() * 100, 0)
+
+
+def _ts_cond(i, campo):
+    r = _ts().por_condicao().iloc[i]
+    return {"n": fmt_int(r["domicilios"]), "pct": fmt_pct(r["pct_domicilios"], 0), "criancas": fmt_int(r["criancas"]),
+            "def": fmt_int(r["com_deficiencia"])}[campo]
+
+
+for _i in range(3):
+    for _c in ("n", "pct", "criancas", "def"):
+        _registra(f"ts_cond{_i + 1}_{_c}", lambda i=_i, c=_c: _ts_cond(i, c))
+
+
+@numero
+def ts_entorno_n():
+    t = _ts().por_condicao()
+    return fmt_int(t.loc[t["condicao"] != "Condição 1", "domicilios"].sum())
+
+
+@numero
+def ts_entorno_pct():
+    t = _ts().por_condicao()
+    return fmt_pct(t.loc[t["condicao"] != "Condição 1", "pct_domicilios"].sum(), 0)
+
+
+def _ts_item(nome, campo):
+    r = _ts().por_item().set_index("item").loc[nome]
+    return fmt_int(r["domicilios"]) if campo == "n" else fmt_pct(r["pct_domicilios"], 0)
+
+
+@numero
+def ts_esgoto_n():
+    return _ts_item("Esgotamento sanitário", "n")
+
+
+@numero
+def ts_esgoto_pct():
+    return _ts_item("Esgotamento sanitário", "pct")
+
+
+@numero
+def ts_agua_n():
+    return _ts_item("Abastecimento de água", "n")
+
+
+@numero
+def ts_agua_pct():
+    return _ts_item("Abastecimento de água", "pct")
+
+
+@numero
+def ts_pia_pct():
+    return _ts_item("Pia", "pct")
+
+
+@numero
+def ts_piso_pct():
+    return _ts_item("Piso", "pct")
+
+
+@numero
+def ts_def_domicilios():
+    return fmt_int(_ts().dados()["com_deficiencia"].sum())
+
+
+@numero
+def ts_def_pct():
+    return fmt_pct(_ts().dados()["com_deficiencia"].mean() * 100)
+
+
+def _ts_def_tipo1():
+    return _ts().por_deficiencia().iloc[0]
+
+
+@numero
+def ts_def_tipo1_nome():
+    return _ts_def_tipo1()["tipo"].lower()
+
+
+@numero
+def ts_def_tipo1_n():
+    return fmt_int(_ts_def_tipo1()["domicilios"])
+
+
+@numero
+def ts_def_tipo1_pct():
+    return fmt_pct(_ts_def_tipo1()["pct_com_deficiencia"], 0)
+
+
+@numero
+def ts_def_mais_de_um():
+    d = _ts().dados()
+    return fmt_int(((d[list(_ts().DEFICIENCIAS)] == "Sim").sum(axis=1) > 1).sum())
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     for k in _NUMEROS:

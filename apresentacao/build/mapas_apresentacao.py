@@ -50,6 +50,8 @@ def _vf_mae_pai_municipio(df):
 
 
 _FONTE_CENSO ="IBGE, Censo Demográfico 2022 (Data.Rio), por bairro"
+_FONTE_CADUNICO = ("CadÚnico (extração CTPE, jul/2026); critério da Fundação João Pinheiro, extração e cálculo do IPP; "
+                   "bairro pelo CEP da família")
 _FONTE_DATASUS = "DATASUS/Tabnet, óbitos e nascimentos de residentes no município do Rio de Janeiro, por bairro (2025)"
 MAPAS = {
     # pedido do usuário (2026-09-28): no slide "O território onde a criança brinca" o Centro enviesava a escala
@@ -113,6 +115,34 @@ MAPAS = {
         legenda="% com deficiência",
         fonte="CadÚnico (extração CTPE, jul/2026); bairro pelo CEP da família; bairros com menos de 20 casos somados aos "
               "da mesma Região Administrativa"),
+    # specs/2026-10-08_deck_moradia: só a variante variantes/moradia.md. Número antes do percentual (como em Inclusão);
+    # os mapas de número por bairro também vão para o site depois (ROADMAP)
+    "apres_cadunico_inadequacao_n_bairro": dict(
+        tabela="tabela_mapa_cadunico_inadequacao_bairro_2026.csv", prepara=lambda d: d[d["codbairro"].notna()].copy(),
+        coluna="Crianças em inadequação habitacional", chave="codbairro", nivel="bairro",
+        titulo="Crianças até 72 meses em domicílios com inadequação habitacional, por bairro (número)",
+        tema="cadunico", bins=[40, 75, 150, 300], legenda="Crianças em\ninadequação",
+        fonte=_FONTE_CADUNICO + "; bairros com menos de 20 casos somados aos da mesma Região Administrativa ficam sem cor"),
+    "apres_cadunico_inadequacao_bairro": dict(
+        tabela="tabela_mapa_cadunico_inadequacao_bairro_2026.csv", prepara=lambda d: d[d["codbairro"].notna()].copy(),
+        coluna="% crianças em inadequação habitacional", chave="codbairro", nivel="bairro",
+        titulo="% das crianças até 72 meses do CadÚnico em domicílios com inadequação habitacional, por bairro", tema="cadunico",
+        legenda="% das crianças\ndo CadÚnico\nno bairro",
+        fonte=_FONTE_CADUNICO + "; bairros com menos de 20 casos somados aos da mesma Região Administrativa"),
+    "apres_cadunico_adensamento_n_bairro": dict(
+        tabela="tabela_mapa_cadunico_adensamento_bairro_2026.csv", prepara=lambda d: d[d["codbairro"].notna()].copy(),
+        coluna="Crianças em adensamento excessivo", chave="codbairro", nivel="bairro",
+        titulo="Crianças até 72 meses em domicílios com adensamento excessivo, por bairro (número)", tema="cadunico",
+        bins=[150, 400, 800, 1600], legenda="Crianças em\nadensamento",
+        fonte=_FONTE_CADUNICO + "; mais de 2 pessoas por dormitório; bairros com menos de 20 casos somados aos da "
+              "mesma Região Administrativa ficam sem cor"),
+    "apres_cadunico_adensamento_bairro": dict(
+        tabela="tabela_mapa_cadunico_adensamento_bairro_2026.csv", prepara=lambda d: d[d["codbairro"].notna()].copy(),
+        coluna="% crianças em adensamento excessivo", chave="codbairro", nivel="bairro",
+        titulo="% das crianças até 72 meses do CadÚnico em domicílios com adensamento excessivo, por bairro", tema="cadunico",
+        legenda="% das crianças\ndo CadÚnico\nno bairro",
+        fonte=_FONTE_CADUNICO + "; mais de 2 pessoas por dormitório; bairros com menos de 20 casos somados aos da "
+              "mesma Região Administrativa"),
 }
 
 def _sisvan_pct(partes, nome):
@@ -126,6 +156,10 @@ def _sisvan_pct(partes, nome):
 
 
 _FONTE_SISVAN = "SISVAN/DATASUS, crianças até 72 meses acompanhadas na atenção básica; % recalculado das contagens"
+
+_FONTE_TS = "Territórios Sociais (IPP), dado pontual recebido em out/2026; domicílios com inadequação habitacional e crianças até 72 meses"
+
+_DOM = {"domicilios": "Domicílios"}   # rótulo do eixo
 
 GRAFICOS = {
     # specs/2026-10-06_deck_alimentacao_brincar: só a variante variantes/alimentacao.md
@@ -141,6 +175,19 @@ GRAFICOS = {
             _sisvan_pct(["sobrepeso_bruto", "obesidade_bruto"], "pct_excesso")(df)),
         titulo="% das crianças acompanhadas com sobrepeso ou obesidade (SISVAN, 2008-2025)",
         ylabel="% das crianças acompanhadas", fonte=_FONTE_SISVAN + "; índice de massa corporal para a idade"),
+    # specs/2026-10-08_deck_moradia: dado pontual do Territórios Sociais (build/territorios_sociais.py), barras
+    "apres_ts_condicao": dict(
+        tipo="barras", dados=lambda ts: ts.por_condicao().rename(columns=_DOM), categoria="rotulo", valor="Domicílios",
+        titulo="Domicílios com inadequação habitacional e crianças até 72 meses, por condição",
+        fonte=_FONTE_TS),
+    "apres_ts_itens": dict(
+        tipo="barras", dados=lambda ts: ts.por_item().rename(columns=_DOM), categoria="item", valor="Domicílios",
+        titulo="Domicílios com inadequação habitacional e crianças até 72 meses, por item inadequado",
+        fonte=_FONTE_TS + "; um domicílio pode ter mais de um item inadequado"),
+    "apres_ts_deficiencia_tipo": dict(
+        tipo="barras", dados=lambda ts: ts.por_deficiencia().rename(columns=_DOM), categoria="tipo", valor="Domicílios",
+        titulo="Domicílios com inadequação, crianças até 72 meses e registro de deficiência, por tipo",
+        fonte=_FONTE_TS + "; tipos não exclusivos"),
     # pedido do usuário (2026-09-29): uma linha só, mãe + pai somados
     "apres_violencia_familiar_mae_pai_taxa_ano": dict(
         tabela="violencia_familiar_taxa_municipio_ano.csv", prepara=_vf_mae_pai_municipio, tempo="ano",
@@ -232,7 +279,12 @@ def gera(nome):
 def gera_grafico(nome):
     cfg = GRAFICOS[nome]
     destino = SAIDA / f"{nome}.pdf"
-    tabela = RAIZ / "tabelas_finais" / cfg["tabela"]
+    if cfg.get("dados"):          # dado pontual lido fora de tabelas_finais/ (build/territorios_sociais.py)
+        sys.path.insert(0, str(AQUI))
+        import territorios_sociais as ts
+        tabela = ts.arquivo()
+    else:
+        tabela = RAIZ / "tabelas_finais" / cfg["tabela"]
     fresco = max(tabela.stat().st_mtime, Path(__file__).stat().st_mtime)
     if destino.exists() and destino.stat().st_mtime >= fresco:
         return destino, cfg["fonte"]
@@ -241,6 +293,12 @@ def gera_grafico(nome):
     SAIDA.mkdir(parents=True, exist_ok=True)
     imp._PASTA_A4 = {"grafico": str(SAIDA), "mapa": str(SAIDA)}          # nada vai para visualizacoes/a4/
     imp._MANIFESTO_A4 = str(SAIDA / "_manifesto.csv")
+    if cfg.get("tipo") == "barras":
+        imp._a4_barras(cfg["dados"](ts), cfg["categoria"], cfg["valor"], cfg["titulo"], nome_arquivo=nome,
+                       fonte_dados=cfg["fonte"])
+        if not destino.exists():
+            raise RuntimeError(f"gráfico {nome} não foi gerado (ver aviso acima)")
+        return destino, cfg["fonte"]
     df = pd.read_csv(tabela)
     if cfg.get("prepara"):
         df = cfg["prepara"](df)
