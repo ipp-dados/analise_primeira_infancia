@@ -61,3 +61,8 @@ números `alim_*`/`brin_*`, séries SISVAN e mapas de violência territorial só
 `apresentacao_primeira_infancia_alimentacao.*` e `apresentacao_primeira_infancia_direito_brincar.*`. Imagem pronta
 recebida de outra equipe (dado pontual) fica numa pasta ao lado da variante (`variantes/alimentacao_adhoc/`) e entra com
 `![](fig:<nome do arquivo sem extensão>)`.
+
+**Variante de Moradia + Territórios Sociais** (`variantes/moradia.md`, 24 slides, `specs/2026-10-08_deck_moradia`):
+números `mora_*` (Cadastro Único) e `ts_*` (dado pontual), mapas de número e de % por bairro só do deck
+(`apres_cadunico_inadequacao_*`, `apres_cadunico_adensamento_*`) e barras `apres_ts_*`. O dado pontual é lido direto da
+planilha em `variantes/moradia/` por `build/territorios_sociais.py` (não passa por `tabelas_finais/`).
