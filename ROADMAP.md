@@ -109,6 +109,11 @@ Falta só o que depende do **OK do usuário**:
 
 Não dependem de código; entram no projeto quando chegarem.
 
+- **Pedido ao GitHub Support** (`specs/2026-10-26_limpeza_historico/pedido_github_support.md`, passo a passo e mensagem prontos): remover o
+  cache dos commits antigos `cdfacd2` (CadÚnico abaixo de 20) e `101e6bf` (revisões externas), ainda abertos por hash
+  no github.com. Depois do 404 nos dois, apagar o backup `../backup_analise_primeira_infancia_2026-10-26/`. Falta também
+  avisar a equipe para reclonar.
+
 - **Deck Família e Cuidados** — feito em `spec/deck_familia_moradia` (2026-10-07) e nunca mesclado; arquivado na tag
   `rodada/deck_familia_moradia`. Retomar numa rodada própria se a equipe quiser o deck (conflita com o build atual).
 
