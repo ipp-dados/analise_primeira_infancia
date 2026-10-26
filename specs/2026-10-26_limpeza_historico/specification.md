@@ -49,6 +49,10 @@ Release `v0.34.0` com o PDF, os 5 decks (PPTX+PDF), o rascunho do deck Família 
 `rodada/deck_familia_moradia`) e os 6 DOCX. **O link de download do PDF no site** (`URL_PDF` em
 `website/build/build_site.py`) apontava para o PDF versionado em `staging_main`: passou a
 `releases/latest/download/analise_primeira_infancia.pdf` (mesma troca no `website/index.html` gerado).
+A `demo` (fonte do Pages) linkava o PDF curto dela em `demo/relatorio/`: vai como anexo
+`analise_primeira_infancia_demo.pdf` na mesma Release, e `URL_PDF_DEMO` (`website/build/demo.py`) aponta para ele
+(commit só na `demo`, permitido pela constituição §7 por ser exclusivo dela). **Até o novo deploy do Pages, o link
+do PDF no site publicado fica quebrado.**
 
 Opções que estavam em aberto:
 - B-D1 PDF/PPTX publicados: (recomendado) anexos de uma **Release do GitHub** por versão, com o link no README e no
