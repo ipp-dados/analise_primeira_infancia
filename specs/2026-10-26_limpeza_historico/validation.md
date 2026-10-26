@@ -7,10 +7,13 @@
 - [x] Saídas e `revisao_casa_civil/` continuam no disco
 - [x] `grep tabelas_bairros analise.py` vazio; as 3 tabelas Excel copiadas para `tabelas_finais/`
 
-## Parte B (a fazer)
+## Parte B (2026-10-26)
 - [x] `git log --all -- tabelas_finais revisao_casa_civil mapas visualizacoes`: só os `.gitkeep`
 - [x] `git rev-list --objects --all | grep cadunico_por_bairro` vazio; nenhum PPTX nem PDF/DOCX de `relatorio/`
 - [x] 33 tags; 357 → 346 commits; diferença antiga × nova: `staging_main` só em `apresentacao/` (10 PDF/PPTX) e
       `relatorio/` (7 PDF/DOCX); `demo` também nas saídas ainda rastreadas lá; `main` em 2 PNG
-- [ ] Hashes citados em `CHANGELOG.md`/`specs/` resolvem com `git cat-file -e` (amostra de 10)
-- [ ] Clone novo do GitHub: tamanho ~12-20 MB; site da `demo` publicado; `build_site.py` e `gera_latex.py` rodam
+- [x] Hashes citados em `CHANGELOG.md`/`ROADMAP.md`/`specs/`: 32 de 35 resolvem; os 3 restantes são o código IBGE
+      `3304557` (não é hash) e `3a258e8`/`101e6bf`, commits que só mexiam em caminhos removidos e sumiram
+- [x] Force-push: 3 branches e 33 tags no GitHub; cópia local na história nova, `.git` com 12 MB, PDF/DOCX/decks e
+      saídas continuam no disco
+- [ ] Release `v0.34.0` publicada e link do PDF do site (após o deploy da `demo`) baixando o arquivo
