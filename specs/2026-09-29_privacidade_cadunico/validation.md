@@ -5,7 +5,7 @@
 | Verificação | Resultado |
 |---|---|
 | Tabelas do CadÚnico por bairro versionadas (HEAD) | **conformes**: 0 contagens de 1 a 19 nas 4 tabelas; bairros pequenos vazios |
-| Histórico do git | **não conforme**: `cdfacd2` (2026-09-09) com 20-22 contagens de 1 a 19 por bairro em `cadunico_por_bairro_2026`, `cadunico_por_bairro_ate_4_2026`, `tabela_mapa_cadunico_criancas_2026`, `tabela_mapa_cadunico_primeira_infancia_2026` — registrado (D3) |
+| Histórico do git | **não conforme**: `361b798` (2026-09-09) com 20-22 contagens de 1 a 19 por bairro em `cadunico_por_bairro_2026`, `cadunico_por_bairro_ate_4_2026`, `tabela_mapa_cadunico_criancas_2026`, `tabela_mapa_cadunico_primeira_infancia_2026` — registrado (D3) |
 | Percentuais publicados × totais publicados | **não conforme**: numerador ou complemento < 20 em 6 bairros (% negras) e 14 (% uma adulta) |
 | Primeira varredura (falso alarme) | os "valores < 20" em `tabela_mapa_cadunico_criancas_0_a_4_2026` eram a razão CadÚnico/Censo (0,07 = 7%) e a população do Censo — não contagens do CadÚnico |
 
@@ -21,4 +21,4 @@ Critérios de aceite; "Resultado" preenchido ao fim (T4.3).
 | V4 | Mapas | percentuais: bairros agregados com a taxa do conjunto; contagens: sem cor e marcados; nota no rodapé |  **OK**: PNG/A4 — percentuais com a taxa do conjunto, contagens sem cor; nota nova no rodapé (a antiga "… famílias suprimidos" saiu de `fonte_mapa_cadunico`) |
 | V5 | PDF e DOCX | tabelas do apêndice com os conjuntos; nota na fonte |  **OK**: 3 tabelas do apêndice com as linhas "Demais bairros …" e a nota de agregação na fonte (bairros agregados não aparecem em linha própria); PDF compila, 0 `undefined`, 14 overfull; `valida_textos_publicados.py` sem frase ausente; nenhum texto curado cita bairro agregado |
 | V6 | Outras saídas | saídas fora do CadÚnico idênticas (hash das PNG/CSV) |  **OK**: mudaram só as 5 tabelas e os 5 mapas do CadÚnico por bairro e o manifesto A4 (legendas); nenhuma outra PNG/CSV |
-| V7 | Documentação | constituição §6, `CLAUDE.md`, ROADMAP (D3), CHANGELOG, README, especificação do projeto |  **OK**: constituição §6 (agregação, numerador/complemento, histórico), `CLAUDE.md`, ROADMAP (histórico `cdfacd2` no backlog Repositório), CHANGELOG, README, especificação do projeto (RF5, RNF2) |
+| V7 | Documentação | constituição §6, `CLAUDE.md`, ROADMAP (D3), CHANGELOG, README, especificação do projeto |  **OK**: constituição §6 (agregação, numerador/complemento, histórico), `CLAUDE.md`, ROADMAP (histórico `361b798` no backlog Repositório), CHANGELOG, README, especificação do projeto (RF5, RNF2) |

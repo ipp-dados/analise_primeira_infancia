@@ -1,6 +1,6 @@
 # Tarefas — `specs/2026-09-28_melhorias_site`
 
-- [x] T0.1 Branch `spec/melhorias-site` a partir de `staging_main` (2702ef9); pasta da rodada
+- [x] T0.1 Branch `spec/melhorias-site` a partir de `staging_main` (f37f5f7); pasta da rodada
 - [x] T0.2 Capturas de referência (antes): todas as abas a 1400 px e 390 px
 
 ## Bloco 1 — favicon (U1)

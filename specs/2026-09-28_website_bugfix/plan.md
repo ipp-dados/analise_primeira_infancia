@@ -4,7 +4,7 @@ Aberta em 2026-09-28, no branch `spec/website-graficos` (correção da rodada `s
 
 ## Contexto
 
-O push da rodada `website_graficos` para `staging_main` (7af4bbc) deixou o site com bugs relatados pelo usuário:
+O push da rodada `website_graficos` para `staging_main` (3140dbb) deixou o site com bugs relatados pelo usuário:
 
 1. botão Taxa | Óbitos fora do estilo do site;
 2. textos da curadoria que não aparecem;
@@ -12,15 +12,15 @@ O push da rodada `website_graficos` para `staging_main` (7af4bbc) deixou o site 
 4. o layout quebra ao reduzir a largura (sugestão: esconder o sumário/barra de progresso);
 5. vários gráficos/mapas não aparecem direito.
 
-**Rollback**: `staging_main` voltou à árvore de `2e9279b` num commit novo (`883b4b1`), sem reescrever o histórico
-(push normal, sem `--force`). Para reintegrar este branch: `git revert 883b4b1` em `staging_main` (ou no branch)
+**Rollback**: `staging_main` voltou à árvore de `41a934c` num commit novo (`c718efc`), sem reescrever o histórico
+(push normal, sem `--force`). Para reintegrar este branch: `git revert c718efc` em `staging_main` (ou no branch)
 antes do merge — senão o merge vê os commits da rodada como já integrados e mantém a árvore antiga.
 
 ## Diagnóstico
 
 | # | Causa | Evidência |
 |---|---|---|
-| 1, 3, 5 | **Cache**: `index.html` novo com `css/`/`js/` antigos. As URLs não tinham versão, e o navegador ou o cache do Pages servia o `charts.js` e o `components.css` da versão anterior. | Reproduzido: HTML atual + CSS/JS de `2e9279b` → botão cinza sem estilo, texto preso em "Precoce" com o mapa "Tardia", erro `pm is not defined` (a função `pm` é nova) que interrompe `data/charts.js` e deixa os gráficos seguintes sem renderizar. Com CSS/JS atuais, 110 trocas de pill em 45 cartões: 0 falhas. |
+| 1, 3, 5 | **Cache**: `index.html` novo com `css/`/`js/` antigos. As URLs não tinham versão, e o navegador ou o cache do Pages servia o `charts.js` e o `components.css` da versão anterior. | Reproduzido: HTML atual + CSS/JS de `41a934c` → botão cinza sem estilo, texto preso em "Precoce" com o mapa "Tardia", erro `pm is not defined` (a função `pm` é nova) que interrompe `data/charts.js` e deixa os gráficos seguintes sem renderizar. Com CSS/JS atuais, 110 trocas de pill em 45 cartões: 0 falhas. |
 | 1 | Mesmo com o CSS certo, o controle segmentado cinza (estilo iOS) não era linguagem do site. | Captura antes/depois. |
 | 2 | (a) Par absoluto + percentual por CAP passava só a chave do absoluto: os 3 textos `percentual_evitaveis_cap_*_ano`, curados, nunca apareceram. (b) `tabela_com_texto` sempre gerava lorem, mesmo havendo texto curado (hoje nenhuma das 3 tabelas tem texto curado). | `conferencia_textos_site.csv` |
 | 4 | Sem regra responsiva para o grid conteúdo + sumário (coluna fixa de 280 px) nem para o banner. A 760 px, um gráfico ficava com ~90 px; título do mapa com uma palavra por linha; texto do mapa empilhado com altura 0 (filho absoluto); URLs das Fontes estouravam 420 px. | Capturas a 1000/760/420 px |

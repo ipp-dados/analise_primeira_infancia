@@ -8,7 +8,7 @@ correspondente (`validation.md`). Referências `plan.md §N` apontam para o desi
 ## Bloco 0 — Decisões
 
 - [x] **T0.1** — Usuário revisou `specs.md` revisão 1 e respondeu as questões A-I
-- [x] **T0.2** — Revisão 2 de `specs.md` incorpora as respostas; commitada (`0eb01ee`)
+- [x] **T0.2** — Revisão 2 de `specs.md` incorpora as respostas; commitada (`8e9f2dd`)
 - [x] **T0.3** — Item H (mapas AP/RP para os novos indicadores) registrado em
       `feature_roadmap.md`, fora de escopo deste branch
 - [x] **T0.4** — Confirmado pelo usuário: "Taxa de Óbitos evitável/não evitável" = soma
@@ -179,7 +179,7 @@ originais mantidos intactos
       ano_cap_2025.png`), 1 gráfico SIDRA (`censo_sidra_populacao_0_6_raca_2022.png`) — todos
       corretos, convenções cartográficas/gráficas do projeto respeitadas
 - [x] **T8.8** — Commits feitos incrementalmente por bloco na branch `spec/maps-and-ibge`
-      (`9aac4af`, `18978de`, `178e349`, `75b205e`, + este de fechamento)
+      (`794409f`, `817e42c`, `2bd2ed4`, `59bc38f`, + este de fechamento)
 - [ ] **T8.9** — Merge em `staging_main` (só após aval do usuário)
 
 → **valida com V7, V8**

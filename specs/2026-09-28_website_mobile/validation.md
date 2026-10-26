@@ -6,7 +6,7 @@ Escrita **antes** da implementação; resultados preenchidos em 2026-09-28. Tama
 `is_mobile`/`has_touch` nos tamanhos de celular. Por `file://` e por `http.server` imitando o Pages. Os scripts
 (métricas, interação, captura de desktop) ficaram no scratchpad da sessão; o que cada um mede está descrito no item.
 
-Linha de base (2026-09-28, `staging_main` 928127a, 390 px): 247 alvos < 44 px; texto dos gráficos a 4,6 px (mín.);
+Linha de base (2026-09-28, `staging_main` 1effc34, 390 px): 247 alvos < 44 px; texto dos gráficos a 4,6 px (mín.);
 legenda cobre 57 % do mapa; botão sobre título em 14 cartões; tooltip sai da tela; 579 px até o conteúdo; 22 px de
 rolagem horizontal a 360 px.
 

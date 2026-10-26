@@ -22,7 +22,7 @@ escrito ainda (além dos pré-requisitos abaixo, já commitados em `staging_main
      que só existe em `df_bairro_ate_4` (criada depois, mais abaixo).
    - `df_bairro[df_bairro['bairro']=='Complexo do Alemão']` usava `'bairro'` como coluna,
      quando é o índice do `groupby`.
-   Corrigidos e commitados em `staging_main` (`4218c7d`). Notebook agora roda limpo,
+   Corrigidos e commitados em `staging_main` (`5eb1d16`). Notebook agora roda limpo,
    0 erros em 114 células, antes de abrir este branch.
 
 Este item não faz parte do escopo de entrega abaixo — é só o estado de partida.
@@ -163,7 +163,7 @@ pequenos já registrada em §2.1.
 
 ### 3.1 Fonte dos dados
 
-`dados_locais/IBGE SIDRA/` (adicionado em `f48e1b1`, ainda não lido por `analise.py`):
+`dados_locais/IBGE SIDRA/` (adicionado em `97db2c5`, ainda não lido por `analise.py`):
 
 | Pasta/arquivo | Tabela SIDRA | Conteúdo | Nível territorial | Ano |
 |---|---|---|---|---|

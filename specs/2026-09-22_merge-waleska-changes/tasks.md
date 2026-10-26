@@ -24,9 +24,9 @@ esta spec ao mesmo padrão de documentação das demais (`specs/2026-09-08_morta
 ## Bloco 1 — Merge real
 
 - [x] **T1.1** — Criar `specs/2026-09-22_merge-waleska-changes/specs.md` documentando o plano **antes**
-      de executar (commit `dc5118d`)
+      de executar (commit `0e6037b`)
 - [x] **T1.2** — `git merge --no-ff origin/waleska-analise-primeira-infancia`, preservando os
-      4 commits e a autoria da Waleska (commit `ed964a5`)
+      4 commits e a autoria da Waleska (commit `4f022e7`)
 - [x] **T1.3** — Confirmar zero conflitos e diff idêntico ao testado no Bloco 0
 
 ---
@@ -55,7 +55,7 @@ esta spec ao mesmo padrão de documentação das demais (`specs/2026-09-08_morta
       nenhum dos 2 scripts (`plan.md` §2, tabela completa)
 - [x] **T2.10** — `ast.parse` em `analise.py`, `build_notebook_report.py` e
       `build_html_report.py` — os 3 continuam sintaticamente válidos
-- [x] **T2.11** — Commit das correções (`0facf8a`)
+- [x] **T2.11** — Commit das correções (`114eaae`)
 
 ---
 
@@ -85,14 +85,14 @@ reais do projeto (`validation.md` V6).
       sobrevivente da curadoria referenciava `df_percentual_evitaveis_municipio`/
       `rotulos_raca_evitaveis_sem_nao_informado`, ambas só definidas em código que a própria
       Waleska tinha comentado — `NameError` ao rodar de verdade, invisível ao grep estático do
-      Bloco 2. Corrigido (commentada, commit `bcdfa08`) e revalidado — `validation.md` V6.5
+      Bloco 2. Corrigido (commentada, commit `be65a74`) e revalidado — `validation.md` V6.5
 - [x] **T4.4** — Rodar `regen_missing_pngs.py` + `build_notebook_report.py` — ambos completam
       sem `FileNotFoundError`/`SystemExit` (`validation.md` V7.1-V7.2); render final para PDF
       via Chrome headless **não testado** (fora do escopo desta validação de conteúdo)
 - [x] **T4.5** — Rodar `build_html_report.py` — completa sem erro, e confirmado por grep que a
       seção "Óbitos por causas evitáveis" não deixa nenhum título órfão das subseções
       removidas (`validation.md` V7.3-V7.5)
-- [x] **T4.6** — `jupytext --sync analise.py` rodado (commit `bcdfa08` já reflete o notebook sincronizado)
+- [x] **T4.6** — `jupytext --sync analise.py` rodado (commit `be65a74` já reflete o notebook sincronizado)
 
 → **validado, ver `validation.md` V6-V8**
 

@@ -1,6 +1,6 @@
 # PLAN — Versão de demonstração (branch `demo`)
 
-## 1. Levantamento do código (2026-09-29, `staging_main` em `2fccc07`)
+## 1. Levantamento do código (2026-09-29, `staging_main` em `e3e6412`)
 
 - **Lorem no site** (`website/build/build_site.py`): `_lorem` e `_lorem_bullets` (l. ~505/553) são chamados por
   `_texto_analise`/`_texto_seed` (textos de figura, com a precedência do texto curado), por `INTRO_HTML` (l. ~1270),

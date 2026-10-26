@@ -1,6 +1,6 @@
 # Rodada `pendencias` — plano
 
-Aberta em 2026-09-29 a partir de `planning` (reorganização do `ROADMAP.md`, commit `c5c732e`). Objetivo: resolver
+Aberta em 2026-09-29 a partir de `planning` (reorganização do `ROADMAP.md`, commit `4f2e3ba`). Objetivo: resolver
 todas as pendências que dependem só de nós (seção "Rodada atual" do `ROADMAP.md`). Branch de trabalho:
 `spec/pendencias`, criada a partir de `planning`; merge em `planning` e `staging_main` ao fim.
 

@@ -109,9 +109,6 @@ Falta só o que depende do **OK do usuário**:
 
 Não dependem de código; entram no projeto quando chegarem.
 
-- **Reescrita do histórico git** (`specs/2026-10-26_limpeza_historico`, Parte B): tirar do histórico público o dado do CadÚnico
-  abaixo de 20 (`cdfacd2`), `revisao_casa_civil/` e os binários gerados (teste: 688 MB → 12 MB). Falta a equipe
-  decidir PDF/decks em Release do GitHub, onde ficam os DOCX de curadoria e a data (todos reclonam).
 - **Deck Família e Cuidados** — feito em `spec/deck_familia_moradia` (2026-10-07) e nunca mesclado; arquivado na tag
   `rodada/deck_familia_moradia`. Retomar numa rodada própria se a equipe quiser o deck (conflita com o build atual).
 
@@ -252,21 +249,8 @@ Não dependem de código; entram no projeto quando chegarem.
   dia for preciso colorir o mar por conta própria (`relatorio/specs.md` v6.4-v6.6).
 
 ### Repositório (git)
-- *2026-10-26: os dois itens abaixo viraram a Parte B de `specs/2026-10-26_limpeza_historico` (seção 2 acima).*
-- **Dado do CadÚnico abaixo de 20 no histórico** (achado de 2026-09-29, `specs/2026-09-29_privacidade_cadunico` D3):
-  o commit `cdfacd2` (2026-09-09, antes da regra de 2026-09-23) tem contagens de crianças/famílias por bairro de 1 a 19
-  em `cadunico_por_bairro_2026.csv`, `cadunico_por_bairro_ate_4_2026.csv`, `tabela_mapa_cadunico_criancas_2026.csv` e
-  `tabela_mapa_cadunico_primeira_infancia_2026.csv`, publicado no GitHub. As versões atuais estão conformes. Limpar exige
-  reescrever o histórico (`git filter-repo` só nesses arquivos, force-push em todas as branches, todos reclonam; muda
-  os hashes citados nas specs) — **decisão do usuário com a equipe**; pode ser feita junto com a limpeza de binários
-  do item abaixo.
-- **Tamanho do histórico** — o pack tem ~178 MB, quase tudo binário com muitas versões: o PDF (19 versões, 644 MB
-  sem compactar), o antigo `relatorio/index.html` (308 MB) e o DOCX de curadoria (87 MB); agora também o PPTX/PDF da
-  apresentação (~17 MB por versão). **Não reescrever o histórico por ora**: mudaria o identificador de todos os
-  commits (hashes citados no `CHANGELOG.md` e nas `specs/`, como o rollback `883b4b1`, deixariam de existir).
-  Primeiro conter o crescimento: publicar PDF/PPTX como anexo de Release do GitHub em vez de versioná-los a cada
-  build, ou pô-los no Git LFS. Se o clone um dia atrapalhar, uma limpeza única combinada com a equipe (tag antes,
-  `git filter-repo`, todos reclonam).
+- *Dado do CadÚnico abaixo de 20 no histórico* e *tamanho do histórico*: resolvidos em 2026-10-26 pela reescrita do
+  histórico (`specs/2026-10-26_limpeza_historico`, Parte B); PDF, decks e DOCX de curadoria agora vão para a Release do GitHub.
 - **Papel da `main`** — muito atrás de `staging_main` (a branch padrão) e nunca recebeu as rodadas. Proposta: usá-la
   como branch de versão e mesclar `staging_main` nela quando `relatorio/publicacao.json` passar para a versão final;
   alternativa: aposentá-la.
@@ -282,12 +266,13 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-10-26 | Histórico do git reescrito (`git filter-repo`): sem o dado do CadÚnico abaixo de 20, `revisao_casa_civil/`, saídas e binários gerados (~740 MB → ~12 MB); hashes citados atualizados; PDF, decks e DOCX na Release do GitHub; link do PDF no site para a última Release | `specs/2026-10-26_limpeza_historico` |
 | 2026-10-26 | Limpeza do repositório: 17 branches arquivadas em tags `rodada/*` e apagadas (inclusive `deck_familia_moradia` e a da Waleska, não mescláveis); 131 saídas e `revisao_casa_civil/` fora do git; Excel de `mapas/tabelas_bairros/` em `tabelas_finais/`; `git gc`; reescrita do histórico planejada | `specs/2026-10-26_limpeza_historico` |
 | 2026-09-29 | Revisão do deck: 30 → 33 slides, "até 72 meses", 393 mil, mapas sem azul (terracota) e com teto de Tukey, violência familiar por vínculo (sem soma), eixos incompletos/ausentes; faixas de renda do CadÚnico corrigidas para "Pobreza"/"Baixa renda" em todo o projeto | `specs/2026-09-29_slide_revision` |
 | 2026-09-29 | PDF alinhado ao site (ordem de Prioridade, vacinação de volta, tabelas no corpo com `tabela_no_texto:`, seção vazia fora — E16); quadros de pendente formais com `motivo:` | `specs/2026-09-29_alinhamento_pdf_site` |
 | 2026-09-29 | Pendências: faixa padrão 0 a 5 anos (até 72 meses), exclusões E12-E15, eixo cortado no baixo peso, tablet com as metas do celular, decisões registradas; correção do esquema do banco do CadÚnico | `specs/2026-09-29_pendencias` |
 | 2026-09-29 | Decisões de pendências (escopo da rodada atual, mapa duplicado, série "Não informada", base zero, unidade do IPS, Centro só no deck, branch da Waleska superada); regra de perguntas agrupadas pela ferramenta interativa na constituição | este arquivo, `specs/constitution.md` §5 |
-| 2026-09-29 | Merge de `spec/nova_estrutura` e `spec/apresentacao` em `planning` e `staging_main` (`ab9f803`) e deploy do site | `.github/workflows/deploy-relatorio.yml` |
+| 2026-09-29 | Merge de `spec/nova_estrutura` e `spec/apresentacao` em `planning` e `staging_main` (`149a87f`) e deploy do site | `.github/workflows/deploy-relatorio.yml` |
 | 2026-09-28 | Apresentação: deck de 30 slides em Marp com fonte única em Markdown, números calculados de `tabelas_finais/`, variantes por secretaria, PPTX e PDF em `apresentacao/`; mapas com teto P95, Centro como outlier no IPS | `specs/2026-09-28_apresentacao` |
 | 2026-09-28 | Nova estrutura: panorama na Introdução (Visão geral no site), 7º eixo Direito ao Brincar, reordenação conforme a planilha da equipe (site, PDF, DOCX); 94 × 94 figuras e 43 × 43 tabelas mantidas | `specs/2026-09-28_nova_estrutura` |
 | 2026-09-28 | Git: 15 branches já mescladas apagadas (13 `spec/*`, `ajuste_eixos`, `inclusao_dados_protecao`), cada ponto final preservado numa tag `rodada/<nome>` | `specs/constitution.md` §7 |
@@ -296,7 +281,7 @@ Resumo; detalhes na pasta da rodada.
 | 2026-09-28 | Rodada A de melhorias: favicon (SVG + `.ico` + apple-touch), abertura de cada eixo, lorem ≤ 150 palavras, só Painéis nos pequenos múltiplos, `index.html` 785 → 343 KB (mapas montados em JS, sprite de ícones); deploy feito | `specs/2026-09-28_melhorias_site` |
 | 2026-09-28 | Curadoria: update 5 incorporado (7 textos novos no site e no PDF, 2 órfãos; controle de revisão recalculado sobre as 5 rodadas; updates antigos em `relatorio/textos_updates_antigos/`; scripts `compara_updates.py` e `valida_textos_publicados.py`) | `relatorio/controle_revisao.json`, skill `export_pdf_report` |
 | 2026-09-28 | Site mobile (`css/mobile.css`: gráficos na largura real, "Nesta seção", select, legenda abaixo do mapa, toque), mesclado e publicado; marca d'água "EM DESENVOLVIMENTO" no PDF ligada à faixa do site (`relatorio/publicacao.json`) | `specs/2026-09-28_website_mobile` |
-| 2026-09-28 | Rollback de `staging_main` e correções do site (cache de CSS/JS, telas estreitas, textos curados ausentes); tabelas de conferência texto × figura; branch corrigido integrado (`21cc040`) | `specs/2026-09-28_website_bugfix` |
+| 2026-09-28 | Rollback de `staging_main` e correções do site (cache de CSS/JS, telas estreitas, textos curados ausentes); tabelas de conferência texto × figura; branch corrigido integrado (`66471ff`) | `specs/2026-09-28_website_bugfix` |
 | 2026-09-25 | Site: exclusões E2-E9 (alternância Taxa ↔ Óbitos), paleta validada, teto P95, unidades nos eixos e taxas por mil com ‰, base zero, pequenos múltiplos, fontes ABNT, textos de achados/síntese; revisão de unidades também na origem (`analise.py`, PDF) | `specs/2026-09-25_website_graficos` |
 | 2026-09-25 | Relatório final em LaTeX/ABNT publicado (`relatorio/analise_primeira_infancia.pdf`), validação V1-V20; substitui o PDF por HTML/Edge headless | `specs/2026-09-25_relatorio_latex` |
 | 2026-09-25 | Lista de exclusões (E1-E12) aplicada ao PDF e ao `analise.py` | `specs/exclusoes.md` |

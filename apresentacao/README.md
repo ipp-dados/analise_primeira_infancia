@@ -11,7 +11,7 @@ cd apresentacao && npm ci && cd ..                          # uma vez (marp-cli 
 pip install -r requirements-dev.txt                          # segno (QR code) e playwright (capturas do site)
 python apresentacao/build/gera_apresentacao.py               # PPTX + PDF em apresentacao/_build/
 python apresentacao/build/gera_apresentacao.py --png         # uma imagem por slide, para conferir
-python apresentacao/build/gera_apresentacao.py --publicar    # copia PPTX e PDF para apresentacao/ (versionados)
+python apresentacao/build/gera_apresentacao.py --publicar    # copia PPTX e PDF para apresentacao/ (fora do git: publicar como anexos da Release do GitHub)
 python apresentacao/build/gera_apresentacao.py --editavel    # também um PPTX editável (experimental, LibreOffice)
 ```
 

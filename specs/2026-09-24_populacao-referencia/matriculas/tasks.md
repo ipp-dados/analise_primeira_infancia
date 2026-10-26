@@ -5,9 +5,9 @@ IDs D/P são os de `specification.md`, e os blocos são os de `plan.md`.
 
 ## Bloco 0: Abertura e decisões
 
-- [x] **T0.1**: Branch `spec/matriculas-censo-escolar` e spec rascunho 1 (2026-09-24, `d8b896c`).
+- [x] **T0.1**: Branch `spec/matriculas-censo-escolar` e spec rascunho 1 (2026-09-24, `76c6b68`).
 - [x] **T0.2**: D1-D5 aprovadas (usuário, 2026-09-24).
-- [x] **T0.3**: Check de 2025 (condição de D4): compatível, spec §3.5. P1-P4 resolvidas (`00e01ce`).
+- [x] **T0.3**: Check de 2025 (condição de D4): compatível, spec §3.5. P1-P4 resolvidas (`1e34b72`).
 - [x] **T0.4**: Regra `/dados_locais/educacao/inep_microdados/` no `.gitignore`; ZIPs de 2020-2025 em cache.
 - [x] **T0.5**: Renomear para `0_a_5` ✅ e D6 no escopo ✅ (usuário, 2026-09-24). Fonte de população levantada e testada (spec §3.6).
 - [x] **T0.6**: Usuário revisou as specs e decidiu D7 ✅ Ripsa com nota metodológica, D8 ✅, D9 ✅ (2026-09-24).

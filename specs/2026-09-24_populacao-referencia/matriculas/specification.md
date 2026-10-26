@@ -52,7 +52,7 @@ em `specs/estrutura_eixos.md` (linhas 269-274). Hoje ele está como `status: pen
   O título da célula é "complementar 2021-2025", mas os anos de 2021 em diante não estão lá.
 - **Não há registro de como o CSV foi feito.** O nome de coluna `f0_` é o padrão do BigQuery para uma
   expressão sem alias, o que sugere uma consulta na Base dos Dados sobre a antiga tabela de matrículas
-  (nível aluno). O arquivo entrou no commit `343f79f` (2026-08-26, "Update readme and source files
+  (nível aluno). O arquivo entrou no commit `2856ef2` (2026-08-26, "Update readme and source files
   commited") sem a query. O filtro de idade, a data de referência e as redes incluídas são
   **desconhecidos**.
 - Existe uma variável reaproveitada: a célula grava em `df_freq_escolar`, o mesmo nome usado pela

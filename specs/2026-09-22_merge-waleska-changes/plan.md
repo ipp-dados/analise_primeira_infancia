@@ -23,7 +23,7 @@ sobrepõem às que essas três rodadas tocaram, o merge de 3 pontas do git resol
 `specs.md` §Teste de merge para a confirmação (`--no-commit --no-ff`, zero conflitos, revertido
 antes de decidir).
 
-Executado: commit `ed964a5` neste branch (`specs/2026-09-22_merge-waleska-changes`, criado a partir de
+Executado: commit `4f022e7` neste branch (`specs/2026-09-22_merge-waleska-changes`, criado a partir de
 `planning`).
 
 ---

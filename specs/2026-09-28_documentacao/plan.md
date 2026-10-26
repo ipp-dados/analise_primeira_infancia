@@ -3,7 +3,7 @@
 **Rodada C** do pedido de 2026-09-28 (`specs/2026-09-28_melhorias_site/plan.md`): `ROADMAP.md`, Próximos, **item 6 —
 Atualizar a documentação do projeto**, e o pedido de um **documento atualizado que explique o projeto inteiro, como
 uma especificação funcional/técnica**. Feita depois da Rodada B (`specs/2026-09-28_organizacao`), que mudou caminhos.
-Branch `spec/documentacao`, a partir de `staging_main` (`621d1fe`).
+Branch `spec/documentacao`, a partir de `staging_main` (`e8334cb`).
 
 ## Entregas
 

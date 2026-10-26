@@ -16,7 +16,7 @@ Auditoria (2026-09-29, `validation.md` §Planejamento):
   as tabelas versionadas trazem crianças e famílias por bairro. Percentual × total devolve a contagem: o grupo ou o
   complemento fica abaixo de 20 em **6 bairros** (% negras) e **14** (% uma adulta). Ex.: Leblon, 49 crianças, 35
   negras → 14 não negras.
-- **Histórico do git:** o commit `cdfacd2` (2026-09-09, antes da regra de 2026-09-23) tem contagens de 1 a 19 por bairro
+- **Histórico do git:** o commit `361b798` (2026-09-09, antes da regra de 2026-09-23) tem contagens de 1 a 19 por bairro
   em 4 arquivos (ex.: Argentino 3, Grumari 12), publicado no GitHub.
 
 ## 2. Decisões do usuário (2026-09-29)
@@ -25,7 +25,7 @@ Auditoria (2026-09-29, `validation.md` §Planejamento):
 | :-- | :--- | :--- |
 | D1 | Bairros abaixo do limiar **somados na sua RA** ("Demais bairros da RA X"); se o conjunto ainda ficar < 20, na **AP**; se ainda < 20, no município ("Demais bairros") | em vez de vazio: os totais fecham e o dado não some |
 | D2 | Em percentual por bairro, o bairro entra no conjunto agregado também quando o **numerador ou o complemento** (denominador − numerador) é < 20 | percentual × total publicado devolve a contagem |
-| D3 | Histórico do git (`cdfacd2`): **só registrar agora**; limpeza (filter-repo + force-push) decidida depois com a equipe | constituição §7: não reescrever histórico sem OK explícito |
+| D3 | Histórico do git (`361b798`): **só registrar agora**; limpeza (filter-repo + force-push) decidida depois com a equipe | constituição §7: não reescrever histórico sem OK explícito |
 
 Detalhe de implementação decidido na planificação (registrado aqui para revisão):
 - **Mapas de percentual:** os bairros de um conjunto aparecem com a **taxa do conjunto** e marcados como agregados

@@ -7,7 +7,7 @@ textos é versionada (`website/build/confere_textos.py`).
       `index.html` e `data/*`
 - [x] V2 Cache: todo `css/`, `js/` e `data/` do `index.html` com `?v=<hash>`. Servido por `http.server` no caminho
       `/analise_primeira_infancia/`: 0 requisições falhas
-- [x] V3 Reprodução do bug: HTML novo + CSS/JS de `2e9279b` → botão sem estilo, texto da 1ª pill preso,
+- [x] V3 Reprodução do bug: HTML novo + CSS/JS de `41a934c` → botão sem estilo, texto da 1ª pill preso,
       `pm is not defined`. Com as versões nas URLs, esse par não pode mais se formar depois de um deploy
 - [x] V4 Pills: 45 cartões, 110 estados (todas as pills, e cada modo Taxa|Óbitos): em cada um, exatamente 1 texto
       visível, o painel certo e o SVG com tamanho > 50 px — 0 falhas

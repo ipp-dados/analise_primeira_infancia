@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Extração mecânica das funções auxiliares de `analise.py` para o pacote `primeira_infancia/`
 (specs/2026-09-28_organizacao, fase 1b). Rodado uma vez, a partir da raiz, sobre o `analise.py` de `staging_main`
-8dbf8c3; fica versionado aqui como registro de como o pacote foi gerado (não é pipeline).
+e29fa22; fica versionado aqui como registro de como o pacote foi gerado (não é pipeline).
 
     python specs/2026-09-28_organizacao/extrai_modulos.py [--gravar]
 

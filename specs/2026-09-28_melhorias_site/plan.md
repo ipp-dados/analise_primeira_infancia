@@ -1,7 +1,7 @@
 # Plano — `specs/2026-09-28_melhorias_site`
 
 Rodada de **melhorias pequenas do site e do relatório** (pedido do usuário, 2026-09-28). Plano apresentado e aprovado
-("ok") na mesma data; branch `spec/melhorias-site`, a partir de `staging_main` (`2702ef9`). É a **Rodada A** de três:
+("ok") na mesma data; branch `spec/melhorias-site`, a partir de `staging_main` (`f37f5f7`). É a **Rodada A** de três:
 
 | Rodada | Conteúdo | Branch / pasta |
 |---|---|---|
@@ -9,7 +9,7 @@ Rodada de **melhorias pequenas do site e do relatório** (pedido do usuário, 20
 | B | `ROADMAP.md` Próximos, item 1 (organização do projeto), fases 1a e 1b | `spec/organizacao` · `specs/<data>_organizacao` |
 | C | `ROADMAP.md` Próximos, item 6 (documentação) + documento de especificação funcional/técnica do projeto | depois da B, que muda caminhos |
 
-## 1. Ponto de partida (medido em 2026-09-28, `staging_main` 2702ef9)
+## 1. Ponto de partida (medido em 2026-09-28, `staging_main` f37f5f7)
 
 | Aspecto | Hoje |
 |---|---|

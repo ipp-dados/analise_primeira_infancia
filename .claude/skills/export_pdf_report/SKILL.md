@@ -69,7 +69,10 @@ Run everything from the project root.
    subsection, `status: pendente`) is enough for the PDF (unlike the site, whose grouping is still hardcoded).
    The build prints: figures still without a print version, keys still in lorem ipsum, curated texts whose
    figure is not in the report, `undefined` references and overfull boxes > 5 pt.
-   `--publicar` replaces the file the site links to — only with the user's OK.
+   `--publicar` replaces the local `relatorio/analise_primeira_infancia.pdf` — only with the user's OK. That file is
+   gitignored (`specs/2026-10-26_limpeza_historico`): readers get it from a **GitHub Release** (the site links to
+   `releases/latest/download/analise_primeira_infancia.pdf`), so publishing = `--publicar` + a new Release with the PDF
+   (and the decks/curation DOCX) attached under the same file names. Never commit the PDF/DOCX back.
 
 4. **Verify** (`specs/2026-09-25_relatorio_latex/validation.md` has the full list). At least: page count and size
    (budget < 20 MB), rasterize a sample with PyMuPDF and look at it (cover, contents, a chapter opener, a map
@@ -137,7 +140,7 @@ opening 90) in the three generators — site `_lorem`, LaTeX `lorem`, DOCX `_lor
    One heading per eixo/subsection, the (screen) images, one bookmarked text block per image, plus the report
    blocks (Resumo after the Introduction; Principais achados and Síntese at the start/end of each eixo;
    Considerações finais at the end). Text comes from `relatorio/textos_curados.json` (always read, so a rebuild
-   without the previous DOCX no longer loses curated text -- it did in d29cdb0), then the previous DOCX; on a
+   without the previous DOCX no longer loses curated text -- it did in 9c505ee), then the previous DOCX; on a
    difference the JSON wins and the key is printed as `AVISO` (if the DOCX version is the right one, run step 7 on it
    first). Still pass the existing DOCX: text whose indicator left the structure goes to a "Textos órfãos" appendix.
    `relatorio/controle_revisao.json` is loaded automatically (status marks + "Controle de revisão" table).

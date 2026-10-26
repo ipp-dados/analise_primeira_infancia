@@ -100,14 +100,16 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   usuário antes.
   **Atualização 2026-09-23 (`specs/2026-09-23_recortes_cadunico`):** o achado acima
   não vale mais. As regras foram reativadas em 2026-09-22 (commit
-  `5907196`), então `tabelas_finais/`, `mapas/` e `visualizacoes/` voltaram a
+  `b8b4318`), então `tabelas_finais/`, `mapas/` e `visualizacoes/` voltaram a
   ser ignorados. Só os arquivos rastreados **antes** disso seguem no git e
   são atualizados quando regenerados; saídas novas não são versionadas (o
   pipeline de relatório as lê do disco local). A cautela de não apagar
   saídas sem regenerá-las continua valendo.
-  **Atualização 2026-10-26 (`specs/2026-10-26_limpeza_historico`):** as saídas rastreadas antes de `5907196` saíram do git
+  **Atualização 2026-10-26 (`specs/2026-10-26_limpeza_historico`):** as saídas rastreadas antes de `b8b4318` saíram do git
   (`git rm --cached`, ficam no disco): `tabelas_finais/`, `visualizacoes/` e `mapas/` não têm mais nada versionado
-  além do `.gitkeep`. Não force (`git add -f`) saída nessas pastas.
+  além do `.gitkeep`. Não force (`git add -f`) saída nessas pastas. O mesmo vale para o PDF do relatório, os decks
+  (PPTX/PDF) e os DOCX de curadoria: ficam no disco e são publicados como anexos de uma **Release do GitHub**
+  (`specs/2026-10-26_limpeza_historico` Parte B); o histórico foi reescrito para tirá-los, e voltar a versioná-los refaria o problema.
 
 ## 4. Não editar artefatos gerados à mão
 
@@ -183,8 +185,8 @@ a célula pequena não fica vazia — o bairro é somado aos outros bairros pequ
 **Percentual por bairro:** o bairro também entra no conjunto quando o **numerador ou o complemento** (total −
 numerador) é menor que 20 — percentual × total publicado devolveria a contagem. Em mapa de percentual, o bairro do
 conjunto mostra a taxa do conjunto; em mapa de contagem, fica sem cor, e o total do conjunto está na tabela.
-**Histórico:** o commit `cdfacd2` (2026-09-09, antes da regra) tem contagens por bairro abaixo de 20 no GitHub; a
-limpeza do histórico está planejada em `specs/2026-10-26_limpeza_historico` (Parte B) e depende de decisão com a equipe (§7).
+**Histórico:** as contagens abaixo de 20 do commit `361b798` (2026-09-09, antes da regra) foram removidas de todo o
+histórico em 2026-10-26 (`specs/2026-10-26_limpeza_historico`, Parte B; `tabelas_finais/` inteira saiu do histórico).
 
 ## 7. Git
 

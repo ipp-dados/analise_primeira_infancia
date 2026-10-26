@@ -514,7 +514,7 @@ teto explícito.
 
 ## 2026-09-29 — DOCX de curadoria com os textos curados de volta
 
-`relatorio/curadoria_textos.docx` estava só com lorem desde d29cdb0 (regerado sem o DOCX anterior; os 77 textos seguiam
+`relatorio/curadoria_textos.docx` estava só com lorem desde 9c505ee (regerado sem o DOCX anterior; os 77 textos seguiam
 em `textos_curados.json`, e o site e o PDF não foram afetados). Regerado com os textos do JSON, já com as correções de
 0 a 5 anos e da linha de pobreza. `gera_docx_curadoria.py` passa a ler `textos_curados.json` sempre (precedência:
 `--textos` > JSON > DOCX anterior > placeholder) e avisa quando um texto do DOCX anterior difere do JSON.
@@ -553,3 +553,14 @@ faixas em destaque (D5, D6).
 - `analise.py`: as 3 tabelas Excel de `mapas/tabelas_bairros/` passam a ser gravadas em `tabelas_finais/`.
 - Reescrita do histórico (dado do CadÚnico abaixo de 20, revisões externas e binários gerados) planejada, à espera da
   equipe.
+
+## 2026-10-26 — `specs/2026-10-26_limpeza_historico` Parte B (histórico reescrito)
+
+- Histórico reescrito com `git filter-repo` em todas as branches e tags: saíram `revisao_casa_civil/`, `tabelas_finais/`,
+  `visualizacoes/`, `mapas/` (menos `.gitkeep`) — com elas as contagens do CadÚnico abaixo de 20 de 2026-09-09 —, os
+  antigos `relatorio/index.html`/`relatorio.html` e todo PDF/DOCX de `relatorio/` e PPTX/PDF de `apresentacao/`.
+  Clone de ~740 MB para ~12 MB; 11 commits que só mexiam em saídas ficaram vazios e sumiram. **Todo hash de commit
+  mudou**: os citados neste arquivo, nas `specs/` e no código foram trocados pelos novos (82 em 37 arquivos; troca
+  mecânica, a única edição de entradas antigas). Quem tinha clone anterior precisa reclonar.
+- PDF, decks e DOCX de curadoria ficam fora do git (`.gitignore`) e são publicados como anexos da Release do GitHub;
+  o link de download do PDF no site aponta para a última Release.

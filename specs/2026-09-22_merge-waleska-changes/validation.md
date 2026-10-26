@@ -13,7 +13,7 @@ aqui — ver `plan.md` §4.
 |---|---|---|---|
 | V1.1 | `git merge --no-commit --no-ff origin/waleska-analise-primeira-infancia` a partir do HEAD pré-merge | sem marcadores `<<<<<<<`/`=======`/`>>>>>>>` | ✅ passou — `grep -c` retornou 0 |
 | V1.2 | Diff do merge de teste == diff de Waleska contra sua própria base | `+206 -191` em `analise.py`, idêntico nas duas medições | ✅ passou |
-| V1.3 | Merge real (`--no-ff`, sem `--no-commit`) reproduz o mesmo resultado | mesmo diff, commit `ed964a5` criado | ✅ passou |
+| V1.3 | Merge real (`--no-ff`, sem `--no-commit`) reproduz o mesmo resultado | mesmo diff, commit `4f022e7` criado | ✅ passou |
 
 Comando:
 ```bash
@@ -102,7 +102,7 @@ temporária só para rodar aqui. **Não são bugs do merge da Waleska nem foram 
 | V6.2 | Seção CadÚnico (não tocada pela Waleska) | requer `.env` + Postgres | **Confirmado que falha só por falta de `.env`/DB** (não existe `.env` no projeto) — `ValueError` na primeira célula que usa `engine`, cascata de `NameError`/`KeyError` nas ~17 células seguintes da seção CadÚnico, todas dependentes da query. Nenhuma delas foi tocada por Waleska. Comportamento idêntico ao documentado em `.claude/skills/export_pdf_report/SKILL.md` ("não roda apenas com os arquivos em `dados_locais/`") |
 | V6.3 | Seções de Mortalidade/Censo/SISVAN/Vacinal/SIDRA (tocadas) | tabelas/gráficos esperados, sem os removidos pela curadoria | ✅ **117 de 134 células rodam sem erro** — as 17 que falham são só CadÚnico (V6.2). Confirmado por inspeção de arquivo: as ~10 saídas removidas pela curadoria (tabela `plan.md` §2) **não existem**; as saídas mantidas/restauradas **existem** — ver lista completa abaixo |
 | V6.4 | Nenhuma saída fora do escopo muda | mapas/tabelas não tocadas continuam sendo geradas | ✅ `mapa_mortalidade_infantil_bairro_2025.png`, mapas de raça/cor, IBGE SIDRA etc. gerados normalmente |
-| V6.5 | **Novo, achado durante a execução**: nenhuma célula ativa referencia uma variável só definida numa célula comentada pela curadoria | 0 `NameError` fora da cascata do CadÚnico | ❌ **falhou na primeira tentativa** — achado real: o commit "Ajusta curadoria da mortalidade evitável" comentou 3 das 4 chamadas `serie_temporal_multipla` de "óbitos evitáveis por raça/cor sem não informada", deixando a 4ª ativa referenciando `df_percentual_evitaveis_municipio`/`rotulos_raca_evitaveis_sem_nao_informado`, ambas só definidas nas linhas comentadas. **Corrigido** (comentada também, commit `bcdfa08`) — reexecutado, ✅ passou |
+| V6.5 | **Novo, achado durante a execução**: nenhuma célula ativa referencia uma variável só definida numa célula comentada pela curadoria | 0 `NameError` fora da cascata do CadÚnico | ❌ **falhou na primeira tentativa** — achado real: o commit "Ajusta curadoria da mortalidade evitável" comentou 3 das 4 chamadas `serie_temporal_multipla` de "óbitos evitáveis por raça/cor sem não informada", deixando a 4ª ativa referenciando `df_percentual_evitaveis_municipio`/`rotulos_raca_evitaveis_sem_nao_informado`, ambas só definidas nas linhas comentadas. **Corrigido** (comentada também, commit `be65a74`) — reexecutado, ✅ passou |
 
 Confirmação por arquivo (rodado após o fix do V6.5):
 
@@ -175,6 +175,6 @@ sobre o **conteúdo** gerado pelos scripts Python, não sobre o passo de impress
 **Um bug real foi encontrado e corrigido durante a execução (V6.5)**: uma célula ativa
 sobrevivente referenciava variáveis só definidas em código que a própria curadoria da Waleska
 tinha comentado — só aparece rodando o notebook de verdade, não em grep estático. Corrigido
-(commit `bcdfa08`) e revalidado. Fora esse achado (já corrigido), nada mais contradiz a
+(commit `be65a74`) e revalidado. Fora esse achado (já corrigido), nada mais contradiz a
 curadoria da Waleska ou indica que o merge introduziu um problema novo — **merge validado de
 ponta a ponta**, pronto para o Bloco 5 (`tasks.md`).

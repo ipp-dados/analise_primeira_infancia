@@ -39,10 +39,10 @@ textos e mantém o pipeline; e quem quiser reproduzir os números (código e dad
 | Produto | Onde | Para quê |
 |---|---|---|
 | Site interativo | GitHub Pages (`website/`) | leitura na tela: abas por eixo, gráficos e mapas com tooltip, tabela alternativa e CSV de cada figura |
-| Relatório técnico em PDF | `relatorio/analise_primeira_infancia.pdf` (157 páginas, ABNT NBR 10719) | leitura, impressão e citação; todas as tabelas no apêndice |
+| Relatório técnico em PDF | `relatorio/analise_primeira_infancia.pdf` (local; publicado como anexo da Release do GitHub; 157 páginas, ABNT NBR 10719) | leitura, impressão e citação; todas as tabelas no apêndice |
 | Tabelas finais | `tabelas_finais/*.csv` (87) | os números por trás de cada figura |
-| DOCX de curadoria | `relatorio/curadoria_textos.docx` | a equipe escreve e revisa os textos que acompanham as figuras |
-| Apresentação | `apresentacao/apresentacao_primeira_infancia.pptx` e `.pdf` (33 slides) | apresentar o diagnóstico a gestores das secretarias; gerada de um único Markdown, com variantes por público |
+| DOCX de curadoria | `relatorio/curadoria_textos.docx` (local; anexo da Release) | a equipe escreve e revisa os textos que acompanham as figuras |
+| Apresentação | `apresentacao/apresentacao_primeira_infancia.pptx` e `.pdf` (local; anexos da Release; 33 slides) | apresentar o diagnóstico a gestores das secretarias; gerada de um único Markdown, com variantes por público |
 | Código | `analise.py` + `primeira_infancia/` | reprodução completa, da fonte bruta à figura |
 
 **Estado.** Em desenvolvimento: o site mostra uma faixa "EM DESENVOLVIMENTO / TEMPORÁRIO" e o PDF sai com marca
@@ -359,7 +359,9 @@ arquivo na geração; o site ainda tem o agrupamento no gerador e precisa do mes
 
 - **Site**: deploy manual (`workflow_dispatch` de `.github/workflows/deploy-relatorio.yml`), que só copia `website/`
   (saída versionada); nunca automático.
-- **PDF**: `gera_latex.py --publicar` copia o PDF compilado para `relatorio/analise_primeira_infancia.pdf`.
+- **PDF**: `gera_latex.py --publicar` copia o PDF compilado para `relatorio/analise_primeira_infancia.pdf` (fora do
+  git); a publicação é uma nova Release do GitHub com o PDF, os decks e os DOCX anexados — o site baixa o PDF de
+  `releases/latest/download/analise_primeira_infancia.pdf` (`specs/2026-10-26_limpeza_historico`).
 - **Versão final**: `relatorio/publicacao.json` → `em_desenvolvimento: false`, e regerar site e PDF (tira a faixa e a
   marca d'água juntas).
 

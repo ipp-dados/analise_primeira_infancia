@@ -19,8 +19,8 @@ de Saúde, organizados em um panorama (população e nascimentos) e nos 7 eixos 
 | | |
 |---|---|
 | **Site (relatório interativo)** | [ipp-dados.github.io/analise_primeira_infancia](https://ipp-dados.github.io/analise_primeira_infancia/) |
-| **Relatório em PDF** | [`relatorio/analise_primeira_infancia.pdf`](relatorio/analise_primeira_infancia.pdf) |
-| **Apresentação (30 slides)** | [`apresentacao/apresentacao_primeira_infancia.pptx`](apresentacao/apresentacao_primeira_infancia.pptx) · [PDF](apresentacao/apresentacao_primeira_infancia.pdf) — como gerar: [`apresentacao/README.md`](apresentacao/README.md) |
+| **Relatório em PDF** | [`analise_primeira_infancia.pdf`](https://github.com/ipp-dados/analise_primeira_infancia/releases/latest/download/analise_primeira_infancia.pdf) (anexo da [última Release](https://github.com/ipp-dados/analise_primeira_infancia/releases/latest)) |
+| **Apresentações** | PPTX e PDF do deck principal e das variantes na [última Release](https://github.com/ipp-dados/analise_primeira_infancia/releases/latest) — como gerar: [`apresentacao/README.md`](apresentacao/README.md) |
 | **Notebook fonte** | [`analise.py`](analise.py) (Jupytext, abre como notebook) |
 
 O site é gerado a partir das saídas do notebook por `website/build/build_site.py` (ver
@@ -64,7 +64,8 @@ compartilhado, acesso restrito — solicitar a leonardoaucar@prefeitura.rio.*
     gera `index.html` e `data/`; CSS e JS são editados à mão. Detalhes em
     [`website/README.md`](website/README.md) (inclusive a versão mobile), pendências em
     [`ROADMAP.md`](ROADMAP.md).
-*   `relatorio/`: relatório em PDF (`analise_primeira_infancia.pdf`), DOCX de curadoria de textos,
+*   `relatorio/`: relatório em PDF (`analise_primeira_infancia.pdf`), DOCX de curadoria de textos (PDF e DOCX só
+    locais, fora do git desde 2026-10-26 — publicados como anexos da Release do GitHub),
     `controle_revisao.json` (status de revisão de cada texto), `textos_updates_antigos/` (rodadas de
     curadoria devolvidas pelo Google Docs, `curadoria_textos_update_<N>.docx`) e `textos_curados.json`
     (texto curado lido pelo site e pelo PDF); `latex/` (fonte do relatório ABNT e gerador) e `curadoria/`
@@ -128,6 +129,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.34.0 | 2026-10-26 | Histórico do git reescrito: sem o dado do CadÚnico abaixo de 20, sem as revisões externas e sem binários gerados (clone de ~740 MB para ~12 MB; todos reclonam). PDF, decks e DOCX de curadoria passam a ser anexos da Release do GitHub; o site baixa o PDF da última Release (`specs/2026-10-26_limpeza_historico`). |
 | 0.33.1 | 2026-10-26 | Limpeza do repositório: branches mescladas arquivadas em tags `rodada/*` e apagadas; saídas (`tabelas_finais/`, `visualizacoes/`, `mapas/`) e `revisao_casa_civil/` fora do git (ficam no disco); tabelas Excel de `mapas/tabelas_bairros/` em `tabelas_finais/`; reescrita do histórico planejada (`specs/2026-10-26_limpeza_historico`). |
 | 0.33.0 | 2026-10-06 | CadÚnico refeito (partição jul/2026): filtro 0 a 5 corrigido; Inclusão (deficiência, tipo, BPC) e Moradia (inadequação e déficit FJP, adensamento) com as silvers novas e bairro pelo código oficial, no lugar dos pendentes e do dado pontual (`specs/2026-10-06_cadunico_inclusao_moradia`). |
 | 0.32.0 | 2026-09-29 | Dados pontuais do CadÚnico (ago/2026) em Inclusão (deficiência e BPC) e Moradia (banheiro, água, esgoto), só por acréscimo, com aviso de dado pontual até a extração automatizada (4º tri de 2026) (`specs/2026-09-29_dados_adhoc`). |

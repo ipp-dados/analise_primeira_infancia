@@ -9,7 +9,7 @@ Legenda: [x] feito · [ ] a fazer
 - [x] T0.4 Conferir: 51 → 51 itens, nenhum arquivo a mais ou a menos, `valida_estrutura` OK
 - [x] T0.5 Conferir as observações do .txt nos textos curados (`specification.md` §6)
 - [x] T0.6 Escrever specification/plan/tasks/validation
-- [x] T0.7 Commit no `planning` (4e7e254); merge em `staging_main` ao fim da rodada
+- [x] T0.7 Commit no `planning` (9ef9b58); merge em `staging_main` ao fim da rodada
 
 ## Bloco 0 — Inventário
 - [x] T0a Script de inventário do site (h2-h5, seeds, ids) e do PDF (figuras, tabelas)
@@ -49,5 +49,5 @@ Legenda: [x] feito · [ ] a fazer
 - [x] T6.1 `validation.md`
 - [x] T6.2 Documentação (especificação do projeto, CLAUDE.md, ROADMAP, README, relatorio/specs.md)
 - [ ] T6.3 Regenerar site e PDF; publicar com o OK do usuário; merge; tag `rodada/nova_estrutura`
-  - 2026-09-29: merge em `planning`/`staging_main` feito (`ab9f803`) e site publicado; PDF e tag seguem em
+  - 2026-09-29: merge em `planning`/`staging_main` feito (`149a87f`) e site publicado; PDF e tag seguem em
     `specs/2026-09-29_pendencias` (T9.3, com OK do usuário)

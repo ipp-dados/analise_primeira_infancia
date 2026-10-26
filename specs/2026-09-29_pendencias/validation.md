@@ -7,8 +7,8 @@ Critérios de aceite; a coluna "Resultado" é preenchida ao fim da implementaç�
 | Verificação | Resultado |
 |---|---|
 | Mapas de taxa de mortalidade infantil 2025 (cartão neonatal × raça/cor) | **OK, iguais**: 167 × 167 códigos, diferença máxima 7e-15 |
-| Deploy do site depois do merge | **OK**: `deploy-relatorio.yml` em `ab9f803` (2026-09-29 13:00 UTC, sucesso) |
-| PDF publicado × estrutura atual | **desatualizado**: último `--publicar` em `17cae4a` (melhorias_site), antes da `nova_estrutura` |
+| Deploy do site depois do merge | **OK**: `deploy-relatorio.yml` em `149a87f` (2026-09-29 13:00 UTC, sucesso) |
+| PDF publicado × estrutura atual | **desatualizado**: último `--publicar` em `894fd94` (melhorias_site), antes da `nova_estrutura` |
 | Cabeçalhos de cache do site no ar (D13) | **OK, nada a fazer**: `/`, `css/main.css?v=…`, `assets/images/ipp-logo.png`, `favicon.ico` com `expires`, `Cache-Control: max-age=600`, `ETag`, `Last-Modified` (curl, 2026-09-29) |
 
 ## Implementação

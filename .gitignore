@@ -35,3 +35,10 @@ relatorio/latex/*.fdb_latexmk
 
 # 2026-10-26 (specs/2026-10-26_limpeza_historico): revisões externas do plano (Casa Civil), com nomes de pessoas -- só local
 /revisao_casa_civil/
+
+# specs/2026-10-26_limpeza_historico (Parte B): PDF, decks e DOCX de curadoria não são versionados -- vão como anexos da Release do GitHub
+/relatorio/*.pdf
+/relatorio/*.docx
+/relatorio/textos_updates_antigos/
+/apresentacao/*.pdf
+/apresentacao/*.pptx

@@ -2270,10 +2270,10 @@ TITULO_SITE = "Diagnóstico da Primeira Infância Carioca"
 TITULO_H1 = '<span class="h1-linha">Diagnóstico da</span><span class="h1-linha">Primeira Infância Carioca</span>'
 URL_GITHUB = "https://github.com/ipp-dados/analise_primeira_infancia"
 # PDF não é publicado no Pages (~48 MB, fora do orçamento §4.9 e da decisão T9.3 de
-# specs/2026-09-14_relatorio-interativo) -- link para o arquivo versionado no repositório (branch principal).
-# raw.githubusercontent.com serve o arquivo como application/octet-stream -> o navegador baixa direto
-# (pedido do usuário: link de download, não a página do GitHub)
-URL_PDF = "https://raw.githubusercontent.com/ipp-dados/analise_primeira_infancia/staging_main/relatorio/analise_primeira_infancia.pdf"
+# specs/2026-09-14_relatorio-interativo) -- link para o anexo da última Release do GitHub (desde
+# specs/2026-10-26_limpeza_historico: o PDF saiu do git). releases/latest/download/<arquivo> redireciona para o anexo,
+# que o navegador baixa direto (pedido do usuário: link de download, não a página do GitHub)
+URL_PDF = "https://github.com/ipp-dados/analise_primeira_infancia/releases/latest/download/analise_primeira_infancia.pdf"
 
 # rótulo curto da aba e ícone por eixo (título completo continua no h2 do painel)
 _EIXO_META = [  # (prefixo do sid, rótulo curto, ícone)

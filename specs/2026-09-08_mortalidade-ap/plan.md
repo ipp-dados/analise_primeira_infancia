@@ -15,7 +15,7 @@ função propostas e as decisões de design justificadas.
 ## 1. Princípio norteador
 
 O `analise.py` tem uma estrutura explícita, documentada no README e reforçada no commit
-`3c14e56`:
+`fdbd4e7`:
 
 > "as seções de análise abaixo apenas *chamam* essas funções, sem redefini-las"
 

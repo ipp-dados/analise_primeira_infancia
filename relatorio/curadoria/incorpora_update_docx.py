@@ -3,7 +3,7 @@
 com os bookmarks da estrutura ATUAL de `relatorio/curadoria_textos.docx`.
 
 Por que existe: o round-trip pelo Google Docs apaga os bookmarks OOXML que `sincroniza_docx.py`
-usa (ver commit cbae4cd, update 1). E o arquivo de update costuma ter sido baixado de uma versão
+usa (ver commit e2c07aa, update 1). E o arquivo de update costuma ter sido baixado de uma versão
 anterior da estrutura (títulos de imagem com nomes de arquivo antigos, subseções que mudaram de
 conteúdo). Então o casamento é por contexto, nesta ordem:
 

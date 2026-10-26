@@ -2,7 +2,7 @@
 
 Escrita antes da implementação; resultados preenchidos no fechamento (2026-09-28). Capturas com Playwright (Chrome
 instalado, `channel="chrome"`), todas as abas, página inteira, a 1400 px e 390 px: **antes** (`staging_main`
-2702ef9), **intermediárias** (blocos 1-4 prontos) e **finais** (bloco 5 pronto).
+f37f5f7), **intermediárias** (blocos 1-4 prontos) e **finais** (bloco 5 pronto).
 
 | # | Verificação | Como | Resultado |
 |---|---|---|---|

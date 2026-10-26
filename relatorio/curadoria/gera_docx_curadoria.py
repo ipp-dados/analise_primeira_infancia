@@ -34,7 +34,7 @@ CLI:
 
 Texto de cada bloco, em ordem de precedência: `--textos` > `relatorio/textos_curados.json` (o texto publicado no
 site/PDF) > `<docx_anterior>` > placeholder. O JSON entra sempre, então regerar sem o DOCX anterior já não perde texto
-curado (em d29cdb0 o DOCX saiu só com lorem); o DOCX anterior ainda serve para
+curado (em 9c505ee o DOCX saiu só com lorem); o DOCX anterior ainda serve para
 levar ao apêndice "Textos órfãos" os blocos que saíram da estrutura. Texto do DOCX anterior diferente do JSON é
 avisado no terminal: se for edição feita no Word e ainda não sincronizada, rode `sincroniza_docx.py` antes. Destino sempre `relatorio/curadoria_textos.docx`
 (hardcoded, mesma convenção dos scripts irmãos desta pasta).

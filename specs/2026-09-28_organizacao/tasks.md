@@ -1,6 +1,6 @@
 # Tarefas — `specs/2026-09-28_organizacao`
 
-- [x] T0.1 Branch `spec/organizacao` a partir de `staging_main` (8dbf8c3); pasta da rodada
+- [x] T0.1 Branch `spec/organizacao` a partir de `staging_main` (e29fa22); pasta da rodada
 - [x] T0.2 Execução de referência de `analise.py` (antes) + hash de todas as saídas
 
 ## Fase 1a

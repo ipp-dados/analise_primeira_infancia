@@ -3,7 +3,7 @@
 Rodada da **versão mobile do site** (`ROADMAP.md`, Próximos, item 5). Aberta em 2026-09-28 como planejamento; o
 branch de implementação (`spec/website-mobile`, a partir de `staging_main`) só é criado depois do OK do usuário.
 
-## 1. Ponto de partida (medido em 2026-09-28, `staging_main` 928127a)
+## 1. Ponto de partida (medido em 2026-09-28, `staging_main` 1effc34)
 
 A rodada `website_refactor` foi só desktop (§4.8). A `website_bugfix` (2026-09-28) apenas impediu a quebra: abaixo de
 1100 px o sumário some, abaixo de 900 px mapa/gráfico e texto empilham, abaixo de 760 px o banner empilha. Medições

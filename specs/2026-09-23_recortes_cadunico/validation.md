@@ -61,7 +61,7 @@ detecta isso.
 - [x] A6/A7/A8: notas e rótulos de renda presentes.
 
 ## V7 — Relatórios
-*Evidência: HTML 20.331.573 → 21.478.148 bytes; `<h3` 24 → 27; `map-svg-card` 65 → 69; os 40 títulos de mapa não CadÚnico ficam byte-idênticos ao baseline (commit 9091d97). Removido: "% ... CadÚnico sobre o Censo"; adicionados os 3 mapas de taxa. Gráficos novos renderizados no DOM (Edge headless `--dump-dom`). PDF 122 → 129 páginas, sem página em branco, páginas novas e apêndice inspecionados. DOCX: 49 subseções, 104 imagens, 112 bookmarks (1 órfão = texto do mapa removido).*
+*Evidência: HTML 20.331.573 → 21.478.148 bytes; `<h3` 24 → 27; `map-svg-card` 65 → 69; os 40 títulos de mapa não CadÚnico ficam byte-idênticos ao baseline (commit 673d495). Removido: "% ... CadÚnico sobre o Censo"; adicionados os 3 mapas de taxa. Gráficos novos renderizados no DOM (Edge headless `--dump-dom`). PDF 122 → 129 páginas, sem página em branco, páginas novas e apêndice inspecionados. DOCX: 49 subseções, 104 imagens, 112 bookmarks (1 órfão = texto do mapa removido).*
 - [x] HTML: os 3 itens de Inclusão viram cards reais (sem `emite_bloco_pendente` para eles). O restante do HTML fica idêntico ao baseline (diff estrutural), fora do bloco CadÚnico de Família e Cuidados.
 - [x] `mapa_svg` com `rotulo_nan` default: os outros ~30 mapas SVG ficam byte-idênticos ao baseline.
 - [x] PDF: 3 itens renderizados, mapas legíveis, sem página em branco nova. Contagem de páginas registrada.

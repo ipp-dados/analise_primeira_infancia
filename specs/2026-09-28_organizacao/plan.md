@@ -2,7 +2,7 @@
 
 **Rodada B** do pedido de 2026-09-28 (`specs/2026-09-28_melhorias_site/plan.md`): `ROADMAP.md`, Próximos, **item 1 —
 Organização do projeto**, fases **1a** e **1b** (aprovadas pelo usuário; a **1c**, reorganizar as pastas de dados e
-saídas, fica para uma rodada própria). Branch `spec/organizacao`, a partir de `staging_main` (`8dbf8c3`). Execução
+saídas, fica para uma rodada própria). Branch `spec/organizacao`, a partir de `staging_main` (`e29fa22`). Execução
 completa do notebook contra o banco do CadÚnico autorizada pelo usuário (consultas só de leitura).
 
 ## 1. Regra da rodada

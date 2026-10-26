@@ -18,14 +18,14 @@ então está **muito atrasado** em relação ao nosso branch atual — mas toca 
 
 | Commit | Mensagem | Linhas |
 |---|---|---|
-| f3477c9 | Ajusta curadoria do Censo | +28 -14 |
-| 4da8409 | Ajusta curadoria da mortalidade evitável | +149 -149 |
-| c555e2c | Ajusta curadoria da seção de Saúde | +40 -39 |
-| 6461a12 | Corrige fonte das causas evitáveis | +1 -1 |
+| 79f0f56 | Ajusta curadoria do Censo | +28 -14 |
+| 78e09b1 | Ajusta curadoria da mortalidade evitável | +149 -149 |
+| 2be091f | Ajusta curadoria da seção de Saúde | +40 -39 |
+| 1ca0fe0 | Corrige fonte das causas evitáveis | +1 -1 |
 
 ## Resumo por commit
 
-### 1. Ajusta curadoria do Censo (f3477c9)
+### 1. Ajusta curadoria do Censo (79f0f56)
 
 - **Corrige um bug real de agregação**: `total_e_percentual_ano` passa a
   devolver também a coluna `Total`; a série temporal do Censo (2000/2010/2022)
@@ -43,7 +43,7 @@ então está **muito atrasado** em relação ao nosso branch atual — mas toca 
   desaparece** — parece um esquecimento da reescrita do bloco de agregação,
   não uma remoção intencional (ver "Riscos" abaixo).
 
-### 2. Ajusta curadoria da mortalidade evitável (4da8409)
+### 2. Ajusta curadoria da mortalidade evitável (78e09b1)
 
 Maior commit, todo por comentário de blocos (não exclusão de código — dá pra
 reverter fácil se algo for indesejado):
@@ -77,7 +77,7 @@ reverter fácil se algo for indesejado):
   chamadas mais abaixo que **não** foram comentadas (mapas de CAP, etc.) —
   isso quebraria essas chamadas com `NameError`. Corrigido no commit seguinte.
 
-### 3. Ajusta curadoria da seção de Saúde (c555e2c)
+### 3. Ajusta curadoria da seção de Saúde (2be091f)
 
 - Melhora títulos dos 3 gráficos de SISVAN (desnutrição/sobrepeso/obesidade):
   mais descritivos, citam a fonte no próprio título.
@@ -86,7 +86,7 @@ reverter fácil se algo for indesejado):
   os 4 anos (2016/2019/2022/2025), que cobre o mesmo dado de forma mais
   direta segundo a nova nota de markdown.
 
-### 4. Corrige fonte das causas evitáveis (6461a12)
+### 4. Corrige fonte das causas evitáveis (1ca0fe0)
 
 Descomenta só a linha `fonte_evitaveis = '...'` que tinha sido comentada por
 engano no commit 2 (ver acima) — sem isso, todo call site de mapa/série de
@@ -160,11 +160,11 @@ não mudam sozinhos.
 Itens 1-3 feitos neste branch:
 
 - **Merge real**: `git merge origin/waleska-analise-primeira-infancia`
-  (commit `ed964a5`), preservando os 4 commits/autoria da Waleska. Sem
+  (commit `4f022e7`), preservando os 4 commits/autoria da Waleska. Sem
   conflitos, igual ao teste prévio.
 - **CSV do Censo restaurado**: `df_serie_censo.to_csv('tabelas_finais//censo_0_a_4_anos_por_ano.csv')`
-  de volta em `analise.py`, logo após o cálculo do percentual (commit `0facf8a`).
-- **Scripts de relatório corrigidos** (commit `0facf8a`): removidas de
+  de volta em `analise.py`, logo após o cálculo do percentual (commit `114eaae`).
+- **Scripts de relatório corrigidos** (commit `114eaae`): removidas de
   `build_notebook_report.py` e `build_html_report.py` todas as referências a
   saídas que a curadoria descontinuou (tabela no spec acima) — verificado por
   grep que não sobra nenhuma, e `ast.parse` confirma que os 3 arquivos

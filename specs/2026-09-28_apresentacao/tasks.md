@@ -34,5 +34,5 @@ Legenda: [x] feito · [ ] a fazer
 ## Bloco 5 — Fechamento
 - [x] T5.1 `validation.md`; revisão visual do PDF e do PPTX
 - [ ] T5.2 Merge, tag `rodada/apresentacao`
-  - 2026-09-29: merge feito (`40a702d` em `planning`, `ab9f803` em `staging_main`); tag com o OK do usuário
+  - 2026-09-29: merge feito (`35d4489` em `planning`, `149a87f` em `staging_main`); tag com o OK do usuário
     (`specs/2026-09-29_pendencias` T9.3)
