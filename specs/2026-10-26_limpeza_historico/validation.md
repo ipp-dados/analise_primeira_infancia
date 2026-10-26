@@ -16,4 +16,5 @@
       `3304557` (não é hash) e `3a258e8`/`101e6bf`, commits que só mexiam em caminhos removidos e sumiram
 - [x] Force-push: 3 branches e 33 tags no GitHub; cópia local na história nova, `.git` com 12 MB, PDF/DOCX/decks e
       saídas continuam no disco
-- [ ] Release `v0.34.0` publicada e link do PDF do site (após o deploy da `demo`) baixando o arquivo
+- [x] Release `v0.34.0` publicada (20 anexos, tamanhos iguais aos originais); `releases/latest/download/` responde 200
+      para o PDF, o PDF da demo e o deck principal; o site publicado linka o PDF da demo na Release

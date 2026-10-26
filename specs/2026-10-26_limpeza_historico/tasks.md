@@ -20,6 +20,7 @@
 - [x] B5b `.gitignore`, link do PDF do site, docs (README, CLAUDE.md, constituição, skill do PDF, especificação do projeto)
 - [x] B6 Force-push de todas as branches e tags (pelo usuário, `finalizar_reescrita.sh` no backup); cópia local ressincronizada
 - [ ] B6b Pedido ao GitHub Support (cache dos commits antigos `cdfacd2`, `101e6bf`)
-- [ ] B7 Release `v0.34.0` com os anexos; avisar a equipe para reclonar; deploy do
-      Pages a partir da `demo` (o link do PDF mudou)
+- [x] B7 Release `v0.34.0` publicada com os 20 anexos (tamanhos conferidos); deploy do Pages a partir da `demo`
+      (execução #31, sucesso); link do PDF no site baixando o anexo
+- [ ] B7b Avisar a equipe para reclonar
 - [ ] B8 Apagar o backup depois de validado
