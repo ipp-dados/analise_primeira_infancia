@@ -105,6 +105,9 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   são atualizados quando regenerados; saídas novas não são versionadas (o
   pipeline de relatório as lê do disco local). A cautela de não apagar
   saídas sem regenerá-las continua valendo.
+  **Atualização 2026-10-26 (`specs/2026-10-26_limpeza_historico`):** as saídas rastreadas antes de `5907196` saíram do git
+  (`git rm --cached`, ficam no disco): `tabelas_finais/`, `visualizacoes/` e `mapas/` não têm mais nada versionado
+  além do `.gitkeep`. Não force (`git add -f`) saída nessas pastas.
 
 ## 4. Não editar artefatos gerados à mão
 
@@ -176,12 +179,12 @@ família nunca são gravados em disco.
 a célula pequena não fica vazia — o bairro é somado aos outros bairros pequenos da mesma **Região Administrativa**
 ("Demais bairros da RA X"); se o conjunto ainda ficar abaixo de 20, aos da mesma **AP**; depois, ao município
 ("Demais bairros"). Só o que não fecha nem assim fica vazio. Função única: `agrega_bairros_pequenos`
-(`primeira_infancia/cadunico.py`), aplicada a toda saída do CadÚnico por bairro, inclusive as versionadas no git.
+(`primeira_infancia/cadunico.py`), aplicada a toda saída do CadÚnico por bairro, inclusive as que já foram versionadas no git (até 2026-10-26).
 **Percentual por bairro:** o bairro também entra no conjunto quando o **numerador ou o complemento** (total −
 numerador) é menor que 20 — percentual × total publicado devolveria a contagem. Em mapa de percentual, o bairro do
 conjunto mostra a taxa do conjunto; em mapa de contagem, fica sem cor, e o total do conjunto está na tabela.
 **Histórico:** o commit `cdfacd2` (2026-09-09, antes da regra) tem contagens por bairro abaixo de 20 no GitHub; a
-limpeza do histórico está no `ROADMAP.md` e depende de decisão com a equipe (§7).
+limpeza do histórico está planejada em `specs/2026-10-26_limpeza_historico` (Parte B) e depende de decisão com a equipe (§7).
 
 ## 7. Git
 
@@ -192,7 +195,8 @@ limpeza do histórico está no `ROADMAP.md` e depende de decisão com a equipe (
   confirmação do usuário) desde que o ponto final fique numa tag anotada
   `rodada/<nome-curto>` (ex.: `rodada/website-mobile`) — assim o nome continua
   apontando para o estado final da rodada. Feito pela primeira vez em
-  2026-09-28 (15 branches). Nunca apagar branch de outra pessoa sem perguntar.
+  2026-09-28 (15 branches) e em 2026-10-26 (17, inclusive as não mescladas `deck_familia_moradia` e
+  `waleska-analise-primeira-infancia`, com autorização do usuário). Nunca apagar branch de outra pessoa sem perguntar.
 - Mensagens de commit em rodadas de spec seguem o padrão
   `SPEC-<Nome>: Bloco N -- descrição curta` (visto no histórico); fora
   desse contexto, uma mensagem direta em português descrevendo o *porquê*

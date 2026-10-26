@@ -103,13 +103,17 @@ Falta só o que depende do **OK do usuário**:
 1. Publicar o PDF (`gera_latex.py --publicar`; o publicado ainda é o de `specs/2026-09-28_melhorias_site`), fazer o
    deploy do site (`deploy-relatorio.yml`) e publicar o deck (`gera_apresentacao.py --publicar`), ainda com a marca
    "em desenvolvimento".
-2. Tags `rodada/nova_estrutura`, `rodada/apresentacao`, `rodada/pendencias`, e tag de arquivo da branch
-   `waleska-analise-primeira-infancia` (superada, D7) antes de apagá-la; apagar as branches mescladas
-   (pedido de 2026-09-29: não apagar agora).
+2. ~~Tags e branches mescladas~~ — feito em 2026-10-26 (`specs/2026-10-26_limpeza_historico`).
 
 ## 2. Aguardando equipe/usuário
 
 Não dependem de código; entram no projeto quando chegarem.
+
+- **Reescrita do histórico git** (`specs/2026-10-26_limpeza_historico`, Parte B): tirar do histórico público o dado do CadÚnico
+  abaixo de 20 (`cdfacd2`), `revisao_casa_civil/` e os binários gerados (teste: 688 MB → 12 MB). Falta a equipe
+  decidir PDF/decks em Release do GitHub, onde ficam os DOCX de curadoria e a data (todos reclonam).
+- **Deck Família e Cuidados** — feito em `spec/deck_familia_moradia` (2026-10-07) e nunca mesclado; arquivado na tag
+  `rodada/deck_familia_moradia`. Retomar numa rodada própria se a equipe quiser o deck (conflita com o build atual).
 
 - **Curadoria de textos** (contínuo; DOCX `relatorio/curadoria_textos.docx`, controle em
   `relatorio/controle_revisao.json`; updates antigos em `relatorio/textos_updates_antigos/`). Última rodada:
@@ -138,8 +142,8 @@ Não dependem de código; entram no projeto quando chegarem.
 1. **Organização do projeto, fase 1c** (continuação de `specs/2026-09-28_organizacao`; regra: mesmas saídas antes e
    depois):
    - **Pastas de dados e saídas**: reorganizar `dados_locais/`, `tabelas_finais/`, `visualizacoes/` e `mapas/`
-     (estrutura por fonte/eixo, nomes, o legado `mapas/tabelas_bairros/` — cujos 3 `.xlsx` versionados são
-     regravados a cada execução só com metadados novos —, as variantes `a4/`); atualizar os leitores
+     (estrutura por fonte/eixo, nomes, as variantes `a4/`; o legado `mapas/tabelas_bairros/` já foi para
+     `tabelas_finais/` em 2026-10-26); atualizar os leitores
      (`website/build/build_site.py`, `relatorio/latex/build/`, `relatorio/curadoria/`, `specs/estrutura_eixos.md`,
      skills, `primeira_infancia/`, `apresentacao/build/`).
    - Revisitar a decisão de `specs/2026-09-22_ajuste_eixos` §9.1 (não reordenar fisicamente as seções) agora que as
@@ -248,6 +252,7 @@ Não dependem de código; entram no projeto quando chegarem.
   dia for preciso colorir o mar por conta própria (`relatorio/specs.md` v6.4-v6.6).
 
 ### Repositório (git)
+- *2026-10-26: os dois itens abaixo viraram a Parte B de `specs/2026-10-26_limpeza_historico` (seção 2 acima).*
 - **Dado do CadÚnico abaixo de 20 no histórico** (achado de 2026-09-29, `specs/2026-09-29_privacidade_cadunico` D3):
   o commit `cdfacd2` (2026-09-09, antes da regra de 2026-09-23) tem contagens de crianças/famílias por bairro de 1 a 19
   em `cadunico_por_bairro_2026.csv`, `cadunico_por_bairro_ate_4_2026.csv`, `tabela_mapa_cadunico_criancas_2026.csv` e
@@ -277,6 +282,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-10-26 | Limpeza do repositório: 17 branches arquivadas em tags `rodada/*` e apagadas (inclusive `deck_familia_moradia` e a da Waleska, não mescláveis); 131 saídas e `revisao_casa_civil/` fora do git; Excel de `mapas/tabelas_bairros/` em `tabelas_finais/`; `git gc`; reescrita do histórico planejada | `specs/2026-10-26_limpeza_historico` |
 | 2026-09-29 | Revisão do deck: 30 → 33 slides, "até 72 meses", 393 mil, mapas sem azul (terracota) e com teto de Tukey, violência familiar por vínculo (sem soma), eixos incompletos/ausentes; faixas de renda do CadÚnico corrigidas para "Pobreza"/"Baixa renda" em todo o projeto | `specs/2026-09-29_slide_revision` |
 | 2026-09-29 | PDF alinhado ao site (ordem de Prioridade, vacinação de volta, tabelas no corpo com `tabela_no_texto:`, seção vazia fora — E16); quadros de pendente formais com `motivo:` | `specs/2026-09-29_alinhamento_pdf_site` |
 | 2026-09-29 | Pendências: faixa padrão 0 a 5 anos (até 72 meses), exclusões E12-E15, eixo cortado no baixo peso, tablet com as metas do celular, decisões registradas; correção do esquema do banco do CadÚnico | `specs/2026-09-29_pendencias` |

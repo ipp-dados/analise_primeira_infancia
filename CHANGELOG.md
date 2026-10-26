@@ -540,3 +540,16 @@ faixas em destaque (D5, D6).
   com rótulos novos (normalizadas para os códigos de sempre), `id_pessoa` sem unicidade (contagem por linha).
 - Inclusão e Moradia a partir de `silver_cadunico_pessoas`/`_familias`: 3 gráficos, 3 mapas de % por bairro (ponte CEP →
   código do CTPE), 4 tabelas; substituem os 6 pendentes e os 3 itens de dado pontual no site. PDF não regerado.
+
+## 2026-10-26 — `specs/2026-10-26_limpeza_historico` (limpeza do repositório)
+
+- Branches mescladas em `staging_main` arquivadas em tags anotadas `rodada/<nome>` e apagadas (local e `origin`), mais
+  `planning`; as não mescladas `spec/deck_familia_moradia` (deck Família e Cuidados, conflita com o build atual) e
+  `waleska-analise-primeira-infancia` (estrutura anterior ao pacote `primeira_infancia/`) também, com autorização.
+  Ficam `staging_main`, `demo` e `main`.
+- As 131 saídas ainda rastreadas em `tabelas_finais/`, `visualizacoes/` e `mapas/` e a pasta `revisao_casa_civil/`
+  saíram do git (continuam no disco; `revisao_casa_civil/` no `.gitignore`). Quem fizer `pull` perde essas saídas da
+  cópia local: regenere com `analise.py`.
+- `analise.py`: as 3 tabelas Excel de `mapas/tabelas_bairros/` passam a ser gravadas em `tabelas_finais/`.
+- Reescrita do histórico (dado do CadÚnico abaixo de 20, revisões externas e binários gerados) planejada, à espera da
+  equipe.

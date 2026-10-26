@@ -32,3 +32,6 @@ relatorio/latex/*.fdb_latexmk
 /apresentacao/variantes/moradia/*.xlsx
 /apresentacao/variantes/moradia/*.pdf
 /apresentacao/variantes/moradia/stakeholder.md
+
+# 2026-10-26 (specs/2026-10-26_limpeza_historico): revisões externas do plano (Casa Civil), com nomes de pessoas -- só local
+/revisao_casa_civil/

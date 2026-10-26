@@ -52,9 +52,9 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 - **O nome do PNG reaproveita o nome do CSV correspondente** sempre que os
   dois existem pro mesmo indicador — é o mecanismo de rastreio entre as
   três pastas, não uma tabela de mapeamento separada pra manter em dia.
-- Exceção documentada, não é dívida técnica: `mapas/tabelas_bairros/*.xlsx`
-  é o resquício intencional do padrão anterior (Excel), mantido só pra 2
-  tabelas que não migraram — ver README.
+- As tabelas Excel do padrão anterior (`dados_datasus_por_bairro.xlsx`,
+  `tabela_mapa_0_4_*.xlsx`) saem em `tabelas_finais/` desde 2026-10-26 (antes,
+  `mapas/tabelas_bairros/`; `specs/2026-10-26_limpeza_historico`).
 
 ## Geoespacial (mapas)
 

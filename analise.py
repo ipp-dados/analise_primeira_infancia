@@ -58,8 +58,8 @@ from primeira_infancia import *  # noqa: F401,F403
 #carrega variáveis de ambiente
 load_dotenv()
 
-#garante que as pastas de saída padrão existam (inclusive a subpasta de tabelas por bairro)
-for pasta in ["tabelas_finais", "visualizacoes", "mapas/tabelas_bairros", "dados_locais/tratados"]:
+#garante que as pastas de saída padrão existam
+for pasta in ["tabelas_finais", "visualizacoes", "mapas", "dados_locais/tratados"]:
     Path(pasta).mkdir(parents=True, exist_ok=True)
 
 # %% [markdown]
@@ -157,7 +157,7 @@ df_censo[['bairro','codbairro','0 a 4 anos','Percentual 0 a 4','5 a 9 anos','Per
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
 #mapa por total de 0 a 4 anos
-df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('mapas/tabelas_bairros/tabela_mapa_0_4_absoluto.xlsx')
+df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('tabelas_finais/tabela_mapa_0_4_absoluto.xlsx')
 
 # %%
 df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).head(10)
@@ -166,7 +166,7 @@ df_censo[['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 
 # para bairros 'muito grandes' (+100.000 pessoas)
 df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False)
 #mapa por percentual dos bairros grandes
-df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('mapas/tabelas_bairros/tabela_mapa_grandes_0_4_percentual.xlsx')
+df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).to_excel('tabelas_finais/tabela_mapa_grandes_0_4_percentual.xlsx')
 
 # %%
 df_censo.loc[df_censo['Total'] > 20000,['bairro','0 a 4 anos','Percentual 0 a 4']].sort_values(by='Percentual 0 a 4',ascending=False).head(20)
@@ -2756,7 +2756,7 @@ for i in lista_dfs[1:]:
     df_final = df_final.merge(i,on=['codigo','bairro','ano'],how='outer')
 #df_final = df_final[df_final['ano']!='Total']
 df_final.drop(columns=['nascidos vivos_x','nascidos vivos_y'],inplace=True)
-df_final.to_excel('mapas/tabelas_bairros/dados_datasus_por_bairro.xlsx')
+df_final.to_excel('tabelas_finais/dados_datasus_por_bairro.xlsx')
 df_final.head()
 #pensar testes
 
