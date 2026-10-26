@@ -28,7 +28,7 @@ _TEXTOS = {k: v for k, v in json.loads(_CAMINHO.read_text(encoding="utf-8")).ite
 _FALTANDO = []   # chaves pedidas sem texto provisório (o build para no fim, com a lista toda)
 _USADAS = set()
 
-URL_PDF_DEMO = "https://raw.githubusercontent.com/ipp-dados/analise_primeira_infancia/demo/relatorio/analise_primeira_infancia.pdf"
+URL_PDF_DEMO = "https://github.com/ipp-dados/analise_primeira_infancia/releases/latest/download/analise_primeira_infancia_demo.pdf"
 
 _MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro",
           "novembro", "dezembro"]
