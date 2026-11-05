@@ -141,7 +141,16 @@ Não dependem de código; entram no projeto quando chegarem.
 
 ## 3. Próximas features
 
-1. **Organização do projeto, fase 1c** (continuação de `specs/2026-09-28_organizacao`; regra: mesmas saídas antes e
+1. **Fontes como referências citáveis e tabelas próprias como fonte de verdade** (pedido do usuário, 2026-11-05;
+   antes da fase 1c):
+   - Toda tabela e fonte de dados usada (Censo, CadÚnico/CTPE, Tabnet, SISVAN, SIDRA, INEP, Ripsa, Sinan, ISP/Data.Rio,
+     cobertura vacinal…) vira uma **referência bibliográfica** citável ao fim do projeto: entrada única (autor/órgão,
+     título, ano, data de extração, URL/consulta) em `relatorio/latex/fontes.bib`, reaproveitada pelo site e pelo PDF;
+     partir de `relatorio/inventario_fontes.*`.
+   - As **tabelas desenvolvidas pelo projeto** (`tabelas_finais/`) também ganham referência própria e ficam prontas para
+     **conferir os textos contra elas** como fonte de verdade: cada número citado num texto curado aponta para a
+     tabela/célula de origem e é checado por script (estende `website/build/confere_textos.py`).
+2. **Organização do projeto, fase 1c** (continuação de `specs/2026-09-28_organizacao`; regra: mesmas saídas antes e
    depois):
    - **Pastas de dados e saídas**: reorganizar `dados_locais/`, `tabelas_finais/`, `visualizacoes/` e `mapas/`
      (estrutura por fonte/eixo, nomes, as variantes `a4/`; o legado `mapas/tabelas_bairros/` já foi para
@@ -150,8 +159,8 @@ Não dependem de código; entram no projeto quando chegarem.
      skills, `primeira_infancia/`, `apresentacao/build/`).
    - Revisitar a decisão de `specs/2026-09-22_ajuste_eixos` §9.1 (não reordenar fisicamente as seções) agora que as
      funções saíram do arquivo — a ordem continua sendo de dependência de dados.
-   - Pré-requisito do item 3.
-2. **Estimativa de crianças pequenas por bairro com a Ripsa** (pedido do usuário, 2026-09-24; continuação da
+   - Pré-requisito do item 4.
+3. **Estimativa de crianças pequenas por bairro com a Ripsa** (pedido do usuário, 2026-09-24; continuação da
    decisão B1 de `specs/2026-09-24_populacao-referencia`). O Censo 2022 fixo subconta crianças pequenas (0-4:
    310.648 no Censo contra 361.163 na Ripsa em 2022, +16%) e não varia por ano. Estimativa derivada, rotulada
    como tal:
@@ -161,13 +170,13 @@ Não dependem de código; entram no projeto quando chegarem.
      correspondência 160 → 166 bairros).
    Depois recalcular as taxas sub-municipais (violência por bairro/RA/CAP e o % CadÚnico, que depende também do
    item CadÚnico 1) e documentar a mudança de denominador.
-3. **Empacotar scripts reutilizáveis para outros projetos** (depois do item 1) — transformar em pacotes
+4. **Empacotar scripts reutilizáveis para outros projetos** (depois do item 2) — transformar em pacotes
    instaláveis o que não é específico da primeira infância: mapa coroplético por bairro/AP/RP/RA com fundo
    cartográfico e rodapé, limpeza de exportações do Tabnet, carga do SIDRA, população Ripsa, gráficos com a
    identidade visual, relatório ABNT em LaTeX a partir de um crosswalk `.md`, round-trip de curadoria em DOCX,
    deck Marp com números calculados. Definir fronteiras, nomes, versionamento e onde publicar (repositório
    próprio, pip via git).
-4. **Substituir os dados pontuais do CadÚnico (ref. 08/2026) pela extração automatizada — site feito em 2026-10-06**
+5. **Substituir os dados pontuais do CadÚnico (ref. 08/2026) pela extração automatizada — site feito em 2026-10-06**
    (`specs/2026-10-06_cadunico_inclusao_moradia` D1: Inclusão e Moradia usam as silvers novas; nenhum bloco de dado pontual no site, o bloqueio da versão final
    saiu). Falta o deck e, depois dele, apagar os arquivos listados abaixo. Texto original do item:
    **Bloqueia a versão final do site** (regra D7, constituição §3: sem a faixa "em desenvolvimento" o build e o deploy
@@ -183,7 +192,7 @@ Não dependem de código; entram no projeto quando chegarem.
    exclusão `(?!…extração pontual)` do padrão de `mds_cadunico`). Os itens pendentes de Inclusão e Moradia saem de
    pendente quando o dado automatizado cobrir o que o catálogo pede (famílias **com criança** com deficiência, tipo de
    deficiência, inadequação e adensamento).
-5. **Tirar a menção ao IPS do site e do relatório** (pedido do usuário, 2026-09-29; no deck já feito — D12 de
+6. **Tirar a menção ao IPS do site e do relatório** (substituído: citar o ISP — `specs/2026-11-05_fechamento_pendencias` D5; pedido do usuário, 2026-09-29; no deck já feito — D12 de
    `specs/2026-09-29_slide_revision`): na violência territorial (Direito ao Brincar), a fonte passa a citar só o
    Data.Rio, como no deck — `fonte:` em `specs/estrutura_eixos.md`, `fonte_dados` dos 3 mapas em `analise.py` (e as
    versões A4), o texto no `website/build/build_site.py`, a entrada/`padroes` em `relatorio/latex/fontes.bib` e os
