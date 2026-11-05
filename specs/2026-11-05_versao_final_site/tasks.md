@@ -22,3 +22,42 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
       2 portas (sem datas: a definir pelos gestores), pedidos e decisões
 - [x] T2.2b Itens 13 a 15 (reunião do eixo Alimentação com a SMS, 2026-11-05) na lista, no documento e no ROADMAP
 - [ ] T2.3 Manter a lista e o documento em dia quando um item mudar (pedido feito, dado recebido)
+
+## Bloco 3 — Banner e rodapé
+- [ ] T3.1 Foto do Unsplash baixada, redimensionada e servida pelo site; crédito
+- [ ] T3.2 Banner novo (desktop e celular), contraste e orçamento de tamanho
+- [x] T3.3 E-mail de contato fora do rodapé (2026-11-05)
+- [ ] T3.4 Conferir os links do rodapé
+
+## Bloco 4 — Mapa de referência
+- [ ] T4.1 `mapa_referencia_svg()` com camadas bairro/RA/AP e botões de nomes
+- [ ] T4.2 Tabela bairro → RA → AP para baixar
+- [ ] T4.3 Figura A4 no PDF (helper em `primeira_infancia/mapas.py`, chamada no `analise.py`)
+
+## Bloco 5 — PDF em `.tex` por capítulo, capa e folha de rosto
+- [ ] T5.1 PDF de referência (PNG das páginas)
+- [ ] T5.2 Exportar `capitulos/*.tex`; `relatorio.tex` com `\input`; `gera_latex.py` sem capítulos nem JSON de textos
+- [ ] T5.3 Checagem de rótulos (figuras/tabelas citadas existem)
+- [ ] T5.4 Comparar com o PDF de referência
+- [ ] T5.5 Nova capa e folha de rosto
+
+## Bloco 6 — Curadoria só do site, sem DOCX
+- [ ] T6.1 Tag `rodada/curadoria_docx`; apagar os scripts DOCX
+- [ ] T6.2 `confere_textos.py` sem DOCX
+- [ ] T6.3 Skills, `CLAUDE.md`, especificação do projeto
+
+## Bloco 7 — Release e Actions
+- [ ] T7.1 Instalar o `gh`; o usuário faz `gh auth login`
+- [ ] T7.2 Passo de publicação da Release
+- [ ] T7.3 Deploy automático na `main`; workflow de checagem em `staging_main`
+
+## Bloco 8 — Versão final, revisão e teste
+- [ ] T8.1 `publicacao.json` → `false`; regerar site e PDF
+- [ ] T8.2 Revisão de pipelines e documentação; títulos "até 72 meses"
+- [ ] T8.3 Teste completo desktop e celular
+
+## Bloco 9 — Publicação (com OK)
+- [ ] T9.1 Merge em `staging_main`; tag `rodada/versao_final_site`
+- [ ] T9.2 `staging_main` → `main`; deploy conferido
+- [ ] T9.3 Release do PDF
+- [ ] T9.4 Constituição §7 e `CLAUDE.md`
