@@ -439,13 +439,13 @@
 ## 🧸 Direito ao Brincar
 
 ### Violência territorial
-- fonte: Data.Rio / Índice de Progresso Social (IPS) 2024, por Região Administrativa
+- fonte: Instituto de Segurança Pública (ISP-RJ), via Data.Rio, 2024, por Região Administrativa
 - eixo transversal: Proteção
 - mapa: `mapa_violencia_territorial_homicidios_ra_2024.png`
 - mapa: `mapa_violencia_territorial_homicidios_acao_policial_ra_2024.png`
 - mapa: `mapa_violencia_territorial_homicidios_jovens_negros_ra_2024.png`
 - tabela: `tabela_mapa_violencia_territorial_ra_2024.csv`
-- nota: dado GERAL da população (todas as idades) — não é específico de crianças (0 a 6 anos) nem de jovens; só 2024 e sem série temporal (apenas mapas, sem barras nem tabela por RA); nível Região Administrativa; RA XXI Paquetá sem dado no IPS. Substitui a fonte "ISP" do catálogo
+- nota: dado GERAL da população (todas as idades) — não é específico de crianças (0 a 6 anos) nem de jovens; só 2024 e sem série temporal (apenas mapas, sem barras nem tabela por RA); nível Região Administrativa; RA XXI Paquetá sem dado na tabela. Fonte citada: ISP-RJ, como no catálogo da equipe (a planilha do Data.Rio vem dos indicadores do IPS 2024; decisão do usuário, specs/2026-11-05_fechamento_pendencias D5)
 - nota: movido de Proteção para o eixo novo Direito ao Brincar (planilha da equipe: "direito a brincar"; decisão do usuário de criar o 7º eixo, 2026-09-28, specs/2026-09-28_nova_estrutura)
 
 ## 🍽️ Alimentação
@@ -490,6 +490,7 @@
 ### Crianças no CadÚnico em domicílios com inadequação habitacional
 - fonte: Cadastro Único (extração CTPE, jul/2026)
 - visualização: `cadunico_criancas_inadequacao_componentes.png`
+- mapa: `mapa_cadunico_inadequacao_n_bairro_2026.png`
 - mapa: `mapa_percentual_cadunico_inadequacao_bairro_2026.png`
 - tabela: `cadunico_inadequacao_componentes_0_a_5_2026.csv`
 - tabela: `tabela_mapa_cadunico_inadequacao_bairro_2026.csv`
@@ -498,6 +499,7 @@
 ### Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (mais de 2 pessoas por dormitório)
 - nota: nome no catálogo da equipe: "… (acima de 3 por dormitório)"; o indicador do CTPE usa mais de 2 pessoas por dormitório (limite de densidade da FJP; Analise_cad_unico, spec 2026-10-06_disability-housing §5.3) e o título diz o que o dado mede -- decisão do usuário (2026-10-06): fica mais de 2, também no título (specs/2026-10-06_cadunico_inclusao_moradia D11)
 - fonte: Cadastro Único (extração CTPE, jul/2026)
+- mapa: `mapa_cadunico_adensamento_n_bairro_2026.png`
 - mapa: `mapa_percentual_cadunico_adensamento_bairro_2026.png`
 - tabela: `tabela_mapa_cadunico_adensamento_bairro_2026.csv`
 - nota: valor do município na tabela de indicadores agregados (item seguinte); era pendente até specs/2026-10-06_cadunico_inclusao_moradia

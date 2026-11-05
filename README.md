@@ -4,7 +4,7 @@ Pipeline de dados e relatório sobre a primeira infância (0 a 6 anos) no munic�
 Rio de Janeiro, produzido pelo **Instituto Pereira Passos (IPP)**, Prefeitura da Cidade
 do Rio de Janeiro. Reúne indicadores de população, assistência social, saúde e educação
 espalhados por fontes diferentes — Censo, CadÚnico, DataSUS/Tabnet, SINAN, SISVAN, PNAD, Censo
-Escolar, IPS — em um único pipeline (`analise.py` + pacote `primeira_infancia/`) que limpa, cruza e
+Escolar, ISP — em um único pipeline (`analise.py` + pacote `primeira_infancia/`) que limpa, cruza e
 visualiza os dados por bairro, Área e Região de Planejamento, Região Administrativa e Área Programática
 de Saúde, organizados em um panorama (população e nascimentos) e nos 7 eixos da política municipal de primeira infância.
 
@@ -42,7 +42,7 @@ todas as tabelas no apêndice.
 | **PNAD Contínua / Censo Escolar (INEP, microdados)** | Frequência escolar, matrículas 0-5 anos e taxa de atendimento | `dados_locais/educacao/` |
 | **Ripsa/Ministério da Saúde** | População por idade e sexo, 2000-2025 (denominador das taxas municipais) | `dados_locais/populacao/` |
 | **SINAN (SMS-Rio)** | Notificações de violência familiar e autoprovocada, por bairro | `dados_locais/protecao/` |
-| **IPS 2024 (IPP)** | Violência territorial por Região Administrativa | `dados_locais/protecao/` |
+| **ISP-RJ 2024 (via Data.Rio)** | Violência territorial por Região Administrativa | `dados_locais/protecao/` |
 | **SIM/SVS-Rio (TabWin)** | Óbitos por causas evitáveis, por Área Programática de Saúde, 2006-2025 | `dados_locais/mortalidade/obitos_causas_evitaveis_primeira_infancia_cap_2006_2025.xlsx` |
 | **Data.Rio/IPP, IBGE** | Geometrias de bairro, Área Programática de Saúde, UF e municípios vizinhos | `dados_locais/geo/` |
 
@@ -95,7 +95,7 @@ O script `analise.py` realiza as seguintes operações, em ordem prática:
 7.  Padronização: nomes de saída e colunas agregadas seguem o padrão `*_anual` e campos de taxa usam nomes descritivos (ex.: `taxa_mortalidade_precoce`). Saídas finais CSV/Excel são escritas em `tabelas_finais/`.
 8.  Junção final: múltiplas tabelas DATASUS por bairro são unidas (merge outer) em `dados_datasus_por_bairro.xlsx` (`tabelas_finais/`).
 8a. Proteção: violência familiar (SINAN) por vínculo do provável autor, bairro, CAP e RA, notificações de lesão
-    autoprovocada, violência territorial por RA (IPS 2024) e taxas por 1.000 crianças de 0 a 4 anos (Censo 2022).
+    autoprovocada, violência territorial por RA (ISP-RJ 2024) e taxas por 1.000 crianças de 0 a 4 anos (Censo 2022).
 8b. População de referência e educação: estimativas Ripsa/MS 2000-2025 (denominador de toda taxa municipal) e
     matrículas de 0 a 5 anos a partir dos microdados do Censo Escolar (INEP), com a taxa bruta de atendimento.
 8c. Mapas por bairro (cobertura completa): todo indicador com granularidade de bairro -- CadÚnico (via `junta_codbairro_por_bairro`, que resolve nomes de bairro do CadÚnico sem correspondência direta na lista oficial de 166), nascidos vivos, baixo peso, óbitos por raça (coluna total agregada), mortalidade neonatal (precoce/tardia/pós-neonatal/total), óbitos gravidez/puerpério -- gera par `tabelas_finais/tabela_mapa_*.csv` + `mapas/mapa_*.png` (absoluto e, onde já existe denominador, taxa/percentual) para o ano mais recente disponível.

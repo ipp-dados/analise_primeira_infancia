@@ -69,7 +69,9 @@ what round 4 had actually addressed (clearance from the top edge).
 
 Defined in `primeira_infancia/mapas.py` (until `specs/2026-09-28_organizacao`, in `analise.py`, **Pacotes e
 Funções Auxiliares → 📈 Funções de visualização**); its style constants (`_PROVEDORES_FUNDO`, `_FONTE_TITULO`,
-`_CORES_TEMA_MAPA`) are in `primeira_infancia/estilo.py` and the print variant in `primeira_infancia/impressao.py`. Signature:
+`_CORES_TEMA_MAPA`) are in `primeira_infancia/estilo.py` and the print variant in `primeira_infancia/impressao.py`.
+**Never pass a blue cmap for land/data** — blue is reserved for water (`censo` = `Purples`, `natalidade` = `Greens`
+since `specs/2026-11-05_fechamento_pendencias` R6; the site's `_CMAP_TEMA` mirrors them). Signature:
 
 ```python
 mapa_coropletico_bairros(df, coluna_valor, titulo, nome_arquivo, chave=None, nivel='bairro',
@@ -679,5 +681,5 @@ sites) and any changes to `dados_locais/geo/` or `tabelas_finais/` schemas
 ## Nível `ra` (Região Administrativa)
 
 `nivel='ra'`, `chave='codra'` (inteiro): une os bairros por `codra` (33 RAs, não existe a 32) — mesma rota de AP/RP, sem geojson extra.
-Junte sempre pelo `codra` numérico (o IPS traz numeral romano + nome; converta com `numeral_romano_para_int`). Se o basemap padrão
+Junte sempre pelo `codra` numérico (a planilha do ISP/Data.Rio traz numeral romano + nome; converta com `numeral_romano_para_int`). Se o basemap padrão
 (`Ocean_Basemap`) devolver HTTP 500, use `fundo='mapa_oceano_base'`.

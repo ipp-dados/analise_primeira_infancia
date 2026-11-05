@@ -33,7 +33,7 @@ COLUNAS_PCT = re.compile(r"(percent|%|taxa|propor|cobertura)", re.I)
 NOTA_SUPRESSAO = ("Nota: -- indica célula suprimida (menos de 20 famílias ou crianças), "
                   "conforme a regra de proteção de dados do Cadastro Único.")
 NOTA_AGREGACAO = ("Nota: bairros com menos de 20 crianças ou famílias no Cadastro Único aparecem somados por Região "
-                  "Administrativa (“Demais bairros da RA …”), conforme a regra de proteção de dados do Cadastro Único.")
+                  "Administrativa ou Área de Planejamento (“Demais bairros da RA/AP …”), conforme a regra de proteção de dados do Cadastro Único.")
 
 # Tabelas repetidas no PDF (pedido do usuário, 2026-09-25: "many tables seem repetitive... merge/omit some").
 # Só o apêndice do PDF: o site e o DOCX continuam lendo estrutura_eixos.md inteiro.
@@ -188,6 +188,15 @@ AJUSTES = {
     "cadunico_familias_por_arranjo_2026.csv": {"titulo": "Famílias com crianças de 0 a 5 anos no CadÚnico, por arranjo familiar"},
     "cadunico_familias_arranjo_renda_2026.csv": {"titulo": "Famílias com crianças de 0 a 5 anos no CadÚnico, por arranjo familiar e renda per capita (% das famílias do arranjo)",
         "pivo": ("arranjo", "faixa de renda per capita", "% no arranjo"), "renomeia": {"arranjo": "Arranjo familiar"}},
+    # Inclusão -- deficiência (silver do CadÚnico, jul/2026; specs/2026-11-05_fechamento_pendencias R3)
+    "cadunico_deficiencia_criancas_0_a_5_2026.csv": {"titulo": "Crianças de 0 a 5 anos no CadÚnico com alguma deficiência"},
+    "cadunico_deficiencia_familias_0_a_5_2026.csv": {"titulo": "Famílias com crianças de 0 a 5 anos no CadÚnico: criança com deficiência e BPC por deficiência"},
+    "cadunico_tipos_deficiencia_0_a_5_2026.csv": {"titulo": "Crianças de 0 a 5 anos com deficiência no CadÚnico, por tipo de deficiência (uma criança pode ter mais de um tipo)",
+        "renomeia": {"% das crianças com deficiência": "% das com deficiência"}},
+    "tabela_mapa_cadunico_deficiencia_bairro_2026.csv": {"titulo": "Crianças de 0 a 5 anos com deficiência no CadÚnico, por bairro",
+        "colunas": ["bairro", "Crianças com deficiência", "Base (Crianças com deficiência)", "% crianças com deficiência"],
+        "renomeia": {"Crianças com deficiência": "Com deficiência", "Base (Crianças com deficiência)": "Crianças (base)",
+                     "% crianças com deficiência": "% com deficiência"}},
     # --- Família e Cuidados
     "cadunico_por_idade_2026.csv": {"titulo": "Crianças de 0 a 5 anos e famílias no CadÚnico, por idade"},
     "cadunico_por_bairro_2026.csv": {"titulo": "Crianças de 0 a 5 anos e famílias no CadÚnico, por bairro"},
@@ -211,7 +220,7 @@ AJUSTES = {
                      "taxa_atendimento_0_a_3": "Atendimento 0-3 (%)", "taxa_atendimento_4_a_5": "Atendimento 4-5 (%)",
                      "taxa_atendimento_0_a_5": "Atendimento 0-5 (%)"}},
     # --- Proteção
-    "tabela_mapa_violencia_territorial_ra_2024.csv": {"titulo": "Indicadores de violência territorial por Região Administrativa, IPS 2024",
+    "tabela_mapa_violencia_territorial_ra_2024.csv": {"titulo": "Indicadores de violência territorial por Região Administrativa, ISP-RJ 2024",
         "colunas": ["regiao_adm", "taxa_homicidios", "homicidios_acao_policial", "homicidios_jovens_negros"],
         "renomeia": {"regiao_adm": "Região Administrativa", "taxa_homicidios": "Taxa de homicídios",
                      "homicidios_acao_policial": "Homicídios por ação policial", "homicidios_jovens_negros": "Homicídios de jovens negros"}},
@@ -249,6 +258,18 @@ AJUSTES = {
         "renomeia": {"total": "Acompanhadas", "magreza_acentuada_percentual": "Magreza acentuada (%)", "magreza_percentual": "Magreza (%)",
                      "eutrofia_percentual": "Eutrofia (%)", "risco sobrepeso_percentual": "Risco de sobrepeso (%)",
                      "sobrepeso_percentual": "Sobrepeso (%)", "obesidade_percentual": "Obesidade (%)"}},
+    # --- Moradia (silver de famílias do CadÚnico, jul/2026; specs/2026-11-05_fechamento_pendencias R3)
+    "cadunico_moradia_resumo_0_a_5_2026.csv": {"titulo": "Crianças de 0 a 5 anos e famílias no CadÚnico, por indicador de moradia (Fundação João Pinheiro e adensamento)"},
+    "cadunico_inadequacao_componentes_0_a_5_2026.csv": {"titulo": "Crianças de 0 a 5 anos no CadÚnico em domicílio com inadequação habitacional, por componente (componentes não exclusivos)"},
+    "cadunico_deficit_componentes_0_a_5_2026.csv": {"titulo": "Crianças de 0 a 5 anos no CadÚnico em domicílio em déficit habitacional, por componente (componentes não exclusivos)"},
+    "tabela_mapa_cadunico_inadequacao_bairro_2026.csv": {"titulo": "Crianças de 0 a 5 anos no CadÚnico em domicílio com inadequação habitacional, por bairro",
+        "colunas": ["bairro", "Crianças em inadequação habitacional", "Base (Crianças em inadequação habitacional)", "% crianças em inadequação habitacional"],
+        "renomeia": {"Crianças em inadequação habitacional": "Em inadequação", "Base (Crianças em inadequação habitacional)": "Crianças (base)",
+                     "% crianças em inadequação habitacional": "% em inadequação"}},
+    "tabela_mapa_cadunico_adensamento_bairro_2026.csv": {"titulo": "Crianças de 0 a 5 anos no CadÚnico em domicílio com adensamento excessivo (mais de 2 pessoas por dormitório), por bairro",
+        "colunas": ["bairro", "Crianças em adensamento excessivo", "Base (Crianças em adensamento excessivo)", "% crianças em adensamento excessivo"],
+        "renomeia": {"Crianças em adensamento excessivo": "Em adensamento", "Base (Crianças em adensamento excessivo)": "Crianças (base)",
+                     "% crianças em adensamento excessivo": "% em adensamento"}},
 }
 
 

@@ -498,7 +498,7 @@ _TETO_PERCENTIL_A4 = 0.95   # D5: teto de cor dos mapas contínuos por bairro na
 def _a4_mapa(gdf, coluna_valor, titulo, nome_arquivo, nivel, bins, cmap, legenda_titulo, fonte_dados, zero_branco,
              caminho_uf, caminho_municipios, teto=None):
     # teto (opcional, specs/2026-09-28_apresentacao): limite explícito da escala contínua -- usado pelos mapas da
-    # apresentação (ex. RA Centro como outlier no IPS); sem ele, o comportamento de sempre (percentil 95 por bairro).
+    # apresentação (ex. RA Centro como outlier na violência territorial); sem ele, o comportamento de sempre (percentil 95 por bairro).
     # Com teto >= máximo (Tukey sem outliers, specs/2026-09-29_slide_revision), a escala vai até o máximo, sem o P95
     gdf = gdf.to_crs(epsg=3857) if gdf.crs is not None and gdf.crs.to_epsg() != 3857 else gdf
     minx, miny, maxx, maxy = gdf.total_bounds

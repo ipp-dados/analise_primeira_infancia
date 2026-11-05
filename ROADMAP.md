@@ -1,6 +1,6 @@
 # Roadmap
 
-Estado em 2026-09-29 (rodada de pendências implementada; falta a publicação, com OK do usuário). Arquivo único do projeto: substitui
+Estado em 2026-11-05 (pendências fechadas em `specs/2026-11-05_fechamento_pendencias`; próxima: versão final do site). Arquivo único do projeto: substitui
 `specs/roadmap.md` e `website/ROADMAP.md` (fundidos aqui em 2026-09-25). As decisões e o *porquê* de cada item ficam
 na pasta da rodada em `specs/` (`specs/<AAAA-MM-DD>_<nome>/`); aqui fica só o que falta fazer, onde procurar e o
 histórico resumido.
@@ -14,62 +14,25 @@ Organização em duas partes:
 
 # A fazer
 
-## 000. Rodada atual — CadÚnico: pipeline novo para Inclusão e Moradia (`specs/2026-10-06_cadunico_inclusao_moradia`)
+## 000. Rodada atual — Fechamento de pendências (`specs/2026-11-05_fechamento_pendencias`)
 
-Aberta e implementada em 2026-10-06. A silver do CadÚnico foi refeita (partição 2026-07-10): o grupo `'0-6'` virou
-`'0-5'` e a seção CadÚnico lia 0 linhas; faixas de renda com rótulos novos; `id_pessoa` não é mais chave única. Tudo
-corrigido. Inclusão (deficiência, tipo, BPC da família) e Moradia (inadequação e déficit FJP, adensamento) saem das
-silvers novas `silver_cadunico_pessoas`/`_familias`, com bairro pela ponte CEP → código do CTPE, e substituem os 6
-pendentes e os 3 itens de dado pontual no site; textos novos em lorem (site) e provisórios (demo; V.1 em 13/10/2026).
-Falta:
-1. **Rodada de textos** (próxima spec): textos das 10 chaves novas. O único texto curado com números de jun/2026
-   (`cadunico_criancas_por_idade`) já foi atualizado (mesma redação, status "atualizado").
-2. **PDF** (não atualizado nesta rodada, D9): entradas das tabelas novas em `relatorio/latex/build/tabelas.py` e fonte
-   em `fontes.bib`; regerar e publicar com OK.
-3. **Deck**: o slide "Primeiros números de Inclusão e Moradia" ainda lê o dado pontual (`cadunico_adhoc_*`).
-4. **Pendente — revisão do usuário** (2026-10-06): diferença entre o dado pontual (25.995 crianças de 0 a 6 com
-   deficiência, ago/2026) e a silver (7.919 de 0 a 5, jul/2026); a faixa de 6 anos não explica 3× (A2).
-5. Push de `staging_main`/`demo` e deploy (seção abaixo), com OK — a conferir depois (usuário, 2026-10-06).
-6. ~~Limite do adensamento excessivo~~ — **decidido em 2026-10-06: mais de 2 pessoas por dormitório** (o limite do CTPE),
-   também no título (D11).
-7. Textos curados com "0 a 5 anos" → "até 72 meses" (D10; lista em `validation.md`) e títulos das PNG do relatório.
+Aberta e implementada em 2026-11-05, antes da versão final do site (`website_release.md`). Feito: % do SISVAN recalculado
+das contagens; mapas de número em Moradia (PNG, A4, site, PDF); tabelas do CadÚnico de Inclusão e Moradia no PDF; "IPS"
+→ ISP-RJ nas citações da violência territorial; mapas sem azul (`censo` → `Purples`, `natalidade` → `Greens`); 11 textos
+novos de Inclusão e Moradia (aprovados pelo usuário). Decidido: CadÚnico fica na silver de jul/2026 (a diferença com o
+dado pontual de ago/2026 deixa de bloquear); **decks congelados** (não são mais mantidos). Falta: merge em
+`staging_main` com OK. **Não** vai para a `demo` nem para deploy.
 
-## 000b. Apresentações breves de Alimentação e Direito ao Brincar (`specs/2026-10-06_deck_alimentacao_brincar`)
-
-Implementada em 2026-10-06 (variantes `alimentacao.md` e `direito_brincar.md`, publicadas em `apresentacao/`). Falta:
-1. **Confirmar com a equipe** a data e o método do dado pontual "Famílias em insegurança alimentar nos territórios
-   atendidos — fase de expansão" (fonte: Territórios Sociais, IPP/ONU-Habitat, já no slide).
-2. **Unidade** das taxas de homicídios por ação policial e de jovens negros (Data.Rio/IPS): o deck diz só "taxa".
-3. **Achado — SISVAN no `analise.py`**: colunas de % com erro na origem (desnutrição 2023: 3,74% × 5,7% pelas
-   contagens; obesidade 2009: 0,07% × 7,0%) — site, PDF e textos curados mostram os valores errados; recalcular o % das
-   contagens na seção SISVAN. O deck já recalcula.
-
-## 000c. Apresentação de Moradia + Territórios Sociais (`specs/2026-10-08_deck_moradia`)
-
-Publicada em 2026-10-08 (`variantes/moradia.md`, 24 slides; `apresentacao_primeira_infancia_moradia.*`). A planilha do
-Territórios Sociais não é versionada (`.gitignore`): para regerar o deck, ela precisa estar em `variantes/moradia/`. Falta:
-1. **Dados da equipe do programa** (fora do deck por decisão do usuário, sem menção a "a receber"): total de domicílios
-   com inadequação (geral e por condição) e ações de mitigação do Casa Carioca. Mapa da equipe (TEA) recebido e no deck.
-2. **Confirmar** se a deficiência da planilha é da criança ou de qualquer morador (o deck diz "domicílio com registro de
-   deficiência") e o período/territórios do levantamento.
-3. **Site — mapas de número no eixo Moradia** (pedido do usuário, 2026-10-08): ao lado dos mapas de % de inadequação
-   habitacional e de adensamento excessivo, um mapa do **número de crianças** por bairro (classes discretas, bairros
-   somados por RA sem cor), como os do deck (`apres_cadunico_inadequacao_n_bairro`, `apres_cadunico_adensamento_n_bairro`
-   em `build/mapas_apresentacao.py`). Muda `analise.py` (mapas e `tabela_mapa_*`), `specs/estrutura_eixos.md`, o site e o PDF.
-
-## 00. Pendente para 2026-10-01: push e deploy
-
-**2026-10-06: push feito** (`staging_main`, `demo`, `planning`, `spec/cadunico_inclusao_moradia`,
-`spec/desempenho_site`, `spec/filtro_residencia_tabnet`). **Falta só o deploy** (item 4: Actions → "Deploy relatório",
-branch `demo`; sem `gh` nesta máquina). Os itens 1-3 abaixo ficam como registro.
-
-Tudo está commitado **só localmente** (decisão do usuário em 2026-09-30: não enviar hoje). Falta:
-(1) `git push origin staging_main` (rodadas `spec/desempenho_site` e `spec/filtro_residencia_tabnet` já mescladas);
-(2) `git push origin demo` (merge de `staging_main` com site e PDF regerados na demo);
-(3) push das branches `spec/desempenho_site` e `spec/filtro_residencia_tabnet` (ou tag `rodada/<nome>`, constituição §7);
-(4) deploy manual do Pages a partir da `demo` (Actions → "Deploy relatório"; o workflow agora aceita `.woff2`).
-Antes do push, revisar no deck: slide 32 ("uma proposta… desenhá-la" sem referente depois do título "Necessidade: dados
-primários") e slide 21 (723 óbitos de bebês na tabela de evitáveis × 724 nos exports por bairro).
+Ficou para a **rodada da versão final** (achados de 2026-11-05):
+1. **DOCX de curadoria de hoje** (`relatorio/curadoria_textos_05_11_26.docx`, volta do Google Docs, sem bookmarks):
+   `incorpora_update_docx.py` casa 92 textos (31 de blocos ainda sem texto, 28 editados pela equipe) e deixa 54
+   parágrafos com texto real sem casar (CadÚnico por sexo/raça/arranjo, violência territorial, mapas de mortalidade,
+   muitos marcados "✏️ aguardando correção"). Vários números estão desatualizados (ex.: 194.138 crianças de jun/2026
+   contra 200.784 de jul/2026; 773 óbitos infantis contra 724 nos dados) — conferir cada número antes de incorporar.
+2. **Lorem que sobra**: no site, 51 blocos de figura (Visão geral 7, Prioridade 19, Família e Cuidados 8, Proteção 14,
+   Direito ao Brincar 3) mais os 21 blocos de eixo (achados, introdução e síntese dos 7 eixos); no DOCX de hoje, os 21
+   de eixo e os 2 do SISVAN "(número)". O `relatorio/curadoria_textos.docx` gerado está defasado do JSON (62 lorem).
+3. Textos curados com "0 a 5 anos" → "até 72 meses" (D10 de `2026-10-06_cadunico_inclusao_moradia`) e títulos das PNG.
 
 ## 0a. Filtro de residência nos exports por bairro do Tabnet (`specs/2026-09-30_filtro_residencia_tabnet`)
 
@@ -150,6 +113,8 @@ Não dependem de código; entram no projeto quando chegarem.
    - As **tabelas desenvolvidas pelo projeto** (`tabelas_finais/`) também ganham referência própria e ficam prontas para
      **conferir os textos contra elas** como fonte de verdade: cada número citado num texto curado aponta para a
      tabela/célula de origem e é checado por script (estende `website/build/confere_textos.py`).
+   - Achado (2026-11-05): `relatorio/latex/build/inventario_fontes.py` atribui fonte por "vizinhança" no `analise.py` e
+     dá ISP a 3 tabelas de violência familiar (Sinan) fora do relatório (`tabela_mapa_violencia_familiar_taxa_*`).
 2. **Organização do projeto, fase 1c** (continuação de `specs/2026-09-28_organizacao`; regra: mesmas saídas antes e
    depois):
    - **Pastas de dados e saídas**: reorganizar `dados_locais/`, `tabelas_finais/`, `visualizacoes/` e `mapas/`
@@ -192,7 +157,7 @@ Não dependem de código; entram no projeto quando chegarem.
    exclusão `(?!…extração pontual)` do padrão de `mds_cadunico`). Os itens pendentes de Inclusão e Moradia saem de
    pendente quando o dado automatizado cobrir o que o catálogo pede (famílias **com criança** com deficiência, tipo de
    deficiência, inadequação e adensamento).
-6. **Tirar a menção ao IPS do site e do relatório** (substituído: citar o ISP — `specs/2026-11-05_fechamento_pendencias` D5; pedido do usuário, 2026-09-29; no deck já feito — D12 de
+6. ~~**Tirar a menção ao IPS do site e do relatório**~~ — **feito em 2026-11-05** (citar o ISP — `specs/2026-11-05_fechamento_pendencias` D5; pedido do usuário, 2026-09-29; no deck já feito — D12 de
    `specs/2026-09-29_slide_revision`): na violência territorial (Direito ao Brincar), a fonte passa a citar só o
    Data.Rio, como no deck — `fonte:` em `specs/estrutura_eixos.md`, `fonte_dados` dos 3 mapas em `analise.py` (e as
    versões A4), o texto no `website/build/build_site.py`, a entrada/`padroes` em `relatorio/latex/fontes.bib` e os
@@ -240,8 +205,8 @@ Não dependem de código; entram no projeto quando chegarem.
 
 ### Site (`website/`)
 - **"Até 72 meses" e paleta sem azul no site e no PDF** (`specs/2026-09-29_slide_revision` D1, fora daquela rodada):
-  o deck já usa "até 72 meses" e terra em terracota; no site/PDF os mapas do Censo seguem em `Blues` (tema `censo`)
-  e vários títulos dizem "0 a 5 anos". Mudar exige decidir a nova cor do tema `censo` em `primeira_infancia/estilo.py`.
+  ~~paleta~~ feita em 2026-11-05 (`specs/2026-11-05_fechamento_pendencias` R6: `censo` → `Purples`, `natalidade` →
+  `Greens`, no site e no PDF); falta só conferir os títulos que ainda dizem "0 a 5 anos".
 - **Página "Fale Conosco"** (pedido do usuário, 2026-09-24): rota por hash (`#fale-conosco`) como uma aba,
   acessível pela barra de navegação. Formulário exige backend, que o GitHub Pages não tem — `mailto:` + texto
   (estático) ou serviço externo (exige decisão sobre dados pessoais/LGPD).
@@ -280,6 +245,7 @@ Resumo; detalhes na pasta da rodada.
 
 | Quando | O quê | Onde |
 | :-- | :--- | :--- |
+| 2026-11-05 | Fechamento de pendências: SISVAN recalculado das contagens, mapas de número em Moradia, tabelas do CadÚnico no PDF, IPS → ISP, mapas sem azul, 11 textos de Inclusão e Moradia, decks congelados | `specs/2026-11-05_fechamento_pendencias` |
 | 2026-10-26 | Histórico do git reescrito (`git filter-repo`): sem o dado do CadÚnico abaixo de 20, `revisao_casa_civil/`, saídas e binários gerados (~740 MB → ~12 MB); hashes citados atualizados; PDF, decks e DOCX na Release do GitHub; link do PDF no site para a última Release | `specs/2026-10-26_limpeza_historico` |
 | 2026-10-26 | Limpeza do repositório: 17 branches arquivadas em tags `rodada/*` e apagadas (inclusive `deck_familia_moradia` e a da Waleska, não mescláveis); 131 saídas e `revisao_casa_civil/` fora do git; Excel de `mapas/tabelas_bairros/` em `tabelas_finais/`; `git gc`; reescrita do histórico planejada | `specs/2026-10-26_limpeza_historico` |
 | 2026-09-29 | Revisão do deck: 30 → 33 slides, "até 72 meses", 393 mil, mapas sem azul (terracota) e com teto de Tukey, violência familiar por vínculo (sem soma), eixos incompletos/ausentes; faixas de renda do CadÚnico corrigidas para "Pobreza"/"Baixa renda" em todo o projeto | `specs/2026-09-29_slide_revision` |

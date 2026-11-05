@@ -67,7 +67,7 @@ reimplementing this logic:
    óbitos por causas evitáveis by CID-10 group/subgroup and by CAP), SISVAN,
    Cobertura Vacinal EPI, PNAD/IBGE SIDRA/Censo Escolar (INEP microdata), the bairro/município joins, and
    Proteção (SINAN violência familiar and autoprovocada via `carrega_sinan_bairro`/`carrega_violencia_familiar`,
-   IPS violência territorial by RA, rates per 1,000 children). **This is the
+   ISP-RJ (via Data.Rio) violência territorial by RA, rates per 1,000 children). **This is the
    technical build order (each section's data feeds later joins) and is
    deliberately left unchanged** — see the note below.
 3. A closing "Análise / Relatório" section (markdown notes only, no code
@@ -123,8 +123,9 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 - A shared categorical/sequential color palette and serif title typography
   (Palatino Linotype) are reused by all 4 chart functions and by
   `mapa_coropletico_bairros` (`_CORES_TEMA_MAPA` — a sequential cmap per
-  subject: `BuGn` natalidade, `RdPu` mortalidade, `YlOrBr` CadÚnico, `Blues`
-  censo/população).
+  subject: `Greens` natalidade, `RdPu` mortalidade, `YlOrBr` CadÚnico, `Purples`
+  censo/população, `OrRd` proteção; the site's `_CMAP_TEMA` uses the same). **No map paints land blue — blue is
+  only water/sea** (`specs/2026-11-05_fechamento_pendencias` R6).
 - `'ap'` (Área de Planejamento, IPP, 5 regions) and `'cap'` (Coordenadoria de
   Área Programática de Saúde, SMS-Rio, 10 regions) are **different**
   administrative boundaries with similarly-formatted codes — don't conflate
@@ -150,7 +151,8 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 - `mapas/` — choropleth PNGs from `mapa_coropletico_bairros`, plus each map's twin input table in `tabelas_finais/tabela_mapa_*.csv` (gitignored except `.gitkeep`). The legacy `mapas/tabelas_bairros/` Excel exports now go to `tabelas_finais/` (2026-10-26).
 - `website/` — the published static site (GitHub Pages; `specs/2026-09-24_website_refactor`): tabs per eixo, sticky outline, interactive SVG charts/maps. `website/build/build_site.py` (moved from the PDF skill's `build_html_report.py`) generates `index.html`, `data/charts.js`, `data/geo.js` (map geometry, one `<path>` per region, shared by all maps via `<use>`; the `<use>` of each map and its CSV are in `window.MAPAS` in `data/charts.js`, inserted by `js/charts.js` on load — `specs/2026-09-28_melhorias_site`) and `assets/images/basemap-*`/`ipp-logo-*`; `css/` and `js/` are **hand-edited static files**, not generator strings. Generated output is committed (CI has no `tabelas_finais/`, so it only copies). **Distinct pipeline and visual identity from `relatorio/analise_primeira_infancia.pdf`** — don't mix their conventions. Static-site rules (relative lowercase paths, hash-only routes, no `fetch`, only html/css/js/svg/png/jpg/ico/woff2 published — fonts are self-hosted, no third-party requests) and the size budget (the generator warns above 1 MB `index.html` / 2 MB site) are in `website/README.md`. `*.png`/`*.svg` are gitignored globally; `!/website/assets/**` keeps the site's assets tracked. Narrow screens (`specs/2026-09-28_website_mobile`): every tablet/phone rule is in `css/mobile.css` and charts in narrow containers are redrawn at real width by `js/charts.js` — the desktop (≥ 1100 px) must stay pixel-identical, checked by screenshot comparison before committing.
 - `relatorio/` — the published PDF (`analise_primeira_infancia.pdf`, copied there only by `gera_latex.py --publicar`; **PDF, decks and curation DOCX are gitignored since 2026-10-26 and published as assets of a GitHub Release** — the site's download link is `releases/latest/download/analise_primeira_infancia.pdf`, so a new PDF only reaches readers after a new Release; never commit them back, `specs/2026-10-26_limpeza_historico`), `latex/` (LaTeX source: hand-edited `relatorio.tex`/`estilo.sty`/`pretextual/`/`fontes.bib`, generated `gerado/`, gitignored `_build/`), the sources inventory (`inventario_fontes.md/.csv`, for the team), the DOCX curation export with its review status (`controle_revisao.json`), past Google Docs curation rounds (`textos_updates_antigos/curadoria_textos_update_<N>.docx`; a new one arrives as `relatorio/curadoria_textos_update.docx` and is archived there after incorporation), and `textos_curados.json` (curated text read by the site and the PDF). `publicacao.json` is the single "em desenvolvimento" switch: it drives both the site's yellow strip and the PDF watermark — flip it there and rebuild both. `relatorio/index.html` no longer exists (replaced by `website/`).
-- `apresentacao/` — the 30-slide deck (Marp, `specs/2026-09-28_apresentacao`): one source file `apresentacao.md`
+- `apresentacao/` — **frozen since 2026-11-05: decks are no longer maintained** (`specs/2026-11-05_fechamento_pendencias`
+  D7; don't regenerate or update them). The 30-slide deck (Marp, `specs/2026-09-28_apresentacao`): one source file `apresentacao.md`
   (numbers `{{n:...}}` computed from `tabelas_finais/` by `build/numeros.py`, figures `fig:<name>` from
   `visualizacoes/`/`mapas/`, conditional blocks), built by `python apresentacao/build/gera_apresentacao.py`
   (`--publicar` copies the PPTX/PDF to `apresentacao/`, gitignored — publish them in the Release); variants in `apresentacao/variantes/`. See `apresentacao/README.md`.

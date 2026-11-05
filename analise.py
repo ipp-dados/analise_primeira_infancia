@@ -967,6 +967,14 @@ df_tipos_deficiencia.to_csv('tabelas_finais/cadunico_tipos_deficiencia_0_a_5_202
 print(df_deficiencia_criancas.to_string(index=False), df_deficiencia_familias.to_string(index=False), sep="\n\n")
 df_tipos_deficiencia
 
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_deficiencia_familias_0_a_5_2026 -->
+# **Nota de curadoria:** São 7.810 famílias com ao menos uma criança até 72 meses com deficiência, 4,4% das 178.838 famílias com crianças nessa faixa no CadÚnico. Entre as 6.335 famílias com a informação preenchida, 1.530 (24,2%) recebem o Benefício de Prestação Continuada (BPC) por deficiência; outras 1.475 não têm o dado. O BPC é registrado para a família, por isso o benefício pode se referir a qualquer membro, não necessariamente à criança.
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_deficiencia_criancas_0_a_5_2026 -->
+# **Nota de curadoria:** Das 200.784 crianças até 72 meses inscritas no CadÚnico em julho de 2026, 7.919 têm alguma deficiência registrada, o que corresponde a 3,9% do total. O dado se refere apenas às crianças cadastradas e depende do que a família declarou no cadastro: não é uma estimativa da prevalência de deficiência entre todas as crianças da cidade.
+
 # %%
 # tipos não exclusivos (uma criança pode ter mais de um): as barras não somam o total de crianças com deficiência
 grafico_barra(df_tipos_deficiencia.assign(**{'Tipo de deficiência': df_tipos_deficiencia['Tipo de deficiência'].str.replace(' ', '\n', n=1)}),
@@ -974,6 +982,10 @@ grafico_barra(df_tipos_deficiencia.assign(**{'Tipo de deficiência': df_tipos_de
               titulo='CADÚNICO: Crianças até 72 meses com deficiência, por tipo',
               nome_arquivo='cadunico_criancas_por_tipo_deficiencia',
               fonte_dados=fonte_cadunico_silver + '. Uma criança pode ter mais de um tipo: as barras não somam')
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_criancas_por_tipo_deficiencia -->
+# **Nota de curadoria:** Os tipos mais registrados são o transtorno mental (3.662 crianças, 46,2% das crianças com deficiência) e a deficiência mental ou intelectual (3.332, 42,1%), seguidos da deficiência física (2.035, 25,7%) e da síndrome de Down (359, 4,5%). As deficiências visuais e auditivas somam poucos casos, cada tipo abaixo de 2%. Uma mesma criança pode ter mais de um tipo registrado, por isso os percentuais não somam 100%.
 
 # %%
 _def_bairro = por_bairro_sim_base(df_criancas_silver, 'tem_deficiencia', 'Crianças com deficiência')
@@ -989,6 +1001,10 @@ mapa_coropletico_bairros(
     cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo='% com deficiência', fonte_dados=fonte_mapa_cadunico_silver)
 
 # %% [markdown]
+# <!-- nota-curadoria:mapa_percentual_cadunico_criancas_deficiencia_bairro_2026 -->
+# **Nota de curadoria:** A proporção de crianças com deficiência varia pouco entre os bairros: quase nove em cada dez ficam entre 3% e 5%, perto da média do município (3,9%). Entre os bairros com valor próprio, os maiores percentuais estão em Pechincha (6,5%), Itanhangá e Méier (6,0% cada), Padre Miguel (5,3%) e Caju (5,1%). Pechincha e Méier têm só 25 crianças com deficiência cada; por isso pequenas diferenças no número mudam bastante o percentual. Os menores valores estão em Manguinhos (2,4%), Cidade de Deus (2,5%) e Acari (2,7%). Em números absolutos, Campo Grande (446) e Santa Cruz (421) concentram mais crianças com deficiência. Para proteger os dados, 69 bairros com poucos casos aparecem somados a outros da mesma Região Administrativa e mostram a taxa do conjunto.
+
+# %% [markdown]
 # ##### Moradia: inadequação, déficit e adensamento (FJP)
 
 # %%
@@ -1001,12 +1017,20 @@ df_deficit_componentes.to_csv('tabelas_finais/cadunico_deficit_componentes_0_a_5
 print(df_moradia_resumo.to_string(index=False), df_inadequacao_componentes.to_string(index=False), sep="\n\n")
 df_deficit_componentes
 
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_moradia_resumo_0_a_5_2026 -->
+# **Nota de curadoria:** A tabela resume as condições de moradia das crianças até 72 meses do CadÚnico e de suas famílias. Os problemas mais frequentes são o adensamento excessivo (51,6% das crianças) e o déficit habitacional (43,2%), puxado pelo peso do aluguel. A inadequação habitacional atinge 5,9%, e a falta de banheiro (0,3%) e de água canalizada (0,6%) é rara. Entre as famílias, os percentuais são parecidos: 48,0% em adensamento excessivo, 42,5% em déficit e 5,9% em inadequação.
+
 # %%
 grafico_barra(df_inadequacao_componentes.assign(Componente=df_inadequacao_componentes['Componente'].str.replace(' ', '\n', n=1)),
               categoria='Componente', valor='Crianças',
               titulo='CADÚNICO: Crianças até 72 meses em domicílio com inadequação habitacional, por componente',
               nome_arquivo='cadunico_criancas_inadequacao_componentes',
               fonte_dados=fonte_cadunico_silver + '. Metodologia da Fundação João Pinheiro; componentes não exclusivos')
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_criancas_inadequacao_componentes -->
+# **Nota de curadoria:** Segundo a aproximação da metodologia da Fundação João Pinheiro, 11.589 crianças até 72 meses do CadÚnico (5,9%) vivem em domicílio com alguma inadequação habitacional. A maior parte se deve à infraestrutura (9.841 crianças, 5,0%), sobretudo ao esgoto inadequado (4.676), à água sem canalização ou fora da rede geral (3.584) e ao lixo queimado, enterrado ou jogado (2.756). Os problemas da própria construção (inadequação edilícia) atingem 2.234 crianças (1,1%): todos os cômodos usados como dormitório (1.018), piso de terra (859) e ausência de banheiro (627). Um domicílio pode ter mais de um componente.
 
 # %%
 grafico_barra(df_deficit_componentes.assign(Componente=df_deficit_componentes['Componente'].str.replace(' ', '\n', n=1)),
@@ -1015,9 +1039,14 @@ grafico_barra(df_deficit_componentes.assign(Componente=df_deficit_componentes['C
               nome_arquivo='cadunico_criancas_deficit_componentes',
               fonte_dados=fonte_cadunico_silver + '. Metodologia da Fundação João Pinheiro; componentes não exclusivos')
 
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_criancas_deficit_componentes -->
+# **Nota de curadoria:** Pela aproximação da metodologia da Fundação João Pinheiro, 86.393 crianças até 72 meses do CadÚnico (43,2%) vivem em domicílio em déficit habitacional. Quase todo o déficit vem do ônus excessivo com aluguel, quando famílias com renda de até 3 salários mínimos gastam mais de 30% dela com aluguel: são 82.081 crianças (41,8%). Os demais componentes são bem menores: domicílio improvisado (3.436 crianças), rústico (591) e coabitação (588). Um domicílio pode ter mais de um componente.
+
 # %%
 # um mapa (e uma tabela gêmea) por indicador: a agregação dos bairros pequenos depende do par de cada um -- juntos, o
 # adensamento (89% dos bairros passam sozinhos) herdaria os conjuntos da inadequação (59%)
+_BINS_N_MORADIA_CADUNICO = {'inadequacao': [40, 75, 150, 300], 'adensamento': [150, 400, 800, 1600]}  # mesmas do deck
 for _col, _rot, _titulo, _legenda, _nome in [
     ('fjp_inadequacao', 'Crianças em inadequação habitacional',
      '% de crianças até 72 meses no CadÚnico em domicílio com inadequação habitacional, por bairro', '% inadequação',
@@ -1045,11 +1074,41 @@ for _col, _rot, _titulo, _legenda, _nome in [
         _nota_mapa = ('.\nInadequação: metodologia da Fundação João Pinheiro. Valor atípico, na cor máxima: '
                       + '; '.join(f"{b} ({_pct1(v)})" for b, v in zip(_outl['bairro'], _outl[_pct]))
                       + f'; escala de cor até {_pct1(_teto)}')
+    # número antes do percentual (como em Inclusão; specs/2026-11-05_fechamento_pendencias R2): contagem em classes
+    # discretas; os bairros somados em "Demais bairros da RA/AP …" ficam sem cor (total do conjunto na tabela gêmea)
+    mapa_coropletico_bairros(
+        _pub[_pub['codbairro'].notna()], coluna_valor=_rot,
+        titulo=_titulo.replace('% de crianças', 'Crianças').replace(', por bairro', ', por bairro (número)'),
+        nome_arquivo=f'mapa_cadunico_{_nome}_n_bairro_2026', chave='codbairro',
+        cmap=_CORES_TEMA_MAPA['cadunico'], bins=_BINS_N_MORADIA_CADUNICO[_nome],
+        legenda_titulo=_rot.replace('Crianças em ', 'Crianças em\n'),
+        # rodapé próprio: o de fonte_mapa_cadunico_silver fala da taxa do conjunto, que não vale para contagem
+        fonte_dados=(f"{fonte_cadunico_silver}. Bairro pelo CEP da família (correspondência CEP-bairro do CTPE)."
+                     + ('\nMais de 2 pessoas por dormitório.' if _nome == 'adensamento'
+                        else '\nInadequação: metodologia da Fundação João Pinheiro.')
+                     + '\nBairros com menos de 20 casos ficam sem cor: estão somados por RA ou AP'
+                       '\nna tabela ("Demais bairros da RA/AP …")'))
     mapa_coropletico_bairros(
         _pub[_pub['codbairro'].notna()], coluna_valor=_pct, titulo=_titulo,
         nome_arquivo=f'mapa_percentual_cadunico_{_nome}_bairro_2026', chave='codbairro',
         cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo=_legenda, teto=_teto,
         fonte_dados=fonte_mapa_cadunico_silver + _nota_mapa)
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_cadunico_inadequacao_n_bairro_2026 -->
+# **Nota de curadoria:** Em números absolutos, as crianças em domicílios com inadequação habitacional se concentram na Zona Oeste: Santa Cruz (1.068), Guaratiba (770) e Campo Grande (430) lideram, seguidos da Penha (308), na Zona Norte, e de Paciência (276). Os quatro primeiros são os únicos bairros com mais de 300 crianças nessa situação. Bairros com menos de 20 casos aparecem sem cor: estão somados por Região Administrativa ou Área de Planejamento na tabela.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_percentual_cadunico_inadequacao_bairro_2026 -->
+# **Nota de curadoria:** Em proporção, o caso mais destacado é o Alto da Boa Vista, onde 44,1% das crianças do CadÚnico (83 de 188) vivem em domicílio com inadequação habitacional, mais que o dobro de qualquer outro bairro; por isso ele aparece na cor máxima e fora da escala. Seguem Vargem Grande (20,8%), Barra de Guaratiba (17,7%), Portuguesa (16,5%) e Penha (15,1%). Santa Cruz e Guaratiba, que têm os maiores números, ficam em 9,3% e 11,6%, acima da média do município (5,9%).
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_cadunico_adensamento_n_bairro_2026 -->
+# **Nota de curadoria:** O adensamento excessivo (mais de 2 pessoas por dormitório) é o problema de moradia mais comum entre as crianças do CadÚnico, e os maiores números estão na Zona Oeste: Santa Cruz (5.681 crianças), Campo Grande (5.249), Guaratiba (3.661), Bangu (3.053) e Realengo (2.877). Como atinge cerca de metade das crianças cadastradas, o mapa de número acompanha de perto a distribuição das crianças do CadÚnico pela cidade.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_percentual_cadunico_adensamento_bairro_2026 -->
+# **Nota de curadoria:** Em 2026, 101.477 crianças até 72 meses do CadÚnico (51,6%) vivem em domicílio com mais de 2 pessoas por dormitório. O percentual é alto em toda a cidade: mesmo os menores valores ficam acima de 30%, como em Todos os Santos (32,3%), Rocha (33,2%) e Abolição (33,9%). Os maiores estão em Vaz Lobo (61,6%), Glória (57,9%), São Conrado (57,8%), Cacuia (57,5%) e Sepetiba (56,8%).
 
 # %% [markdown]
 # #### 📌 Dados pontuais (ago/2026): moradia e deficiência
@@ -2424,8 +2483,8 @@ df_desnutricao = pd.read_csv("dados_locais/tratados/desnutrição.csv", index_co
 df_desnutricao.tail()
 
 # %%
-df_desnutricao['peso_muito_baixo_percentual'] = df_desnutricao['peso_muito_baixo_percentual'].apply(convert_numeric_safe)
-df_desnutricao['peso_baixo_percentual'] = df_desnutricao['peso_baixo_percentual'].apply(convert_numeric_safe)
+# % recalculados das contagens (a coluna de % da origem tem erros): specs/2026-11-05_fechamento_pendencias R1
+df_desnutricao = recalcula_percentuais_sisvan(df_desnutricao)
 df_desnutricao['Percent. baixo peso total'] = df_desnutricao['peso_muito_baixo_percentual'] + df_desnutricao['peso_baixo_percentual']
 df_desnutricao.to_csv('tabelas_finais/sisvan_desnutricao_por_ano.csv')
 serie_temporal(df_desnutricao,tempo='ano',valor='Percent. baixo peso total', titulo='Percentual de crianças de 0 a 5 anos com baixo peso - SISVAN',
@@ -2440,8 +2499,7 @@ df_sobrepeso = pd.read_csv("dados_locais/tratados/sobrepeso.csv", index_col=0)
 df_sobrepeso.head()
 
 # %%
-df_sobrepeso['sobrepeso_percentual'] = df_sobrepeso['sobrepeso_percentual'].apply(convert_numeric_safe)
-df_sobrepeso['obesidade_percentual'] = df_sobrepeso['obesidade_percentual'].apply(convert_numeric_safe)
+df_sobrepeso = recalcula_percentuais_sisvan(df_sobrepeso)
 df_sobrepeso['Percent. sobrepeso total'] = df_sobrepeso['sobrepeso_percentual'] + df_sobrepeso['obesidade_percentual']
 df_sobrepeso.to_csv('tabelas_finais/sisvan_sobrepeso_por_ano.csv')
 serie_temporal(df_sobrepeso,tempo='ano',valor='Percent. sobrepeso total', titulo='Percentual de crianças de 0 a 5 anos com sobrepeso e obesidade - SISVAN',
@@ -2457,7 +2515,7 @@ serie_temporal(df_sobrepeso,tempo='ano',valor='obesidade_percentual', titulo='Pe
 
 # %% [markdown]
 # <!-- nota-curadoria:sisvan_obesidade_percentual_por_ano -->
-# **Nota de curadoria:** O percentual de crianças com obesidade, semelhante ao com sobrepeso, também apresentou oscilações ao longo da série. Após crescimento entre 2008 e 2013, o indicador atingiu seu maior valor em 2013, com 11,36%. Nos anos seguintes houve tendência de redução, chegando a 5,36% em 2020. A partir de 2022, os valores permaneceram relativamente estáveis, com leve aumento recente, alcançando 7,34% em 2025. O valor de 2009, de 0,07%, aparece muito abaixo do restante da série e deve ser interpretado com cautela.
+# **Nota de curadoria:** O percentual de crianças com obesidade, semelhante ao com sobrepeso, também apresentou oscilações ao longo da série. Após crescimento entre 2008 e 2013, o indicador atingiu seu maior valor em 2013, com 11,36%. Nos anos seguintes houve tendência de redução, chegando a 5,36% em 2020. A partir de 2022, os valores permaneceram relativamente estáveis, com leve aumento recente, alcançando 7,34% em 2025.
 
 # %% [markdown]
 # ### 💉 Cobertura Vacinal EPI
@@ -2772,7 +2830,7 @@ df_final.head()
 # ## 🛡️ Proteção
 #
 # Violência contra crianças de 0 a 5 anos (Sinan NET/Tabnet, por bairro de residência) e violência
-# territorial (Data.Rio/IPS, por Região Administrativa). Especificação: `specs/2026-09-23_inclusao_dados_protecao/`.
+# territorial (ISP-RJ via Data.Rio, por Região Administrativa). Especificação: `specs/2026-09-23_inclusao_dados_protecao/`.
 #
 # > **Leitura dos dados — avisos que valem para toda a seção**
 # > - Os **vínculos** (mãe, pai, padrasto...) **não são excludentes** e não existe "total de violência
@@ -2785,7 +2843,7 @@ df_final.head()
 # > - Contagem absoluta **não é risco**: bairros populosos concentram mais casos. A taxa por 1.000 crianças usa
 # >   numerador 0-5 anos e denominador 0-4 anos (Censo 2022) — superestima ~20%, de modo uniforme. No município, a
 # >   taxa usa a população de 0 a 5 anos da Ripsa/MS do mesmo ano (A3), sem essa ressalva.
-# > - Violência territorial (IPS): dado da **população geral (todas as idades), NÃO específico de crianças nem de jovens**; só 2024.
+# > - Violência territorial (ISP-RJ): dado da **população geral (todas as idades), NÃO específico de crianças nem de jovens**; só 2024.
 
 # %% [markdown]
 # ### Violência familiar por vínculo do provável autor
@@ -2793,7 +2851,7 @@ df_final.head()
 # %%
 fonte_sinan = 'Sinan NET/Tabnet (SMS-Rio), notificações de residentes no município do Rio de Janeiro, 0 a 5 anos'
 fonte_sinan_censo = 'Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos; população 0 a 4 anos: Censo Demográfico 2022 (IBGE/Data.Rio)'
-fonte_ips = 'Data.Rio / Índice de Progresso Social (IPS), 2024, por Região Administrativa (todas as idades)'
+fonte_isp = 'Instituto de Segurança Pública (ISP-RJ), via Data.Rio, 2024, por Região Administrativa (todas as idades)'
 
 ANOS_VF = list(range(2011, 2026))  # 2026 é ano parcial: fora das séries de violência familiar
 df_vf = carrega_violencia_familiar('dados_locais/protecao/violencia_familiar', range(2011, 2027))
@@ -2999,10 +3057,10 @@ mapa_coropletico_bairros(
 )
 
 # %% [markdown]
-# ### Violência territorial por Região Administrativa (Data.Rio/IPS, 2024)
+# ### Violência territorial por Região Administrativa (ISP-RJ via Data.Rio, 2024)
 #
 # > **Dado geral da população, NÃO específico de crianças ou jovens:** um único ano (2024) e todas as idades.
-# > A RA XXI Paquetá não tem dado no IPS ("Sem dado" nos mapas).
+# > A RA XXI Paquetá não tem dado na tabela ("Sem dado" nos mapas).
 
 # %%
 df_terr = carrega_violencia_territorial_ra('dados_locais/protecao/violencia_territorial.xlsx')
@@ -3025,7 +3083,7 @@ for coluna, (rotulo, sufixo) in indicadores_territoriais.items():
         df_terr, coluna_valor=coluna, chave='codra', nivel='ra',
         titulo=f'{rotulo} por RA (2024) — população geral', nome_arquivo=f'mapa_violencia_territorial_{sufixo}_ra_2024',
         cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
-        legenda_titulo='Taxa (IPS)\ntodas as idades,\nnão só crianças', fonte_dados=fonte_ips,
+        legenda_titulo='Taxa (ISP)\ntodas as idades,\nnão só crianças', fonte_dados=fonte_isp,
     )
 
 # %% [markdown]
