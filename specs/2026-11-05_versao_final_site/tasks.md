@@ -36,7 +36,7 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 
 ## Bloco 5 — PDF em `.tex` por capítulo, capa e folha de rosto
 - [x] T5.1 PDF de referência guardado antes da exportação (174 páginas)
-- [ ] T5.2 Exportar `capitulos/*.tex`; `relatorio.tex` com `\input`; `gera_latex.py` sem capítulos nem JSON de textos
+- [x] T5.2 `gera_latex.py --exportar-capitulos`: 9 arquivos em `relatorio/latex/capitulos/`, resumo em `pretextual/resumo.tex`, tabelas no corpo em `gerado/tabelas_corpo/`; `relatorio.tex` com `\input{capitulos/...}`; nas execuções normais o script não escreve mais capítulos
 - [x] T5.3 `confere_capitulos()`: figuras, tabelas no corpo e rótulos de tabela citados existem (a execução para se faltar algo)
 - [x] T5.4 Mesmo texto do PDF de referência (só quebras de linha na Introdução, pelo mapa novo); 174 páginas
 - [x] T5.5 Capa com a foto do banner (crédito) e folha de rosto com o crédito completo
