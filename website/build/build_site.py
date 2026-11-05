@@ -2272,13 +2272,13 @@ FOOTER_LINKS = [
     ("Transparência Rio", "https://transparencia.rio/"),
     ("LGPD — Proteção de dados", "https://ipp.prefeitura.rio/lgpd/"),
 ]
-FOOTER_CONTATO = "ascom.ipp@prefeitura.rio"
-
+# o contato (ascom.ipp@prefeitura.rio, placeholder) saiu do rodapé por decisão do usuário (2026-11-05,
+# specs/2026-11-05_versao_final_site); a coluna fica só com a data de atualização
 _footer_cols = [
     f'<div class="footer-col footer-col-logo">{LOGO_IMG}<p>Relatório produzido a partir da análise de indicadores de primeira infância do Instituto Municipal de Urbanismo Pereira Passos (IPP).</p></div>',
     '<div class="footer-col"><div class="eyebrow">FONTES DE DADOS</div>' + "".join(f'<div>{f}</div>' for f in FOOTER_FONTES) + '</div>',
     '<div class="footer-col"><div class="eyebrow">LINKS</div>' + "".join(f'<div><a href="{url}" target="_blank" rel="noopener">{label} ↗</a></div>' for label, url in FOOTER_LINKS) + '</div>',
-    f'<div class="footer-col"><div class="eyebrow">CONTATO</div><div>{FOOTER_CONTATO}</div><div class="eyebrow" style="margin-top:14px;">ATUALIZADO EM</div><div>{gen_date}</div></div>',
+    f'<div class="footer-col"><div class="eyebrow">ATUALIZADO EM</div><div>{gen_date}</div></div>',
 ]
 footer = (
     '<footer class="doc-foot"><div class="container">'

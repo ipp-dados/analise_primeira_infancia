@@ -189,7 +189,7 @@ Não dependem de código; entram no projeto quando chegarem.
   rodada, ver seu §7. Considerar `specs/exclusoes.md` (E4, E9) antes.
 
 ### Alimentação
-Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 13 a 15 de `docs/dados_faltantes.csv`):
+Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 6 a 8 de `docs/dados_faltantes.csv`):
 1. **Baixo peso ao nascer separado da prematuridade**: o baixo peso inclui prematuros; mostrar os dois recortes em
    separado (SINASC). Confirmar o corte: a reunião citou "menores de 36 semanas"; a definição usual é menos de 37
    semanas completas.
@@ -201,7 +201,7 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 13 a 15 d
 
 ### Educação
 - **Oferta de educação infantil por bairro × crianças e nascimentos** (pedido do usuário, 2026-11-05; amplia o item
-  abaixo e o item 10 de `docs/dados_faltantes.csv`): por bairro, **matrículas** (creche 0-3 e pré-escola 4-5) e
+  abaixo): por bairro, **matrículas** (creche 0-3 e pré-escola 4-5) e
   **número de creches e pré-escolas** (estabelecimentos do Censo Escolar com essas etapas) comparados ao **número de
   crianças** (Censo 2022 ou a estimativa anual por bairro, Próximas features item 3) e aos **nascimentos** (SINASC,
   nascidos vivos por bairro de residência da mãe — indica a demanda dos próximos anos). Saídas: mapas e tabela de
@@ -230,8 +230,8 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 13 a 15 d
 - **Tirar a faixa "EM DESENVOLVIMENTO / TEMPORÁRIO" do site e a marca d'água do PDF** quando deixarem de ser versão
   de teste — decisão do usuário. Uma chave só: `relatorio/publicacao.json` → `"em_desenvolvimento": false`, depois
   regerar o site e o PDF (`gera_latex.py --publicar`).
-- **Confirmar URLs/e-mail reais do rodapé** (Transparência Rio, LGPD, contato; hoje `ascom.ipp@prefeitura.rio`,
-  placeholder) — `specs/2026-09-14_relatorio-interativo/tasks.md` T6.2.
+- **Confirmar as URLs reais do rodapé** (Transparência Rio, LGPD) — `specs/2026-09-14_relatorio-interativo/tasks.md` T6.2.
+  O e-mail de contato (placeholder) saiu do rodapé em 2026-11-05 (decisão do usuário).
 - **Logo**: confirmar autorização de uso do logo oficial da Prefeitura/IPP antes do deploy público (T0.4) e pedir
   o SVG oficial à Ascom do IPP (hoje PNG em `srcset`, `specs/2026-09-24_website_refactor` D6).
 - **Fontes quase repetidas** na caixa "Fontes desta seção": unificar as constantes `FONTE_*` do gerador.
