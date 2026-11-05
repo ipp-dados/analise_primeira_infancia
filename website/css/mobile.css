@@ -107,7 +107,10 @@
     -webkit-mask-image:linear-gradient(90deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.18) 55%, rgba(0,0,0,.5) 100%);
             mask-image:linear-gradient(90deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.18) 55%, rgba(0,0,0,.5) 100%);
   }
-  .banner-credito{font-size:.48rem; top:8px; bottom:auto;}   /* no alto: embaixo cobria a data */
+  .banner-credito{font-size:.48rem; top:8px; bottom:auto;}
+  /* zoom do mapa de referência: no celular a legenda fica abaixo do mapa, os botões vão para o canto de cima */
+  .ref-zoom-btns{top:8px; left:8px; right:auto; bottom:auto;}
+  .ref-zoom-btn{min-width:32px; height:32px;}   /* no alto: embaixo cobria a data */
   /* GitHub e PDF lado a lado, com rótulo curto (pedido do usuário); a data na linha de baixo */
   .banner-links{display:grid; grid-template-columns:repeat(2, max-content); gap:6px 8px; align-items:center;}
   .banner-links .banner-date{grid-column:1 / -1;}

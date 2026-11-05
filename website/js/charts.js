@@ -579,6 +579,37 @@
           svg.classList.toggle('mostra-' + btn.dataset.camada, liga);
         });
       });
+      // zoom e arraste (pedido do usuário, 2026-11-05): transform no grupo .ref-zoom; --k afina as linhas e --kf
+      // (raiz de k) faz os nomes crescerem devagar, para os bairros ficarem legíveis ao aproximar
+      const g = svg.querySelector('.ref-zoom'), vb = svg.viewBox.baseVal, KMAX = 8;
+      let k = 1, tx = 0, ty = 0;
+      const aplica = ()=>{
+        k = Math.min(KMAX, Math.max(1, k));
+        // viewBox pode começar fora de (0,0) (recorte vertical): o conteúdo [vb.x, vb.x+w] x [vb.y, vb.y+h] cobre a vista
+        tx = Math.min(vb.x * (1 - k), Math.max((vb.x + vb.width) * (1 - k), tx)); ty = Math.min(vb.y * (1 - k), Math.max((vb.y + vb.height) * (1 - k), ty));
+        g.setAttribute('transform', 'translate(' + tx + ',' + ty + ') scale(' + k + ')');
+        svg.style.setProperty('--k', k); svg.style.setProperty('--kf', Math.sqrt(k));
+        svg.classList.toggle('com-zoom', k > 1.001);
+      };
+      const zoomEm = (fator, cx, cy)=>{   // cx, cy no sistema do viewBox
+        const k2 = Math.min(KMAX, Math.max(1, k * fator)), f = k2 / k;
+        tx = cx - (cx - tx) * f; ty = cy - (cy - ty) * f; k = k2; aplica();
+      };
+      const pontoVB = e=>{ const r = svg.getBoundingClientRect();
+        return [vb.x + (e.clientX - r.left) / r.width * vb.width, vb.y + (e.clientY - r.top) / r.height * vb.height]; };
+      card.querySelectorAll('.ref-zoom-btn').forEach(b=>b.addEventListener('click', ()=>{
+        if (b.dataset.zoom === 'reset') { k = 1; tx = 0; ty = 0; aplica(); return; }
+        zoomEm(b.dataset.zoom === 'in' ? 1.6 : 1 / 1.6, vb.x + vb.width / 2, vb.y + vb.height / 2);
+      }));
+      svg.addEventListener('dblclick', e=>{ e.preventDefault(); const [x, y] = pontoVB(e); zoomEm(1.8, x, y); });
+      let ini = null;
+      svg.addEventListener('pointerdown', e=>{ if (k <= 1) return; ini = [e.clientX, e.clientY, tx, ty]; svg.classList.add('arrastando'); card.classList.add('arrastando'); });
+      window.addEventListener('pointermove', e=>{
+        if (!ini) return;
+        const r = svg.getBoundingClientRect();
+        tx = ini[2] + (e.clientX - ini[0]) / r.width * vb.width; ty = ini[3] + (e.clientY - ini[1]) / r.height * vb.height; aplica();
+      });
+      window.addEventListener('pointerup', ()=>{ ini = null; svg.classList.remove('arrastando'); card.classList.remove('arrastando'); });
     });
   }
   function montaRegioes(p){ p.querySelectorAll('.map-svg').forEach(montaRegioesDe); }

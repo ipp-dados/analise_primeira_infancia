@@ -265,22 +265,34 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.76rem;}
   color:var(--accent-ink); font-variant-numeric:tabular-nums;}
 .kpi-faixas span{display:block; font-size:.78rem; color:var(--ink-2); margin-top:2px;}
 
-/* ---- mapa de referência da Visão geral (specs/2026-11-05_versao_final_site R2): só contornos, sem cor de dado ---- */
+/* ---- mapa de referência da Visão geral (specs/2026-11-05_versao_final_site R2): só contornos, sem cor de dado;
+   linhas cinza semitransparentes, sem azul (pedido do usuário, 2026-11-05) ---- */
 .overview-referencia{margin:0 0 48px;}
 .overview-referencia > h2{margin:0 0 8px;}
 .ref-btns{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:4px 0 12px;}
 .ref-btns .eyebrow{margin-right:4px;}
-.ref-map use.ref-bairro{fill:#ffffff; fill-opacity:.55; stroke:#7a8794; stroke-width:.45;}
-.ref-map use.ref-bairro:hover, .ref-map use.ref-bairro.toque{fill:var(--accent-soft); fill-opacity:.9; stroke-width:.45; filter:none;}
-.ref-map use.ref-ra{fill:none; stroke:#3d4a57; stroke-width:1.1; pointer-events:none; cursor:default;}
-.ref-map use.ref-ap{fill:none; stroke:var(--ipp-navy); stroke-width:2.4; pointer-events:none; cursor:default;}
+/* --k = zoom; linhas divididas por --k (ficam finas com zoom), rótulos por --kf = raiz de k (crescem devagar) */
+.ref-map use.ref-bairro{fill:#ffffff; fill-opacity:.55; stroke:rgba(40,40,40,.28); stroke-width:calc(.45px / var(--k));}
+.ref-map use.ref-bairro:hover, .ref-map use.ref-bairro.toque{fill:#e9e6df; fill-opacity:.95; stroke-width:calc(.45px / var(--k)); filter:none;}   /* realce neutro, sem azul */
+.ref-map use.ref-ra{fill:none; stroke:rgba(30,30,30,.45); stroke-width:calc(1px / var(--k)); pointer-events:none; cursor:default;}
+.ref-map use.ref-ap{fill:none; stroke:rgba(20,20,20,.6); stroke-width:calc(2px / var(--k)); pointer-events:none; cursor:default;}
 .ref-rot{display:none; pointer-events:none;}
 .ref-rot text{text-anchor:middle; dominant-baseline:middle; paint-order:stroke; stroke:#ffffff; stroke-linejoin:round; fill:var(--ink);}
-.ref-rot-bairro text{font-size:4.6px; stroke-width:1.4px;}
-.ref-rot-ra text{font-size:7.5px; font-weight:600; stroke-width:2.2px;}
-.ref-rot-ap text{font-size:15px; font-weight:700; stroke-width:3.2px; fill:var(--ipp-navy);}
+.ref-rot-bairro text{font-size:calc(4.6px / var(--kf)); stroke-width:calc(1.4px / var(--kf));}
+.ref-rot-ra text{font-size:calc(7.5px / var(--kf)); font-weight:600; stroke-width:calc(2.2px / var(--kf));}
+.ref-rot-ap text{font-size:calc(15px / var(--kf)); font-weight:700; stroke-width:calc(3.2px / var(--kf)); fill:var(--ink); fill-opacity:.8;}
+.ref-map-card .map-svg-frame{position:relative;}
+.ref-map{touch-action:none; cursor:grab;}
+.ref-map.arrastando{cursor:grabbing;}
+.ref-map-card.arrastando .chart-tooltip{display:none !important;}   /* tooltip parado não acompanha o arraste */
+.ref-map.com-zoom .map-scalebar{display:none;}
+.ref-zoom-btns{position:absolute; right:10px; bottom:10px; display:flex; gap:6px; z-index:2;}
+.ref-zoom-btn{min-width:34px; height:34px; padding:0 10px; border:1px solid var(--hairline); border-radius:var(--radius-sm);
+  background:var(--surface); color:var(--ink); font:600 1rem/1 var(--font-sans, inherit); box-shadow:var(--shadow-1); cursor:pointer;}
+.ref-zoom-btn.ref-zoom-reset{font-size:.72rem;}
+.ref-zoom-btn:hover{box-shadow:var(--shadow-2);}
 .ref-map.mostra-bairro .ref-rot-bairro, .ref-map.mostra-ra .ref-rot-ra, .ref-map.mostra-ap .ref-rot-ap{display:inline;}
 .ref-sw{display:inline-block; width:22px; height:0; margin-right:8px; vertical-align:middle;}
-.ref-sw-ap{border-top:2.4px solid var(--ipp-navy);}
-.ref-sw-ra{border-top:1.1px solid #3d4a57;}
-.ref-sw-bairro{border-top:.6px solid #7a8794;}
+.ref-sw-ap{border-top:2px solid rgba(20,20,20,.6);}
+.ref-sw-ra{border-top:1px solid rgba(30,30,30,.45);}
+.ref-sw-bairro{border-top:.6px solid rgba(40,40,40,.28);}

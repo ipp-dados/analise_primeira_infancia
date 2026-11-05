@@ -1328,8 +1328,17 @@ def mapa_referencia_html():
         x, y = ponto(r.geometry)
         rotulos["ap"].append(f'<text x="{x:.1f}" y="{y:.1f}">AP {r["_chave"]}</text>')
     grupos = "".join(f'<g class="ref-rot ref-rot-{n}">{"".join(t)}</g>' for n, t in rotulos.items())
-    bg = _basemap_css_class(project)
-    overlay = _svg_rosa_dos_ventos() + _svg_barra_escala(project)
+    # fundo cartográfico como <image> DENTRO do grupo que recebe o zoom (como fundo CSS ele não acompanharia o zoom)
+    _cls = _basemap_css_class(project)
+    _url = next((re.search(r"url\(([^)]+)\)", r).group(1) for r in _BASEMAP_CSS_RULES if r.startswith(f".{_cls}{{")), None) if _cls else None
+    fundo = (f'<image href="{_url}" x="0" y="0" width="{_MAP_W}" height="{_MAP_H}" preserveAspectRatio="none"></image>'
+             if _url else "")
+    # recorte vertical na cidade (pedido do usuário, 2026-11-05: mapa mais baixo): o quadro padrão 640x448 tem mar
+    # sobrando em cima e embaixo; a rosa e a escala acompanham o recorte
+    _, _yb, _, _yt = base.total_bounds
+    _y0 = max(0.0, project(0, _yt)[1] - 10); _y1 = min(float(_MAP_H), project(0, _yb)[1] + 26)
+    vb = f"0 {_y0:.0f} {_MAP_W} {_y1 - _y0:.0f}"
+    overlay = _svg_rosa_dos_ventos(y=_y0 + 30) + _svg_barra_escala(project, y=_y1 - 10)
     botoes = "".join(f'<button type="button" class="pill ref-btn" data-camada="{n}" aria-pressed="{"true" if n == "ap" else "false"}"{' data-active="true"' if n == "ap" else ""}>{lbl}</button>'
                      for n, lbl in (("bairro", "Bairros"), ("ra", "Regiões Administrativas"), ("ap", "Áreas de Planejamento")))
     legenda = ('<div class="map-legend-row"><span class="ref-sw ref-sw-ap"></span>Área de Planejamento (5)</div>'
@@ -1339,21 +1348,28 @@ def mapa_referencia_html():
     return (
         f'<div class="out map-svg-card ref-map-card" id="mapa-referencia" data-filename="Bairros, RAs e APs do Rio.csv" data-csv="{csv}">'
         '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>'
-        '<div class="map-title">A cidade do Rio de Janeiro: bairros, Regiões Administrativas e Áreas de Planejamento</div>'
+        '<div class="map-title">Bairros, Regiões Administrativas e Áreas de Planejamento</div>'
         f'<div class="ref-btns" role="group" aria-label="Mostrar nomes"><span class="eyebrow">Mostrar nomes</span>{botoes}</div>'
         '<div class="map-svg-frame">'
-        f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg ref-map mostra-ap {bg}" role="img" '
+        # zoom (pedido do usuário, 2026-11-05): o grupo .ref-zoom recebe translate/scale (js/charts.js, initMapaReferencia);
+        # a rosa dos ventos fica fora dele e a barra de escala some quando há zoom (deixaria de valer)
+        f'<svg viewBox="{vb}" class="map-svg ref-map mostra-ap" role="img" style="--k:1;--kf:1" '
         'aria-label="Mapa de referência do Rio de Janeiro com os limites de bairros, Regiões Administrativas e Áreas de Planejamento">'
-        f'{"".join(usos)}{grupos}{overlay}</svg>'
+        f'<g class="ref-zoom">{fundo}{"".join(usos)}{grupos}</g>{overlay}</svg>'
+        '<div class="ref-zoom-btns" role="group" aria-label="Zoom do mapa">'
+        '<button type="button" class="ref-zoom-btn" data-zoom="in" aria-label="Aproximar" title="Aproximar">+</button>'
+        '<button type="button" class="ref-zoom-btn" data-zoom="out" aria-label="Afastar" title="Afastar">−</button>'
+        '<button type="button" class="ref-zoom-btn ref-zoom-reset" data-zoom="reset" title="Ver a cidade inteira">Ver tudo</button></div>'
         f'<div class="map-legend-overlay"><div class="eyebrow map-legend-title">Limites</div>{legenda}</div>'
         '</div>'
-        '<div class="map-ref">Passe o mouse (ou toque) num bairro para ver a RA e a AP. Sistema de referência: SIRGAS 2000, '
+        '<div class="map-ref">Use + e − (ou dois cliques) para aproximar e arraste para mover; passe o mouse (ou toque) num '
+        'bairro para ver a RA e a AP. Sistema de referência: SIRGAS 2000, '
         f'UTM - Fuso 23S<br>Fonte: {_esc(FONTE_LIMITES)}</div>'
         '</div>'
     )
 
 MAPA_REFERENCIA_HTML = ('<div class="overview-referencia" id="mapa-da-cidade"><div class="eyebrow panel-eyebrow">Referência</div>'
-                        '<h2>O Rio de Janeiro em bairros, RAs e APs</h2>' + mapa_referencia_html() + '</div>')
+                        '<h2>A cidade do Rio de Janeiro</h2>' + mapa_referencia_html() + '</div>')
 
 h3('Bairros com mais crianças de 0 a 4 anos (Censo 2022)', antigo='por-bairro')
 df_censo_bairro = read("censo_por_bairro.csv")
@@ -2503,7 +2519,7 @@ paineis.insert(0,
 )
 navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-label="Visão geral" hidden>'
                     '<a href="#visao-geral/introducao" data-alvo="introducao">Introdução</a>'
-                    + '<a href="#visao-geral/mapa-da-cidade" data-alvo="mapa-da-cidade">O Rio em bairros, RAs e APs</a>'
+                    + '<a href="#visao-geral/mapa-da-cidade" data-alvo="mapa-da-cidade">A cidade do Rio de Janeiro</a>'
                     + "".join(f'<a href="#visao-geral/{h3id}" data-alvo="{h3id}">{_esc(h3t)}</a>'
                               for h3t, h3id in _h3_por_secao.get(_PANORAMA_SID, []))
                     + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in _SECOES_EIXO)

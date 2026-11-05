@@ -603,7 +603,7 @@ def mapa_referencia_a4(nome_arquivo='mapa_referencia_bairros_ra_ap',
                        caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson'):
     """Mapa de referência para o PDF (specs/2026-11-05_versao_final_site R2): só contornos, sem dado -- bairros em linha
     fina, Regiões Administrativas (dissolve de `codra`) em linha média e Áreas de Planejamento (`area_plane`) em linha
-    grossa, com o nome das AP e das RA. Mesmo fundo, rosa dos ventos, escala e vizinhos de `_a4_mapa`; o mapa
+    grossa (cinza semitransparente, sem azul), com o nome das AP e das RA. Mesmo fundo, rosa dos ventos, escala e vizinhos de `_a4_mapa`; o mapa
     interativo equivalente está na Visão geral do site."""
     bairros = gpd.read_file(caminho_geojson).to_crs(epsg=3857)
     ra = bairros.dissolve(by='codra', as_index=False)
@@ -618,9 +618,9 @@ def mapa_referencia_a4(nome_arquivo='mapa_referencia_bairros_ra_ap',
     fig, ax = plt.subplots(figsize=(_LARGURA_A4, _LARGURA_A4 / aspecto))
     fig.subplots_adjust(0, 0, 1, 1)
     ax.set_xlim(minx - padx, maxx + padx); ax.set_ylim(miny - pady, maxy + pady)
-    bairros.plot(ax=ax, color='white', alpha=0.55, edgecolor='#8a96a2', linewidth=0.25, zorder=2)
-    ra.boundary.plot(ax=ax, color='#3d4a57', linewidth=0.6, zorder=3)
-    ap.boundary.plot(ax=ax, color='#0B3C6B', linewidth=1.4, zorder=4)
+    bairros.plot(ax=ax, color='white', alpha=0.55, edgecolor=(0.16, 0.16, 0.16, 0.28), linewidth=0.25, zorder=2)
+    ra.boundary.plot(ax=ax, color=(0.12, 0.12, 0.12, 0.45), linewidth=0.55, zorder=3)
+    ap.boundary.plot(ax=ax, color=(0.08, 0.08, 0.08, 0.6), linewidth=1.2, zorder=4)
     halo = [pe.withStroke(linewidth=2.2, foreground='white')]
     for _, r in ra.iterrows():
         p = r.geometry.representative_point()
@@ -629,9 +629,9 @@ def mapa_referencia_a4(nome_arquivo='mapa_referencia_bairros_ra_ap',
     for _, r in ap.iterrows():
         p = r.geometry.representative_point()
         ax.text(p.x, p.y + (maxy - miny) * 0.035, f'AP {int(r["area_plane"])}', fontsize=9, fontweight='semibold',
-                ha='center', va='center', color='#0B3C6B', zorder=6, path_effects=[pe.withStroke(linewidth=2.8, foreground='white')])
-    leg = ax.legend([plt.Line2D([], [], color='#0B3C6B', lw=1.4), plt.Line2D([], [], color='#3d4a57', lw=0.6),
-                     plt.Line2D([], [], color='#8a96a2', lw=0.4)],
+                ha='center', va='center', color=_TINTA, zorder=6, path_effects=[pe.withStroke(linewidth=2.8, foreground='white')])
+    leg = ax.legend([plt.Line2D([], [], color=(0.08, 0.08, 0.08, 0.6), lw=1.2), plt.Line2D([], [], color=(0.12, 0.12, 0.12, 0.45), lw=0.55),
+                     plt.Line2D([], [], color=(0.16, 0.16, 0.16, 0.28), lw=0.4)],
                     ['Área de Planejamento (5)', f'Região Administrativa ({len(ra)})', f'Bairro ({len(bairros)})'],
                     title='Limites', loc='upper left', bbox_to_anchor=(0.012, 0.985), fontsize=7, title_fontsize=7.5,
                     frameon=True, framealpha=0.94, edgecolor='none', handlelength=1.8, borderpad=0.6, labelspacing=0.35,
