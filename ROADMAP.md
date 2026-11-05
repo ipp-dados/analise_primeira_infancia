@@ -189,6 +189,17 @@ Não dependem de código; entram no projeto quando chegarem.
   vivos, baixo peso, mortalidade neonatal, óbitos por raça, óbitos gravidez/puerpério) — fora do escopo daquela
   rodada, ver seu §7. Considerar `specs/exclusoes.md` (E4, E9) antes.
 
+### Alimentação
+Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 13 a 15 de `docs/dados_faltantes.csv`):
+1. **Baixo peso ao nascer separado da prematuridade**: o baixo peso inclui prematuros; mostrar os dois recortes em
+   separado (SINASC). Confirmar o corte: a reunião citou "menores de 36 semanas"; a definição usual é menos de 37
+   semanas completas.
+2. **Sobrepeso e obesidade pelo IMC por idade e sexo** (SISVAN): a plataforma da SMS classifica pelo IMC por idade
+   (idade exata, não faixa) e sexo. Ver se o datalake traz a classificação; se não, calcular a partir de peso e altura
+   pelas curvas de referência.
+3. **Aleitamento materno por Área de Planejamento**: hoje só há o total do município; a equipe técnica de alimentação e
+   nutrição da SMS tem os dados por AP e vai fornecê-los — falta fazer o contato.
+
 ### Educação
 - Mapa de matrículas por bairro, com as escolas geocodificadas (o arquivo do INEP não traz `codbairro`; ver
   `specs/2026-09-24_populacao-referencia/matriculas/specification.md` §4.4).

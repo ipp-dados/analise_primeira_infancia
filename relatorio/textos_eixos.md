@@ -47,7 +47,7 @@ A principal linha guia para ler este diagnóstico é a mudança no padrão demog
 
 ### Síntese do eixo
 
-<!-- texto: sintese_prioridade -->
+Mesmo diante da redução dos nascimentos fica clara a melhora nos indicadores de mortalidade infantil e materna, além dos indicadores de vacinação. A principal característica das mortes evitáveis remanescentes é necessidade de maior cobertura/qualidade do pré-natal e maior atenção ao parto. Os indicadores por recorte racial apontam taxas similares entre crianças pardas e brancas, mas com menor melhora recente para crianças pardas. Outros grupos raciais podem estar afetados por amostragem muito pequenas. Dentro do universo da primeira infância carioca, uma parcela significativa continua em famílias de renda reduzida. Apesar de grande alcance do cadastro único, as faixas de renda restritas dos benefícios sociais ainda limitam o número de recebedores do Bolsa Família.
 
 
 ---
@@ -61,19 +61,21 @@ Indicadores do eixo:
 
 ### Principais achados
 
-<!-- texto: achados_inclusao -->
+- Há aproximadamente 8 mil famílias com crianças com algum tipo de deficiência
+- Dessas, cecar de 7 mil apresentam algum tipo de transtorno mental ou deficiência mental / intelectual
+- O BPC chega a cerca de 25% das famílias com crianças com algum tipo de deficiência
 
 
 
 ### Introdução do eixo
 
-<!-- texto: introducao_inclusao -->
+Os dados de crianças com deficiência são oriundos exclusivamente do cadastro único. Dessa forma, não necessariamente refletem toda a primeira infância carioca, mas são relevantes para a parcela mais socialmente vulnerável. A predominância é de transtornos mentais e deficiência mental ou intelectual. Um percentual baixo (menos de 25%) das famílias recebe Benefício de Prestação Continuada em função da deficiência. Como uma criança pode ter mais de um tipo de deficiência a soma do número de casos por tipo de deficiência ultrapassa o total de crianças.
 
 
 
 ### Síntese do eixo
 
-<!-- texto: sintese_inclusao -->
+A amostra aponta que, mesmo num universo de vulnerabilidade social, há pouco alcance de benefícios sociais específicos. A co-ocorrência de diversas deficiências é também um desafio. Deficiências ligadas a surdez e baixa visão são menos frequentes, quando comparado a deficiências e transtornos mentais/intelectuais, indicando um ponto de atenção na disponibilização de serviços públicos.
 
 
 ---
@@ -92,19 +94,21 @@ Indicadores do eixo:
 
 ### Principais achados
 
-<!-- texto: achados_familia_e_cuidados -->
+- Há tendência de redução no número de matrículas escolares
+- Mesmo assim, o alcance da pré-escola (3 e 4 anos) continua baixo
+- Predominam arranjos familiares com uma única mulher adulta (dado que precisa ser tomado com cautela frente a natureza administrativa dos dados)
 
 
 
 ### Introdução do eixo
 
-<!-- texto: introducao_familia_e_cuidados -->
+A natureza dos dados administrativos, especialmente os advindos do Cadastro Único, exige cautela na análise. Dito isso, predominância de arranjos familiares com apenas uma mulher adulta exige atenção. Já os dados educacionais apontam taxas de matrícula abaixo dos objetivos firmados, com maior gravidade no caso das matrículas de pré-escola. A oferta de matrículas da rede pública precisará também se atentar a mudança na demanda geográfica.
 
 
 
 ### Síntese do eixo
 
-<!-- texto: sintese_familia_e_cuidados -->
+Acreditamos que a demanda de pré-escola e escola será crescentemente concentrada na Zona Oeste da cidade. As taxas de matrícula abaixo dos objetivos apontam, entretanto, que o desafio não se resume a oferta, mas a capacidade de garantir a efetivação da matrícula por parte das famílias. Os arranjos familiares podem ser decorrentes de erros ou falsas declarações durante o cadastramento, mas exigem atenção quanto a possível demanda por ampliação das políticas de apoio a mães solteiras, entre as quais a oferta de creche e pré-escola em tempo integral.
 
 
 ---
