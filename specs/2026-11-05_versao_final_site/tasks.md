@@ -30,9 +30,9 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - [x] T3.4 Links do banner e do rodapé conferidos (HTTP 200); Transparência Rio trocado para transparencia.prefeitura.rio (o antigo estava quebrado); Unsplash responde 401 só a scripts
 
 ## Bloco 4 — Mapa de referência
-- [ ] T4.1 `mapa_referencia_svg()` com camadas bairro/RA/AP e botões de nomes
-- [ ] T4.2 Tabela bairro → RA → AP para baixar
-- [ ] T4.3 Figura A4 no PDF (helper em `primeira_infancia/mapas.py`, chamada no `analise.py`)
+- [x] T4.1 Mapa de referência na Visão geral (`mapa_referencia_html()` em `build_site.py`): bairros, RA e AP como contornos da geometria compartilhada, botões de nomes por camada (`initMapaReferencia` em `js/charts.js`), tooltip do bairro com RA e AP; nomes das RA com acento em todos os mapas de RA (`_NOME_RA`)
+- [x] T4.2 CSV bairro → RA → AP no botão do cartão
+- [x] T4.3 Figura A4 `mapas/a4/mapa_referencia_bairros_ra_ap.pdf` (`mapa_referencia_a4` em `primeira_infancia/impressao.py`, chamada na seção Censo do `analise.py`); entra no capítulo de Introdução no Bloco 5
 
 ## Bloco 5 — PDF em `.tex` por capítulo, capa e folha de rosto
 - [ ] T5.1 PDF de referência (PNG das páginas)

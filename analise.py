@@ -320,6 +320,15 @@ for nivel, info in niveis_planejamento.items():
     ) """
 
 # %% [markdown]
+# #### Mapa de referência da cidade
+#
+# Só contornos, sem dado: bairros, Regiões Administrativas e Áreas de Planejamento, para o capítulo de Introdução do
+# PDF (o site tem a versão interativa na Visão geral). `specs/2026-11-05_versao_final_site` R2.
+
+# %%
+mapa_referencia_a4()
+
+# %% [markdown]
 # #### Serie temporal censo
 
 # %% [markdown]

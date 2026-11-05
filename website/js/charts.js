@@ -566,6 +566,21 @@
     svg.appendChild(frag);
     svg.insertAdjacentHTML('beforeend', (window.MAPAS_OVERLAYS || [])[m.o] || '');   // rosa dos ventos + escala
   }
+  // mapa de referência da Visão geral (specs/2026-11-05_versao_final_site R2): cada botão mostra/esconde os nomes de uma
+  // camada (bairro, RA, AP) -- a classe mostra-<camada> no <svg> liga o grupo de rótulos correspondente (css/components.css)
+  function initMapaReferencia(){
+    document.querySelectorAll('.ref-map-card').forEach(card=>{
+      const svg = card.querySelector('.ref-map');
+      card.querySelectorAll('.ref-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const liga = btn.getAttribute('aria-pressed') !== 'true';
+          btn.setAttribute('aria-pressed', String(liga));
+          if (liga) btn.setAttribute('data-active', 'true'); else btn.removeAttribute('data-active');
+          svg.classList.toggle('mostra-' + btn.dataset.camada, liga);
+        });
+      });
+    });
+  }
   function montaRegioes(p){ p.querySelectorAll('.map-svg').forEach(montaRegioesDe); }
 
   // tooltip dos mapas por delegação: 3 listeners por <svg> em vez de 3 por região (eram ~16 mil). Regiões são
@@ -725,7 +740,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    montaMapas(); initPills(); initAlternancia(); initOutliers(); initDownloads(); initMapTooltips(); initEscalaMapas(); initToqueFora();
+    montaMapas(); initPills(); initAlternancia(); initOutliers(); initDownloads(); initMapTooltips(); initMapaReferencia(); initEscalaMapas(); initToqueFora();
   });
 
   window.byId = byId; window.lineChart = lineChart; window.barChart = barChart; window.groupedBarChart = groupedBarChart;

@@ -842,6 +842,13 @@ def _bounds_project(gdf, width, height, pad_frac=0.03):
 _NIVEL_COL = {"ap": "area_plane", "rp": "cod_rp", "ra": "codra"}
 _NIVEL_LABEL = {"ap": "AP", "rp": "RP", "cap": "CAP", "ra": "RA"}
 
+_NOME_RA = {1: "Portuária", 2: "Centro", 3: "Rio Comprido", 4: "Botafogo", 5: "Copacabana", 6: "Lagoa",
+            7: "São Cristóvão", 8: "Tijuca", 9: "Vila Isabel", 10: "Ramos", 11: "Penha", 12: "Inhaúma", 13: "Méier",
+            14: "Irajá", 15: "Madureira", 16: "Jacarepaguá", 17: "Bangu", 18: "Campo Grande", 19: "Santa Cruz",
+            20: "Ilha do Governador", 21: "Paquetá", 22: "Anchieta", 23: "Santa Teresa", 24: "Barra da Tijuca",
+            25: "Pavuna", 26: "Guaratiba", 27: "Rocinha", 28: "Jacarezinho", 29: "Complexo do Alemão",
+            30: "Complexo da Maré", 31: "Vigário Geral", 33: "Realengo", 34: "Cidade de Deus"}
+
 def _geo_base_bairros():
     if "_base_bairro" not in _GEO_CACHE:
         import geopandas as gpd
@@ -871,7 +878,8 @@ def _geo_nivel(nivel):
         base = _geo_base_bairros()
         g = base.dissolve(by="codra", as_index=False)
         g["_chave"] = g["codra"].astype(int)
-        nomes = {int(c): str(n).strip().title() for c, n in base.drop_duplicates("codra")[["codra", "regiao_adm"]].values}
+        # nome com acento e preposição minúscula (o geojson traz MAIÚSCULAS sem acento; specs/2026-11-05_versao_final_site R2)
+        nomes = {int(c): _NOME_RA.get(int(c), str(n).strip().title()) for c, n in base.drop_duplicates("codra")[["codra", "regiao_adm"]].values}
     elif nivel in ("ap", "rp"):
         base = _geo_base_bairros()
         col = _NIVEL_COL[nivel]
@@ -1281,6 +1289,71 @@ NOTAS_HTML = ('<div class="overview-intro overview-notas" id="notas-projeto-meto
 # specs/2026-09-28_nova_estrutura: panorama da primeira infância carioca (população e nascimentos). Não é eixo:
 # h2(..., panorama=True) não vira aba -- o corpo vai para o painel Visão geral no ASSEMBLE.
 h2('🧭 Panorama da primeira infância carioca', panorama=True)
+
+# ---- mapa de referência da cidade (specs/2026-11-05_versao_final_site R2) ---------------------------------------
+# Só contornos, sem dado: bairros (linha fina), Regiões Administrativas (média) e Áreas de Planejamento (grossa),
+# reaproveitando a geometria compartilhada de data/geo.js (<use href="#gb.."> etc.). Passar o mouse num bairro mostra
+# a RA e a AP (mesmo tooltip dos outros mapas); botões mostram os nomes de cada camada (js/charts.js, initMapaReferencia).
+FONTE_LIMITES = "Limites de bairros, Regiões Administrativas e Áreas de Planejamento (IPP/Data.Rio)"
+
+def mapa_referencia_html():
+    _registra_fonte(FONTE_LIMITES)
+    base = _geo_base_bairros()
+    g_b, project, nomes_b = _geo_nivel("bairro")
+    defs_b, defs_ra, defs_ap = _geo_defs("bairro"), _geo_defs("ra"), _geo_defs("ap")
+    g_ra, _, nomes_ra = _geo_nivel("ra")
+    g_ap, _, _ = _geo_nivel("ap")
+    ra_de = dict(zip(base["codbairro"], base["codra"].astype(int)))
+    ap_de = dict(zip(base["codbairro"], base["area_plane"].astype(int)))
+
+    def ponto(geom):
+        p = geom.representative_point()
+        return project(p.x, p.y)
+
+    usos, rotulos = [], {"bairro": [], "ra": [], "ap": []}
+    linhas_csv = ["Bairro;Região Administrativa;Área de Planejamento"]
+    for _, r in g_b.iterrows():
+        c = r["_chave"]
+        ra, ap = ra_de[c], ap_de[c]
+        usos.append(f'<use href="#{defs_b[c][0]}" class="ref-bairro" data-v="RA {_esc(nomes_ra.get(ra, ra))} · AP {ap}"></use>')
+        x, y = ponto(r.geometry)
+        rotulos["bairro"].append(f'<text x="{x:.1f}" y="{y:.1f}">{_esc(r["nome"])}</text>')
+        linhas_csv.append(f'{r["nome"]};{nomes_ra.get(ra, ra)};AP {ap}')
+    for _, r in g_ra.iterrows():
+        usos.append(f'<use href="#{defs_ra[r["_chave"]][0]}" class="ref-ra"></use>')
+        x, y = ponto(r.geometry)
+        rotulos["ra"].append(f'<text x="{x:.1f}" y="{y:.1f}">{_esc(nomes_ra.get(r["_chave"], r["_chave"]))}</text>')
+    for _, r in g_ap.iterrows():
+        usos.append(f'<use href="#{defs_ap[r["_chave"]][0]}" class="ref-ap"></use>')
+        x, y = ponto(r.geometry)
+        rotulos["ap"].append(f'<text x="{x:.1f}" y="{y:.1f}">AP {r["_chave"]}</text>')
+    grupos = "".join(f'<g class="ref-rot ref-rot-{n}">{"".join(t)}</g>' for n, t in rotulos.items())
+    bg = _basemap_css_class(project)
+    overlay = _svg_rosa_dos_ventos() + _svg_barra_escala(project)
+    botoes = "".join(f'<button type="button" class="pill ref-btn" data-camada="{n}" aria-pressed="{"true" if n == "ap" else "false"}"{' data-active="true"' if n == "ap" else ""}>{lbl}</button>'
+                     for n, lbl in (("bairro", "Bairros"), ("ra", "Regiões Administrativas"), ("ap", "Áreas de Planejamento")))
+    legenda = ('<div class="map-legend-row"><span class="ref-sw ref-sw-ap"></span>Área de Planejamento (5)</div>'
+               '<div class="map-legend-row"><span class="ref-sw ref-sw-ra"></span>Região Administrativa (33)</div>'
+               f'<div class="map-legend-row"><span class="ref-sw ref-sw-bairro"></span>Bairro ({len(g_b)})</div>')
+    csv = _esc("\n".join(linhas_csv))
+    return (
+        f'<div class="out map-svg-card ref-map-card" id="mapa-referencia" data-filename="Bairros, RAs e APs do Rio.csv" data-csv="{csv}">'
+        '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>'
+        '<div class="map-title">A cidade do Rio de Janeiro: bairros, Regiões Administrativas e Áreas de Planejamento</div>'
+        f'<div class="ref-btns" role="group" aria-label="Mostrar nomes"><span class="eyebrow">Mostrar nomes</span>{botoes}</div>'
+        '<div class="map-svg-frame">'
+        f'<svg viewBox="0 0 {_MAP_W} {_MAP_H}" class="map-svg ref-map mostra-ap {bg}" role="img" '
+        'aria-label="Mapa de referência do Rio de Janeiro com os limites de bairros, Regiões Administrativas e Áreas de Planejamento">'
+        f'{"".join(usos)}{grupos}{overlay}</svg>'
+        f'<div class="map-legend-overlay"><div class="eyebrow map-legend-title">Limites</div>{legenda}</div>'
+        '</div>'
+        '<div class="map-ref">Passe o mouse (ou toque) num bairro para ver a RA e a AP. Sistema de referência: SIRGAS 2000, '
+        f'UTM - Fuso 23S<br>Fonte: {_esc(FONTE_LIMITES)}</div>'
+        '</div>'
+    )
+
+MAPA_REFERENCIA_HTML = ('<div class="overview-referencia" id="mapa-da-cidade"><div class="eyebrow panel-eyebrow">Referência</div>'
+                        '<h2>O Rio de Janeiro em bairros, RAs e APs</h2>' + mapa_referencia_html() + '</div>')
 
 h3('Bairros com mais crianças de 0 a 4 anos (Censo 2022)', antigo='por-bairro')
 df_censo_bairro = read("censo_por_bairro.csv")
@@ -2423,13 +2496,14 @@ paineis.insert(0,
     '<section class="tab-panel" id="visao-geral" role="tabpanel" aria-labelledby="tab-visao-geral" hidden>'
     f'<div class="overview-intro" id="introducao"><div class="eyebrow panel-eyebrow">Apresentação</div><h2>Introdução</h2>'
     f'<p class="lede">{INTRO_HTML}</p></div>'
-    + _PANORAMA_HTML +
+    + MAPA_REFERENCIA_HTML + _PANORAMA_HTML +
     '<div class="eyebrow eixo-grid-label" id="eixos">Eixos da política municipal de primeira infância</div>'
     f'<div class="eixo-grid">{"".join(_cartoes)}</div>'
     + NOTAS_HTML + _FONTES_PANORAMA + '</section>'
 )
 navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-label="Visão geral" hidden>'
                     '<a href="#visao-geral/introducao" data-alvo="introducao">Introdução</a>'
+                    + '<a href="#visao-geral/mapa-da-cidade" data-alvo="mapa-da-cidade">O Rio em bairros, RAs e APs</a>'
                     + "".join(f'<a href="#visao-geral/{h3id}" data-alvo="{h3id}">{_esc(h3t)}</a>'
                               for h3t, h3id in _h3_por_secao.get(_PANORAMA_SID, []))
                     + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in _SECOES_EIXO)

@@ -69,6 +69,7 @@ __all__ = [
     '_a4_ranking',
     '_TETO_PERCENTIL_A4',
     '_a4_mapa',
+    'mapa_referencia_a4',
 ]
 
 
@@ -591,3 +592,76 @@ def _a4_mapa(gdf, coluna_valor, titulo, nome_arquivo, nivel, bins, cmap, legenda
     if nota_teto:
         fonte = f'{fonte}. Nota: {nota_teto}; o valor real está na tabela do apêndice'.lstrip('. ')
     _salva_a4(fig, nome_arquivo, 'mapa', titulo, fonte, rotulo_leg.replace('\n', ' '))
+
+
+@_a4_seguro
+def mapa_referencia_a4(nome_arquivo='mapa_referencia_bairros_ra_ap',
+                       titulo='O Rio de Janeiro em bairros, Regiões Administrativas e Áreas de Planejamento',
+                       fonte_dados='Limites de bairros, Regiões Administrativas e Áreas de Planejamento (IPP/Data.Rio)',
+                       caminho_geojson='dados_locais/geo/limite_bairros_rio.geojson',
+                       caminho_uf='dados_locais/geo/limite_uf_brasil.geojson',
+                       caminho_municipios='dados_locais/geo/limite_municipios_rj.geojson'):
+    """Mapa de referência para o PDF (specs/2026-11-05_versao_final_site R2): só contornos, sem dado -- bairros em linha
+    fina, Regiões Administrativas (dissolve de `codra`) em linha média e Áreas de Planejamento (`area_plane`) em linha
+    grossa, com o nome das AP e das RA. Mesmo fundo, rosa dos ventos, escala e vizinhos de `_a4_mapa`; o mapa
+    interativo equivalente está na Visão geral do site."""
+    bairros = gpd.read_file(caminho_geojson).to_crs(epsg=3857)
+    ra = bairros.dissolve(by='codra', as_index=False)
+    ap = bairros.dissolve(by='area_plane', as_index=False)
+    # o geojson de bairros não fecha perfeitamente: as frestas entre bairros viram furinhos no dissolve e aparecem como
+    # rabiscos grossos dentro da AP/RA -- abrir e fechar 25 m (EPSG:3857) some com eles sem mexer no contorno
+    for g in (ra, ap):
+        g['geometry'] = g.geometry.buffer(25).buffer(-25)
+    minx, miny, maxx, maxy = bairros.total_bounds
+    padx, pady = (maxx - minx) * 0.02, (maxy - miny) * 0.06
+    aspecto = (maxx - minx + 2 * padx) / (maxy - miny + 2 * pady)
+    fig, ax = plt.subplots(figsize=(_LARGURA_A4, _LARGURA_A4 / aspecto))
+    fig.subplots_adjust(0, 0, 1, 1)
+    ax.set_xlim(minx - padx, maxx + padx); ax.set_ylim(miny - pady, maxy + pady)
+    bairros.plot(ax=ax, color='white', alpha=0.55, edgecolor='#8a96a2', linewidth=0.25, zorder=2)
+    ra.boundary.plot(ax=ax, color='#3d4a57', linewidth=0.6, zorder=3)
+    ap.boundary.plot(ax=ax, color='#0B3C6B', linewidth=1.4, zorder=4)
+    halo = [pe.withStroke(linewidth=2.2, foreground='white')]
+    for _, r in ra.iterrows():
+        p = r.geometry.representative_point()
+        ax.text(p.x, p.y, _NOME_RA_A4.get(int(r['codra']), str(r['regiao_adm']).strip().title()), fontsize=4.6,
+                ha='center', va='center', color=_TINTA2, zorder=5, path_effects=halo)
+    for _, r in ap.iterrows():
+        p = r.geometry.representative_point()
+        ax.text(p.x, p.y + (maxy - miny) * 0.035, f'AP {int(r["area_plane"])}', fontsize=9, fontweight='semibold',
+                ha='center', va='center', color='#0B3C6B', zorder=6, path_effects=[pe.withStroke(linewidth=2.8, foreground='white')])
+    leg = ax.legend([plt.Line2D([], [], color='#0B3C6B', lw=1.4), plt.Line2D([], [], color='#3d4a57', lw=0.6),
+                     plt.Line2D([], [], color='#8a96a2', lw=0.4)],
+                    ['Área de Planejamento (5)', f'Região Administrativa ({len(ra)})', f'Bairro ({len(bairros)})'],
+                    title='Limites', loc='upper left', bbox_to_anchor=(0.012, 0.985), fontsize=7, title_fontsize=7.5,
+                    frameon=True, framealpha=0.94, edgecolor='none', handlelength=1.8, borderpad=0.6, labelspacing=0.35,
+                    alignment='left')
+    leg.get_title().set_fontweight('semibold')
+    x0, x1 = ax.get_xlim(); y0, y1 = ax.get_ylim()
+    gpd.read_file(caminho_uf).to_crs(epsg=3857).clip(box(x0, y0, x1, y1)).boundary.plot(
+        ax=ax, color='#d4b106', linewidth=0.7, linestyle=(0, (3, 2)), zorder=1)
+    img, ext = ctx.bounds2img(x0, y0, x1, y1, source=_PROVEDORES_FUNDO['mapa_oceano_base'])
+    img = (img[..., :3].astype(float) * 0.62 + 255 * 0.38).astype('uint8')
+    ax.imshow(img, extent=ext, zorder=0, interpolation='none')
+    ax.set_xlim(x0, x1); ax.set_ylim(y0, y1)
+    ax.annotate('N', xy=(0.965, 0.93), xytext=(0.965, 0.86), xycoords=ax.transAxes, textcoords=ax.transAxes,
+                ha='center', va='center', fontsize=8, fontweight='semibold', color=_TINTA,
+                arrowprops=dict(arrowstyle='-|>', color=_TINTA, lw=1.0, mutation_scale=10), zorder=7)
+    ax.add_artist(ScaleBar(math.cos(math.radians(-22.9)), units='m', location='lower right', box_alpha=0,
+                           color=_TINTA, scale_loc='top', border_pad=0.5, width_fraction=0.006, length_fraction=0.16,
+                           font_properties={'size': 6.5}))
+    _adiciona_rotulos_municipios_vizinhos(ax, ax.get_xlim(), ax.get_ylim(), cor='#5a6570', tamanho=6.5,
+                                          caminho_municipios=caminho_municipios)
+    ax.annotate('Fundo: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ', xy=(0.006, 0.006),
+                xycoords='axes fraction', fontsize=4.8, color=_TINTA3, va='bottom')
+    ax.axis('off')
+    _salva_a4(fig, nome_arquivo, 'mapa', titulo, fonte_dados, 'Limites')
+
+
+# nome das RA com acento (o geojson traz MAIÚSCULAS sem acento) -- mesma tabela de _NOME_RA em website/build/build_site.py
+_NOME_RA_A4 = {1: 'Portuária', 2: 'Centro', 3: 'Rio Comprido', 4: 'Botafogo', 5: 'Copacabana', 6: 'Lagoa',
+               7: 'São Cristóvão', 8: 'Tijuca', 9: 'Vila Isabel', 10: 'Ramos', 11: 'Penha', 12: 'Inhaúma', 13: 'Méier',
+               14: 'Irajá', 15: 'Madureira', 16: 'Jacarepaguá', 17: 'Bangu', 18: 'Campo Grande', 19: 'Santa Cruz',
+               20: 'Ilha do Governador', 21: 'Paquetá', 22: 'Anchieta', 23: 'Santa Teresa', 24: 'Barra da Tijuca',
+               25: 'Pavuna', 26: 'Guaratiba', 27: 'Rocinha', 28: 'Jacarezinho', 29: 'Complexo do Alemão',
+               30: 'Complexo da Maré', 31: 'Vigário Geral', 33: 'Realengo', 34: 'Cidade de Deus'}
