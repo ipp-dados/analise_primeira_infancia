@@ -103,7 +103,21 @@ Não dependem de código; entram no projeto quando chegarem.
 
 ## 3. Próximas features
 
-1. **Fontes como referências citáveis e tabelas próprias como fonte de verdade** (pedido do usuário, 2026-11-05;
+1. **Próxima rodada (spec própria, logo depois da versão final): itens 1 e 3 de `docs/dados_faltantes.csv`**
+   (prioridade definida pelo usuário em 2026-11-05):
+   - **Item 1 — população de crianças por bairro.** **Estimativa de crianças pequenas por bairro com a Ripsa** (pedido do usuário, 2026-09-24; continuação da
+     decisão B1 de `specs/2026-09-24_populacao-referencia`). O Censo 2022 fixo subconta crianças pequenas (0-4:
+     310.648 no Censo contra 361.163 na Ripsa em 2022, +16%) e não varia por ano. Estimativa derivada, rotulada
+     como tal:
+     - **(b)** participação de cada bairro no Censo 2022 × total municipal Ripsa de cada ano, com 0-4 estendido
+       para 0-5 pela razão municipal Ripsa; os bairros somam o total Ripsa;
+     - **(c)** como (b), com a participação variando no tempo entre os Censos 2010 e 2022 (exige a
+       correspondência 160 → 166 bairros).
+     Depois recalcular as taxas sub-municipais (violência por bairro/RA/CAP e o % CadÚnico, que depende também do
+     item CadÚnico 1) e documentar a mudança de denominador.
+   - **Item 3 — cadastros considerados no CadÚnico** (F3, Backlog > CadÚnico item 3): confirmar com o CTPE se a
+     silver já exclui cadastros inativos ou desatualizados e, se não, aplicar o filtro e refazer as saídas.
+2. **Fontes como referências citáveis e tabelas próprias como fonte de verdade** (pedido do usuário, 2026-11-05;
    antes da fase 1c):
    - Toda tabela e fonte de dados usada (Censo, CadÚnico/CTPE, Tabnet, SISVAN, SIDRA, INEP, Ripsa, Sinan, ISP/Data.Rio,
      cobertura vacinal…) vira uma **referência bibliográfica** citável ao fim do projeto: entrada única (autor/órgão,
@@ -114,7 +128,7 @@ Não dependem de código; entram no projeto quando chegarem.
      tabela/célula de origem e é checado por script (estende `website/build/confere_textos.py`).
    - Achado (2026-11-05): `relatorio/latex/build/inventario_fontes.py` atribui fonte por "vizinhança" no `analise.py` e
      dá ISP a 3 tabelas de violência familiar (Sinan) fora do relatório (`tabela_mapa_violencia_familiar_taxa_*`).
-2. **Organização do projeto, fase 1c** (continuação de `specs/2026-09-28_organizacao`; regra: mesmas saídas antes e
+3. **Organização do projeto, fase 1c** (continuação de `specs/2026-09-28_organizacao`; regra: mesmas saídas antes e
    depois):
    - **Pastas de dados e saídas**: reorganizar `dados_locais/`, `tabelas_finais/`, `visualizacoes/` e `mapas/`
      (estrutura por fonte/eixo, nomes, as variantes `a4/`; o legado `mapas/tabelas_bairros/` já foi para
@@ -124,17 +138,7 @@ Não dependem de código; entram no projeto quando chegarem.
    - Revisitar a decisão de `specs/2026-09-22_ajuste_eixos` §9.1 (não reordenar fisicamente as seções) agora que as
      funções saíram do arquivo — a ordem continua sendo de dependência de dados.
    - Pré-requisito do item 4.
-3. **Estimativa de crianças pequenas por bairro com a Ripsa** (pedido do usuário, 2026-09-24; continuação da
-   decisão B1 de `specs/2026-09-24_populacao-referencia`). O Censo 2022 fixo subconta crianças pequenas (0-4:
-   310.648 no Censo contra 361.163 na Ripsa em 2022, +16%) e não varia por ano. Estimativa derivada, rotulada
-   como tal:
-   - **(b)** participação de cada bairro no Censo 2022 × total municipal Ripsa de cada ano, com 0-4 estendido
-     para 0-5 pela razão municipal Ripsa; os bairros somam o total Ripsa;
-   - **(c)** como (b), com a participação variando no tempo entre os Censos 2010 e 2022 (exige a
-     correspondência 160 → 166 bairros).
-   Depois recalcular as taxas sub-municipais (violência por bairro/RA/CAP e o % CadÚnico, que depende também do
-   item CadÚnico 1) e documentar a mudança de denominador.
-4. **Empacotar scripts reutilizáveis para outros projetos** (depois do item 2) — transformar em pacotes
+4. **Empacotar scripts reutilizáveis para outros projetos** (depois do item 3) — transformar em pacotes
    instaláveis o que não é específico da primeira infância: mapa coroplético por bairro/AP/RP/RA com fundo
    cartográfico e rodapé, limpeza de exportações do Tabnet, carga do SIDRA, população Ripsa, gráficos com a
    identidade visual, relatório ABNT em LaTeX a partir de um crosswalk `.md`, round-trip de curadoria em DOCX,
@@ -189,14 +193,14 @@ Não dependem de código; entram no projeto quando chegarem.
   rodada, ver seu §7. Considerar `specs/exclusoes.md` (E4, E9) antes.
 
 ### Alimentação
-Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 6 a 8 de `docs/dados_faltantes.csv`):
+Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 5 e 6 de `docs/dados_faltantes.csv`; o item 3 abaixo depende de dados extras):
 1. **Baixo peso ao nascer separado da prematuridade**: o baixo peso inclui prematuros; mostrar os dois recortes em
    separado (SINASC). Confirmar o corte: a reunião citou "menores de 36 semanas"; a definição usual é menos de 37
    semanas completas.
 2. **Sobrepeso e obesidade pelo IMC por idade e sexo** (SISVAN): a plataforma da SMS classifica pelo IMC por idade
    (idade exata, não faixa) e sexo. Ver se o datalake traz a classificação; se não, calcular a partir de peso e altura
    pelas curvas de referência.
-3. **Amamentação e aleitamento materno por Área de Planejamento** (exclusivo e continuado; pedido do usuário, 2026-11-05): hoje só há o total do município; a equipe técnica de alimentação e
+3. ⚠️ **Depende de dados extras** (fora da lista de dados faltantes) — **Amamentação e aleitamento materno por Área de Planejamento** (exclusivo e continuado; pedido do usuário, 2026-11-05): hoje só há o total do município; a equipe técnica de alimentação e
    nutrição da SMS tem os dados por AP e vai fornecê-los — falta fazer o contato.
 
 ### Educação
@@ -212,7 +216,7 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 6 a 8 de 
 - Validar 1 ou 2 anos contra a Sinopse Estatística do INEP (pendência P5 da mesma rodada).
 
 ### Outros dados
-- **Serviços públicos em camadas GIS** (pedido do usuário, 2026-11-05; item 9 de `docs/dados_faltantes.csv`): localização de
+- ⚠️ **Depende de dados extras** (fora da lista de dados faltantes) — **Serviços públicos em camadas GIS** (pedido do usuário, 2026-11-05): localização de
   creches e escolas, unidades de saúde, CRAS, praças e espaços de brincar como camadas sobre os mapas do site (e do PDF), para
   comparar a oferta de serviços com a demanda (crianças, nascimentos, CadÚnico). **Depende de acesso a dados externos**
   (secretarias responsáveis e IPP/Data.Rio); usar a camada de bairros oficial e o código do bairro como chave.

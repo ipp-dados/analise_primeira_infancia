@@ -45,3 +45,6 @@ relatorio/latex/*.fdb_latexmk
 
 # cache da foto original do banner (website/build/gera_banner.py baixa quando falta)
 website/build/_cache/
+
+# PDF exportado do documento de plano para gestores (Claude Docs); não versionar binários gerados
+docs/*.pdf
