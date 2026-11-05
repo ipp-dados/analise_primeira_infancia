@@ -196,7 +196,7 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 6 a 8 de 
 2. **Sobrepeso e obesidade pelo IMC por idade e sexo** (SISVAN): a plataforma da SMS classifica pelo IMC por idade
    (idade exata, não faixa) e sexo. Ver se o datalake traz a classificação; se não, calcular a partir de peso e altura
    pelas curvas de referência.
-3. **Aleitamento materno por Área de Planejamento**: hoje só há o total do município; a equipe técnica de alimentação e
+3. **Amamentação e aleitamento materno por Área de Planejamento** (exclusivo e continuado; pedido do usuário, 2026-11-05): hoje só há o total do município; a equipe técnica de alimentação e
    nutrição da SMS tem os dados por AP e vai fornecê-los — falta fazer o contato.
 
 ### Educação
@@ -212,6 +212,10 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 6 a 8 de 
 - Validar 1 ou 2 anos contra a Sinopse Estatística do INEP (pendência P5 da mesma rodada).
 
 ### Outros dados
+- **Serviços públicos em camadas GIS** (pedido do usuário, 2026-11-05; item 9 de `docs/dados_faltantes.csv`): localização de
+  creches e escolas, unidades de saúde, CRAS, praças e espaços de brincar como camadas sobre os mapas do site (e do PDF), para
+  comparar a oferta de serviços com a demanda (crianças, nascimentos, CadÚnico). **Depende de acesso a dados externos**
+  (secretarias responsáveis e IPP/Data.Rio); usar a camada de bairros oficial e o código do bairro como chave.
 - Levantar e importar bases pendentes (a detalhar): indicadores do catálogo ainda `pendente` em
   `specs/estrutura_eixos.md` (Moradia, deficiência, violência por tipificação, causas evitáveis por sexo).
 - Lacunas registradas pela nova estrutura (`specs/2026-09-28_nova_estrutura`): taxa de mortalidade de 1 a 4 anos,

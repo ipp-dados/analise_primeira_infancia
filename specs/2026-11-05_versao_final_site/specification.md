@@ -81,7 +81,7 @@ downloads, links, desktop 1366 px e celular 390 px).
 
 ## 4. Fora do escopo
 
-Os 8 itens de `docs/dados_faltantes.csv` (dependem de outros órgãos), a fase 1c de organização e a oferta de educação
+Os 9 itens de `docs/dados_faltantes.csv`, entre eles amamentação e aleitamento materno por AP e os serviços públicos em camadas GIS (dependem de acesso a dados externos), a fase 1c de organização e a oferta de educação
 infantil por bairro (ROADMAP).
 
 ## 5. Riscos
