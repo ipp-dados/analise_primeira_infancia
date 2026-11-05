@@ -815,8 +815,10 @@ LOGO_IMG = logo_link("rodape", "footer-logo")
 _MAP_W, _MAP_H = 640, 448
 # 'censo' era 'Blues' (igual analise.py), depois 'Greys' -- agora 'Purples':
 # azul e reservado exclusivamente pro mar/agua no fundo do mapa (nunca
-# terra/dado), e o usuario pediu uma cor propria em vez de cinza tambem
-_CMAP_TEMA = {'censo': 'Purples', 'natalidade': 'BuGn', 'mortalidade': 'RdPu', 'cadunico': 'YlOrBr', 'protecao': 'OrRd'}
+# terra/dado), e o usuario pediu uma cor propria em vez de cinza tambem;
+# 'natalidade' era 'BuGn' (ponta azulada) -> 'Greens' (specs/2026-11-05_fechamento_pendencias R6),
+# igual a _CORES_TEMA_MAPA de primeira_infancia/estilo.py
+_CMAP_TEMA = {'censo': 'Purples', 'natalidade': 'Greens', 'mortalidade': 'RdPu', 'cadunico': 'YlOrBr', 'protecao': 'OrRd'}
 _GEO_CACHE = {}
 
 def _bounds_project(gdf, width, height, pad_frac=0.03):
@@ -1240,7 +1242,7 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
             _MAPAS[elem_id]["x"] = celulas
         # estilo cartografico (specification.md §7): fundo real (Esri Ocean Basemap,
         # igual ao PNG) -- azul fica reservado ao mar/basemap, o choropleth dos DADOS
-        # (censo etc.) nunca usa azul (Greys/BuGn/RdPu/YlOrBr). Rosa dos ventos + barra
+        # (censo etc.) nunca usa azul (Purples/Greens/RdPu/YlOrBr/OrRd). Rosa dos ventos + barra
         # de escala, titulo serifado, legenda como overlay DENTRO do mapa + rodape com
         # sistema de referencia (convencao do PNG).
         ref_txt = "Sistema de referência: SIRGAS 2000, UTM - Fuso 23S"
@@ -1816,6 +1818,14 @@ def _mapa_cadunico_silver(df, col, titulo, legenda, teto=None, nota=""):
     return mapa_svg(df, "codbairro", col, "cadunico", titulo, legenda, FONTE_MAPA_CADUNICO_SILVER + nota, fmt="pct1",
                     col_suprimido="suprimido", col_agregado="agregado_em", teto=teto)
 
+def _mapa_cadunico_silver_n(df, col, titulo, legenda, bins, nota=""):
+    """Contagem em classes discretas (specs/2026-11-05_fechamento_pendencias R2); bairros somados na RA/AP ficam sem cor."""
+    fonte = (FONTE_CADUNICO + ". Bairro pelo CEP da família (correspondência CEP-bairro do CTPE)" + nota
+             + "; bairros com menos de 20 casos ficam sem cor: estão somados por Região Administrativa ou Área de "
+               "Planejamento na tabela (“Demais bairros da RA/AP …”; proteção de dados do Cadastro Único)")
+    return mapa_svg(df, "codbairro", col, "cadunico", titulo, legenda, fonte, bins=bins,
+                    col_suprimido="suprimido", col_agregado="agregado_em")
+
 h3("Crianças no CadÚnico com alguma deficiência")
 _cd = _def_cri.loc["Crianças com deficiência"]
 cartoes_indicador([
@@ -1967,7 +1977,7 @@ h2('🛡️ Proteção')
 
 FONTE_SINAN = "Sinan NET/Tabnet (SMS-Rio), notificações de residentes no município do Rio de Janeiro, até 72 meses"
 FONTE_SINAN_CENSO = "Sinan NET/Tabnet (SMS-Rio), até 72 meses; população 0 a 4 anos: Censo Demográfico 2022 (IBGE/Data.Rio)"
-FONTE_IPS = "Data.Rio / Índice de Progresso Social (IPS), 2024, por Região Administrativa (todas as idades)"
+FONTE_ISP = "Instituto de Segurança Pública (ISP-RJ), via Data.Rio, 2024, por Região Administrativa (todas as idades)"
 
 # ---- Violência familiar (Sinan) --------------------------------------------
 h3('Violência familiar (até 72 meses, Sinan)', antigo='violência-familiar-0-a-5-anos-sinan')
@@ -2091,12 +2101,12 @@ emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e
 
 h2('🧸 Direito ao Brincar')
 
-# ---- Violência territorial (Data.Rio/IPS) ---------------------------------
-h3('Violência territorial (Data.Rio/IPS, 2024)')
+# ---- Violência territorial (ISP-RJ via Data.Rio) --------------------------
+h3('Violência territorial (ISP-RJ via Data.Rio, 2024)', antigo='violência-territorial-datarioips-2024')
 nota_metodologica(
     "ATENÇÃO: são dados gerais da população, de todas as idades — NÃO são específicos de crianças (até 72 meses) nem de jovens; "
     "o indicador \"homicídios de jovens negros\" também se refere à população geral. Um único ano (2024), sem série. "
-    "Nível Região Administrativa; a RA XXI Paquetá não tem dado no IPS."
+    "Nível Região Administrativa; a RA XXI Paquetá não tem dado na tabela."
 )
 df_terr_mapa = read("tabela_mapa_violencia_territorial_ra_2024.csv")
 _INDICADORES_TERR = [
@@ -2107,7 +2117,7 @@ _INDICADORES_TERR = [
 
 option_card([
     (rot, lambda c=col, r=rot: mapa_svg(df_terr_mapa, "codra", c, "protecao", f"{r} por 100 mil habitantes, por Região Administrativa (2024) — população geral, todas as idades",
-                                         "Por 100 mil habitantes (todas as idades)", FONTE_IPS, fmt="dec1", nivel="ra"), seed_m)
+                                         "Por 100 mil habitantes (todas as idades)", FONTE_ISP, fmt="dec1", nivel="ra"), seed_m)
     for col, rot, _, seed_m in _INDICADORES_TERR
 ], 'mapa')
 
@@ -2190,6 +2200,10 @@ option_card([
      "cadunico_criancas_inadequacao_componentes"),
 ], 'grafico')
 option_card([
+    ("Número", lambda: _mapa_cadunico_silver_n(_inad_mapa, "Crianças em inadequação habitacional",
+        "Crianças até 72 meses no CadÚnico em domicílio com inadequação habitacional, por bairro (número)",
+        "Crianças em inadequação", [40, 75, 150, 300], nota="; inadequação: metodologia da Fundação João Pinheiro"),
+     "mapa_cadunico_inadequacao_n_bairro_2026"),
     ("% inadequação", lambda: _mapa_cadunico_silver(_inad_mapa, "% crianças em inadequação habitacional",
         "% de crianças até 72 meses no CadÚnico em domicílio com inadequação habitacional, por bairro", "% inadequação",
         teto=_TETO_INAD, nota=_NOTA_INAD),
@@ -2200,6 +2214,10 @@ h3("Crianças no CadÚnico em domicílios com adensamento habitacional excessivo
 cartoes_indicador([_cartao_moradia("Adensamento excessivo (mais de 2 pessoas por dormitório)",
                                    "crianças até 72 meses em domicílio com mais de 2 pessoas por dormitório")])
 option_card([
+    ("Número", lambda: _mapa_cadunico_silver_n(_aden_mapa, "Crianças em adensamento excessivo",
+        "Crianças até 72 meses no CadÚnico em domicílio com adensamento excessivo, por bairro (número)",
+        "Crianças em adensamento", [150, 400, 800, 1600], nota="; mais de 2 pessoas por dormitório"),
+     "mapa_cadunico_adensamento_n_bairro_2026"),
     ("% adensamento", lambda: _mapa_cadunico_silver(_aden_mapa, "% crianças em adensamento excessivo",
         "% de crianças até 72 meses no CadÚnico em domicílio com adensamento excessivo, por bairro", "% adensamento"),
      "mapa_percentual_cadunico_adensamento_bairro_2026"),

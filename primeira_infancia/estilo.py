@@ -34,11 +34,13 @@ _PALETA_CATEGORICA = ['#6a95c8', '#d28060', '#66cca7', '#deb254', '#ca688d',
 
 # matiz sequencial por tema, usado por mapa_coropletico_bairros no lugar de um cmap fixo --
 # mesma lógica "um matiz só por mapa" (magnitude), variando o matiz conforme o assunto.
+# Azul fica reservado à água (fundo do mapa): nenhum tema pinta terra de azul -- 'censo' era 'Blues' e
+# 'natalidade' era 'BuGn' até specs/2026-11-05_fechamento_pendencias (R6); o site usa os mesmos (_CMAP_TEMA).
 _CORES_TEMA_MAPA = {
-    'natalidade': 'BuGn',    # nascidos vivos, baixo peso
+    'natalidade': 'Greens',  # nascidos vivos, baixo peso
     'mortalidade': 'RdPu',   # óbitos (neonatal, gravidez, puerpério, raça, evitáveis/CAP)
     'cadunico': 'YlOrBr',    # CadÚnico
-    'censo': 'Blues',        # Censo/população
+    'censo': 'Purples',      # Censo/população
     'protecao': 'OrRd',      # violência/notificações (eixo Proteção)
 }
 

@@ -152,7 +152,7 @@ def main():
 
 
 REVISAO = SAIDA.with_name("textos_para_revisao.csv")
-_ORDEM = {"PENDENTE": 0, "ERRO": 1, "NÃO PUBLICADO": 2, "OK": 3}
+_ORDEM = {"PENDENTE": 0, "ERRO": 1, "ATENÇÃO": 2, "NÃO PUBLICADO": 3, "OK": 4}
 
 
 def exporta_revisao(saida, docx, curados):

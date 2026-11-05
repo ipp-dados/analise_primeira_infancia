@@ -2,7 +2,7 @@
 """### 🛡️ Proteção — carregadores e utilitários
 
 Funções do eixo Proteção (violência familiar/autoprovocada — Sinan/Tabnet por bairro;
-violência territorial — Data.Rio/IPS por Região Administrativa) e utilitários de taxa e de
+violência territorial — ISP-RJ via Data.Rio, por Região Administrativa) e utilitários de taxa e de
 agregação geográfica. Ver `specs/2026-09-23_inclusao_dados_protecao/`.
 
 Extraído de analise.py sem mudança de código (specs/2026-09-28_organizacao, fase 1b).
@@ -56,14 +56,14 @@ _VINCULOS_VIOLENCIA_FAMILIAR = {
 # vínculos agrupados em 'outros' (mãe e pai ficam de fora e nunca são somados entre si)
 _VINCULOS_OUTROS = ['padrasto', 'irmao', 'conjuge', 'exconjuge', 'filho']
 
-# grafia do IPS/Data.Rio que difere do geojson de bairros (regiao_adm), só para a checagem cruzada
+# grafia da planilha do Data.Rio que difere do geojson de bairros (regiao_adm), só para a checagem cruzada
 _ALIAS_RA_IPS = {'SANTA TERESA': 'SANTA TEREZA'}
 
 def _sem_acento_maiusculo(texto):
     return ''.join(c for c in unicodedata.normalize('NFKD', str(texto)) if not unicodedata.combining(c)).upper().strip()
 
 def numeral_romano_para_int(s):
-    """Converte um numeral romano (ex.: 'XXXIV') em inteiro (34) -- usado no de-para RA do IPS."""
+    """Converte um numeral romano (ex.: 'XXXIV') em inteiro (34) -- usado no de-para RA da planilha de violência territorial."""
     valores = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100}
     s = s.strip().upper()
     if not s or any(c not in valores for c in s):
@@ -122,10 +122,12 @@ def carrega_violencia_familiar(pasta, anos_validos):
     return pd.concat([longo, outros], ignore_index=True)
 
 def carrega_violencia_territorial_ra(caminho):
-    """Lê `violencia_territorial.xlsx` (Data.Rio/IPS 2024, por Região Administrativa; todas as idades).
+    """Lê `violencia_territorial.xlsx` (ISP-RJ via Data.Rio, 2024, por Região Administrativa; todas
+    as idades; a planilha do Data.Rio vem com o título dos indicadores do IPS -- a citação é o ISP,
+    specs/2026-11-05_fechamento_pendencias D5).
     Devolve `codra, regiao_adm, taxa_homicidios, homicidios_acao_policial, homicidios_jovens_negros`
     (32 RAs); a linha 'RIO DE JANEIRO' (referência municipal) vai em `df.attrs['municipio']`.
-    A chave é o numeral romano do IPS convertido em `codra`; o nome só serve de checagem cruzada."""
+    A chave é o numeral romano da planilha convertido em `codra`; o nome só serve de checagem cruzada."""
     bruto = pd.read_excel(caminho, header=None)
     linha_cab = next(i for i, v in bruto[1].items() if 'homic' in _sem_acento_maiusculo(v).lower())
     dados = bruto.iloc[linha_cab + 1:, :4].dropna(how='all').copy()
@@ -139,7 +141,7 @@ def carrega_violencia_territorial_ra(caminho):
     ras['nome_ips'] = ras['regiao'].str.split(n=1).str[1].map(_sem_acento_maiusculo)
     ref = _bairros_referencia()[['codra', 'regiao_adm']].drop_duplicates('codra')
     ras = ras.merge(ref, on='codra', how='left')
-    assert ras['regiao_adm'].notna().all(), 'RA do IPS sem correspondência no geojson'
+    assert ras['regiao_adm'].notna().all(), 'RA da planilha sem correspondência no geojson'
     esperado = ras['regiao_adm'].map(_sem_acento_maiusculo)
     assert (ras['nome_ips'].map(lambda n: _ALIAS_RA_IPS.get(n, n)) == esperado).all(), 'nome da RA diverge do geojson'
     out = ras[['codra', 'regiao_adm'] + cols_num].sort_values('codra').reset_index(drop=True)

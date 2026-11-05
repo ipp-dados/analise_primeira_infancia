@@ -65,7 +65,7 @@ DOCX, em que ordem e com que título.
 | 🤝 Inclusão | crianças e famílias com deficiência, tipo, BPC (CadÚnico) | 3 | 0 | 1 | 1 | 4 |
 | 👨‍👩‍👧 Família e Cuidados | frequência escolar (total, raça/cor, sexo, taxa total do Censo 2022), matrículas e atendimento, cobertura vacinal, CadÚnico por renda e arranjo familiar | 8 | 0 | 11 | 1 | 10 |
 | 🛡️ Proteção | violência familiar (por vínculo do autor, taxas, bairros e CAP), notificações | 7 | 2 | 6 | 7 | 13 |
-| 🧸 Direito ao Brincar | violência territorial (IPS, por RA) | 1 | 0 | 0 | 3 | 1 |
+| 🧸 Direito ao Brincar | violência territorial (ISP-RJ, por RA) | 1 | 0 | 0 | 3 | 1 |
 | 🍽️ Alimentação | baixo peso ao nascer, desnutrição e sobrepeso (SISVAN) | 6 | 0 | 4 | 2 | 6 |
 | 🏠 Moradia | inadequação e déficit habitacional (FJP), adensamento (CadÚnico) | 3 | 0 | 2 | 2 | 5 |
 | **Total** | | **50** | **3** | **67** | **33** | **94** |
@@ -105,7 +105,7 @@ site) com um padrão que liga o texto `fonte_dados` de cada figura à entrada. `
 | `mds_cadunico_adhoc` | Cadastro Único, extração pontual (ref. 08/2026) | crianças com deficiência e BPC; famílias, pessoas e crianças por banheiro, água e esgoto (município; faixas 0-3 e 4-6) — **temporário**, a substituir pela extração automatizada (4º tri de 2026) | `dados_locais/cadunico/` (planilha + manifesto `adhoc_2026_08.json`) |
 | `ibge_pnadc` | PNAD Contínua (IBGE) | **não usada desde 2026-09-29**: o arquivo "PNAD" trazia a taxa do Censo 2022 (E15) | `dados_locais/educacao/` |
 | `inep_censo_escolar` | Censo Escolar (INEP, microdados) | matrículas 0-5 anos, 2007-2025 | `dados_locais/educacao/` (extrato; ZIPs baixados só se faltarem) |
-| `ipp_ips2024` | Índice de Progresso Social 2024 (IPP) | violência territorial por RA | `dados_locais/protecao/` |
+| `isp_violencia2024` | Instituto de Segurança Pública (ISP-RJ), via Data.Rio, 2024 | violência territorial por RA | `dados_locais/protecao/` |
 | `ipp_limites_bairros` | Limites oficiais (Data.Rio/IPP, SMS, IBGE) | geometrias de bairro, CAP, UF, municípios vizinhos | `dados_locais/geo/` |
 
 Os dados brutos estão em `dados_locais/` (versionado — ver 8.4). A cópia integral da versão de trabalho fica num
@@ -167,6 +167,9 @@ Google Drive de acesso restrito do IPP.
 - **RF19** Validar que todo texto curado está publicado no site e no PDF, frase a frase.
 
 ### 4.5 Apresentação (`apresentacao/`, `specs/2026-09-28_apresentacao`)
+
+> **Congelada em 2026-11-05** (`specs/2026-11-05_fechamento_pendencias` D7): os decks não são mais mantidos nem
+> regerados; os requisitos abaixo ficam como registro.
 
 - **RF20** Gerar o deck (PPTX com notas do apresentador e PDF) a partir de um único Markdown (`apresentacao.md`), com
   números calculados de `tabelas_finais/` (nunca digitados), figuras do `analise.py` e blocos ligados/desligados pelo

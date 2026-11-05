@@ -26,7 +26,7 @@ descartadas nas `SKILL.md` e nas specs por rodada).
   acessado via **SQLAlchemy** + **psycopg** (`connect_db_ctpe` em `primeira_infancia/conexao.py`).
   Credenciais em `.env` (`python-dotenv`), nunca commitadas — ver `.env.example`.
 - Demais fontes (Tabnet/DataSUS, Censo/IBGE, SISVAN, IBGE SIDRA, planilha
-  TabWin de óbitos por causas evitáveis, SINAN, IPS) são arquivos estáticos em
+  TabWin de óbitos por causas evitáveis, SINAN, ISP) são arquivos estáticos em
   `dados_locais/`. Exceções com rede, só quando falta o extrato versionado: a população Ripsa (Tabnet,
   `carrega_populacao_ripsa`) e os microdados do Censo Escolar (ZIPs do INEP, `carrega_censo_escolar_matriculas`).
 - **pandas** para toda a manipulação tabular; **openpyxl** para ler/escrever
@@ -188,5 +188,5 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
 
 - Nível geográfico **RA** (`codra`) por `dissolve` do geojson de bairros (sem arquivo novo). Tema de cor `protecao` = `OrRd`
   (`Purples` descartado: já é `censo` no HTML).
-- Fonte Sinan NET/Tabnet (CSV latin-1 com 6 linhas de metadados, formato largo) lida por `carrega_sinan_bairro`; IPS/Data.Rio por RA (xlsx).
+- Fonte Sinan NET/Tabnet (CSV latin-1 com 6 linhas de metadados, formato largo) lida por `carrega_sinan_bairro`; ISP-RJ via Data.Rio por RA (xlsx).
 - Fundo cartográfico: `Esri.OceanBasemap` (serviço `Ocean_Basemap`) fora do ar em 2026-09; usar `World_Ocean_Base` (`fundo='mapa_oceano_base'`).

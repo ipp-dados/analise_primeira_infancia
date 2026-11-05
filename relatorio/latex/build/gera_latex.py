@@ -435,7 +435,8 @@ def main():
     (GERADO / "aviso.tex").write_text(aviso_em_desenvolvimento(), encoding="utf-8")
     print(f"Introdução + {len(eixos_politica(estrutura))} eixos; {len(FALLBACK)} figuras ainda sem variante A4 (usando a PNG de tela); "
           f"{len(EM_LOREM)} textos em lorem: {', '.join(EM_LOREM[:8])}{' …' if len(EM_LOREM) > 8 else ''}")
-    usados = {Path(n).stem for e in estrutura for s in e["subsecoes"] for f in ("visualização", "mapa")
+    # tabela_no_texto também leva o texto curado da mesma chave (não é "sem figura")
+    usados = {Path(n).stem for e in estrutura for s in e["subsecoes"] for f in ("visualização", "mapa", "tabela_no_texto")
               for n in lista(s["campos"].get(f))}
     sem_figura = sorted(k for k in TEXTOS if k not in usados and k != "introducao" and not k.startswith(("conclusao-", "resumo", "consideracoes")))
     if sem_figura:

@@ -10,6 +10,7 @@ from pathlib import Path
 
 __all__ = [
     'limpa_dados_sisvan',
+    'recalcula_percentuais_sisvan',
     'limpa_dados_datasus',
     'limpeza_tabnet_bairros',
     'carrega_raca_bairro',
@@ -55,6 +56,28 @@ def limpa_dados_sisvan(colunas, dataset):
     df_final.reset_index(inplace=True, drop=True)
 
     df_final.to_csv(f"dados_locais/tratados/{dataset}.csv")
+
+
+def recalcula_percentuais_sisvan(df, coluna_total='total', tolerancia_pp=0.1):
+    """Recalcula cada `<categoria>_percentual` do SISVAN como `<categoria>_bruto / total × 100`.
+
+    As colunas de % da exportação têm erros na origem (ex.: obesidade 2009 = "0.07" sem "%", contra 7,0% pelas
+    contagens) -- specs/2026-11-05_fechamento_pendencias R1. A coluna da origem é ignorada; quando ela difere do
+    valor recalculado em mais de `tolerancia_pp` pontos percentuais, o ano é listado (registro, não erro)."""
+    df = df.copy()
+    total = pd.to_numeric(df[coluna_total], errors='coerce')
+    for col_bruto in [c for c in df.columns if c.endswith('_bruto')]:
+        cat = col_bruto[:-len('_bruto')]
+        novo = pd.to_numeric(df[col_bruto], errors='coerce') / total * 100
+        col_pct = f'{cat}_percentual'
+        if col_pct in df.columns:
+            origem = pd.to_numeric(df[col_pct].astype(str).str.replace('%', '', regex=False).str.strip(), errors='coerce')
+            diverge = (origem - novo).abs() > tolerancia_pp
+            if diverge.any():
+                anos = df.loc[diverge, 'ano'].tolist() if 'ano' in df.columns else df.index[diverge].tolist()
+                print(f'SISVAN: % da origem difere do recalculado em "{cat}" -- anos {anos} (vale o recalculado)')
+        df[col_pct] = novo
+    return df
 
 def limpa_dados_datasus(df):
     df = df.melt(id_vars=['Bairro Residencia'])

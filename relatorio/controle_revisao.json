@@ -1027,6 +1027,106 @@
     "cadunico_2026-10-06"
    ],
    "obs": "2026-10-06: números da partição de jul/2026 do CadÚnico (specs/2026-10-06_cadunico_inclusao_moradia): 11.328 -> 15.415 crianças de 0 anos, 43.187 -> 43.242 de 5 anos; mesma redação; revisar"
+  },
+  "sisvan_obesidade_percentual_por_ano": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "curadoria_textos_update_2",
+    "curadoria_textos_update_3",
+    "curadoria_textos_update_4",
+    "curadoria_textos_update_5",
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: % do SISVAN recalculado das contagens (specs/2026-11-05_fechamento_pendencias R1); obesidade 2009 = 7,00% (a origem trazia 0,07%); frase sobre 2009 retirada; resto da redação igual; revisar"
+  },
+  "cadunico_deficiencia_criancas_0_a_5_2026": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
+  },
+  "mapa_percentual_cadunico_criancas_deficiencia_bairro_2026": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
+  },
+  "cadunico_deficiencia_familias_0_a_5_2026": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
+  },
+  "cadunico_criancas_por_tipo_deficiencia": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
+  },
+  "cadunico_criancas_inadequacao_componentes": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
+  },
+  "mapa_cadunico_inadequacao_n_bairro_2026": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
+  },
+  "mapa_percentual_cadunico_inadequacao_bairro_2026": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
+  },
+  "mapa_cadunico_adensamento_n_bairro_2026": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
+  },
+  "mapa_percentual_cadunico_adensamento_bairro_2026": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
+  },
+  "cadunico_criancas_deficit_componentes": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
+  },
+  "cadunico_moradia_resumo_0_a_5_2026": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "fechamento_pendencias_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo (specs/2026-11-05_fechamento_pendencias R8), números conferidos nas tabelas de tabelas_finais/ (silver do CadÚnico, jul/2026); aprovado pelo usuário; revisar com a equipe"
   }
  }
 }
