@@ -2406,13 +2406,15 @@ for i, (start, titulo, sid) in enumerate(_SECOES_EIXO):
                     f'<span class="eyebrow eixo-card-num">Eixo {i + 1}</span><span class="eixo-card-title">{titulo}</span>'
                     f'<span class="eixo-card-meta">{meta}</span></a>')
 # panorama: corpo da seção h2(..., panorama=True), com a sua caixa de fontes; o <h2> original sai (título abaixo)
-_PANORAMA_HTML = ""
+# A caixa "Fontes desta seção" fecha a aba, depois das "Notas sobre o projeto e metodologia" (pedido do usuário,
+# 2026-11-05, specs/2026-11-05_versao_final_site T1.4)
+_PANORAMA_HTML, _FONTES_PANORAMA = "", ""
 if _PANORAMA_SID:
     _ini = next(st for st, _, sd in section_starts if sd == _PANORAMA_SID)
     _tit_pan = next(t for _, t, sd in section_starts if sd == _PANORAMA_SID)
     _PANORAMA_HTML = (f'<div class="overview-panorama" id="{_PANORAMA_SID}"><div class="eyebrow panel-eyebrow">Introdução</div>'
-                      f'<h2>{_tit_pan}</h2>' + "".join(parts[_ini + 1:_FIM_SECAO[_PANORAMA_SID]])
-                      + _caixa_fontes(_PANORAMA_SID) + '</div>')
+                      f'<h2>{_tit_pan}</h2>' + "".join(parts[_ini + 1:_FIM_SECAO[_PANORAMA_SID]]) + '</div>')
+    _FONTES_PANORAMA = f'<div class="overview-fontes">{_caixa_fontes(_PANORAMA_SID)}</div>'
 paineis.insert(0,
     '<section class="tab-panel" id="visao-geral" role="tabpanel" aria-labelledby="tab-visao-geral" hidden>'
     f'<div class="overview-intro" id="introducao"><div class="eyebrow panel-eyebrow">Apresentação</div><h2>Introdução</h2>'
@@ -2420,7 +2422,7 @@ paineis.insert(0,
     + _PANORAMA_HTML +
     '<div class="eyebrow eixo-grid-label" id="eixos">Eixos da política municipal de primeira infância</div>'
     f'<div class="eixo-grid">{"".join(_cartoes)}</div>'
-    + NOTAS_HTML + '</section>'
+    + NOTAS_HTML + _FONTES_PANORAMA + '</section>'
 )
 navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-label="Visão geral" hidden>'
                     '<a href="#visao-geral/introducao" data-alvo="introducao">Introdução</a>'
