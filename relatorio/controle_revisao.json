@@ -1415,6 +1415,142 @@
     "curadoria_textos_05_11_26"
    ],
    "obs": "2026-11-05: texto da equipe (DOCX de 05/11) com números conferidos em tabelas_finais/; CadÚnico atualizado para jul/2026 e correções aprovadas pelo usuário (specs/2026-11-05_versao_final_site/textos_docx_05_11_revisao.md)"
+  },
+  "censo_top10_bairros_0_4": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "mapa_censo_0_4_absoluto_ap": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "mapa_censo_0_4_absoluto_rp": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "mapa_censo_0_4_percentual_ap": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "mapa_censo_0_4_percentual_rp": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_menores_1_gestacao": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_menores_1_parto": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_menores_1_recem_nascido": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_menores_1_diagnostico": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_menores_1_promocao": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_1_a_4_diagnostico": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_1_a_4_promocao": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_menores_5_gestacao": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_menores_5_parto": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_menores_5_recem_nascido": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_menores_5_diagnostico": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "evitaveis_cap_menores_5_promocao": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
   }
  }
 }

@@ -1,4 +1,4 @@
-# Textos propostos — abas sem arquivo próprio (Visão geral e Prioridade)
+ # Textos propostos — abas sem arquivo próprio (Visão geral e Prioridade)
 
 As 19 abas abaixo não têm arquivo de figura, então o DOCX de curadoria nunca abriu espaço para elas (lacuna conhecida,
 `relatorio/specs.md` v7) e o site usava o rótulo da aba como chave do texto. Proposta: **chave própria** para cada uma

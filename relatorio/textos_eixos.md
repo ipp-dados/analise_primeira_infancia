@@ -31,13 +31,17 @@ Indicadores do eixo:
 
 ### Principais achados
 
-<!-- texto: achados_prioridade -->
+- Número de nascimentos e mortalidade infantil em queda
+- Redução da participação da primeira infância na população
+- Mudança no perfil demográfico varia nas regiões da cidade
+- Zona Oeste concentra nascimentos e deve ser a origem da maior demanda nos próximos anos
+- Zona Norte apresenta envelhecimento similar à Zona Sul, mas indicadores mais precários, indicando prevalência de problemas estruturais não solucionados
 
 
 
 ### Introdução do eixo
 
-<!-- texto: introducao_prioridade -->
+A principal linha guia para ler este diagnóstico é a mudança no padrão demográfico da população carioca. O Rio de Janeiro está envelhecendo e com isso a primeira infância reflete uma parcela cada vez menor da população total. A principal causa do fenômeno reside na redução de nascimentos, mesmo em face de redução da mortalidade infantil. Esse processo tende a produzir uma menor demanda quantitativa por serviços orientados a primeira infância, mas é esperado também um aumento da demanda qualitativa, condizente com a mudança de padrão de cuidados a crianças em famílias menos numerosas. Como consequência as expectativa dos cidadãos frente aos serviços públicos dessa faixa etária devem aumentar, especialmente no que concerne saúde, educação, moradia adequada e oferta de espaços para socialização.
 
 
 
