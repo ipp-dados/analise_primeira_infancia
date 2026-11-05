@@ -35,11 +35,11 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - [x] T4.3 Figura A4 `mapas/a4/mapa_referencia_bairros_ra_ap.pdf` (`mapa_referencia_a4` em `primeira_infancia/impressao.py`, chamada na seção Censo do `analise.py`); entra no capítulo de Introdução no Bloco 5
 
 ## Bloco 5 — PDF em `.tex` por capítulo, capa e folha de rosto
-- [ ] T5.1 PDF de referência (PNG das páginas)
+- [x] T5.1 PDF de referência guardado antes da exportação (174 páginas)
 - [ ] T5.2 Exportar `capitulos/*.tex`; `relatorio.tex` com `\input`; `gera_latex.py` sem capítulos nem JSON de textos
-- [ ] T5.3 Checagem de rótulos (figuras/tabelas citadas existem)
-- [ ] T5.4 Comparar com o PDF de referência
-- [ ] T5.5 Nova capa e folha de rosto
+- [x] T5.3 `confere_capitulos()`: figuras, tabelas no corpo e rótulos de tabela citados existem (a execução para se faltar algo)
+- [x] T5.4 Mesmo texto do PDF de referência (só quebras de linha na Introdução, pelo mapa novo); 174 páginas
+- [x] T5.5 Capa com a foto do banner (crédito) e folha de rosto com o crédito completo
 
 ## Bloco 6 — Curadoria só do site, sem DOCX
 - [ ] T6.1 Tag `rodada/curadoria_docx`; apagar os scripts DOCX

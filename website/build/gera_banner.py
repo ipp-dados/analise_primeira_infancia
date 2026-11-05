@@ -40,5 +40,18 @@ def main():
         print(f"{destino.relative_to(AQUI.parents[1])}: {largura}x{altura}, {destino.stat().st_size // 1024} KB")
 
 
+def gera_capa_pdf():
+    """Mesma foto na capa do relatório em PDF (specs/2026-11-05_versao_final_site R5/D6): faixa um pouco mais alta,
+    2400 px de largura (impressão A4 a ~290 dpi), JPEG q80."""
+    foto = Image.open(CACHE).convert("RGB")
+    w, h = foto.size
+    faixa = foto.crop((0, int(h * 0.08), w, int(h * 0.92)))   # proporção ~1,79:1 -> 11,8 cm de altura em 21 cm (cobre a faixa de 11,5 cm)
+    destino = AQUI.parents[1] / "relatorio" / "latex" / "pretextual" / "capa_foto.jpg"
+    faixa.resize((2400, round(faixa.height * 2400 / faixa.width)), Image.LANCZOS).save(
+        destino, "JPEG", quality=80, optimize=True, progressive=True)
+    print(f"{destino.relative_to(AQUI.parents[1])}: {destino.stat().st_size // 1024} KB")
+
+
 if __name__ == "__main__":
     main()
+    gera_capa_pdf()
