@@ -1270,6 +1270,11 @@ def mapa_svg(df, chave_col, valor_col, tema, titulo, legenda_titulo, fonte_dados
 # texto da Introdução (curado sob o bookmark "introducao" do DOCX, senão lorem de 250 palavras --
 # specs/2026-09-22_ajuste_eixos §7), que vai para o painel Visão geral.
 INTRO_HTML = _TEXTOS_CURADOS.get("introducao") and _texto_analise("introducao") or _lorem("introducao-relatorio", 150)
+# fechamento da Visão geral (specs/2026-11-05_versao_final_site T1.4): a Introdução foi dividida em abertura e notas
+NOTAS_HTML = ('<div class="overview-intro overview-notas" id="notas-projeto-metodologia">'
+              '<div class="eyebrow panel-eyebrow">Sobre este diagnóstico</div><h2>Notas sobre o projeto e metodologia</h2>'
+              f'<p class="lede">{_texto_analise("notas_projeto_metodologia")}</p></div>'
+              if _TEXTOS_CURADOS.get("notas_projeto_metodologia") else "")
 
 # ============================================================== INTRODUÇÃO ==
 
@@ -2414,13 +2419,16 @@ paineis.insert(0,
     f'<p class="lede">{INTRO_HTML}</p></div>'
     + _PANORAMA_HTML +
     '<div class="eyebrow eixo-grid-label" id="eixos">Eixos da política municipal de primeira infância</div>'
-    f'<div class="eixo-grid">{"".join(_cartoes)}</div></section>'
+    f'<div class="eixo-grid">{"".join(_cartoes)}</div>'
+    + NOTAS_HTML + '</section>'
 )
 navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-label="Visão geral" hidden>'
                     '<a href="#visao-geral/introducao" data-alvo="introducao">Introdução</a>'
                     + "".join(f'<a href="#visao-geral/{h3id}" data-alvo="{h3id}">{_esc(h3t)}</a>'
                               for h3t, h3id in _h3_por_secao.get(_PANORAMA_SID, []))
-                    + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in _SECOES_EIXO) + '</nav>')
+                    + "".join(f'<a href="#{sid}" data-alvo="{sid}">{_esc(t)}</a>' for _, t, sid in _SECOES_EIXO)
+                    + ('<a href="#visao-geral/notas-projeto-metodologia" data-alvo="notas-projeto-metodologia">'
+                       'Notas sobre o projeto e metodologia</a>' if NOTAS_HTML else '') + '</nav>')
 
 # faixa de aviso: controlada por relatorio/publicacao.json (em_desenvolvimento), a mesma chave da marca d'água do PDF
 # (relatorio/latex/build/gera_latex.py) -- as duas saem juntas na versão final (specs/2026-09-28_website_mobile)

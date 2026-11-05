@@ -219,6 +219,7 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.76rem;}
 .overview-intro{background:var(--surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-1); padding:32px 36px; margin:0 0 40px;}
 .overview-intro h2{margin:0 0 12px;}
 .overview-intro .lede{color:var(--ink-2); font-size:.94rem; line-height:1.75; max-width:72ch; margin:0;}
+.overview-notas{margin:48px 0 0;}   /* fechamento da Visão geral (specs/2026-11-05_versao_final_site T1.4) */
 /* panorama da Visão geral (specs/2026-09-28_nova_estrutura): cartões de população e nascimentos antes da grade dos eixos */
 .overview-panorama{margin:0 0 48px;}
 .overview-panorama > h2{margin:0 0 8px;}

@@ -289,6 +289,10 @@ def capitulos(estrutura, info_por_arquivo, so_eixo=None):
             tex.append(rf"\item \textbf{{Eixo {i} --- {esc(titulo_eixo(eixo['eixo']))}}} (Capítulo~\ref{{cap:eixo-{i}}}): "
                        rf"{n_sub} indicador{'es' if n_sub != 1 else ''}" + (f", {n_pend} em desenvolvimento" if n_pend else "") + ".")
         tex.append(r"\end{itemize}")
+        # fechamento da Introdução, como no site (specs/2026-11-05_versao_final_site T1.4)
+        if TEXTOS.get("notas_projeto_metodologia"):
+            tex.append(r"\section{Notas sobre o projeto e metodologia}\label{sec:notas-metodologia}")
+            tex.append(texto("notas_projeto_metodologia", 150))
 
     for i, eixo in enumerate(eixos, 1):
         titulo = titulo_eixo(eixo["eixo"])
@@ -438,7 +442,7 @@ def main():
     # tabela_no_texto também leva o texto curado da mesma chave (não é "sem figura")
     usados = {Path(n).stem for e in estrutura for s in e["subsecoes"] for f in ("visualização", "mapa", "tabela_no_texto")
               for n in lista(s["campos"].get(f))}
-    sem_figura = sorted(k for k in TEXTOS if k not in usados and k != "introducao" and not k.startswith(("conclusao-", "resumo", "consideracoes")))
+    sem_figura = sorted(k for k in TEXTOS if k not in usados and k not in ("introducao", "notas_projeto_metodologia") and not k.startswith(("conclusao-", "resumo", "consideracoes")))
     if sem_figura:
         print(f"Textos curados sem figura no relatório ({len(sem_figura)}): {', '.join(sem_figura)}")
     if not args.sem_pdf:

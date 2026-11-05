@@ -1551,6 +1551,22 @@
     "versao_final_site_2026-11-05"
    ],
    "obs": "2026-11-05: texto novo de aba sem arquivo próprio (specs/2026-11-05_versao_final_site/textos_abas_propostos.md), números conferidos em tabelas_finais/; aprovado pelo usuário"
+  },
+  "introducao": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: a Introdução da Visão geral foi dividida (pedido do usuário): abertura de 1 parágrafo (resumo do 1º) e 'Notas sobre o projeto e metodologia' (resumo dos 2º a 4º), sem as referências '(ref.)'; Zika 2015-2016 como no resumo"
+  },
+  "notas_projeto_metodologia": {
+   "status": "atualizado",
+   "rodada": "correcoes",
+   "historico": [
+    "versao_final_site_2026-11-05"
+   ],
+   "obs": "2026-11-05: a Introdução da Visão geral foi dividida (pedido do usuário): abertura de 1 parágrafo (resumo do 1º) e 'Notas sobre o projeto e metodologia' (resumo dos 2º a 4º), sem as referências '(ref.)'; Zika 2015-2016 como no resumo"
   }
  }
 }
