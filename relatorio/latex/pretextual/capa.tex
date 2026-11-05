@@ -1,38 +1,60 @@
-% Capa -- editada à mão (refeita em 2026-11-05, specs/2026-11-05_versao_final_site D6).
-% Estilo do projeto (foto do banner do site no alto, título serifado em azul, faixa de 11 cores) com os elementos
-% principais dos relatórios técnicos do IPP no Data.Rio (referência: "Panorama da Indústria da Transformação na Economia
-% Carioca", mar/2026): bloco institucional, edição "IPP · mês | ano" e logo Prefeitura RIO | Instituto Pereira Passos.
-% Imagens: relatorio/latex/build/gera_capa_imagens.py. Foto: Compagnons (@sigmund) na Unsplash, Licença da Unsplash.
+% Capa -- editada à mão (2026-11-05; specs/2026-11-05_versao_final_site D6).
+% EM AVALIAÇÃO: duas opções seguidas, A (clara) e D (azul), a pedido do usuário; depois da escolha, apagar a outra.
+% Estrutura dos relatórios técnicos do IPP no Data.Rio (referência: "Panorama da Indústria da Transformação na
+% Economia Carioca", mar/2026, 1a página): aba de edição na borda esquerda, bloco institucional no alto, título grande
+% no meio, logo sozinha no pé. Estilo do projeto (azul institucional, título serifado). Foto do banner do site,
+% esmaecida (A) ou como textura no azul (D) -- imagens de relatorio/latex/build/gera_capa_imagens.py; crédito no
+% expediente. Selo "EM DESENVOLVIMENTO" só enquanto relatorio/publicacao.json disser em_desenvolvimento
+% (\ifemdesenvolvimento vem de gerado/aviso.tex): a marca d'água das outras páginas fica por baixo da foto da capa.
+
+% ---- partes comuns às duas opções ---------------------------------------------------------------------------------
+\newcommand{\capaaba}[1]{% aba de edição: cor de fundo
+  \fill[#1] (current page.north west) rectangle ([xshift=1.0cm, yshift=-7.6cm]current page.north west);
+  \node[rotate=90, anchor=east, inner sep=0, text=white, font=\ttfamily\footnotesize]
+    at ([xshift=0.5cm, yshift=-0.9cm]current page.north west) {IPP \textperiodcentered{} NOVEMBRO | 2026};}
+\newcommand{\capatexto}[4]{% #1 cor do texto, #2 cor do título, #3 cor de "Carioca", #4 cor forte do bloco institucional
+  \node[anchor=north west, inner sep=0, align=left, text=#1, font=\footnotesize]
+    at ([xshift=2.4cm, yshift=-1.9cm]current page.north west)
+    {\textbf{\color{#4}PREFEITURA DA CIDADE DO RIO DE JANEIRO}\\
+     Instituto Municipal de Urbanismo Pereira Passos\\
+     Coordenadoria de Pesquisa, Avaliação e Políticas Públicas};
+  \node[anchor=north west, inner sep=0, align=left, text=#2, font={\frauncesdisplay\fontsize{46}{52}\selectfont}]
+    at ([xshift=2.4cm, yshift=-8.8cm]current page.north west)
+    {Diagnóstico da\\Primeira Infância\\\bfseries\color{#3}Carioca};
+  \fill[#2] ([xshift=2.4cm, yshift=-15.15cm]current page.north west) rectangle ([xshift=3.6cm, yshift=-15.25cm]current page.north west);
+  \node[anchor=north west, inner sep=0, align=left, text=#1, font=\large]
+    at ([xshift=2.4cm, yshift=-15.8cm]current page.north west)
+    {Indicadores da primeira infância (até 72 meses)\\no município do Rio de Janeiro, por eixo da\\Política Integrada da Primeira Infância};}
+\newcommand{\capaselo}{% selo de versão de teste
+  \ifemdesenvolvimento
+    \node[anchor=north east, fill=avisosuave, draw=aviso, text=aviso, rounded corners=2pt, inner xsep=7pt, inner ysep=4pt,
+      font=\ttfamily\footnotesize] at ([xshift=-1.6cm, yshift=-1.75cm]current page.north east) {EM DESENVOLVIMENTO};
+  \fi}
+\newcommand{\capalogo}[1]{\node[anchor=south, inner sep=0] at ([yshift=2.0cm]current page.south)
+  {\includegraphics[height=1.2cm]{pretextual/#1}};}
+
+% ---- opção A: clara, foto sutil na página inteira ------------------------------------------------------------------
 \begin{capa}
   \thispagestyle{empty}
   \begin{tikzpicture}[remember picture, overlay]
-    \begin{scope}
-      \clip (current page.north west) rectangle ([yshift=-11.5cm]current page.north east);
-      \node[anchor=north west, inner sep=0] at (current page.north west)
-        {\includegraphics[width=\paperwidth]{pretextual/capa_foto.jpg}};
-    \end{scope}
-    \fill[ippnavy] ([yshift=-11.5cm]current page.north west) rectangle ([yshift=-11.85cm]current page.north east);
-    \node[anchor=north east, inner sep=0, font=\scriptsize, text=tinta3]
-      at ([xshift=-1.5cm, yshift=-12.05cm]current page.north east) {Foto: Compagnons / Unsplash};
-    \node[anchor=south west, inner sep=0] at ([xshift=3cm, yshift=1.6cm]current page.south west)
-      {\faixaespectro[5pt]{\dimexpr\paperwidth-5cm\relax}};
-  \end{tikzpicture}\par
-  \vspace*{9.4cm}
-  \noindent{\ttfamily\small\color{acento}\addfontfeature{LetterSpace=8}IPP \textperiodcentered{} NOVEMBRO | 2026}\par
-  \vspace{0.6cm}
-  \noindent{\frauncesdisplay\bfseries\color{ippnavy}\fontsize{38}{44}\selectfont Diagnóstico da\\Primeira Infância Carioca\par}
-  \vspace{0.6cm}
-  \noindent\begin{minipage}{0.86\textwidth}\raggedright\large\color{tinta2}\SingleSpacing
-    Indicadores da primeira infância (até 72 meses, 0 a 5 anos) no município do Rio de Janeiro,
-    por eixo da Política Integrada da Primeira Infância\end{minipage}\par
-  \vfill
-  \noindent\begin{minipage}[b]{0.62\textwidth}\SingleSpacing\raggedright
-    {\small\bfseries\color{tinta}PREFEITURA DA CIDADE DO RIO DE JANEIRO}\par\vspace{3pt}
-    {\footnotesize\color{tinta2}Instituto Municipal de Urbanismo Pereira Passos\par
-     Coordenadoria de Pesquisa, Avaliação e Políticas Públicas\par}
-  \end{minipage}\hfill
-  \begin{minipage}[b]{0.34\textwidth}\raggedleft
-    \includegraphics[height=1.15cm]{pretextual/logo_ipp_escura.png}
-  \end{minipage}\par
-  \vspace*{1.0cm}
+    \node[anchor=north west, inner sep=0] at (current page.north west)
+      {\includegraphics[width=\paperwidth, height=\paperheight]{pretextual/capa_foto_sutil.jpg}};
+    \capaaba{ippnavy}
+    \capatexto{tinta2}{ippnavy}{ippnavy}{tinta}
+    \capalogo{logo_ipp_escura.png}
+    \capaselo
+  \end{tikzpicture}
+\end{capa}
+
+% ---- opção D: azul institucional, foto como textura ----------------------------------------------------------------
+\begin{capa}
+  \thispagestyle{empty}
+  \begin{tikzpicture}[remember picture, overlay]
+    \node[anchor=north west, inner sep=0] at (current page.north west)
+      {\includegraphics[width=\paperwidth, height=\paperheight]{pretextual/capa_foto_azul.jpg}};
+    \capaaba{white!18!ippnavy}
+    \capatexto{white}{white}{c4}{white}
+    \capalogo{logo_ipp_clara.png}
+    \capaselo
+  \end{tikzpicture}
 \end{capa}

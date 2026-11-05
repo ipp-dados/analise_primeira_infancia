@@ -396,9 +396,12 @@ def aviso_em_desenvolvimento():
     "EM DESENVOLVIMENTO" do site (website/build/build_site.py); as duas saem juntas (specs/2026-09-28_website_mobile).
     Vai para o preâmbulo (relatorio.tex: \\input{gerado/aviso}); com false, o arquivo fica só com o comentário."""
     pub = json.loads((RAIZ / "relatorio/publicacao.json").read_text(encoding="utf-8"))
-    cab = "% Gerado por gera_latex.py a partir de relatorio/publicacao.json -- não editar à mão.\n"
+    # \ifemdesenvolvimento: a capa mostra o selo "EM DESENVOLVIMENTO" (a marca d'água fica por baixo da foto da capa)
+    cab = ("% Gerado por gera_latex.py a partir de relatorio/publicacao.json -- não editar à mão.\n"
+           "\\newif\\ifemdesenvolvimento\n")
     if not pub.get("em_desenvolvimento"):
         return cab
+    cab += "\\emdesenvolvimentotrue\n"
     texto = pub.get("marca_dagua_pdf", "EM DESENVOLVIMENTO")
     # transparência por um nó TikZ (estilo.sty já carrega o TikZ): a chave alpha só existe no draftwatermark >= 3.4 (o
     # MiKTeX tem a 3.3) e o pacote transparent só funciona no pdfTeX. Por cima da página (stamp), para aparecer também

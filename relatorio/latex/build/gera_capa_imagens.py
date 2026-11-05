@@ -38,17 +38,27 @@ def main():
     if not gera_banner.CACHE.exists():
         gera_banner.main()            # baixa a original para o cache
     foto = Image.open(gera_banner.CACHE).convert("RGB")
-    w, h = foto.size
-    faixa = foto.crop((0, int(h * 0.08), w, int(h * 0.92)))   # ~1,79:1 -> 11,8 cm de altura em 21 cm
-    faixa.resize((2400, round(faixa.height * 2400 / faixa.width)), Image.LANCZOS).save(
-        SAIDA / "capa_foto.jpg", "JPEG", quality=80, optimize=True, progressive=True)
+    # capa limpa (pedido do usuário, 2026-11-05): a foto em página inteira, bem sutil -- já esmaecida aqui (86% branco
+    # e saturação reduzida), para não depender de transparência no leitor de PDF
+    from PIL import ImageEnhance
+    pagina = recorte_retrato(foto)
+    pagina = ImageEnhance.Color(pagina).enhance(0.7)
+    pagina = Image.blend(pagina, Image.new("RGB", pagina.size, "white"), 0.86)
+    pagina.resize((1400, round(1400 / A4)), Image.LANCZOS).save(
+        SAIDA / "capa_foto_sutil.jpg", "JPEG", quality=76, optimize=True, progressive=True)
+    # opção D (em avaliação, 2026-11-05): a mesma foto como textura no azul institucional (004A80 escurecido a claro)
+    import numpy as np
+    lum = np.asarray(ImageOps.grayscale(recorte_retrato(foto)).resize((1400, round(1400 / A4)), Image.LANCZOS)) / 255
+    escuro, claro = np.array([0, 59, 102]), np.array([24, 98, 150])
+    Image.fromarray((escuro + (claro - escuro) * lum[..., None]).astype("uint8")).save(
+        SAIDA / "capa_foto_azul.jpg", "JPEG", quality=80, optimize=True, progressive=True)
     # logo clara (fundo escuro) e escura (fundo claro), mesma transparência
     logo = Image.open(RAIZ / "website" / "assets" / "images" / "ipp-logo.png").convert("RGBA")
     logo.save(SAIDA / "logo_ipp_clara.png")
     escura = Image.new("RGBA", logo.size, (0x16, 0x20, 0x2A, 0))
     escura.putalpha(logo.getchannel("A"))
     escura.save(SAIDA / "logo_ipp_escura.png")
-    for n in ("capa_foto.jpg", "logo_ipp_clara.png", "logo_ipp_escura.png"):
+    for n in ("capa_foto_sutil.jpg", "logo_ipp_clara.png", "logo_ipp_escura.png"):
         print(f"{(SAIDA / n).relative_to(RAIZ)}: {(SAIDA / n).stat().st_size // 1024} KB")
 
 
