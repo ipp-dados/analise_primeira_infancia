@@ -6,7 +6,7 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 ## Bloco 1 — Textos
 - [x] T1.1 Textos da curadoria de 05/11 (DOCX) conferidos e importados (36; `textos_docx_05_11_revisao.md`)
 - [x] T1.2 Textos das 19 abas sem arquivo (17 chaves; `textos_abas_propostos.md`)
-- [ ] T1.3 Textos dos eixos (achados, introdução, síntese) — escritos pelo usuário em `relatorio/textos_eixos.md` (9 de 21 importados em 2026-11-05: Prioridade, Inclusão, Família e Cuidados; `relatorio/curadoria/importa_textos_eixos.py`);
+- [x] T1.3 Textos dos eixos (achados, introdução, síntese) em `relatorio/textos_eixos.md`: 9 escritos pelo usuário (Prioridade, Inclusão, Família e Cuidados; corrigidos contra os dados) e 12 propostos e aprovados (Proteção, Brincar, Alimentação, Moradia; `textos_eixos_propostos.md`); importados com `relatorio/curadoria/importa_textos_eixos.py`. Site e PDF sem lorem;
       importar e conferir os números citados
 - [x] T1.4 **Dividir a Introdução da Visão geral** (pedido do usuário, 2026-11-05): abertura de 1 parágrafo (resumo do
       1º parágrafo atual) no início da aba e, no fim da aba, a seção **"Notas sobre o projeto e metodologia"** com até

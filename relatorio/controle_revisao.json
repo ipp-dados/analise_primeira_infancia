@@ -1639,6 +1639,102 @@
     "textos_eixos_2026-11-05"
    ],
    "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "achados_protecao": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "introducao_protecao": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "sintese_protecao": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "achados_direito_ao_brincar": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "introducao_direito_ao_brincar": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "sintese_direito_ao_brincar": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "achados_alimentacao": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "introducao_alimentacao": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "sintese_alimentacao": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "achados_moradia": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "introducao_moradia": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
+  },
+  "sintese_moradia": {
+   "status": "atualizado",
+   "rodada": "textos_eixos",
+   "historico": [
+    "textos_eixos_2026-11-05"
+   ],
+   "obs": "texto de eixo escrito pela coordenação em relatorio/textos_eixos.md (importa_textos_eixos.py)"
   }
  }
 }

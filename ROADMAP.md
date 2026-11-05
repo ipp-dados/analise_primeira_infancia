@@ -29,9 +29,8 @@ Ficou para a **rodada da versão final** (achados de 2026-11-05):
    parágrafos com texto real sem casar (CadÚnico por sexo/raça/arranjo, violência territorial, mapas de mortalidade,
    muitos marcados "✏️ aguardando correção"). Vários números estão desatualizados (ex.: 194.138 crianças de jun/2026
    contra 200.784 de jul/2026; 773 óbitos infantis contra 724 nos dados) — conferir cada número antes de incorporar.
-2. **Lorem que sobra**: no site, 51 blocos de figura (Visão geral 7, Prioridade 19, Família e Cuidados 8, Proteção 14,
-   Direito ao Brincar 3) mais os 21 blocos de eixo (achados, introdução e síntese dos 7 eixos); no DOCX de hoje, os 21
-   de eixo e os 2 do SISVAN "(número)". O `relatorio/curadoria_textos.docx` gerado está defasado do JSON (62 lorem).
+2. ~~**Lorem que sobra**~~ — **resolvido em 2026-11-05** (`specs/2026-11-05_versao_final_site` T1.1-T1.4): textos da
+   curadoria de 05/11 conferidos, abas sem arquivo com chave e texto próprios, 21 textos de eixo; site e PDF sem lorem.
 3. Textos curados com "0 a 5 anos" → "até 72 meses" (D10 de `2026-10-06_cadunico_inclusao_moradia`) e títulos das PNG.
 
 ## 0a. Filtro de residência nos exports por bairro do Tabnet (`specs/2026-09-30_filtro_residencia_tabnet`)
