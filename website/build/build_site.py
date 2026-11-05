@@ -2269,7 +2269,7 @@ FOOTER_FONTES = ["Censo 2022 (IBGE)", "CadÚnico", "DataSUS/Tabnet", "SISVAN · 
                  '<a href="https://basedosdados.org/" target="_blank" rel="noopener">Base dos Dados ↗</a>']   # pedido do usuário, 2026-09-24
 FOOTER_LINKS = [
     ("ipp.prefeitura.rio", "https://ipp.prefeitura.rio/"),
-    ("Transparência Rio", "https://transparencia.rio/"),
+    ("Transparência Rio", "https://transparencia.prefeitura.rio/"),   # transparencia.rio quebrado (2026-11-05: HTTPS não conecta, HTTP em laço de login)
     ("LGPD — Proteção de dados", "https://ipp.prefeitura.rio/lgpd/"),
 ]
 # o contato (ascom.ipp@prefeitura.rio, placeholder) saiu do rodapé por decisão do usuário (2026-11-05,
@@ -2448,7 +2448,17 @@ banner = (
      '⚠️ EM DESENVOLVIMENTO / TEMPORÁRIO — esta é uma versão de teste do relatório, '
      'publicada para validação interna. Conteúdo, dados e layout ainda podem mudar.'
      '</div>' if _EM_DESENVOLVIMENTO else '') +
-    '<header class="site-banner"><div class="container banner-inner">'
+    '<header class="site-banner">'
+    # foto do banner (specs/2026-11-05_versao_final_site R1; imagens geradas por website/build/gera_banner.py):
+    # decorativa (alt vazio), servida pelo próprio site, com o crédito pedido pela Licença da Unsplash
+    '<picture class="banner-foto" aria-hidden="true">'
+    '<img src="assets/images/banner-foto-1600.jpg" srcset="assets/images/banner-foto-960.jpg 960w, '
+    'assets/images/banner-foto-1600.jpg 1600w" sizes="(max-width: 719.98px) 100vw, 60vw" alt="" '
+    'width="1600" height="533" decoding="async" fetchpriority="high"></picture>'
+    '<p class="banner-credito">Foto de <a href="https://unsplash.com/pt-br/@sigmund" target="_blank" rel="noopener">'
+    'Compagnons</a> na <a href="https://unsplash.com/pt-br/fotografias/crianca-segurando-aberto-um-livro-colorido-com-ilustracoes-wccs6fKUtok" '
+    'target="_blank" rel="noopener">Unsplash</a></p>'
+    '<div class="container banner-inner">'
     f'<div>{logo_link("banner", "banner-logo")}'
     '<div class="eyebrow banner-eyebrow">Relatório interativo · Instituto Pereira Passos</div>'
     f'<h1>{TITULO_H1}</h1></div>'

@@ -16,7 +16,23 @@
 .site-banner{
   background:linear-gradient(180deg, #FFFFFF 0%, var(--accent-soft) 100%);
   border-bottom:1px solid var(--hairline);
+  position:relative; overflow:hidden;
 }
+/* foto do banner (specs/2026-11-05_versao_final_site R1): à direita, esmaecendo para o branco do lado do título;
+   o conteúdo fica por cima (z-index) e o texto escuro continua sobre fundo claro */
+.banner-foto{position:absolute; top:0; right:0; bottom:0; width:62%; display:block; z-index:0;}
+/* máscara (não camada branca): a foto some na transparência e deixa aparecer o degradê do banner, sem emenda */
+.banner-foto img{
+  width:100%; height:100%; object-fit:cover; object-position:58% 50%; display:block;
+  -webkit-mask-image:linear-gradient(90deg, transparent 0%, rgba(0,0,0,.35) 25%, #000 62%);
+          mask-image:linear-gradient(90deg, transparent 0%, rgba(0,0,0,.35) 25%, #000 62%);
+}
+.banner-inner, .spectrum-bar{position:relative; z-index:1;}
+.banner-credito{
+  position:absolute; right:var(--gutter); bottom:12px; z-index:1; margin:0;
+  font-size:.62rem; color:var(--ink-2); background:rgba(255,255,255,.82); padding:2px 8px; border-radius:var(--radius-pill);
+}
+.banner-credito a{color:inherit;}
 .banner-inner{
   display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--s7);
   align-items:end; padding-top:40px; padding-bottom:36px;
@@ -48,7 +64,8 @@ a.footer-logo:hover{opacity:.85;}
 }
 .banner-links a:hover{box-shadow:var(--shadow-2); color:var(--accent-ink);}
 .banner-links .icon{width:18px; height:18px;}
-.banner-date{display:inline-flex; align-items:center; gap:10px; padding:4px 16px; font-family:var(--font-mono); font-size:.68rem; color:var(--ink-3);}
+.banner-date{display:inline-flex; align-items:center; gap:10px; padding:4px 16px; font-family:var(--font-mono); font-size:.68rem; color:var(--ink-2);
+  background:rgba(255,255,255,.82); border-radius:var(--radius-pill);}   /* fundo claro: a data fica sobre a foto */
 .banner-date .icon{width:16px; height:16px;}
 .spectrum-bar{display:flex; height:4px;}
 .spectrum-bar span{flex:1;}

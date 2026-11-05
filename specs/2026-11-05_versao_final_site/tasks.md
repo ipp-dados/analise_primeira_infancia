@@ -24,10 +24,10 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - [ ] T2.3 Manter a lista e o documento em dia quando um item mudar (pedido feito, dado recebido)
 
 ## Bloco 3 — Banner e rodapé
-- [ ] T3.1 Foto do Unsplash baixada, redimensionada e servida pelo site; crédito
-- [ ] T3.2 Banner novo (desktop e celular), contraste e orçamento de tamanho
+- [x] T3.1 Foto do Unsplash (Compagnons, @sigmund, Licença da Unsplash) recortada e comprimida por `website/build/gera_banner.py` (960 px 20 KB, 1600 px 45 KB); crédito com links no banner
+- [x] T3.2 Banner novo: foto à direita com máscara (sem emenda), texto e botões legíveis; celular com a foto bem esmaecida e o crédito no alto; site 1,49 MB
 - [x] T3.3 E-mail de contato fora do rodapé (2026-11-05)
-- [ ] T3.4 Conferir os links do rodapé
+- [x] T3.4 Links do banner e do rodapé conferidos (HTTP 200); Transparência Rio trocado para transparencia.prefeitura.rio (o antigo estava quebrado); Unsplash responde 401 só a scripts
 
 ## Bloco 4 — Mapa de referência
 - [ ] T4.1 `mapa_referencia_svg()` com camadas bairro/RA/AP e botões de nomes

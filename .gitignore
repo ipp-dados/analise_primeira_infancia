@@ -42,3 +42,6 @@ relatorio/latex/*.fdb_latexmk
 /relatorio/textos_updates_antigos/
 /apresentacao/*.pdf
 /apresentacao/*.pptx
+
+# cache da foto original do banner (website/build/gera_banner.py baixa quando falta)
+website/build/_cache/
