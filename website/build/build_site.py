@@ -2278,7 +2278,11 @@ _footer_cols = [
     f'<div class="footer-col footer-col-logo">{LOGO_IMG}<p>Relatório produzido a partir da análise de indicadores de primeira infância do Instituto Municipal de Urbanismo Pereira Passos (IPP).</p></div>',
     '<div class="footer-col"><div class="eyebrow">FONTES DE DADOS</div>' + "".join(f'<div>{f}</div>' for f in FOOTER_FONTES) + '</div>',
     '<div class="footer-col"><div class="eyebrow">LINKS</div>' + "".join(f'<div><a href="{url}" target="_blank" rel="noopener">{label} ↗</a></div>' for label, url in FOOTER_LINKS) + '</div>',
-    f'<div class="footer-col"><div class="eyebrow">ATUALIZADO EM</div><div>{gen_date}</div></div>',
+    f'<div class="footer-col"><div class="eyebrow">ATUALIZADO EM</div><div>{gen_date}</div>'
+    # crédito completo da foto do banner (no banner fica só uma linha discreta -- pedido do usuário, 2026-11-05)
+    '<div class="eyebrow" style="margin-top:14px;">FOTO DO BANNER</div>'
+    '<div><a href="https://unsplash.com/pt-br/fotografias/crianca-segurando-aberto-um-livro-colorido-com-ilustracoes-wccs6fKUtok" '
+    'target="_blank" rel="noopener">Compagnons na Unsplash ↗</a></div><div class="footer-nota">Licença da Unsplash</div></div>',
 ]
 footer = (
     '<footer class="doc-foot"><div class="container">'
@@ -2455,9 +2459,8 @@ banner = (
     '<img src="assets/images/banner-foto-1600.jpg" srcset="assets/images/banner-foto-960.jpg 960w, '
     'assets/images/banner-foto-1600.jpg 1600w" sizes="(max-width: 719.98px) 100vw, 60vw" alt="" '
     'width="1600" height="533" decoding="async" fetchpriority="high"></picture>'
-    '<p class="banner-credito">Foto de <a href="https://unsplash.com/pt-br/@sigmund" target="_blank" rel="noopener">'
-    'Compagnons</a> na <a href="https://unsplash.com/pt-br/fotografias/crianca-segurando-aberto-um-livro-colorido-com-ilustracoes-wccs6fKUtok" '
-    'target="_blank" rel="noopener">Unsplash</a></p>'
+    # crédito discreto (o completo, com link, está no rodapé)
+    '<p class="banner-credito">Foto: Compagnons / Unsplash</p>'
     '<div class="container banner-inner">'
     f'<div>{logo_link("banner", "banner-logo")}'
     '<div class="eyebrow banner-eyebrow">Relatório interativo · Instituto Pereira Passos</div>'
