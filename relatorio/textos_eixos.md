@@ -35,19 +35,19 @@ Indicadores do eixo:
 - Redução da participação da primeira infância na população
 - Mudança no perfil demográfico varia nas regiões da cidade
 - Zona Oeste concentra nascimentos e deve ser a origem da maior demanda nos próximos anos
-- Zona Norte apresenta envelhecimento similar à Zona Sul, mas indicadores mais precários, indicando prevalência de problemas estruturais não solucionados
+- Na Zona Norte, as crianças pequenas pesam na população o mesmo que na média da cidade (5,0%), mas os indicadores são mais precários, indicando prevalência de problemas estruturais não solucionados
 
 
 
 ### Introdução do eixo
 
-A principal linha guia para ler este diagnóstico é a mudança no padrão demográfico da população carioca. O Rio de Janeiro está envelhecendo e com isso a primeira infância reflete uma parcela cada vez menor da população total. A principal causa do fenômeno reside na redução de nascimentos, mesmo em face de redução da mortalidade infantil. Esse processo tende a produzir uma menor demanda quantitativa por serviços orientados a primeira infância, mas é esperado também um aumento da demanda qualitativa, condizente com a mudança de padrão de cuidados a crianças em famílias menos numerosas. Como consequência as expectativa dos cidadãos frente aos serviços públicos dessa faixa etária devem aumentar, especialmente no que concerne saúde, educação, moradia adequada e oferta de espaços para socialização.
+A principal linha guia para ler este diagnóstico é a mudança no padrão demográfico da população carioca. O Rio de Janeiro está envelhecendo e com isso a primeira infância reflete uma parcela cada vez menor da população total. A principal causa do fenômeno reside na redução de nascimentos, mesmo em face de redução da mortalidade infantil. Esse processo tende a produzir uma menor demanda quantitativa por serviços orientados a primeira infância, mas é esperado também um aumento da demanda qualitativa, condizente com a mudança de padrão de cuidados a crianças em famílias menos numerosas. Como consequência, as expectativas dos cidadãos frente aos serviços públicos dessa faixa etária devem aumentar, especialmente no que concerne à saúde, educação, moradia adequada e oferta de espaços para socialização.
 
 
 
 ### Síntese do eixo
 
-Mesmo diante da redução dos nascimentos fica clara a melhora nos indicadores de mortalidade infantil e materna, além dos indicadores de vacinação. A principal característica das mortes evitáveis remanescentes é necessidade de maior cobertura/qualidade do pré-natal e maior atenção ao parto. Os indicadores por recorte racial apontam taxas similares entre crianças pardas e brancas, mas com menor melhora recente para crianças pardas. Outros grupos raciais podem estar afetados por amostragem muito pequenas. Dentro do universo da primeira infância carioca, uma parcela significativa continua em famílias de renda reduzida. Apesar de grande alcance do cadastro único, as faixas de renda restritas dos benefícios sociais ainda limitam o número de recebedores do Bolsa Família.
+Mesmo diante da redução dos nascimentos fica clara a melhora nos indicadores de mortalidade infantil e materna, além dos indicadores de vacinação. A principal característica das mortes evitáveis remanescentes é a necessidade de maior cobertura/qualidade do pré-natal e maior atenção ao parto. Os indicadores por recorte racial apontam taxas similares entre crianças pardas e brancas, mas, desde 2019, a taxa de mortalidade infantil das crianças pardas voltou a subir (de 11,1 para 13,7 por mil nascidos vivos em 2025), enquanto a das brancas caiu (de 13,7 para 12,4). Outros grupos raciais podem estar afetados por amostras muito pequenas. Dentro do universo da primeira infância carioca, uma parcela significativa continua em famílias de renda reduzida. Apesar do grande alcance do Cadastro Único, as faixas de renda restritas dos benefícios sociais podem limitar o número de famílias atendidas pelo Bolsa Família.
 
 
 ---
@@ -62,7 +62,7 @@ Indicadores do eixo:
 ### Principais achados
 
 - Há aproximadamente 8 mil famílias com crianças com algum tipo de deficiência
-- Dessas, cecar de 7 mil apresentam algum tipo de transtorno mental ou deficiência mental / intelectual
+- Entre as cerca de 7,9 mil crianças com deficiência, os tipos mais registrados são transtorno mental (3,7 mil) e deficiência mental ou intelectual (3,3 mil); uma criança pode ter os dois
 - O BPC chega a cerca de 25% das famílias com crianças com algum tipo de deficiência
 
 
@@ -95,14 +95,14 @@ Indicadores do eixo:
 ### Principais achados
 
 - Há tendência de redução no número de matrículas escolares
-- Mesmo assim, o alcance da pré-escola (3 e 4 anos) continua baixo
+- Mesmo assim, o atendimento segue abaixo das metas do Plano Nacional de Educação: 85,2% na pré-escola (4 e 5 anos, meta de 100%) e 43,7% na creche (0 a 3 anos, meta de 50%) em 2025
 - Predominam arranjos familiares com uma única mulher adulta (dado que precisa ser tomado com cautela frente a natureza administrativa dos dados)
 
 
 
 ### Introdução do eixo
 
-A natureza dos dados administrativos, especialmente os advindos do Cadastro Único, exige cautela na análise. Dito isso, predominância de arranjos familiares com apenas uma mulher adulta exige atenção. Já os dados educacionais apontam taxas de matrícula abaixo dos objetivos firmados, com maior gravidade no caso das matrículas de pré-escola. A oferta de matrículas da rede pública precisará também se atentar a mudança na demanda geográfica.
+A natureza dos dados administrativos, especialmente os advindos do Cadastro Único, exige cautela na análise. Dito isso, a predominância de arranjos familiares com apenas uma mulher adulta exige atenção. Já os dados educacionais apontam taxas de atendimento abaixo das metas do Plano Nacional de Educação, com a maior distância na pré-escola: 85,2% das crianças de 4 e 5 anos em 2025, para uma meta de 100%; na creche, 43,7% das crianças de 0 a 3 anos, para uma meta de 50%. A oferta de matrículas da rede pública precisará também se atentar a mudança na demanda geográfica.
 
 
 
