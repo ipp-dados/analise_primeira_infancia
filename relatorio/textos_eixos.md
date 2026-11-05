@@ -136,7 +136,7 @@ Indicadores do eixo:
 
 ### Introdução do eixo
 
-Os dados de proteção vêm das notificações do Sinan, que registram os casos que chegaram aos serviços de saúde. Por isso, medem ao mesmo tempo a ocorrência da violência e a capacidade da rede de identificá-la e notificá-la: um aumento pode refletir mais casos ou mais notificação. O salto observado em 2017 é tratado como possível quebra de série, a confirmar com a fonte. A taxa de notificações de violência de todas as naturezas e a tipificação por sexo e idade ainda não foram extraídas e aparecem como pendentes.
+Os dados de proteção vêm das notificações do Sinan, que registram os casos que chegaram aos serviços de saúde. Por isso, medem ao mesmo tempo a ocorrência da violência e a capacidade da rede de identificá-la e notificá-la: um aumento pode refletir mais casos ou mais notificação. O salto observado em 2017 é tratado como possível quebra de série, a confirmar com a fonte.
 
 
 

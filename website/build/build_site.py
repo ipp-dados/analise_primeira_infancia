@@ -1791,7 +1791,8 @@ for sufixo, info in FAIXAS_PRIMEIRA_INFANCIA.items():
 # não é mais gerada) -- ver specs/2026-09-22_merge-waleska-changes/specs.md
 option_card(_entries_mapas_cap_faixa, 'mapa')
 
-emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo")
+# indicador sem dado: não é mais publicado (pedido do usuário, 2026-11-05; lista em docs/dados_faltantes.csv e ROADMAP)
+# emite_bloco_pendente("Mortalidade infantil por causas evitáveis, por sexo")
 
 # ---- CadÚnico: recortes por sexo, raça/cor, arranjo familiar e renda (specs/2026-09-23_recortes_cadunico) ----
 # mês da extração lido da partição (era "jun/2026" fixo até specs/2026-10-06_cadunico_inclusao_moradia)
@@ -2193,8 +2194,10 @@ option_card([("Bairro (2026)", lambda: mapa_svg(df_m_auto, "codbairro", "casos",
     "Lesão autoprovocada notificada por bairro (2026, ano parcial)", "Notificações (2026)",
     "Sinan NET/Tabnet (SMS-Rio), até 72 meses", bins=[1, 3], zero_branco=True), "mapa_notif_autoprovocada_bairro_2026")], 'mapa')
 
-emite_bloco_pendente("Taxa de notificações de violência (todas as naturezas)")
-emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e idade)")
+# indicador sem dado: não é mais publicado (pedido do usuário, 2026-11-05; lista em docs/dados_faltantes.csv e ROADMAP)
+# emite_bloco_pendente("Taxa de notificações de violência (todas as naturezas)")
+# indicador sem dado: não é mais publicado (pedido do usuário, 2026-11-05; lista em docs/dados_faltantes.csv e ROADMAP)
+# emite_bloco_pendente("Crianças que sofrem violência, por tipificação (sexo e idade)")
 
 # ================================================================ DIREITO AO BRINCAR ==
 
