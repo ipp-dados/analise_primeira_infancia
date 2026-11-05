@@ -1,0 +1,76 @@
+% Capítulo "Alimentação" do relatório -- EDITÁVEL À MÃO (specs/2026-11-05_versao_final_site R5).
+% Exportado uma vez por gera_latex.py --exportar-capitulos (2026-11-05); desde então o TEXTO é escrito aqui, não
+% vem mais de relatorio/textos_curados.json (que é só do site). Os DADOS continuam gerados: as figuras
+% (\figura{...}{../../visualizacoes/a4/...} e mapas/a4/) saem do analise.py; as tabelas no corpo
+% (\input{gerado/tabelas_corpo/...}) e os rótulos do apêndice (\ref{tab:...}) saem do gera_latex.py, que confere
+% a cada execução se tudo o que este arquivo cita existe.
+
+\chapter{Alimentação}\label{cap:eixo-6}
+
+\begin{achados}\begin{itemize}
+
+\item O número de nascidos com baixo peso caiu de 7.817 em 2006 para 5.869 em 2025, acompanhando a queda dos nascimentos
+
+\item A proporção, porém, ficou estável entre 9,2\% e 9,7\% até 2021 e subiu para cerca de 10\% a partir de 2022 (10,0\% em 2025)
+
+\item Entre as crianças de 0 a 5 anos acompanhadas pelo SISVAN, 7,5\% tinham baixo peso para a idade em 2025
+
+\item O excesso de peso (sobrepeso e obesidade) atingiu 16,9\% em 2025, abaixo do pico de 21,5\% em 2013, mas em alta desde 2021 (12,3\%)
+
+\end{itemize}\end{achados}
+
+O eixo reúne o peso ao nascer, dos registros de nascidos vivos, e o estado nutricional das crianças de 0 a 5 anos acompanhadas nos serviços de saúde, do SISVAN. O SISVAN cobre só as crianças atendidas e pesadas na rede, não toda a população infantil, e por isso as variações anuais também refletem quem foi acompanhado. A Secretaria Municipal de Saúde recomendou separar a prematuridade do baixo peso ao nascer, classificar o excesso de peso pelo IMC por idade e sexo e incluir o aleitamento materno por Área de Planejamento; esses dados entram nas próximas edições.
+
+\section{Baixo peso ao nascer (número)}
+
+\figura{mapa}{../../mapas/a4/mapa_nascidos_baixo_peso_bairro_2025.pdf}{Nascidos com baixo peso por bairro (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-nascidos-baixo-peso-bairro-2025}
+
+A distribuição espacial dos nascidos com baixo peso em 2025 mostra maior concentração em bairros das Zona Oeste e Norte, com destaque para Campo Grande, Santa Cruz, Bangu, Jacarepaguá e Guaratiba. Em contraste, grande parte dos bairros apresenta até 30 registros. Como o mapa utiliza números absolutos, os maiores valores não indicam necessariamente maior incidência, sendo importante compará-los ao total de nascimentos de cada bairro.
+
+\vertabelas{Tabela~\ref{tab:nascidos-abaixo-peso-por-ano}; ver Apêndice~\ref{ap:eixo-6}}
+
+\section{Baixo peso ao nascer (percentual)}
+
+\figura{grafico}{../../visualizacoes/a4/nascidos_abaixo_peso_percentual_por_ano.pdf}{Percentual Nascidos com baixo peso por ano}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}. Nota: Eixo não começa em zero.}{graf:nascidos-abaixo-peso-percentual-por-ano}
+
+Entre 2006 e 2025, o percentual de nascidos com baixo peso apresentou oscilações moderadas. Após permanecer próximo de 9,5\% até 2010, o indicador caiu e atingiu seu menor valor em 2017, com 9,15\%. A partir de 2018, observa-se uma tendência de crescimento, chegando ao pico de 10,39\% em 2023. Nos anos seguintes houve pequena redução, com o percentual chegando a 10,00\% em 2025.
+
+\figura{mapa}{../../mapas/a4/mapa_percentual_baixo_peso_bairro_2025.pdf}{\% de nascidos com baixo peso por bairro (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Escala de cor limitada ao percentil 95 (14,4); o valor real está na tabela do apêndice.}{mapa:mapa-percentual-baixo-peso-bairro-2025}
+
+Em 2025, a maior parte dos bairros do Rio de Janeiro apresentou percentuais de nascidos com baixo peso entre 6,7\% e 28,6\%. Alguns bairros apresentam percentuais mais elevados, chegando a valores acima de 20\%. Diferentemente dos números absolutos, o mapa percentual permite comparar melhor os bairros, pois considera a quantidade de nascidos com baixo peso em relação ao total de nascimentos. Valores extremos devem ser analisados com cautela, especialmente em bairros com poucos nascimentos.
+
+\vertabelas{Tabela~\ref{tab:nascidos-abaixo-peso-por-ano}; ver Apêndice~\ref{ap:eixo-6}}
+
+\section{Desnutrição SISVAN (número)}
+
+\vertabelas{Tabela~\ref{tab:sisvan-desnutricao-por-ano}; ver Apêndice~\ref{ap:eixo-6}}
+
+\section{Desnutrição SISVAN (percentual)}
+
+\figura{grafico}{../../visualizacoes/a4/sisvan_desnutricao_percentual_por_ano.pdf}{Percentual de crianças de 0 a 5 anos com baixo peso - SISVAN}{Elaboração IPP com dados de \citeonline{ms_sisvan}.}{graf:sisvan-desnutricao-percentual-por-ano}
+
+Ao longo da série, o percentual de crianças com baixo peso para a idade (desnutrição) apresentou oscilações, permanecendo na maior parte dos anos entre 3\% e 7\%. O principal destaque ocorreu em 2018, quando o indicador atingiu 15,5\%, valor muito acima dos outros anos. Após esse pico, o percentual retorna a níveis mais próximos do padrão da série, chegando a 7,5\% em 2025. O valor de 2018 se destaca como um ponto fora do comportamento geral e merece atenção ao ser analisado.
+
+\vertabelas{Tabela~\ref{tab:sisvan-desnutricao-por-ano}; ver Apêndice~\ref{ap:eixo-6}}
+
+\section{Sobrepeso SISVAN (número)}
+
+\vertabelas{Tabela~\ref{tab:sisvan-sobrepeso-por-ano}; ver Apêndice~\ref{ap:eixo-6}}
+
+\section{Sobrepeso SISVAN (percentual)}
+
+\figura{grafico}{../../visualizacoes/a4/sisvan_sobrepeso_percentual_por_ano.pdf}{Percentual de crianças de 0 a 5 anos com sobrepeso e obesidade - SISVAN}{Elaboração IPP com dados de \citeonline{ms_sisvan}.}{graf:sisvan-sobrepeso-percentual-por-ano}
+
+O percentual de crianças com sobrepeso apresentou oscilações ao longo da série. O indicador cresce até atingir seu maior valor em 2013, com 21,48\%, e depois passa a apresentar redução, chegando a 12,30\% em 2021. A partir de 2022, observa-se nova elevação, alcançando 16,89\% em 2025.
+
+\figura{grafico}{../../visualizacoes/a4/sisvan_obesidade_percentual_por_ano.pdf}{Percentual de crianças de 0 a 5 anos com obesidade - SISVAN}{Elaboração IPP com dados de \citeonline{ms_sisvan}.}{graf:sisvan-obesidade-percentual-por-ano}
+
+O percentual de crianças com obesidade, semelhante ao com sobrepeso, também apresentou oscilações ao longo da série. Após crescimento entre 2008 e 2013, o indicador atingiu seu maior valor em 2013, com 11,36\%. Nos anos seguintes houve tendência de redução, chegando a 5,36\% em 2020. A partir de 2022, os valores permaneceram relativamente estáveis, com leve aumento recente, alcançando 7,34\% em 2025.
+
+\vertabelas{Tabela~\ref{tab:sisvan-sobrepeso-por-ano}; ver Apêndice~\ref{ap:eixo-6}}
+
+\section{Síntese do eixo}
+
+\begin{sintese}{Alimentação}A desnutrição e o excesso de peso convivem na primeira infância carioca. A proporção de baixo peso ao nascer não caiu com os nascimentos e voltou a subir nos últimos anos, o que reforça a atenção ao pré-natal já apontada no eixo Prioridade. O crescimento recente do excesso de peso indica a necessidade de ações de alimentação saudável desde os primeiros anos.\end{sintese}
+
+\eixo{7}{7}{house}

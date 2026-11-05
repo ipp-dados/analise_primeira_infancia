@@ -235,7 +235,14 @@ def secoes_indicadores(subsecoes, info_por_arquivo, tabs, rotulo_ap, cmd="sectio
             rotulo = f"tab:{rotulo_label(Path(nome).stem)}"
             ROTULO_POR_ASSINATURA.setdefault(tabelas.assinatura(caminho), rotulo)
             info = info_por_arquivo.get("tabelas_finais/" + nome, {})
-            tex.append(tabelas.tabela_latex(caminho, sub["titulo"], legenda_fonte(info, "tabela"), rotulo, no_corpo=True))
+            # specs/2026-11-05_versao_final_site R5: a tabela continua gerada dos dados (gerado/tabelas_corpo/), o capítulo
+            # (editável à mão em capitulos/) só tem o \input
+            _dest = GERADO / "tabelas_corpo" / f"{Path(nome).stem}.tex"
+            _dest.parent.mkdir(parents=True, exist_ok=True)
+            _dest.write_text("% Gerado por gera_latex.py -- não editar à mão.\n"
+                             + tabelas.tabela_latex(caminho, sub["titulo"], legenda_fonte(info, "tabela"), rotulo, no_corpo=True),
+                             encoding="utf-8")
+            tex.append(rf"\input{{gerado/tabelas_corpo/{Path(nome).stem}}}")
             tex.append(texto(Path(nome).stem))
         refs = []
         for nome in lista(c.get("tabela")):
@@ -404,12 +411,75 @@ def aviso_em_desenvolvimento():
             "\\AtBeginDocument{\\tikz[overlay]\\node[text opacity=0.16, opacity=0.16]{};}\n")
 
 
+CAPITULOS = LATEX / "capitulos"          # capítulos editáveis à mão (specs/2026-11-05_versao_final_site R5)
+RESUMO_TEX = LATEX / "pretextual" / "resumo.tex"
+_NOME_ARQ_CAP = ["00_introducao", "01_prioridade", "02_inclusao", "03_familia_e_cuidados", "04_protecao",
+                 "05_direito_ao_brincar", "06_alimentacao", "07_moradia", "08_consideracoes_finais"]
+_CABECALHO_CAP = (
+    "% Capítulo \"{nome}\" do relatório -- EDITÁVEL À MÃO (specs/2026-11-05_versao_final_site R5).\n"
+    "% Exportado uma vez por gera_latex.py --exportar-capitulos (2026-11-05); desde então o TEXTO é escrito aqui, não\n"
+    "% vem mais de relatorio/textos_curados.json (que é só do site). Os DADOS continuam gerados: as figuras\n"
+    "% (\\figura{{...}}{{../../visualizacoes/a4/...}} e mapas/a4/) saem do analise.py; as tabelas no corpo\n"
+    "% (\\input{{gerado/tabelas_corpo/...}}) e os rótulos do apêndice (\\ref{{tab:...}}) saem do gera_latex.py, que confere\n"
+    "% a cada execução se tudo o que este arquivo cita existe.\n\n")
+
+
+def capitulos_congelados():
+    return CAPITULOS.is_dir() and any(CAPITULOS.glob("*.tex"))
+
+
+def exporta_capitulos(corpo, forcar=False):
+    """Divide o corpo gerado em um arquivo por \\chapter (capitulos/NN_<nome>.tex) e congela o resumo."""
+    partes = re.split(r"(?m)^(?=\\chapter\{)", corpo)
+    caps = [p for p in partes if p.startswith("\\chapter{")]
+    assert len(caps) == len(_NOME_ARQ_CAP), f"{len(caps)} capítulos, esperados {len(_NOME_ARQ_CAP)}"
+    CAPITULOS.mkdir(exist_ok=True)
+    for arq, cap in zip(_NOME_ARQ_CAP, caps):
+        destino = CAPITULOS / f"{arq}.tex"
+        if destino.exists() and not forcar:
+            raise SystemExit(f"{destino} já existe -- os capítulos são editados à mão; use --forcar só para recomeçar do zero")
+        nome = re.match(r"\\chapter\{([^}]*)\}", cap).group(1)
+        destino.write_text(_CABECALHO_CAP.format(nome=nome) + cap.rstrip() + "\n", encoding="utf-8")
+    if not RESUMO_TEX.exists() or forcar:
+        RESUMO_TEX.write_text("% Resumo do relatório -- EDITÁVEL À MÃO (exportado em 2026-11-05; specs/2026-11-05_versao_final_site R5).\n"
+                              + resumo(), encoding="utf-8")
+    print(f"{len(caps)} capítulos exportados para {CAPITULOS.relative_to(RAIZ)}; resumo em {RESUMO_TEX.relative_to(RAIZ)}")
+
+
+def confere_capitulos():
+    """Tudo o que os capítulos citam existe? Figuras (arquivo), tabelas no corpo (arquivo) e rótulos de tabela do
+    apêndice (\\label em gerado/apendices.tex ou nos próprios capítulos). Devolve a lista de problemas."""
+    problemas = []
+    rotulos = set(re.findall(r"\\label\{([^}]*)\}", (GERADO / "apendices.tex").read_text(encoding="utf-8")))
+    for t in (GERADO / "tabelas_corpo").glob("*.tex"):
+        rotulos |= set(re.findall(r"\\label\{([^}]*)\}", t.read_text(encoding="utf-8")))
+    # sem as linhas de comentário (o cabeçalho de cada capítulo cita exemplos como gerado/tabelas_corpo/...)
+    textos = {f: re.sub(r"(?m)^\s*%.*$", "", f.read_text(encoding="utf-8")) for f in sorted(CAPITULOS.glob("*.tex"))}
+    for txt in textos.values():
+        rotulos |= set(re.findall(r"\\label\{([^}]*)\}", txt))
+        rotulos |= set(re.findall(r"\\figura\{[^}]*\}\{[^}]*\}\{(?:[^{}]|\{[^{}]*\})*\}\{(?:[^{}]|\{[^{}]*\})*\}\{([^}]*)\}", txt))
+    for f, txt in textos.items():
+        for caminho in re.findall(r"\\figura\{[^}]*\}\{([^}]*)\}", txt):
+            if not (LATEX / caminho).resolve().exists():
+                problemas.append(f"{f.name}: figura não encontrada: {caminho}")
+        for inc in re.findall(r"\\input\{(gerado/[^}]*)\}", txt):
+            if not (LATEX / f"{inc}.tex").exists():
+                problemas.append(f"{f.name}: arquivo gerado não encontrado: {inc}.tex")
+        for ref in re.findall(r"\\ref\{(tab:[^}]*)\}", txt):
+            if ref not in rotulos:
+                problemas.append(f"{f.name}: tabela citada sem rótulo: {ref}")
+    return problemas
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sem-pdf", action="store_true")
     ap.add_argument("--eixo", type=int)
     ap.add_argument("--publicar", action="store_true",
                     help="copia o PDF para relatorio/analise_primeira_infancia.pdf (só com o documento inteiro)")
+    ap.add_argument("--exportar-capitulos", action="store_true",
+                    help="uma vez só: grava os capítulos gerados em capitulos/*.tex (editáveis à mão) e o resumo")
+    ap.add_argument("--forcar", action="store_true", help="com --exportar-capitulos: sobrescreve capítulos já editados")
     args = ap.parse_args()
 
     estrutura = parse_estrutura_eixos(str(RAIZ / "specs/estrutura_eixos.md"))
@@ -422,8 +492,16 @@ def main():
 
     GERADO.mkdir(exist_ok=True)
     subprocess.run([sys.executable, str(AQUI / "gera_icones.py")], check=True, cwd=RAIZ, capture_output=True)
-    corpo, apends = capitulos(estrutura, info, args.eixo)
-    (GERADO / "capitulos.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n" + corpo, encoding="utf-8")
+    corpo, apends = capitulos(estrutura, info, args.eixo)   # sempre: os rótulos do apêndice e as tabelas no corpo saem daqui
+    if args.exportar_capitulos:
+        if args.eixo is not None:
+            raise SystemExit("--exportar-capitulos só com o documento inteiro")
+        exporta_capitulos(corpo, forcar=args.forcar)
+    congelado = capitulos_congelados()
+    if not congelado:   # antes da exportação: o comportamento antigo (capítulos gerados)
+        (GERADO / "capitulos.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n" + corpo, encoding="utf-8")
+    elif (GERADO / "capitulos.tex").exists():
+        (GERADO / "capitulos.tex").unlink()   # não deixar uma cópia velha que pareça a fonte
     if args.eixo is not None:   # só os apêndices da parte gerada (0 = Introdução, N = eixo N)
         alvo = "ap:introducao" if args.eixo == 0 else f"ap:eixo-{args.eixo}"
         apends = [a if a[1] == alvo else (a[0], a[1], []) for a in apends]
@@ -435,15 +513,23 @@ def main():
               if not re.search(r"^\s*so_site\s*=\s*\{sim\}", m.group(2), re.M)]
     (GERADO / "nocite.tex").write_text("% Gerado por gera_latex.py.\n\\nocite{" + ",".join(chaves) + "}\n",
                                        encoding="utf-8")
-    (GERADO / "resumo.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n" + resumo(), encoding="utf-8")
+    if not RESUMO_TEX.exists():
+        (GERADO / "resumo.tex").write_text("% Gerado por gera_latex.py -- não editar à mão.\n" + resumo(), encoding="utf-8")
     (GERADO / "aviso.tex").write_text(aviso_em_desenvolvimento(), encoding="utf-8")
-    print(f"Introdução + {len(eixos_politica(estrutura))} eixos; {len(FALLBACK)} figuras ainda sem variante A4 (usando a PNG de tela); "
-          f"{len(EM_LOREM)} textos em lorem: {', '.join(EM_LOREM[:8])}{' …' if len(EM_LOREM) > 8 else ''}")
+    if congelado:
+        problemas = confere_capitulos()
+        if problemas:
+            raise SystemExit("Capítulos citam o que não existe:\n  " + "\n  ".join(problemas))
+        print(f"Capítulos de {CAPITULOS.relative_to(RAIZ)} (editados à mão) conferidos: figuras, tabelas no corpo e rótulos existem; "
+              f"{len(FALLBACK)} figuras ainda sem variante A4")
+    else:
+        print(f"Introdução + {len(eixos_politica(estrutura))} eixos; {len(FALLBACK)} figuras ainda sem variante A4 (usando a PNG de tela); "
+              f"{len(EM_LOREM)} textos em lorem: {', '.join(EM_LOREM[:8])}{' …' if len(EM_LOREM) > 8 else ''}")
     # tabela_no_texto também leva o texto curado da mesma chave (não é "sem figura")
     usados = {Path(n).stem for e in estrutura for s in e["subsecoes"] for f in ("visualização", "mapa", "tabela_no_texto")
               for n in lista(s["campos"].get(f))}
     sem_figura = sorted(k for k in TEXTOS if k not in usados and k not in ("introducao", "notas_projeto_metodologia") and not k.startswith(("conclusao-", "resumo", "consideracoes")))
-    if sem_figura:
+    if sem_figura and not congelado:
         print(f"Textos curados sem figura no relatório ({len(sem_figura)}): {', '.join(sem_figura)}")
     if not args.sem_pdf:
         compila(publicar=args.publicar and args.eixo is None)

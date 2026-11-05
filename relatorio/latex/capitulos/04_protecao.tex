@@ -1,0 +1,112 @@
+% Capítulo "Proteção" do relatório -- EDITÁVEL À MÃO (specs/2026-11-05_versao_final_site R5).
+% Exportado uma vez por gera_latex.py --exportar-capitulos (2026-11-05); desde então o TEXTO é escrito aqui, não
+% vem mais de relatorio/textos_curados.json (que é só do site). Os DADOS continuam gerados: as figuras
+% (\figura{...}{../../visualizacoes/a4/...} e mapas/a4/) saem do analise.py; as tabelas no corpo
+% (\input{gerado/tabelas_corpo/...}) e os rótulos do apêndice (\ref{tab:...}) saem do gera_latex.py, que confere
+% a cada execução se tudo o que este arquivo cita existe.
+
+\chapter{Proteção}\label{cap:eixo-4}
+
+\begin{achados}\begin{itemize}
+
+\item As notificações de violência familiar contra crianças de 0 a 5 anos cresceram muito desde 2011: em 2025, foram 1.756 envolvendo a mãe e 1.404 envolvendo o pai, contra 324 e 135
+
+\item Em 2025, foram 4,5 notificações por mil crianças envolvendo a mãe e 3,6 envolvendo o pai
+
+\item A Zona Oeste concentra os registros: a CAP 5.2 tem as maiores taxas (12,1 por mil para a mãe e 10,7 para o pai), e Santíssimo, Bangu e Guaratiba lideram em número
+
+\item Entre os “outros vínculos”, o padrasto responde por 73 das 110 notificações de 2025
+
+\item As notificações de lesão autoprovocada passaram de 7 em oito anos (2018 a 2025) para 33 só em 2026, ainda parcial, o que sugere mudança no registro
+
+\end{itemize}\end{achados}
+
+Os dados de proteção vêm das notificações do Sinan, que registram os casos que chegaram aos serviços de saúde. Por isso, medem ao mesmo tempo a ocorrência da violência e a capacidade da rede de identificá-la e notificá-la: um aumento pode refletir mais casos ou mais notificação. O salto observado em 2017 é tratado como possível quebra de série, a confirmar com a fonte. A taxa de notificações de violência de todas as naturezas e a tipificação por sexo e idade ainda não foram extraídas e aparecem como pendentes.
+
+\section{Violência familiar (0 a 5 anos, por vínculo do provável autor)}
+
+\figura{grafico}{../../visualizacoes/a4/violencia_familiar_serie_vinculos.pdf}{Notificações de violência familiar contra crianças de 0 a 5 anos, por vínculo (2011-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sinan}.}{graf:violencia-familiar-serie-vinculos}
+
+As notificações de violência familiar apresentaram oscilações ao longo da série, com aumento acentuado em 2017 e redução nos anos seguintes. Entre 2011 e 2025, os registros envolvendo o vínculo materno passaram de 324 para 1.756 notificações, enquanto os relacionados ao vínculo paterno passaram de 135 para 1.404. Em 2025, foram registradas 110 notificações classificadas em outros vínculos. A mudança observada em 2017 é indicada no gráfico como possível quebra de série, hipótese que requer confirmação junto à fonte. Os diferentes vínculos permitem acompanhar a composição das notificações ao longo do período.
+
+\figura{grafico}{../../visualizacoes/a4/violencia_familiar_taxa_municipio_ano.pdf}{Notificações de violência familiar por 1.000 crianças de 0 a 5 anos, por vínculo (2011-2025)}{Elaboração IPP com dados de \citeonline{ms_ripsa_populacao}; \citeonline{sms_rio_sinan}.}{graf:violencia-familiar-taxa-municipio-ano}
+
+A taxa de notificações de violência familiar apresentou oscilações ao longo da série, com aumento acentuado em 2017 e nova elevação a partir de 2022. Em 2025, foram registradas 4,47 notificações por 1.000 crianças de 0 a 5 anos para o vínculo materno e 3,57 para o paterno, enquanto outros vínculos apresentaram 0,28. A mudança observada em 2017 é indicada no gráfico como possível quebra de série, hipótese que requer confirmação junto à fonte. A utilização da taxa permite comparar as notificações ao longo do período considerando a variação da população de 0 a 5 anos.
+
+\figura{mapa}{../../mapas/a4/mapa_violencia_familiar_mae_taxa_ra_2025.pdf}{Notificações de violência (mãe) por 1.000 crianças de 0 a 4 anos, por RA (2025)}{Elaboração IPP com dados de \citeonline{ipp_datario_censo}; \citeonline{sms_rio_sinan}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-violencia-familiar-mae-taxa-ra-2025}
+
+Em 2025, a taxa de notificações de violência familiar envolvendo o vínculo materno variou entre as Regiões Administrativas, de 0,00 a 18,65 notificações por 1.000 crianças de 0 a 4 anos. As maiores taxas foram registradas em Guaratiba (18,65), Penha (9,86) e Campo Grande (9,82), enquanto Paquetá (0,00) e Vila Isabel (0,52) apresentaram as menores. O recorte por RA permite comparar a distribuição territorial das notificações considerando o tamanho da população infantil de cada região. A taxa utiliza como denominador a população de 0 a 4 anos do Censo 2022.
+
+\figura{mapa}{../../mapas/a4/mapa_violencia_familiar_pai_taxa_ra_2025.pdf}{Notificações de violência (pai) por 1.000 crianças de 0 a 4 anos, por RA (2025)}{Elaboração IPP com dados de \citeonline{ipp_datario_censo}; \citeonline{sms_rio_sinan}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-violencia-familiar-pai-taxa-ra-2025}
+
+Em 2025, a taxa de notificações de violência familiar envolvendo o vínculo paterno variou entre as Regiões Administrativas, de 0,00 a 15,26 notificações por 1.000 crianças de 0 a 4 anos. As maiores taxas foram registradas em Guaratiba (15,26), Campo Grande (9,18) e Bangu (8,54), enquanto Paquetá (0,00), Complexo da Maré (0,58) e Rocinha (0,95) apresentaram as menores. O recorte por RA permite comparar a distribuição territorial das notificações considerando a população infantil de cada região. A taxa utiliza como denominador a população de 0 a 4 anos do Censo 2022.
+
+\figura{mapa}{../../mapas/a4/mapa_violencia_familiar_outros_taxa_ra_2021_2025.pdf}{Notificações de violência (outros vínculos) por 1.000 crianças de 0 a 4 anos, por RA (2021-2025)}{Elaboração IPP com dados de \citeonline{ipp_datario_censo}; \citeonline{sms_rio_sinan}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-violencia-familiar-outros-taxa-ra-2021-2025}
+
+No período de 2021 a 2025, a taxa de notificações de violência familiar classificadas como “outros vínculos” variou entre as Regiões Administrativas, de 0,00 a 7,68 notificações por 1.000 crianças de 0 a 4 anos. As maiores taxas foram registradas em Guaratiba (7,68), Centro (3,62) e São Cristóvão (2,57), enquanto Paquetá (0,00), Complexo da Maré (0,12) e Botafogo (0,14) apresentaram as menores. O recorte territorial permite comparar a ocorrência das notificações entre as regiões considerando a população infantil de cada uma.
+
+\vertabelas{Tabela~\ref{tab:violencia-familiar-por-vinculo-ano}, Tabela~\ref{tab:violencia-familiar-taxa-municipio-ano}; ver Apêndice~\ref{ap:eixo-4}}
+
+\section{Violência familiar — composição de “outros” vínculos}
+
+\figura{grafico}{../../visualizacoes/a4/violencia_familiar_outros_serie.pdf}{Vínculos agrupados em “outros” (2011-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sinan}.}{graf:violencia-familiar-outros-serie}
+
+Entre 2011 e 2025, as notificações classificadas como “outros vínculos” passaram de 22 para 110 registros. Em 2025, o padrasto representou a maior parcela desse agrupamento, com 73 notificações, seguido pelo irmão, com 26. Cônjuge, ex-cônjuge e filho somaram os 11 registros restantes. A composição desse agrupamento permite identificar quais vínculos concentram as notificações classificadas como “outros” e acompanhar sua participação ao longo da série.
+
+\vertabelas{Tabela~\ref{tab:violencia-familiar-por-vinculo-ano}; ver Apêndice~\ref{ap:eixo-4}}
+
+\section{Violência familiar — bairros com mais notificações (2025)}
+
+\figura{grafico}{../../visualizacoes/a4/violencia_familiar_top_bairros_2025.pdf}{Dez bairros com mais notificações de violência familiar (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sinan}.}{graf:violencia-familiar-top-bairros-2025}
+
+Em 2025, Santíssimo concentrou o maior número de notificações entre os dez bairros selecionados, com 165 registros envolvendo o vínculo materno e 132 o paterno. Bangu e Guaratiba também apresentaram volumes elevados, com 127 e 116 notificações maternas, respectivamente, e 121 e 100 paternas. A comparação entre os dois vínculos permite observar como as notificações se distribuem entre os bairros selecionados. A seleção considera os dez bairros com maior número de notificações envolvendo o vínculo materno, portanto o conjunto apresentado não corresponde necessariamente aos dez bairros com maiores registros para o vínculo paterno.
+
+\figura{grafico}{../../visualizacoes/a4/violencia_familiar_taxa_top_bairros_2025.pdf}{Dez maiores taxas de notificação por 1.000 crianças de 0 a 4 anos (2025)}{Elaboração IPP com dados de \citeonline{ipp_datario_censo}; \citeonline{sms_rio_sinan}.}{graf:violencia-familiar-taxa-top-bairros-2025}
+
+Em 2025, entre os bairros com pelo menos 100 crianças de 0 a 4 anos, Barra de Guaratiba apresentou a maior taxa de notificações para os dois vínculos, com 206,73 por 1.000 crianças para mãe e 163,46 para pai. Pedra de Guaratiba e Santíssimo também apresentaram taxas elevadas para ambos os vínculos. A comparação entre os bairros considera a população infantil como denominador, permitindo analisar as notificações de forma proporcional ao número de crianças. A seleção contempla apenas bairros com 100 ou mais crianças de 0 a 4 anos, conforme o critério utilizado na construção do indicador.
+
+\figura{mapa}{../../mapas/a4/mapa_violencia_familiar_mae_bairro_2025.pdf}{Notificações de violência familiar por bairro — mãe (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sinan}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-violencia-familiar-mae-bairro-2025}
+
+Em 2025, as notificações de violência familiar envolvendo o vínculo materno foram distribuídas entre os 166 bairros do município, com registros que variaram de 0 a 165 casos. Santíssimo apresentou o maior número, com 165 notificações, seguido por Bangu, com 127, e Guaratiba, com 116. Inhoaíba registrou 81 casos e Senador Camará, 60. O recorte por bairro permite identificar como os registros se distribuem territorialmente e comparar diferentes áreas do município. A informação complementa os recortes por Região Administrativa e por taxa, permitindo analisar as notificações tanto em números absolutos quanto em relação à população infantil.
+
+\figura{mapa}{../../mapas/a4/mapa_violencia_familiar_pai_bairro_2025.pdf}{Notificações de violência familiar por bairro — pai (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sinan}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-violencia-familiar-pai-bairro-2025}
+
+O recorte por bairro permite relacionar as notificações de violência familiar envolvendo o vínculo paterno às características demográficas de cada território. Em 2025, foram registradas 1.404 notificações nos 166 bairros, sendo 353 concentradas em Santíssimo, Bangu e Guaratiba. Ao mesmo tempo, 37 bairros não apresentaram registros e a mediana foi de 3 notificações por bairro, indicando uma distribuição bastante desigual dos registros. Esses dados podem ser analisados em conjunto com a população infantil de cada bairro e com as notificações dos demais vínculos familiares, permitindo comparar os registros absolutos com sua ocorrência proporcional e identificar diferenças entre os recortes territoriais.
+
+\figura{mapa}{../../mapas/a4/mapa_violencia_familiar_outros_bairro_2021_2025.pdf}{Notificações de violência familiar por bairro — outros vínculos (2021-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sinan}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-violencia-familiar-outros-bairro-2021-2025}
+
+O acumulado de 2021 a 2025 permite analisar a distribuição territorial das notificações de violência familiar classificadas como “outros vínculos”, considerando um período mais amplo do que um único ano. Nos 166 bairros, foram registrados 448 casos, sendo 102 concentrados em Guaratiba, Inhoaíba e Santíssimo, enquanto 64 bairros não apresentaram registros no período. Esse recorte permite observar como as notificações associadas a outros vínculos se distribuem entre os territórios e relacioná-las aos registros dos vínculos materno e paterno e à população infantil de cada bairro. A análise conjunta desses dados pode contribuir para compreender diferenças na composição das notificações de violência familiar entre os territórios.
+
+\vertabelas{Tabela~\ref{tab:violencia-familiar-taxa-por-bairro}; ver Apêndice~\ref{ap:eixo-4}}
+
+\section{Violência familiar — por CAP}
+
+\input{gerado/tabelas_corpo/violencia_familiar_por_cap}
+
+Em 2025, as notificações de violência familiar apresentaram diferentes volumes entre as dez CAPs do município. A CAP 5.2 concentrou o maior número para todos os vínculos: 531 notificações envolvendo a mãe e 472 o pai, com taxas de 12,07 e 10,73 por mil crianças de 0 a 4 anos, as mais altas do município. Foram registrados 110 casos classificados como “outros vínculos”, também com maior concentração na CAP 5.2, que contabilizou 36 notificações. Quando os registros são relacionados à população de 0 a 4 anos, as taxas também evidenciam diferenças entre os territórios, variando de 0,09 a 0,82 notificações por mil crianças. Esse recorte permite analisar a ocorrência de “outros vínculos” considerando o tamanho da população infantil de cada CAP, além de possibilitar sua comparação com os registros dos vínculos materno e paterno e com os diferentes recortes territoriais.
+
+\section{Notificações de violência interpessoal/\allowbreak{}autoprovocada (menores de 1 ano, 1 a 5 anos)}
+
+\figura{grafico}{../../visualizacoes/a4/notif_autoprovocada_antes_2026_vs_2026.pdf}{Lesão autoprovocada notificada, 0 a 5 anos: 2018-2025 x 2026}{Elaboração IPP com dados de \citeonline{sms_rio_sinan}.}{graf:notif-autoprovocada-antes-2026-vs-2026}
+
+A série de notificações de lesão autoprovocada entre crianças de 0 a 5 anos apresenta baixa ocorrência nos anos anteriores a 2026, com 7 registros acumulados entre 2018 e 2025, distribuídos em apenas quatro anos. Em 2026, foram contabilizadas 33 notificações, ainda em período parcial, indicando uma diferença que requer cautela na comparação entre os períodos. Os registros de 2026 estão distribuídos em 21 bairros, permitindo observar também a dimensão territorial desse fenômeno. O recorte pode servir de base para acompanhar a evolução dos registros e analisar sua distribuição entre os bairros, considerando a incompletude de 2026.
+
+\figura{mapa}{../../mapas/a4/mapa_notif_autoprovocada_bairro_2026.pdf}{Lesão autoprovocada notificada por bairro (2026, ano parcial)}{Elaboração IPP com dados de \citeonline{sms_rio_sinan}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-notif-autoprovocada-bairro-2026}
+
+Em 2026, as 33 notificações de lesão autoprovocada entre crianças de 0 a 5 anos foram registradas em 21 dos 166 bairros do município, enquanto 145 não apresentaram registros no período. Parque Colúmbia concentrou cinco notificações, seguido por Vista Alegre e Santíssimo, com três cada. A distribuição territorial permite identificar onde os registros estão presentes e observar sua concentração em determinados bairros, mas a ausência de notificações não deve ser interpretada isoladamente como ausência do fenômeno. O recorte pode ser relacionado à população infantil e às informações de anos anteriores, contribuindo para acompanhar a distribuição territorial dos registros e suas variações ao longo do tempo.
+
+\vertabelas{Tabela~\ref{tab:tabela-mapa-notif-autoprovocada-2026}; ver Apêndice~\ref{ap:eixo-4}}
+
+\section{Taxa de notificações de violência (todas as naturezas)}
+
+\begin{pendente}Indicador previsto na Política Integrada da Primeira Infância, ainda sem dado disponível para o município nesta edição. Será incluído quando a fonte for incorporada. A taxa de notificações de violência em geral, não apenas familiar, ainda não foi extraída do Sinan.\end{pendente}
+
+\section{Crianças que sofrem violência, por tipificação (sexo e idade)}
+
+\begin{pendente}Indicador previsto na Política Integrada da Primeira Infância, ainda sem dado disponível para o município nesta edição. Será incluído quando a fonte for incorporada. Os dados por tipo de violência, sexo e idade ainda não foram extraídos do Tabnet municipal.\end{pendente}
+
+\section{Síntese do eixo}
+
+\begin{sintese}{Proteção}A violência familiar na primeira infância é notificada sobretudo com a mãe e o pai como prováveis autores, e se concentra no território: a Zona Oeste reúne os maiores números e as maiores taxas. Como as notificações dependem da rede que identifica e registra os casos, as diferenças entre regiões precisam ser lidas também à luz da cobertura dos serviços. O crescimento recente das notificações de lesão autoprovocada pede atenção à qualidade do registro antes de qualquer conclusão sobre o fenômeno.\end{sintese}
+
+\eixo{5}{7}{toy-brick}

@@ -165,6 +165,14 @@ Não dependem de código; entram no projeto quando chegarem.
    Data.Rio, como no deck — `fonte:` em `specs/estrutura_eixos.md`, `fonte_dados` dos 3 mapas em `analise.py` (e as
    versões A4), o texto no `website/build/build_site.py`, a entrada/`padroes` em `relatorio/latex/fontes.bib` e os
    textos curados que citem o IPS (decisão da equipe); depois regerar site, PDF e DOCX.
+7. **Skill de mapas exportável** (pedido do usuário, 2026-11-05): transformar a skill `generate_map`
+   (`.claude/skills/generate_map/SKILL.md`) numa skill autocontida e exportável para outros projetos -- mapa
+   coroplético por bairro/AP/RP/RA/CAP com fundo cartográfico, rosa dos ventos, escala, vizinhos e rodapé, versão de
+   tela (PNG) e de impressão (A4/PDF) e mapa de referência só com contornos (como `mapa_referencia_a4` e o mapa da
+   Visão geral do site). Inclui o código (hoje em `primeira_infancia/mapas.py` e `impressao.py`), as camadas de
+   `dados_locais/geo/` necessárias ou instruções para obtê-las, as convenções do projeto (classes discretas para
+   contagem, escala contínua para taxa, sem azul em terra) e um empacotamento para instalar (plugin/skill do Claude
+   Code e pacote Python). Anda junto com o item 4 (empacotar scripts reutilizáveis).
 
 ## 4. Backlog por tema
 

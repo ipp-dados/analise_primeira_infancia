@@ -1,0 +1,52 @@
+% Capítulo "Inclusão" do relatório -- EDITÁVEL À MÃO (specs/2026-11-05_versao_final_site R5).
+% Exportado uma vez por gera_latex.py --exportar-capitulos (2026-11-05); desde então o TEXTO é escrito aqui, não
+% vem mais de relatorio/textos_curados.json (que é só do site). Os DADOS continuam gerados: as figuras
+% (\figura{...}{../../visualizacoes/a4/...} e mapas/a4/) saem do analise.py; as tabelas no corpo
+% (\input{gerado/tabelas_corpo/...}) e os rótulos do apêndice (\ref{tab:...}) saem do gera_latex.py, que confere
+% a cada execução se tudo o que este arquivo cita existe.
+
+\chapter{Inclusão}\label{cap:eixo-2}
+
+\begin{achados}\begin{itemize}
+
+\item Há aproximadamente 8 mil famílias com crianças com algum tipo de deficiência
+
+\item Entre as cerca de 7,9 mil crianças com deficiência, os tipos mais registrados são transtorno mental (3,7 mil) e deficiência mental ou intelectual (3,3 mil); uma criança pode ter os dois
+
+\item O BPC chega a cerca de 25\% das famílias com crianças com algum tipo de deficiência
+
+\end{itemize}\end{achados}
+
+Os dados de crianças com deficiência são oriundos exclusivamente do cadastro único. Dessa forma, não necessariamente refletem toda a primeira infância carioca, mas são relevantes para a parcela mais socialmente vulnerável. A predominância é de transtornos mentais e deficiência mental ou intelectual. Um percentual baixo (menos de 25\%) das famílias recebe Benefício de Prestação Continuada em função da deficiência. Como uma criança pode ter mais de um tipo de deficiência a soma do número de casos por tipo de deficiência ultrapassa o total de crianças.
+
+\section{Crianças no CadÚnico com alguma deficiência}
+
+\figura{mapa}{../../mapas/a4/mapa_percentual_cadunico_criancas_deficiencia_bairro_2026.pdf}{\% de crianças até 72 meses com deficiência no CadÚnico, por bairro}{Elaboração IPP com dados de \citeonline{mds_cadunico}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Escala de cor limitada ao percentil 95 (5,1); o valor real está na tabela do apêndice.}{mapa:mapa-percentual-cadunico-criancas-deficiencia-bairro-2026}
+
+A proporção de crianças com deficiência varia pouco entre os bairros: quase nove em cada dez ficam entre 3\% e 5\%, perto da média do município (3,9\%). Entre os bairros com valor próprio, os maiores percentuais estão em Pechincha (6,5\%), Itanhangá e Méier (6,0\% cada), Padre Miguel (5,3\%) e Caju (5,1\%). Pechincha e Méier têm só 25 crianças com deficiência cada; por isso pequenas diferenças no número mudam bastante o percentual. Os menores valores estão em Manguinhos (2,4\%), Cidade de Deus (2,5\%) e Acari (2,7\%). Em números absolutos, Campo Grande (446) e Santa Cruz (421) concentram mais crianças com deficiência. Para proteger os dados, 69 bairros com poucos casos aparecem somados a outros da mesma Região Administrativa e mostram a taxa do conjunto.
+
+\input{gerado/tabelas_corpo/cadunico_deficiencia_criancas_0_a_5_2026}
+
+Das 200.784 crianças até 72 meses inscritas no CadÚnico em julho de 2026, 7.919 têm alguma deficiência registrada, o que corresponde a 3,9\% do total. O dado se refere apenas às crianças cadastradas e depende do que a família declarou no cadastro: não é uma estimativa da prevalência de deficiência entre todas as crianças da cidade.
+
+\vertabelas{Tabela~\ref{tab:tabela-mapa-cadunico-deficiencia-bairro-2026}; ver Apêndice~\ref{ap:eixo-2}}
+
+\section{Famílias no CadÚnico com criança com deficiência}
+
+\input{gerado/tabelas_corpo/cadunico_deficiencia_familias_0_a_5_2026}
+
+São 7.810 famílias com ao menos uma criança até 72 meses com deficiência, 4,4\% das 178.838 famílias com crianças nessa faixa no CadÚnico. Entre as 6.335 famílias com a informação preenchida, 1.530 (24,2\%) recebem o Benefício de Prestação Continuada (BPC) por deficiência; outras 1.475 não têm o dado. O BPC é registrado para a família, por isso o benefício pode se referir a qualquer membro, não necessariamente à criança.
+
+\section{Crianças no CadÚnico por tipo de deficiência}
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_criancas_por_tipo_deficiencia.pdf}{CADÚNICO: Crianças até 72 meses com deficiência, por tipo}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-criancas-por-tipo-deficiencia}
+
+Os tipos mais registrados são o transtorno mental (3.662 crianças, 46,2\% das crianças com deficiência) e a deficiência mental ou intelectual (3.332, 42,1\%), seguidos da deficiência física (2.035, 25,7\%) e da síndrome de Down (359, 4,5\%). As deficiências visuais e auditivas somam poucos casos, cada tipo abaixo de 2\%. Uma mesma criança pode ter mais de um tipo registrado, por isso os percentuais não somam 100\%.
+
+\vertabelas{Tabela~\ref{tab:cadunico-tipos-deficiencia-0-a-5-2026}; ver Apêndice~\ref{ap:eixo-2}}
+
+\section{Síntese do eixo}
+
+\begin{sintese}{Inclusão}A amostra aponta que, mesmo num universo de vulnerabilidade social, há pouco alcance de benefícios sociais específicos. A co-ocorrência de diversas deficiências é também um desafio. Deficiências ligadas a surdez e baixa visão são menos frequentes, quando comparado a deficiências e transtornos mentais/intelectuais, indicando um ponto de atenção na disponibilização de serviços públicos.\end{sintese}
+
+\eixo{3}{7}{users}

@@ -1349,7 +1349,7 @@ def mapa_referencia_html():
         f'<div class="out map-svg-card ref-map-card" id="mapa-referencia" data-filename="Bairros, RAs e APs do Rio.csv" data-csv="{csv}">'
         '<button type="button" class="dl-btn" title="Baixar CSV">⭳ CSV</button>'
         '<div class="map-title">Bairros, Regiões Administrativas e Áreas de Planejamento</div>'
-        f'<div class="ref-btns" role="group" aria-label="Mostrar nomes"><span class="eyebrow">Mostrar nomes</span>{botoes}</div>'
+        f'<div class="ref-btns" role="group" aria-label="Mostrar camadas"><span class="eyebrow">Mostrar</span>{botoes}</div>'
         '<div class="map-svg-frame">'
         # zoom (pedido do usuário, 2026-11-05): o grupo .ref-zoom recebe translate/scale (js/charts.js, initMapaReferencia);
         # a rosa dos ventos fica fora dele e a barra de escala some quando há zoom (deixaria de valer)
@@ -1362,7 +1362,8 @@ def mapa_referencia_html():
         '<button type="button" class="ref-zoom-btn ref-zoom-reset" data-zoom="reset" title="Ver a cidade inteira">Ver tudo</button></div>'
         f'<div class="map-legend-overlay"><div class="eyebrow map-legend-title">Limites</div>{legenda}</div>'
         '</div>'
-        '<div class="map-ref">Use + e − (ou dois cliques) para aproximar e arraste para mover; passe o mouse (ou toque) num '
+        '<div class="map-ref">Os botões mostram os limites e os nomes de cada camada (os bairros: só os nomes). '
+        'Use + e − (ou dois cliques) para aproximar e arraste para mover; passe o mouse (ou toque) num '
         'bairro para ver a RA e a AP. Sistema de referência: SIRGAS 2000, '
         f'UTM - Fuso 23S<br>Fonte: {_esc(FONTE_LIMITES)}</div>'
         '</div>'

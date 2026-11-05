@@ -1,0 +1,66 @@
+% Capítulo "Moradia" do relatório -- EDITÁVEL À MÃO (specs/2026-11-05_versao_final_site R5).
+% Exportado uma vez por gera_latex.py --exportar-capitulos (2026-11-05); desde então o TEXTO é escrito aqui, não
+% vem mais de relatorio/textos_curados.json (que é só do site). Os DADOS continuam gerados: as figuras
+% (\figura{...}{../../visualizacoes/a4/...} e mapas/a4/) saem do analise.py; as tabelas no corpo
+% (\input{gerado/tabelas_corpo/...}) e os rótulos do apêndice (\ref{tab:...}) saem do gera_latex.py, que confere
+% a cada execução se tudo o que este arquivo cita existe.
+
+\chapter{Moradia}\label{cap:eixo-7}
+
+\begin{achados}\begin{itemize}
+
+\item Metade das crianças até 72 meses do CadÚnico (51,6\%, ou 101.477) vive em domicílio com mais de 2 pessoas por dormitório
+
+\item 43,2\% (86.393) vivem em domicílio em déficit habitacional, quase todo pelo peso do aluguel: 41,8\% estão em famílias de baixa renda que gastam mais de 30\% dela com aluguel
+
+\item A inadequação da infraestrutura ou da construção atinge 5,9\% (11.589), com os maiores números em Santa Cruz (1.068) e Guaratiba (770)
+
+\item A falta de banheiro (0,3\%) e de água canalizada (0,6\%) é rara
+
+\end{itemize}\end{achados}
+
+Os dados de moradia vêm do Cadastro Único e cobrem, portanto, as famílias de menor renda, não toda a cidade. A classificação segue a metodologia da Fundação João Pinheiro, adaptada às variáveis do cadastro: o déficit habitacional mede a necessidade de novas moradias (domicílios improvisados, rústicos, coabitação e ônus excessivo com aluguel), e a inadequação mede problemas no domicílio existente (infraestrutura e construção). O adensamento excessivo considera mais de 2 pessoas por dormitório.
+
+\section{Crianças no CadÚnico em domicílios com inadequação habitacional}
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_criancas_inadequacao_componentes.pdf}{CADÚNICO: Crianças até 72 meses em domicílio com inadequação habitacional, por componente}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-criancas-inadequacao-componentes}
+
+Segundo a aproximação da metodologia da Fundação João Pinheiro, 11.589 crianças até 72 meses do CadÚnico (5,9\%) vivem em domicílio com alguma inadequação habitacional. A maior parte se deve à infraestrutura (9.841 crianças, 5,0\%), sobretudo ao esgoto inadequado (4.676), à água sem canalização ou fora da rede geral (3.584) e ao lixo queimado, enterrado ou jogado (2.756). Os problemas da própria construção (inadequação edilícia) atingem 2.234 crianças (1,1\%): todos os cômodos usados como dormitório (1.018), piso de terra (859) e ausência de banheiro (627). Um domicílio pode ter mais de um componente.
+
+\figura{mapa}{../../mapas/a4/mapa_cadunico_inadequacao_n_bairro_2026.pdf}{Crianças até 72 meses no CadÚnico em domicílio com inadequação habitacional, por bairro (número)}{Elaboração IPP com dados de \citeonline{mds_cadunico}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-cadunico-inadequacao-n-bairro-2026}
+
+Em números absolutos, as crianças em domicílios com inadequação habitacional se concentram na Zona Oeste: Santa Cruz (1.068), Guaratiba (770) e Campo Grande (430) lideram, seguidos da Penha (308), na Zona Norte, e de Paciência (276). Os quatro primeiros são os únicos bairros com mais de 300 crianças nessa situação. Bairros com menos de 20 casos aparecem sem cor: estão somados por Região Administrativa ou Área de Planejamento na tabela.
+
+\figura{mapa}{../../mapas/a4/mapa_percentual_cadunico_inadequacao_bairro_2026.pdf}{\% de crianças até 72 meses no CadÚnico em domicílio com inadequação habitacional, por bairro}{Elaboração IPP com dados de \citeonline{mds_cadunico}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Escala de cor limitada a 20,8 (valores acima com a cor máxima); o valor real está na tabela do apêndice.}{mapa:mapa-percentual-cadunico-inadequacao-bairro-2026}
+
+Em proporção, o caso mais destacado é o Alto da Boa Vista, onde 44,1\% das crianças do CadÚnico (83 de 188) vivem em domicílio com inadequação habitacional, mais que o dobro de qualquer outro bairro; por isso ele aparece na cor máxima e fora da escala. Seguem Vargem Grande (20,8\%), Barra de Guaratiba (17,7\%), Portuguesa (16,5\%) e Penha (15,1\%). Santa Cruz e Guaratiba, que têm os maiores números, ficam em 9,3\% e 11,6\%, acima da média do município (5,9\%).
+
+\vertabelas{Tabela~\ref{tab:cadunico-inadequacao-componentes-0-a-5-2026}, Tabela~\ref{tab:tabela-mapa-cadunico-inadequacao-bairro-2026}; ver Apêndice~\ref{ap:eixo-7}}
+
+\section{Crianças no CadÚnico em domicílios com adensamento habitacional excessivo (mais de 2 pessoas por dormitório)}
+
+\figura{mapa}{../../mapas/a4/mapa_cadunico_adensamento_n_bairro_2026.pdf}{Crianças até 72 meses no CadÚnico em domicílio com adensamento excessivo, por bairro (número)}{Elaboração IPP com dados de \citeonline{mds_cadunico}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-cadunico-adensamento-n-bairro-2026}
+
+O adensamento excessivo (mais de 2 pessoas por dormitório) é o problema de moradia mais comum entre as crianças do CadÚnico, e os maiores números estão na Zona Oeste: Santa Cruz (5.681 crianças), Campo Grande (5.249), Guaratiba (3.661), Bangu (3.053) e Realengo (2.877). Como atinge cerca de metade das crianças cadastradas, o mapa de número acompanha de perto a distribuição das crianças do CadÚnico pela cidade.
+
+\figura{mapa}{../../mapas/a4/mapa_percentual_cadunico_adensamento_bairro_2026.pdf}{\% de crianças até 72 meses no CadÚnico em domicílio com adensamento excessivo, por bairro}{Elaboração IPP com dados de \citeonline{mds_cadunico}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Escala de cor limitada ao percentil 95 (56,5); o valor real está na tabela do apêndice.}{mapa:mapa-percentual-cadunico-adensamento-bairro-2026}
+
+Em 2026, 101.477 crianças até 72 meses do CadÚnico (51,6\%) vivem em domicílio com mais de 2 pessoas por dormitório. O percentual é alto em toda a cidade: mesmo os menores valores ficam acima de 30\%, como em Todos os Santos (32,3\%), Rocha (33,2\%) e Abolição (33,9\%). Os maiores estão em Vaz Lobo (61,6\%), Glória (57,9\%), São Conrado (57,8\%), Cacuia (57,5\%) e Sepetiba (56,8\%).
+
+\vertabelas{Tabela~\ref{tab:tabela-mapa-cadunico-adensamento-bairro-2026}; ver Apêndice~\ref{ap:eixo-7}}
+
+\section{Indicadores agregados de moradia (inadequação, saneamento, melhorias habitacionais)}
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_criancas_deficit_componentes.pdf}{CADÚNICO: Crianças até 72 meses em domicílio em déficit habitacional, por componente}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-criancas-deficit-componentes}
+
+Pela aproximação da metodologia da Fundação João Pinheiro, 86.393 crianças até 72 meses do CadÚnico (43,2\%) vivem em domicílio em déficit habitacional. Quase todo o déficit vem do ônus excessivo com aluguel, quando famílias com renda de até 3 salários mínimos gastam mais de 30\% dela com aluguel: são 82.081 crianças (41,8\%). Os demais componentes são bem menores: domicílio improvisado (3.436 crianças), rústico (591) e coabitação (588). Um domicílio pode ter mais de um componente.
+
+\input{gerado/tabelas_corpo/cadunico_moradia_resumo_0_a_5_2026}
+
+A tabela resume as condições de moradia das crianças até 72 meses do CadÚnico e de suas famílias. Os problemas mais frequentes são o adensamento excessivo (51,6\% das crianças) e o déficit habitacional (43,2\%), puxado pelo peso do aluguel. A inadequação habitacional atinge 5,9\%, e a falta de banheiro (0,3\%) e de água canalizada (0,6\%) é rara. Entre as famílias, os percentuais são parecidos: 48,0\% em adensamento excessivo, 42,5\% em déficit e 5,9\% em inadequação.
+
+\vertabelas{Tabela~\ref{tab:cadunico-deficit-componentes-0-a-5-2026}; ver Apêndice~\ref{ap:eixo-7}}
+
+\section{Síntese do eixo}
+
+\begin{sintese}{Moradia}O principal problema habitacional das crianças do CadÚnico não é a precariedade física da casa, que é minoritária, mas o custo do aluguel e a falta de espaço: o adensamento atinge metade delas, e o ônus excessivo com aluguel, mais de quatro em cada dez. Isso aponta para políticas de acesso à moradia e de apoio ao aluguel, além de melhorias habitacionais concentradas nos territórios com mais inadequação, como Santa Cruz e Guaratiba. Os dados das ações de melhoria habitacional do programa Territórios Sociais ainda não foram incorporados.\end{sintese}

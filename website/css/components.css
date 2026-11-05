@@ -276,6 +276,9 @@ table.plain th{color:var(--ink-3); font-weight:500; font-size:.76rem;}
 .ref-map use.ref-bairro:hover, .ref-map use.ref-bairro.toque{fill:#e9e6df; fill-opacity:.95; stroke-width:calc(.45px / var(--k)); filter:none;}   /* realce neutro, sem azul */
 .ref-map use.ref-ra{fill:none; stroke:rgba(30,30,30,.45); stroke-width:calc(1px / var(--k)); pointer-events:none; cursor:default;}
 .ref-map use.ref-ap{fill:none; stroke:rgba(20,20,20,.6); stroke-width:calc(2px / var(--k)); pointer-events:none; cursor:default;}
+/* linhas de RA e AP só com a camada ligada (pedido do usuário, 2026-11-05); os contornos dos bairros ficam sempre */
+.ref-map use.ref-ra, .ref-map use.ref-ap{display:none;}
+.ref-map.mostra-ra use.ref-ra, .ref-map.mostra-ap use.ref-ap{display:inline;}
 .ref-rot{display:none; pointer-events:none;}
 .ref-rot text{text-anchor:middle; dominant-baseline:middle; paint-order:stroke; stroke:#ffffff; stroke-linejoin:round; fill:var(--ink);}
 .ref-rot-bairro text{font-size:calc(4.6px / var(--kf)); stroke-width:calc(1.4px / var(--kf));}

@@ -44,7 +44,7 @@
 \pretextual
 \input{pretextual/capa}
 \input{pretextual/folha_rosto}
-\input{gerado/resumo}
+\input{pretextual/resumo}   % editável à mão desde 2026-11-05
 
 \pdfbookmark[0]{\listofgraficosname}{lgf}
 \listofgraficos*\cleardoublepage
@@ -58,7 +58,17 @@
 
 % ================================================================== TEXTUAIS
 \textual
-\input{gerado/capitulos}
+% capítulos editados à mão desde 2026-11-05 (specs/2026-11-05_versao_final_site R5); os dados que eles citam
+% (figuras, tabelas no corpo, rótulos do apêndice) continuam gerados por build/gera_latex.py
+\input{capitulos/00_introducao}
+\input{capitulos/01_prioridade}
+\input{capitulos/02_inclusao}
+\input{capitulos/03_familia_e_cuidados}
+\input{capitulos/04_protecao}
+\input{capitulos/05_direito_ao_brincar}
+\input{capitulos/06_alimentacao}
+\input{capitulos/07_moradia}
+\input{capitulos/08_consideracoes_finais}
 
 % ================================================================== PÓS-TEXTUAIS
 \postextual

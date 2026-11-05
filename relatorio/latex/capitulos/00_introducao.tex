@@ -1,0 +1,116 @@
+% Capítulo "Introdução" do relatório -- EDITÁVEL À MÃO (specs/2026-11-05_versao_final_site R5).
+% Exportado uma vez por gera_latex.py --exportar-capitulos (2026-11-05); desde então o TEXTO é escrito aqui, não
+% vem mais de relatorio/textos_curados.json (que é só do site). Os DADOS continuam gerados: as figuras
+% (\figura{...}{../../visualizacoes/a4/...} e mapas/a4/) saem do analise.py; as tabelas no corpo
+% (\input{gerado/tabelas_corpo/...}) e os rótulos do apêndice (\ref{tab:...}) saem do gera_latex.py, que confere
+% a cada execução se tudo o que este arquivo cita existe.
+
+\chapter{Introdução}\label{cap:introducao}
+
+O Diagnóstico da Primeira Infância, desenvolvido pela Coordenadoria de Pesquisa, Avaliação e Política Pública do Instituto Pereira Passos em parceria com a Casa Civil, apoia o desenho, a implementação e o monitoramento da nova Política Integrada da Primeira Infância e, sempre que possível, segue os eixos estruturantes da política. O diagnóstico reúne dados secundários produzidos por diferentes entidades e contou com a cooperação de diversos órgãos da Prefeitura, em especial a Secretaria de Saúde e sua Secretaria de Vigilância Sanitária.
+
+\figura{mapa}{../../mapas/a4/mapa_referencia_bairros_ra_ap.pdf}{A cidade do Rio de Janeiro: bairros, Regiões Administrativas e Áreas de Planejamento}{Elaboração IPP com dados de \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:referencia-cidade}
+
+\input{textual/como_ler}
+
+\section{Panorama da primeira infância carioca}\label{sec:panorama}
+
+\subsection{Crianças até 4 anos (número)}
+
+\figura{grafico}{../../visualizacoes/a4/censo_0_a_4_serie_total_ano.pdf}{Evolução da população de 0 a 4 anos — Censos 2000, 2010 e 2022}{Elaboração IPP com dados de \citeonline{ipp_datario_censo}.}{graf:censo-0-a-4-serie-total-ano}
+
+Os dados do Censo Demográfico 2022 permitem dimensionar a população de crianças de 0 a 4 anos no município e observar sua distribuição territorial. A análise combina a série municipal e o mapa por bairro, permitindo visualizar tanto a magnitude da população infantil quanto sua concentração no território. A leitura dos números absolutos é importante para identificar os bairros que concentram maior quantidade de crianças nessa faixa etária, mas deve considerar as diferenças no tamanho da população de cada bairro. Esse indicador contribui para contextualizar os demais resultados do relatório, especialmente aqueles relacionados à saúde, proteção social e educação na primeira infância.
+
+\figura{mapa}{../../mapas/a4/mapa_censo_0_4_absoluto.pdf}{Crianças de 0 a 4 anos de idade, por bairro (Censo 2022)}{Elaboração IPP com dados de \citeonline{ipp_datario_censo}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-censo-0-4-absoluto}
+
+O mapa apresenta a distribuição da população de 0 a 4 anos por bairro no município do Rio de Janeiro, segundo o Censo Demográfico 2022. Por apresentar números absolutos, o mapa pode ser utilizado para comparar a quantidade de crianças entre os diferentes territórios e dimensionar o tamanho desse grupo em cada bairro. A informação também serve como referência para análises que envolvam outros indicadores da primeira infância, permitindo relacionar a quantidade de crianças de cada território a diferentes características demográficas e sociais.
+
+\vertabelas{Tabela~\ref{tab:censo-0-a-4-anos-por-ano}, Tabela~\ref{tab:censo-por-bairro}; ver Apêndice~\ref{ap:introducao}}
+
+\subsection{Crianças até 4 anos (percentual)}
+
+\figura{grafico}{../../visualizacoes/a4/censo_0_a_4_serie_percentual_ano.pdf}{Percentual da população de 0 a 4 anos — Censos 2000, 2010 e 2022}{Elaboração IPP com dados de \citeonline{ipp_datario_censo}.}{graf:censo-0-a-4-serie-percentual-ano}
+
+A participação das crianças de 0 a 4 anos na população total do município diminuiu entre os Censos de 2000, 2010 e 2022. A proporção passou de aproximadamente 7,6\% em 2000 para 5,8\% em 2010 e 5,0\% em 2022. O mapa complementa essa tendência ao mostrar diferenças na participação dessa faixa etária entre os bairros. A análise percentual permite comparar territórios de diferentes tamanhos populacionais, evidenciando o peso relativo das crianças de 0 a 4 anos em cada localidade. Esse indicador contribui para caracterizar a estrutura etária do município e contextualizar as demandas relacionadas à primeira infância.
+
+\figura{mapa}{../../mapas/a4/mapa_censo_0_4_percentual.pdf}{Percentual de crianças de 0 a 4 anos, por bairro (Censo 2022)}{Elaboração IPP com dados de \citeonline{ipp_datario_censo}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Escala de cor limitada ao percentil 95 (6,8); o valor real está na tabela do apêndice.}{mapa:mapa-censo-0-4-percentual}
+
+A participação das crianças de 0 a 4 anos na população total do município diminuiu entre os Censos de 2000, 2010 e 2022. A proporção passou de aproximadamente 7,6\% em 2000 para 5,8\% em 2010 e 5,0\% em 2022. O mapa complementa essa tendência ao mostrar diferenças na participação dessa faixa etária entre os bairros. A análise percentual permite comparar territórios de diferentes tamanhos populacionais, evidenciando o peso relativo das crianças de 0 a 4 anos em cada localidade. Esse indicador contribui para caracterizar a estrutura etária do município e contextualizar as demandas relacionadas à primeira infância.
+
+\vertabelas{Tabela~\ref{tab:censo-0-a-4-anos-por-ano}; ver Apêndice~\ref{ap:introducao}}
+
+\subsection{Crianças até 72 meses (número)}
+
+\figura{grafico}{../../visualizacoes/a4/populacao_ripsa_0_a_6_por_ano.pdf}{População de 0 a 5 anos por ano (estimativas Ripsa/MS)}{Elaboração IPP com dados de \citeonline{ms_ripsa_populacao}.}{graf:populacao-ripsa-0-a-6-por-ano}
+
+As estimativas Ripsa/MS permitem estimar a evolução anual da população de 0 a 5 anos no município do Rio de Janeiro entre 2000 e 2025. Aqui vale uma nota metodológica, pois devido a diversos problemas o Censo 2022 apresentou significativa subnotificação de crianças, o que já é comum em censo demográficos, mas foi amplificado no caso citado. Dessa forma, o próprio IBGE alterou em 2024 sua metodologia de estimativa populacional para utilizar também estimativas do Ripsa/MS. Nessa estimativa, o grupo passou de 598.322 crianças em 2000 para 393.073 em 2025, redução de aproximadamente 34\% e condizente com a queda de nascidos vivos.
+
+\figura{grafico}{../../visualizacoes/a4/populacao_ripsa_0_a_6_percentual_por_ano.pdf}{Participação de 0 a 5 anos na população total (\%, estimativas Ripsa/MS)}{Elaboração IPP com dados de \citeonline{ms_ripsa_populacao}.}{graf:populacao-ripsa-0-a-6-percentual-por-ano}
+
+Proporcionalmente, a participação das crianças de 0 a 5 anos na população carioca caiu de 9,5\% em 2000 para 5,8\% em 2025. Ao longo da série, o percentual apresentou períodos de menor variação antes de retomar a queda nos anos mais recentes. O indicador permite comparar a presença relativa da primeira infância na população em diferentes momentos, complementando a análise do número absoluto de crianças e oferecendo uma referência para interpretar mudanças na composição etária do município.
+
+\vertabelas{Tabela~\ref{tab:populacao-ripsa-0-a-6-por-ano}; ver Apêndice~\ref{ap:introducao}}
+
+\subsection{Crianças até 72 meses, por sexo}
+
+\figura{grafico}{../../visualizacoes/a4/censo_sidra_populacao_0_6_sexo_2022.pdf}{População residente de 0 a 5 anos por idade e sexo (Censo 2022)}{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}{graf:censo-sidra-populacao-0-6-sexo-2022}
+
+Os dados do Censo Demográfico 2022 permitem detalhar a população de crianças de 0 a 5 anos no município do Rio de Janeiro por idade, raça/cor e sexo. A distribuição por idade possibilita observar a composição desse grupo ao longo dos primeiros anos de vida, enquanto os recortes por raça/cor e sexo ampliam a caracterização demográfica da primeira infância. Os dados são apresentados para o conjunto do município e complementam o recorte territorial de crianças de 0 a 4 anos analisado anteriormente. Essa caracterização é importante para contextualizar os indicadores de saúde, educação, proteção social e demais dimensões analisadas no relatório.
+
+\vertabelas{Tabela~\ref{tab:censo-sidra-populacao-0-6-sexo-2022}; ver Apêndice~\ref{ap:introducao}}
+
+\subsection{Crianças até 72 meses, por raça/\allowbreak{}cor}
+
+\figura{grafico}{../../visualizacoes/a4/censo_sidra_populacao_0_6_raca_2022.pdf}{População residente de 0 a 5 anos por idade e raça/cor (Censo 2022)}{Elaboração IPP com dados de \citeonline{ibge_censo2022}.}{graf:censo-sidra-populacao-0-6-raca-2022}
+
+Os dados do Censo Demográfico 2022 permitem comparar a composição da população de 0 a 5 anos por raça/cor e idade. Entre menores de 1 ano, foram registrados 26.909 crianças brancas, 21.576 pardas e 5.762 pretas. Aos 5 anos, esses números passam para 29.746, 29.837 e 9.252, respectivamente. A comparação entre as idades permite observar mudanças na distribuição dos grupos de raça/cor ao longo da primeira infância. Os dados também possibilitam relacionar essa composição a outros indicadores do relatório que utilizem raça/cor e idade como dimensões de análise.
+
+\vertabelas{Tabela~\ref{tab:censo-sidra-populacao-0-6-raca-2022}; ver Apêndice~\ref{ap:introducao}}
+
+\subsection{Nascidos vivos por bairro de residência da mãe (número)}
+
+\figura{grafico}{../../visualizacoes/a4/nascidos_vivos_por_ano.pdf}{Nascidos vivos por ano}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}.}{graf:nascidos-vivos-por-ano}
+
+A partir do gráfico de nascidos vivos é possível observar que há uma tendência de queda no número de nascidos vivos na cidade do Rio de Janeiro, com alguns períodos de recuperação. Entre os anos de 2020 e 2021, após um período com uma persistente queda acentuada, a série atinge um patamar muito baixo, período que coincide com o pico da pandemia da COVID-19, e a queda continua nos anos seguintes. Logo, a queda, ainda que não linear, é consistente e aponta para uma redução de cerca de 30\% ao longo da série histórica.
+
+\figura{mapa}{../../mapas/a4/mapa_nascidos_vivos_bairro_2025.pdf}{Nascidos vivos por bairro (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-nascidos-vivos-bairro-2025}
+
+Quando se olha para a distribuição espacial desses nascidos vivos pelo território carioca, há uma maior concentração deles na AP5 (Santa Cruz, Campo Grande e Bangu, por exemplo) e AP4 (Jacarepaguá, Barra da Tijuca, Recreio e Taquara, por exemplo). Ao passo que na AP 2, principalmente na Zona Sul há uma quantidade menor. Ficando a AP3 com uma quantidade intermediária.
+
+\vertabelas{Tabela~\ref{tab:nascidos-vivos-por-ano}, Tabela~\ref{tab:tabela-mapa-mortalidade-infantil-2025}; ver Apêndice~\ref{ap:introducao}}
+
+\subsection{Nascidos vivos por bairro de residência da mãe (percentual)}
+
+\figura{mapa}{../../mapas/a4/mapa_nascidos_vivos_bairro_2025.pdf}{Nascidos vivos por bairro (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-nascidos-vivos-bairro-2025}
+
+Quando se olha para a distribuição espacial desses nascidos vivos pelo território carioca, há uma maior concentração deles na AP5 (Santa Cruz, Campo Grande e Bangu, por exemplo) e AP4 (Jacarepaguá, Barra da Tijuca, Recreio e Taquara, por exemplo). Ao passo que na AP 2, principalmente na Zona Sul há uma quantidade menor. Ficando a AP3 com uma quantidade intermediária.
+
+\vertabelas{Tabela~\ref{tab:tabela-mapa-mortalidade-infantil-2025}; ver Apêndice~\ref{ap:introducao}}
+
+\section{Os eixos da política}
+
+\begin{itemize}
+
+\item \textbf{Eixo 1 --- Prioridade} (Capítulo~\ref{cap:eixo-1}): 15 indicadores, 1 em desenvolvimento.
+
+\item \textbf{Eixo 2 --- Inclusão} (Capítulo~\ref{cap:eixo-2}): 3 indicadores.
+
+\item \textbf{Eixo 3 --- Família e Cuidados} (Capítulo~\ref{cap:eixo-3}): 8 indicadores.
+
+\item \textbf{Eixo 4 --- Proteção} (Capítulo~\ref{cap:eixo-4}): 7 indicadores, 2 em desenvolvimento.
+
+\item \textbf{Eixo 5 --- Direito ao Brincar} (Capítulo~\ref{cap:eixo-5}): 1 indicador.
+
+\item \textbf{Eixo 6 --- Alimentação} (Capítulo~\ref{cap:eixo-6}): 6 indicadores.
+
+\item \textbf{Eixo 7 --- Moradia} (Capítulo~\ref{cap:eixo-7}): 3 indicadores.
+
+\end{itemize}
+
+\section{Notas sobre o projeto e metodologia}\label{sec:notas-metodologia}
+
+Este é um produto vivo, que pode e deve ser atualizado à medida que surgirem novos dados ou novas necessidades; sugestões e pedidos, sobretudo de gestores de políticas públicas, são bem-vindos. Todas as tabelas de dados produzidas estão disponíveis, o código usado na extração e no processamento dos dados é aberto, e o diagnóstico tem uma versão interativa e uma versão em PDF.
+
+Produzir estatísticas abaixo do nível municipal é sempre um desafio: a maior parte da produção estatística brasileira tem o município como menor unidade, e as exceções, como os Censos Demográficos, são esporádicas. Por isso, combinamos fontes distintas, que não foram concebidas para comparação, e registros administrativos, sujeitos a mudanças na coleta ao longo do tempo. Os dados também não permitem identificar causas, e o período inclui a epidemia de Zika (2015-2016), a Covid-19 (2020-2021) e a recessão de 2015-2016. Por isso, recomendamos usá-los como um mapa que oriente a construção de indicadores sensíveis a cada contexto, e não como metas em si mesmas.
+
+\eixo{1}{7}{target}

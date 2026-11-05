@@ -1,0 +1,306 @@
+% Capítulo "Prioridade" do relatório -- EDITÁVEL À MÃO (specs/2026-11-05_versao_final_site R5).
+% Exportado uma vez por gera_latex.py --exportar-capitulos (2026-11-05); desde então o TEXTO é escrito aqui, não
+% vem mais de relatorio/textos_curados.json (que é só do site). Os DADOS continuam gerados: as figuras
+% (\figura{...}{../../visualizacoes/a4/...} e mapas/a4/) saem do analise.py; as tabelas no corpo
+% (\input{gerado/tabelas_corpo/...}) e os rótulos do apêndice (\ref{tab:...}) saem do gera_latex.py, que confere
+% a cada execução se tudo o que este arquivo cita existe.
+
+\chapter{Prioridade}\label{cap:eixo-1}
+
+\begin{achados}\begin{itemize}
+
+\item Número de nascimentos e mortalidade infantil em queda
+
+\item Redução da participação da primeira infância na população
+
+\item Mudança no perfil demográfico varia nas regiões da cidade
+
+\item Zona Oeste concentra nascimentos e deve ser a origem da maior demanda nos próximos anos
+
+\item Na Zona Norte, as crianças pequenas pesam na população o mesmo que na média da cidade (5,0\%), mas os indicadores são mais precários, indicando prevalência de problemas estruturais não solucionados
+
+\end{itemize}\end{achados}
+
+A principal linha guia para ler este diagnóstico é a mudança no padrão demográfico da população carioca. O Rio de Janeiro está envelhecendo e com isso a primeira infância reflete uma parcela cada vez menor da população total. A principal causa do fenômeno reside na redução de nascimentos, mesmo em face de redução da mortalidade infantil. Esse processo tende a produzir uma menor demanda quantitativa por serviços orientados a primeira infância, mas é esperado também um aumento da demanda qualitativa, condizente com a mudança de padrão de cuidados a crianças em famílias menos numerosas. Como consequência, as expectativas dos cidadãos frente aos serviços públicos dessa faixa etária devem aumentar, especialmente no que concerne à saúde, educação, moradia adequada e oferta de espaços para socialização.
+
+\section{Taxa de mortalidade neonatal precoce (0 a 6 dias)}
+
+\figura{grafico}{../../visualizacoes/a4/taxa_mortalidade_precoce_ano.pdf}{Taxa de óbitos precoces por ano}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}.}{graf:taxa-mortalidade-precoce-ano}
+
+A série histórica permite analisar a evolução da mortalidade neonatal precoce em relação ao número de nascidos vivos no município. Entre 2006 e 2025, a taxa passou de 6,86 para 5,68 óbitos por mil nascidos vivos, embora tenha apresentado oscilações ao longo do período. Em 2024, foram registrados 322 óbitos, o menor número da série, seguido de aumento para 333 em 2025. A leitura conjunta da taxa e dos números absolutos permite distinguir mudanças na ocorrência dos óbitos de variações relacionadas ao número de nascidos vivos, servindo como base para comparações temporais e para o cruzamento com outros indicadores de mortalidade infantil.
+
+\figura{mapa}{../../mapas/a4/mapa_taxa_mortalidade_precoce_bairro_2025.pdf}{Taxa de óbitos precoces (0-6 dias) por bairro (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Escala de cor limitada ao percentil 95 (16,6); o valor real está na tabela do apêndice.}{mapa:mapa-taxa-mortalidade-precoce-bairro-2025}
+
+A taxa de mortalidade neonatal precoce permite comparar os bairros considerando o número de nascidos vivos de cada território, evitando a interpretação baseada apenas na quantidade de óbitos. Em 2025, alguns bairros apresentam taxas elevadas associadas a poucos registros de óbitos e a um número reduzido de nascidos vivos, como Gericinó, com 1 óbito entre 16 nascidos vivos, e Ribeira, com 1 entre 22. Por isso, a leitura territorial da taxa deve considerar também o número absoluto de óbitos e o tamanho do denominador. Esses dados podem servir de base para comparar os territórios e aprofundar a análise em conjunto com outros indicadores.
+
+\vertabelas{Tabela~\ref{tab:mortalidade-neonatal-precoce-por-ano}, Tabela~\ref{tab:tabela-mapa-mortalidade-infantil-2025}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Taxa de mortalidade neonatal tardia (7 a 27 dias)}
+
+\figura{grafico}{../../visualizacoes/a4/taxa_obitos_tardios_ano.pdf}{Taxa de óbitos tardios por ano}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}.}{graf:taxa-obitos-tardios-ano}
+
+A série histórica permite acompanhar a evolução da mortalidade neonatal tardia em relação ao número de nascidos vivos. Entre 2006 e 2025, a taxa passou de 2,17 para 2,43 óbitos por mil nascidos vivos, com oscilações ao longo do período. O maior valor ocorreu em 2020 (2,79), enquanto o menor foi registrado em 2011 (1,95). No mesmo período, os óbitos tardios passaram de 178 para 142. A leitura conjunta desses indicadores permite diferenciar a variação no número de óbitos da variação proporcional em relação aos nascidos vivos e serve de base para comparações temporais com outros indicadores de mortalidade infantil.
+
+\figura{mapa}{../../mapas/a4/mapa_taxa_obitos_tardios_bairro_2025.pdf}{Taxa de óbitos tardios (7-27 dias) por bairro (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Escala de cor limitada ao percentil 95 (8,4); o valor real está na tabela do apêndice.}{mapa:mapa-taxa-obitos-tardios-bairro-2025}
+
+A taxa de mortalidade neonatal tardia permite comparar os bairros considerando o número de nascidos vivos de cada território. Em 2025, alguns bairros apresentam taxas elevadas mesmo com apenas um óbito, como Cidade Nova, com 1 óbito entre 41 nascidos vivos, e Riachuelo, com 1 entre 63. Dos 159 bairros da tabela, 88 não registraram óbitos tardios. Por isso, a leitura da taxa deve considerar conjuntamente o número de óbitos e o número de nascidos vivos, especialmente nos territórios com menor número de nascimentos. O indicador pode servir de base para comparações territoriais e cruzamentos com outros dados de mortalidade infantil.
+
+\vertabelas{Tabela~\ref{tab:mortalidade-neonatal-tardia-por-ano}, Tabela~\ref{tab:tabela-mapa-mortalidade-infantil-2025}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Taxa de mortalidade na primeira infância (menores de 1, 1-4, 0-5 anos)}
+
+\figura{grafico}{../../visualizacoes/a4/taxa_mortalidade_infantil_ano.pdf}{Taxa de mortalidade infantil (0-364 dias) por ano}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}.}{graf:taxa-mortalidade-infantil-ano}
+
+A série histórica apresenta oscilações entre 2006 e 2025, com redução até 2017, quando atingiu 11,26 óbitos por mil nascidos vivos. A partir de 2018, observa-se uma retomada gradual, chegando a 12,35 em 2024 e 12,33 em 2025. A comparação ao longo do período permite identificar mudanças no comportamento do indicador e relacioná-las às variações no número de óbitos e de nascidos vivos. A trajetória também pode ser analisada em conjunto com os diferentes componentes da mortalidade na primeira infância.
+
+\figura{grafico}{../../visualizacoes/a4/taxa_mortalidade_pos_neonatal_ano.pdf}{Taxa de mortalidade pós-neonatal (28-364 dias) por ano}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}.}{graf:taxa-mortalidade-pos-neonatal-ano}
+
+Ao longo da série, o indicador apresenta oscilações, com valores mais elevados no início do período e redução até 2020, quando atingiu 3,69 óbitos por mil nascidos vivos. A partir de 2021, observa-se retomada dos valores, chegando a 4,35 em 2024 e 4,24 em 2025. A comparação entre os anos permite identificar mudanças no comportamento desse componente da mortalidade infantil e verificar como sua trajetória se relaciona às variações observadas na taxa de mortalidade infantil total.
+
+\figura{mapa}{../../mapas/a4/mapa_taxa_mortalidade_pos_neonatal_bairro_2025.pdf}{Taxa de mortalidade pós-neonatal (28-364 dias) por bairro (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Escala de cor limitada ao percentil 95 (12,3); o valor real está na tabela do apêndice.}{mapa:mapa-taxa-mortalidade-pos-neonatal-bairro-2025}
+
+A taxa permite comparar os bairros considerando o número de nascidos vivos de cada território. Em 2025, os maiores valores ocorreram em Cidade Nova (48,78 por mil), Camorim (33,33) e Barra de Guaratiba (20,41). Esses valores correspondem a poucos registros de óbitos: 2 em Cidade Nova, 1 em Camorim e 1 em Barra de Guaratiba. A leitura conjunta da taxa com o número de óbitos e de nascidos vivos é importante para contextualizar as diferenças entre os territórios, especialmente nos bairros com menor número de nascimentos.
+
+\vertabelas{Tabela~\ref{tab:mortalidade-infantil-pos-neonatal-total-por-ano}, Tabela~\ref{tab:tabela-mapa-mortalidade-infantil-2025}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Óbitos maternos durante a gravidez}
+
+\figura{grafico}{../../visualizacoes/a4/obitos_gravidez_por_ano.pdf}{Óbitos durante gravidez por ano}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}.}{graf:obitos-gravidez-por-ano}
+
+A série histórica permite acompanhar a variação dos óbitos ocorridos durante a gravidez no município entre 2006 e 2025. O número de registros passou de 58 em 2006 para 14 em 2025, uma redução de aproximadamente 76\%, embora a trajetória apresente oscilações ao longo do período. Em 2024 foram registrados 4 óbitos, seguido de aumento para 14 em 2025. Por se tratar de número absoluto de óbitos, o indicador permite acompanhar a evolução temporal do evento, mas não representa, isoladamente, uma medida de risco. A série pode servir de base para comparações com outros indicadores de mortalidade materna.
+
+\vertabelas{Tabela~\ref{tab:obitos-gravidez-por-ano}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Óbitos maternos durante o puerpério}
+
+\figura{grafico}{../../visualizacoes/a4/obitos_puerperio_por_ano.pdf}{Óbitos durante puerpério por ano}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}.}{graf:obitos-puerperio-por-ano}
+
+A série histórica permite acompanhar a variação dos óbitos ocorridos durante o puerpério entre 2006 e 2025. Os registros passaram de 48 em 2006 para 29 em 2025, com oscilações ao longo do período. Destaca-se o aumento observado em 2020 e 2021, quando foram registrados 63 e 79 óbitos, respectivamente, seguido de redução nos anos posteriores. Em 2024 ocorreu o menor número da série, com 25 óbitos, seguido de 29 em 2025. A série pode ser utilizada para comparações temporais com outros indicadores de mortalidade materna.
+
+\vertabelas{Tabela~\ref{tab:obitos-puerperio-por-ano}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Mortalidade infantil por raça/\allowbreak{}cor (menores de 1 ano)}
+
+\figura{grafico}{../../visualizacoes/a4/obitos_raca_ano.pdf}{Óbitos de 0 a 364 dias por raça/cor (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}.}{graf:obitos-raca-ano}
+
+A série permite observar mudanças distintas na trajetória dos óbitos segundo raça/cor. Entre 2006 e 2025, os registros para crianças brancas passaram de 468 para 253, enquanto entre crianças pardas passaram de 373 para 375, após oscilações e valores superiores a 500 em alguns anos. Entre crianças pretas, os registros passaram de 89 para 53. A categoria “não informada” também apresentou redução, de 167 para 42, o que altera sua participação na série ao longo do período. Essas diferenças podem ser analisadas em conjunto com os nascidos vivos por raça/cor, disponíveis a partir de 2011, para distinguir composição dos nascimentos e ocorrência dos óbitos.
+
+\figura{grafico}{../../visualizacoes/a4/percentual_mortalidade_raca_ano.pdf}{Taxa de mortalidade infantil (0-364 dias) por raça/cor, por mil nascidos vivos (2011-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}. Nota: A categoria “Não informada” aparece só no gráfico de óbitos.}{graf:percentual-mortalidade-raca-ano}
+
+A relação entre óbitos e nascidos vivos evidencia diferenças na mortalidade infantil que não aparecem apenas na contagem absoluta. Entre 2011 e 2025, as taxas de crianças brancas e pardas permaneceram próximas, variando de 17,6 a 11,2 e de 19,7 a 10,2 óbitos por mil nascidos vivos, respectivamente. Para crianças pretas, a taxa variou entre 5,0 e 14,3 por mil, enquanto a categoria amarela e indígena, agrupada por ter poucos registros, apresenta oscilações maiores associadas ao pequeno número de casos. A categoria “não informada” aparece só no gráfico de óbitos: a razão entre óbitos e nascidos sem raça/cor informada não é uma taxa comparável às demais. Essas características devem ser consideradas em comparações entre os grupos e na análise da série histórica.
+
+\figura{mapa}{../../mapas/a4/mapa_taxa_obitos_raca_total_bairro_2025.pdf}{Taxa de mortalidade infantil (0-364 dias) por bairro (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}; \citeonline{sms_rio_sinasc}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Escala de cor limitada ao percentil 95 (30,4); o valor real está na tabela do apêndice.}{mapa:mapa-taxa-obitos-raca-total-bairro-2025}
+
+A taxa de mortalidade infantil permite comparar os bairros considerando a relação entre os óbitos e os nascidos vivos de cada território. Em 2025, Cidade Nova apresentou a maior taxa registrada, de 73,2 óbitos por mil nascidos vivos, com 3 óbitos entre 41 nascidos vivos, seguida por Gericinó, com 62,5 por mil (1 óbito entre 16 nascidos vivos). Ribeira apresentou 45,5 por mil, com 1 óbito entre 22 nascidos vivos. A comparação entre taxa, número de óbitos e nascidos vivos permite qualificar a leitura das diferenças territoriais e serve de base para relacionar o indicador a outros recortes da mortalidade infantil.
+
+\vertabelas{Tabela~\ref{tab:tabela-mapa-mortalidade-infantil-2025}, Tabela~\ref{tab:mortalidade-raca-municipio-ano}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias)}
+
+\figura{grafico}{../../visualizacoes/a4/obitos_evitaveis_total_cap_ano.pdf}{Total de óbitos (todas as causas), menores de 5 anos, por CAP (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-evitaveis-total-cap-ano}
+
+A série permite acompanhar a evolução dos óbitos de menores de 5 anos nas diferentes Áreas Programáticas de Saúde (CAP) e comparar como esses registros variam entre os territórios ao longo do tempo. No conjunto das CAPs, os óbitos passaram de 1.311 em 2006 para 856 em 2025, com redução ao longo da série, embora tenha ocorrido aumento entre 2024 e 2025, de 819 para 856 registros. A distribuição territorial também apresenta diferenças importantes em 2025, com 150 óbitos na CAP 4.0 e 131 na CAP 3.3. Esses dados podem ser relacionados à composição das causas e ao percentual de óbitos evitáveis em cada CAP.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_evitaveis_cap_menores_1_ano_ano.pdf}{Óbitos por causas evitáveis, menores de 1 ano, por CAP (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-evitaveis-cap-menores-1-ano-ano}
+
+A série permite acompanhar a variação dos óbitos classificados como causas evitáveis entre as CAPs ao longo do período. No conjunto das CAPs, os registros passaram de 755 em 2006 para 491 em 2025, embora com oscilações ao longo da série. Em 2025, a CAP 4.0 apresentou 89 óbitos, a CAP 3.3 registrou 84 e a CAP 5.2, 67. A distribuição entre as CAPs pode ser relacionada ao percentual de óbitos evitáveis e às demais categorias de causas presentes na base, permitindo analisar como a quantidade de óbitos e sua composição variam entre os territórios.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_evitaveis_cap_1_a_4_anos_ano.pdf}{Óbitos por causas evitáveis, de 1 a 4 anos, por CAP (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-evitaveis-cap-1-a-4-anos-ano}
+
+A série apresenta a variação dos óbitos classificados como causas evitáveis entre as CAPs para crianças de 1 a 4 anos. As contagens são reduzidas em comparação com a faixa de menores de 1 ano e apresentam oscilações entre os anos e territórios. Em 2025, os registros variaram entre as CAPs, sem que pequenas diferenças anuais devam ser interpretadas isoladamente. A série pode ser utilizada para acompanhar a ocorrência do evento ao longo do tempo e relacioná-la à distribuição das demais causas de óbito nessa faixa etária, mantendo a ressalva de que o pequeno número de registros limita comparações mais detalhadas entre CAPs.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_evitaveis_cap_menores_5_anos_ano.pdf}{Óbitos por causas evitáveis, menores de 5 anos, por CAP (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}. Nota: Agrega os recortes de menores de 1 ano e de 1 a 4 anos.}{graf:obitos-evitaveis-cap-menores-5-anos-ano}
+
+A série permite acompanhar a ocorrência de óbitos por causas evitáveis na primeira infância e observar como esse conjunto se distribui entre as CAPs ao longo do período. Como a faixa de menores de 5 anos reúne os óbitos de menores de 1 ano e de 1 a 4 anos, o indicador oferece uma visão agregada da ocorrência de causas evitáveis nessa etapa da vida. A comparação entre as CAPs pode ser complementada pela análise separada das duas faixas etárias, permitindo verificar em que grupo etário se concentram as diferenças observadas e relacioná-las à composição das demais causas de óbito.
+
+\figura{grafico}{../../visualizacoes/a4/percentual_evitaveis_cap_menores_1_ano_ano.pdf}{Percentual de óbitos evitáveis, menores de 1 ano, por CAP (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:percentual-evitaveis-cap-menores-1-ano-ano}
+
+O percentual permite analisar a participação das causas evitáveis no conjunto dos óbitos de menores de 1 ano em cada CAP, complementando a leitura feita a partir dos números absolutos. Ao longo da série, os valores oscilam entre as CAPs e entre os anos, mostrando que a composição dos óbitos varia mesmo quando a quantidade absoluta de registros apresenta comportamento semelhante. A comparação desse indicador com o número total de óbitos permite distinguir mudanças na quantidade de ocorrências de mudanças na participação das causas evitáveis. O indicador também pode ser relacionado às demais categorias de causas presentes na base para aprofundar a análise territorial.
+
+\figura{grafico}{../../visualizacoes/a4/percentual_evitaveis_cap_1_a_4_anos_ano.pdf}{Percentual de óbitos evitáveis, de 1 a 4 anos, por CAP (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:percentual-evitaveis-cap-1-a-4-anos-ano}
+
+O percentual permite analisar a participação das causas evitáveis no conjunto dos óbitos de crianças de 1 a 4 anos em cada CAP. A série apresenta oscilações entre os territórios e os anos, especialmente em uma faixa etária com menor número absoluto de registros. Em alguns anos, determinadas CAPs atingem valores próximos ou iguais a 100\%, indicando que os óbitos registrados naquele recorte foram classificados como evitáveis. Por isso, o percentual deve ser analisado junto ao número absoluto de óbitos, permitindo distinguir mudanças na composição das causas de variações decorrentes do pequeno número de registros.
+
+\figura{grafico}{../../visualizacoes/a4/percentual_evitaveis_cap_menores_5_anos_ano.pdf}{Percentual de óbitos evitáveis, menores de 5 anos, por CAP (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}. Nota: Agrega os recortes de menores de 1 ano e de 1 a 4 anos.}{graf:percentual-evitaveis-cap-menores-5-anos-ano}
+
+O percentual permite analisar a participação das causas evitáveis no conjunto dos óbitos de menores de 5 anos em cada CAP. Ao longo da série, os valores apresentam oscilações entre os territórios, permitindo observar mudanças na composição dos óbitos ao longo do tempo. Como esse recorte reúne as faixas de menores de 1 ano e de 1 a 4 anos, o indicador oferece uma visão agregada da participação das causas evitáveis na primeira infância. A análise conjunta com o número absoluto de óbitos permite distinguir alterações na proporção de causas evitáveis de variações no volume total de registros.
+
+\figura{grafico}{../../visualizacoes/a4/taxa_mortalidade_evitaveis_menores_5_ano.pdf}{Taxa de mortalidade por causas evitáveis (\textless{} 5 anos), por mil nascidos vivos (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:taxa-mortalidade-evitaveis-menores-5-ano}
+
+A taxa relaciona os óbitos por causas evitáveis ao número de nascidos vivos, permitindo acompanhar a ocorrência do indicador ao longo do tempo. Em 2006, foram registrados 1.353 óbitos e taxa de 16,48 por mil nascidos vivos. Em 2025, foram 856 óbitos e 14,58 por mil, enquanto o menor valor da série ocorreu em 2014, com 13,10 por mil. A trajetória apresenta oscilações, inclusive nos anos mais recentes, quando a taxa passou de 14,28 em 2022 para 14,97 em 2023, 14,28 em 2024 e 14,58 em 2025. A série permite acompanhar conjuntamente a ocorrência dos óbitos e sua relação com os nascidos vivos.
+
+\figura{mapa}{../../mapas/a4/mapa_obitos_evitaveis_menores_1_ano_cap_2025.pdf}{Óbitos por causas evitáveis, menores de 1 ano, por CAP (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-obitos-evitaveis-menores-1-ano-cap-2025}
+
+A distribuição territorial dos óbitos por causas evitáveis permite comparar a quantidade de registros entre as CAPs em 2025. Entre os menores de 1 ano, foram registrados 491 óbitos, sendo 89 na CAP 4.0, 84 na CAP 3.3 e 67 na CAP 5.2. Como são números absolutos, essa distribuição pode ser analisada em conjunto com o total de óbitos e o percentual de causas evitáveis de cada CAP. O cruzamento entre esses indicadores permite distinguir diferenças no volume de registros de diferenças na participação das causas evitáveis.
+
+\figura{mapa}{../../mapas/a4/mapa_obitos_evitaveis_1_a_4_anos_cap_2025.pdf}{Óbitos por causas evitáveis, de 1 a 4 anos, por CAP (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-obitos-evitaveis-1-a-4-anos-cap-2025}
+
+A distribuição territorial permite comparar os registros de óbitos por causas evitáveis entre as CAPs para crianças de 1 a 4 anos em 2025. A CAP 3.3 apresentou 12 óbitos, seguida pelas CAPs 5.3, com 10, e 5.1, com 9. Como essa faixa etária apresenta números absolutos menores, as diferenças entre as CAPs devem ser interpretadas junto ao total de óbitos de cada território. O percentual de causas evitáveis complementa essa leitura, permitindo verificar quanto esses registros representam dentro do conjunto de óbitos de cada CAP.
+
+\figura{mapa}{../../mapas/a4/mapa_obitos_evitaveis_menores_5_anos_cap_2025.pdf}{Óbitos por causas evitáveis, menores de 5 anos, por CAP (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Agrega os recortes de menores de 1 ano e de 1 a 4 anos.}{mapa:mapa-obitos-evitaveis-menores-5-anos-cap-2025}
+
+Em 2025, foram registrados 557 óbitos por causas evitáveis entre menores de 5 anos. A maior concentração ocorreu nas CAPs 4.0 e 3.3, com 96 óbitos cada, seguidas pela CAP 5.2, com 74. O cruzamento com as faixas etárias mostra que os óbitos evitáveis de menores de 1 ano respondem pela maior parte dos registros em todas as CAPs. Na CAP 4.0, por exemplo, foram 89 dos 96 óbitos evitáveis; na CAP 3.3, 84 dos 96. Assim, o mapa de menores de 5 anos deve ser lido em conjunto com os recortes etários anteriores, que ajudam a identificar onde está concentrada essa ocorrência.
+
+\figura{mapa}{../../mapas/a4/mapa_percentual_evitaveis_menores_1_ano_cap_2025.pdf}{Proporção de óbitos evitáveis entre os óbitos, menores de 1 ano, por CAP (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-percentual-evitaveis-menores-1-ano-cap-2025}
+
+O percentual permite observar a participação das causas evitáveis no conjunto dos óbitos de menores de 1 ano em cada CAP, complementando o mapa de números absolutos. A comparação entre os dois indicadores ajuda a distinguir territórios com maior quantidade de óbitos daqueles em que as causas evitáveis representam uma parcela maior do total registrado. Essa leitura também permite identificar situações em que CAPs com volumes diferentes apresentam proporções semelhantes ou distintas. O indicador pode ainda ser relacionado à série histórica por CAP, verificando se as diferenças observadas em 2025 acompanham ou se afastam do comportamento registrado nos anos anteriores.
+
+\figura{mapa}{../../mapas/a4/mapa_percentual_evitaveis_1_a_4_anos_cap_2025.pdf}{Proporção de óbitos evitáveis entre os óbitos, de 1 a 4 anos, por CAP (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-percentual-evitaveis-1-a-4-anos-cap-2025}
+
+O percentual evidencia quanto as causas evitáveis representam do conjunto de óbitos de crianças de 1 a 4 anos em cada CAP, permitindo uma leitura diferente daquela obtida pelos números absolutos. Nesse recorte, em que os registros são menos numerosos, diferenças na proporção podem resultar de pequenas variações na quantidade de óbitos. Por isso, o indicador ganha maior significado quando analisado junto aos números absolutos e ao percentual das demais faixas etárias. A comparação com o mapa de menores de 1 ano também permite verificar se a participação das causas evitáveis apresenta comportamento territorial semelhante ou diferente entre os grupos etários.
+
+\figura{mapa}{../../mapas/a4/mapa_percentual_evitaveis_menores_5_anos_cap_2025.pdf}{Proporção de óbitos evitáveis entre os óbitos, menores de 5 anos, por CAP (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Agrega os recortes de menores de 1 ano e de 1 a 4 anos.}{mapa:mapa-percentual-evitaveis-menores-5-anos-cap-2025}
+
+O percentual mostra o peso das causas evitáveis no conjunto dos óbitos de menores de 5 anos em cada CAP. Em 2025, a participação variou de 40,00\% na CAP 2.1 a 75,00\% na CAP 2.2. A comparação com os números absolutos acrescenta contexto à leitura: a CAP 2.2 teve 15 óbitos evitáveis entre 20 registros, enquanto a CAP 3.3 teve 96 entre 131. Assim, o percentual permite analisar a composição dos óbitos sem confundi-la com o volume de registros, e pode ser relacionado aos recortes de menores de 1 ano e de 1 a 4 anos.
+
+\vertabelas{\texttt{mortalidade\_\allowbreak{}evitaveis\_\allowbreak{}cap\_\allowbreak{}faixa\_\allowbreak{}ano.csv} (formato digital), Tabela~\ref{tab:mortalidade-evitaveis-cap-2025}, Tabela~\ref{tab:taxa-mortalidade-evitaveis-menores-5-municipio-ano}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/\allowbreak{}subgrupo CID-10)}
+
+\figura{grafico}{../../visualizacoes/a4/obitos_causas_evitaveis_grupo_ano.pdf}{Óbitos por causas evitáveis (0-364 dias) por grupo (1996-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-causas-evitaveis-grupo-ano}
+
+Entre 1996 e 2025, observa-se uma redução expressiva dos óbitos de crianças de 0 a 364 dias por causas evitáveis. O número caiu de cerca de 1,5 mil registros no início da série para 502 em 2025. As causas mal definidas também apresentaram forte redução, chegando a 15 registros, enquanto as demais causas recuaram de forma mais moderada, alcançando 206 óbitos em 2025.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_causas_evitaveis_subgrupo_ano.pdf}{Óbitos por causas evitáveis (0-364 dias) por subgrupo (1996-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-causas-evitaveis-subgrupo-ano}
+
+Nos subgrupos de causas evitáveis, observa-se redução ao longo da série na maior parte das categorias. Os óbitos reduzíveis por adequada atenção à mulher na gestação permanecem como o principal grupo em 2025, com 263 registros. Também houve queda expressiva nos óbitos relacionados à atenção ao recém-nascido, que passaram de 543 em 1996 para 67 em 2025, enquanto aqueles relacionados à atenção à mulher no parto chegaram a 68 registros.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_causas_evitaveis_grupo_0_a_6_dias_ano.pdf}{Óbitos por causas evitáveis (0-6 dias) por grupo (1996-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-causas-evitaveis-grupo-0-a-6-dias-ano}
+
+Entre 1996 e 2025, os óbitos de crianças de 0 a 6 dias apresentaram queda expressiva.  As causas evitáveis permaneceram como o principal grupo durante toda a série, reduzindo-se para 269 registros em 2025. No mesmo ano, as demais causas somaram 62 óbitos, enquanto as causas mal definidas ficaram em apenas 2 registros.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_causas_evitaveis_subgrupo_0_a_6_dias_ano.pdf}{Óbitos por causas evitáveis (0-6 dias) por subgrupo (1996-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-causas-evitaveis-subgrupo-0-a-6-dias-ano}
+
+Entre 1996 e 2025, os óbitos de crianças de 0 a 6 dias apresentaram redução em praticamente todos os subgrupos. As causas reduzíveis por atenção à mulher na gestação permaneceram como o principal componente, chegando a 183 registros em 2025. Também houve queda importante nos óbitos relacionados à atenção ao recém-nascido e à atenção à mulher no parto, enquanto as causas mal definidas ficaram em apenas 2 registros no final da série.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_causas_evitaveis_grupo_7_a_27_dias_ano.pdf}{Óbitos por causas evitáveis (7-27 dias) por grupo (1996-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-causas-evitaveis-grupo-7-a-27-dias-ano}
+
+Entre 1996 e 2025, os óbitos entre 7 e 27 dias de vida apresentaram tendência de queda. As causas evitáveis permaneceram como o principal grupo, passando de níveis próximos a 250-280 registros no início da série para 99 em 2025. As demais causas também diminuíram, chegando a 42 registros, enquanto as causas mal definidas ficaram praticamente zeradas no final do período.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_causas_evitaveis_subgrupo_7_a_27_dias_ano.pdf}{Óbitos por causas evitáveis (7-27 dias) por subgrupo (1996-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-causas-evitaveis-subgrupo-7-a-27-dias-ano}
+
+Entre 1996 e 2025, os óbitos entre 7 e 27 dias de vida apresentaram tendência de queda na maior parte dos subgrupos.  A maior queda ocorreu nas causas reduzíveis por adequada atenção ao recém-nascido, que passaram de 157 registros em 1996 para 20 em 2025. Já as causas relacionadas à atenção a mulher na gestação permaneceram como o principal subgrupo no final da série, com 64 óbitos em 2025. Os demais apresentaram valores mais abaixos.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_causas_evitaveis_grupo_28_a_364_dias_ano.pdf}{Óbitos por causas evitáveis (28-364 dias) por grupo (1996-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-causas-evitaveis-grupo-28-a-364-dias-ano}
+
+Entre 1996 e 2025, os óbitos entre 28 e 364 dias apresentaram tendência de redução. As causas evitáveis permaneceram como o principal grupo, passando de 461 registros em 1996 para 134 em 2025. As demais causas também diminuíram, chegando a 102 óbitos, enquanto as causas mal definidas apresentaram a maior redução proporcional, passando de 108 para 13 registros.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_causas_evitaveis_subgrupo_28_a_364_dias_ano.pdf}{Óbitos por causas evitáveis (28-364 dias) por subgrupo (1996-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-causas-evitaveis-subgrupo-28-a-364-dias-ano}
+
+Entre 1996 e 2025, os óbitos entre 28 e 364 dias apresentaram queda na maior parte dos subgrupos. O principal destaque é a redução dos óbitos reduzíveis por ações de diagnóstico e tratamento adequado, que saíram de patamares muito elevados no início da série e chegaram a 43 registros em 2025. No final do período, os maiores valores ficaram em ações de promoção vinculadas às ações de atenção, com 56 óbitos, seguidas por diagnóstico e tratamento adequado, enquanto os demais subgrupos apresentaram números mais baixos.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_causas_evitaveis_subgrupo_faixa_2025.pdf}{Óbitos por causas evitáveis por subgrupo e faixa etária (2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-causas-evitaveis-subgrupo-faixa-2025}
+
+Em 2025, a distribuição das causas evitáveis varia de forma importante entre as faixas etárias. Nos primeiros dias de vida, predominam os óbitos relacionados à atenção à mulher na gestação, com 183 registros entre 0 e 6 dias e 64 entre 7 e 27 dias. Já entre 28 e 364 dias, ganham maior peso as causas reduzíveis por ações de promoção vinculadas às ações de atenção, com 56 óbitos, e por diagnóstico e tratamento adequado, com 43 registros.
+
+O gráfico evidencia, portanto, uma mudança no perfil das causas evitáveis conforme a idade da criança: no período neonatal, destacam-se fatores ligados à gestação, parto e atenção ao recém-nascido, enquanto após os 28 aumentam relativamente às causas relacionadas à promoção, diagnóstico e tratamento.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_evitaveis_menores_1_ano_subgrupo_ano.pdf}{Óbitos por causas evitáveis (menores de 1 ano) por subgrupo (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-evitaveis-menores-1-ano-subgrupo-ano}
+
+Entre 2006 e 2025, os óbitos de menores de 1 ano apresentaram redução na maior parte dos subgrupos analisados. As causas reduzíveis por atenção a mulher na gestação permaneceram como principal componente, atingindo pico de 389 óbitos em 2013 e chegando a 264 em 2025. Também se destaca a queda dos óbitos relacionados a atenção do recém-nascido, de 195 para 55 no período. Em 2025, as demais causas não claramente evitáveis aparecem como o segundo maior grupo, com 218 registros, enquanto os demais subgrupos apresentam quantitativos inferiores.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_evitaveis_1_a_4_anos_subgrupo_ano.pdf}{Óbitos por causas evitáveis (de 1 a 4 anos) por subgrupo (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-evitaveis-1-a-4-anos-subgrupo-ano}
+
+Entre 2006 e 2025, os óbitos de crianças de 1 a 4 anos apresentaram oscilações, mas com redução em vários subgrupos. As demais causas não claramente evitáveis permaneceram como principal componente, chegando a 59 registros em 2025. No mesmo ano, as causas reduzíveis por ações de promoção vinculadas a atenção somaram 34 óbitos, enquanto aquelas relacionadas ao diagnóstico e tratamento adequado registraram 29. As causas mal definidas apresentaram forte redução ao longo do período, chegando a 7 registros em 2025.
+
+\figura{grafico}{../../visualizacoes/a4/obitos_evitaveis_menores_5_subgrupo_ano.pdf}{Óbitos por causas evitáveis (\textless{} 5 anos) por subgrupo (2006-2025)}{Elaboração IPP com dados de \citeonline{sms_rio_sim}.}{graf:obitos-evitaveis-menores-5-subgrupo-ano}
+
+Entre 2006 e 2025, os óbitos de menores de 5 anos apresentaram tendência geral de redução. As demais causas não claramente evitáveis permaneceram entre os principais componentes, chegando a 277 registros em 2025. Entre as causas evitáveis, destacam-se aquelas relacionadas à atenção à mulher na gestação, que atingiram 266 óbitos em 2025. Também houve redução importante nos óbitos relacionados à atenção ao recém-nascido, que passaram de 198 em 2006 para 55 em 2025, enquanto as causas mal definidas recuaram para 22 registros.
+
+\vertabelas{Tabela~\ref{tab:mortalidade-causas-evitaveis-grupo-ano}, Tabela~\ref{tab:mortalidade-causas-evitaveis-subgrupo-ano}, Tabela~\ref{tab:mortalidade-causas-evitaveis-subgrupo-faixa-2025}, Tabela~\ref{tab:obitos-evitaveis-menores-5-subgrupo-municipio-ano}, \texttt{mortalidade\_\allowbreak{}evitaveis\_\allowbreak{}grupo\_\allowbreak{}cap\_\allowbreak{}faixa\_\allowbreak{}ano.csv} (formato digital), Tabela~\ref{tab:mortalidade-evitaveis-cap-2025}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Mortalidade infantil por causas evitáveis, por sexo}
+
+\begin{pendente}Indicador previsto na Política Integrada da Primeira Infância, ainda sem dado disponível para o município nesta edição. Será incluído quando a fonte for incorporada. O recorte por sexo ainda não foi extraído do Sistema de Informações sobre Mortalidade (SIM).\end{pendente}
+
+\section{Crianças de 0 a 5 anos no CadÚnico em relação à população do município}
+
+\input{gerado/tabelas_corpo/cadunico_razao_populacao_0_a_5_2026}
+
+Em julho de 2026, havia 200.784 crianças de 0 a 5 anos registradas no CadÚnico, distribuídas em 178.838 famílias. Esse número corresponde a aproximadamente 51,1 crianças cadastradas para cada 100 crianças da população estimada de 0 a 5 anos do município em 2025, de 393.073 crianças.
+
+Esse resultado mostra a forte presença do CadÚnico entre as crianças da primeira infância no município. Entretanto, o percentual deve ser interpretado com cautela, pois compara um cadastro de 2026 com uma estimativa populacional de 2025, não representando uma medida exata de cobertura cadastral.
+
+\section{Crianças até 72 meses no Cadastro Único (número)}
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_criancas_por_idade.pdf}{CADÚNICO: Crianças de 0 a 5 anos, por idade}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-criancas-por-idade}
+
+A quantidade de crianças no Cadúnico vai crescendo à medida que a idade vai aumentando. Um total de 15.415 crianças de 0 anos estão no CadÚnico, ao passo que quando se trata de crianças de 5 anos o número salta para 43.242 crianças. É importante frisar que esse dado não pode afirmar que os nascimentos estão diminuindo ou aumentando, haja vista o universo utilizado aqui diz respeito apenas às crianças que estão cadastradas no CadÚnico. Diversos podem ser os motivos para esse movimento: momento de inclusão da família no CadÚnico, atualização cadastral, dentre outros.
+
+\figura{mapa}{../../mapas/a4/mapa_cadunico_criancas_bairro_2026.pdf}{Crianças (0 a 5 anos) no CadÚnico, por bairro}{Elaboração IPP com dados de \citeonline{mds_cadunico}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-cadunico-criancas-bairro-2026}
+
+A distribuição das crianças de 0 a 5 anos no CadÚnico apresenta forte concentração territorial. Os maiores números aparecem em Santa Cruz (11.711 crianças), Campo Grande (10.780), Bangu (7.986), Guaratiba (7.230) e Realengo (5.696), com destaque para bairros da Zona Oeste.
+
+Em contraste, diversos bairros apresentam quantitativos bem menores. Como os dados são números absolutos, essa concentração também é influenciada pelo tamanho da população infantil de cada território. Portanto, os valores não representam, isoladamente, maior ou menor vulnerabilidade social.
+
+\figura{mapa}{../../mapas/a4/mapa_cadunico_criancas_0_a_4_bairro_2026.pdf}{Crianças (0-4 anos) no CadÚnico, por bairro}{Elaboração IPP com dados de \citeonline{mds_cadunico}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000.}{mapa:mapa-cadunico-criancas-0-a-4-bairro-2026}
+
+Olhando para a distribuição espacial, pode-se observar que a maior concentração tanto de crianças de 0 a 5 quanto de 0 a 4 anos no CadÚnico está presente nas Zonas Oeste e Norte da cidade. Há alterações absolutas nos intervalos de distribuição quando se olha para os dois mapas, mas o padrão de distribuição geográfica segue praticamente o mesmo. Nos dois mapas, a Zona Oeste apresenta a maior concentração de crianças cadastradas. Já a Zona Sul e parte da extensão litorânea da Barra da Tijuca/Recreio apresentam menores quantitativos. Na Zona Norte e no Centro apresentam-se uma maior fragmentação por terem muitos bairros, favelas e comunidades.
+
+\vertabelas{Tabela~\ref{tab:cadunico-por-idade-2026}, Tabela~\ref{tab:tabela-mapa-cadunico-recortes-bairro-2026}, Tabela~\ref{tab:cadunico-por-bairro-ate-4-2026}, Tabela~\ref{tab:tabela-mapa-cadunico-criancas-0-a-4-2026}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Famílias com crianças até 72 meses no Cadastro Único (número)}
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_familias_por_idade.pdf}{CADÚNICO: Famílias com crianças de 0 a 5 anos, por idade}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-familias-por-idade}
+
+No recorte por família com crianças de 0 a 5 anos no CadÚnico, à medida que se avança a idade, aumenta-se a quantidade de família com criança naquela idade que está cadastrada no CadÚnico. Seguindo, notoriamente, o mesmo padrão do gráfico das crianças cadastradas no CadÚnico.
+
+\vertabelas{Tabela~\ref{tab:cadunico-por-idade-2026}, Tabela~\ref{tab:tabela-mapa-cadunico-recortes-bairro-2026}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Famílias com crianças até 72 meses no Cadastro Único, por renda}
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_familias_por_faixa_renda.pdf}{CADÚNICO: Famílias com crianças de 0 a 5 anos, por faixa de renda per capita}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-familias-por-faixa-renda}
+
+A partir do dado de famílias com crianças de 0 a 5 anos no CadÚnico é possível observar uma distribuição altamente assimétrica, tendo um predomínio absoluto de famílias com renda até R\$218, a linha de pobreza do Bolsa Família, isso evidencia que nesse recorte há uma atuação do CadÚnico predominantemente sobre a parcela populacional em situação de extrema vulnerabilidade. No que diz respeito às rendas mais altas a tendência é diminuindo conforme aumenta-se a renda, chegando a patamares estatisticamente irrelevantes.
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_criancas_por_faixa_renda.pdf}{CADÚNICO: Crianças de 0 a 5 anos, por faixa de renda per capita}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-criancas-por-faixa-renda}
+
+Entre as crianças de 0 a 5 anos registradas no CadÚnico, há forte concentração nas menores faixas de renda. Das 200.784 crianças cadastradas, cerca de 76,5\% estão em famílias com renda per capita de até R\$218, enquanto outros 17,4\% estão na faixa de R\$218 a R\$810.
+
+As faixas de renda mais altas possuem participação bem menor: aproximadamente 5\% estão entre meio e um salário mínimo per capita, e menos de 1\% estão acima de um salário mínimo. Os dados mostram, portanto, que a população infantil registrada no CadÚnico está fortemente concentrada entre as famílias de menor renda.
+
+\vertabelas{Tabela~\ref{tab:cadunico-por-faixa-renda-2026}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Famílias no CadÚnico com crianças até 72 meses, por sexo}
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_criancas_por_sexo.pdf}{CADÚNICO: Crianças de 0 a 5 anos, por sexo}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-criancas-por-sexo}
+
+Entre as crianças de 0 a 5 anos registradas no CadÚnico, a distribuição por sexo é bastante equilibrada. Em julho de 2026, havia 102.703 meninos e 98.081 meninas, correspondendo a aproximadamente 51,2\% e 48,8\% do total, respectivamente.
+
+Assim, observa-se uma leve predominância de meninos, mas sem diferença expressiva entre os dois grupos.
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_familias_por_sexo_criancas.pdf}{CADÚNICO: Famílias com crianças de 0 a 5 anos, por sexo das crianças}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-familias-por-sexo-criancas}
+
+Entre as famílias do CadÚnico com crianças de 0 a 5 anos, 86.466 possuem apenas meninos, enquanto 82.189 possuem apenas meninas. Outras 10.183 famílias têm crianças de ambos os sexos.
+
+Assim, observa-se uma distribuição relativamente equilibrada, com leve predominância das famílias compostas somente por meninos.
+
+\vertabelas{Tabela~\ref{tab:cadunico-por-sexo-2026}, Tabela~\ref{tab:tabela-mapa-cadunico-recortes-bairro-2026}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Famílias no CadÚnico com crianças até 72 meses, por raça/\allowbreak{}cor}
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_criancas_por_raca_cor.pdf}{CADÚNICO: Crianças de 0 a 5 anos, por raça/cor}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-criancas-por-raca-cor}
+
+Entre as crianças de 0 a 5 anos registradas no CadÚnico, há predominância de crianças pardas, com 107.519 registros, correspondendo a cerca de 53,5\% do total. Em seguida aparecem as crianças brancas, com 70.525 (35,1\%), e pretas, com 21.425 (10,7\%).
+
+Somadas, crianças pretas e pardas representam aproximadamente 64,2\% das 200.784 crianças cadastradas. As categorias amarela e indígena apresentam participação bem menor, com 1.240 e 75 registros, respectivamente.
+
+\figura{grafico}{../../visualizacoes/a4/cadunico_familias_por_raca_cor.pdf}{CADÚNICO: Famílias com ao menos uma criança de 0 a 5 anos de cada raça/cor}{Elaboração IPP com dados de \citeonline{mds_cadunico}.}{graf:cadunico-familias-por-raca-cor}
+
+Entre as famílias do CadÚnico com crianças de 0 a 5 anos, predominam aquelas com ao menos uma criança parda, totalizando 98.948 famílias. Em seguida aparecem as famílias com ao menos uma criança branca, com 65.853 registros, e preta, com 20.119.
+
+As categorias amarela e indígena apresentam quantitativos bem menores, com 1.224 e 69 famílias, respectivamente. Como uma mesma família pode ter crianças de diferentes raças ou cores, essas categorias não são necessariamente excludentes e não devem ser somadas para obter o total de famílias.
+
+\figura{mapa}{../../mapas/a4/mapa_percentual_cadunico_criancas_negras_bairro_2026.pdf}{\% de crianças negras (pretas e pardas) de 0 a 5 anos no CadÚnico, por bairro}{Elaboração IPP com dados de \citeonline{mds_cadunico}. Limites de bairros: \citeonline{ipp_limites_bairros}. Sistema de referência SIRGAS 2000. Nota: Escala de cor limitada ao percentil 95 (70,2); o valor real está na tabela do apêndice.}{mapa:mapa-percentual-cadunico-criancas-negras-bairro-2026}
+
+Entre as crianças de 0 a 5 anos registradas no CadÚnico, a participação de crianças negras (pretas e pardas) varia de forma importante entre os bairros do Rio de Janeiro. Entre os 161 bairros com informação disponível, a mediana é de 62,1\%.
+
+Os maiores percentuais aparecem na Cidade de Deus (77,3\%), Senador Vasconcelos (73,0\%), Vila Militar (72,7\%), Mangueira (72,4\%), Costa Barros e Jacarezinho (72,1\% cada). Já os menores valores foram registrados no Catete (36,8\%), Laranjeiras (42,2\%) e Glória (44,5\%). Os dados mostram, portanto, diferenças territoriais relevantes na composição racial das crianças cadastradas no CadÚnico.
+
+\vertabelas{Tabela~\ref{tab:cadunico-por-raca-cor-2026}, Tabela~\ref{tab:tabela-mapa-cadunico-recortes-bairro-2026}; ver Apêndice~\ref{ap:eixo-1}}
+
+\section{Síntese do eixo}
+
+\begin{sintese}{Prioridade}Mesmo diante da redução dos nascimentos fica clara a melhora nos indicadores de mortalidade infantil e materna, além dos indicadores de vacinação. A principal característica das mortes evitáveis remanescentes é a necessidade de maior cobertura/qualidade do pré-natal e maior atenção ao parto. Os indicadores por recorte racial apontam taxas similares entre crianças pardas e brancas, mas, desde 2019, a taxa de mortalidade infantil das crianças pardas voltou a subir (de 11,1 para 13,7 por mil nascidos vivos em 2025), enquanto a das brancas caiu (de 13,7 para 12,4). Outros grupos raciais podem estar afetados por amostras muito pequenas. Dentro do universo da primeira infância carioca, uma parcela significativa continua em famílias de renda reduzida. Apesar do grande alcance do Cadastro Único, as faixas de renda restritas dos benefícios sociais podem limitar o número de famílias atendidas pelo Bolsa Família.\end{sintese}
+
+\eixo{2}{7}{handshake}
