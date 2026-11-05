@@ -48,3 +48,6 @@ website/build/_cache/
 
 # PDF exportado do documento de plano para gestores (Claude Docs); não versionar binários gerados
 docs/*.pdf
+
+# imagens da capa/folha de rosto do PDF (relatorio/latex/build/gera_capa_imagens.py) -- logos em PNG
+!/relatorio/latex/pretextual/*.png

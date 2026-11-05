@@ -26,7 +26,7 @@
 ## 1. Visão geral
 
 **O que é.** Um diagnóstico da primeira infância (0 a 5 anos, até 72 meses; a política municipal fala em até 6 anos) no município do Rio de Janeiro, produzido pela
-Coordenadoria de Pesquisa, Avaliação e Política Pública do **Instituto Pereira Passos (IPP)** em parceria com a Casa
+Coordenadoria de Pesquisa, Avaliação e Políticas Públicas do **Instituto Pereira Passos (IPP)** em parceria com a Casa
 Civil, como documento de apoio ao desenho, à implementação e ao monitoramento da **Política Integrada da Primeira
 Infância**. Reúne indicadores de população, assistência social, saúde, educação, proteção e nutrição que estão
 espalhados por fontes diferentes, e os organiza pelos **eixos da política municipal**.

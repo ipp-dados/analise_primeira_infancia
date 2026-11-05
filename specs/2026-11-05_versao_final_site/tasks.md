@@ -39,7 +39,7 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - [x] T5.2 `gera_latex.py --exportar-capitulos`: 9 arquivos em `relatorio/latex/capitulos/`, resumo em `pretextual/resumo.tex`, tabelas no corpo em `gerado/tabelas_corpo/`; `relatorio.tex` com `\input{capitulos/...}`; nas execuções normais o script não escreve mais capítulos
 - [x] T5.3 `confere_capitulos()`: figuras, tabelas no corpo e rótulos de tabela citados existem (a execução para se faltar algo)
 - [x] T5.4 Mesmo texto do PDF de referência (só quebras de linha na Introdução, pelo mapa novo); 174 páginas
-- [x] T5.5 Capa com a foto do banner (crédito) e folha de rosto com o crédito completo
+- [x] T5.5 Capa, folha de rosto e expediente novos: estilo do projeto com os elementos dos relatórios técnicos do IPP no Data.Rio (bloco institucional, "IPP · NOVEMBRO | 2026", logo; expediente com direção e equipe -- prefeito Eduardo Cavaliere); imagens por `relatorio/latex/build/gera_capa_imagens.py`
 
 ## Bloco 6 — Curadoria só do site, sem DOCX
 - [ ] T6.1 Tag `rodada/curadoria_docx`; apagar os scripts DOCX

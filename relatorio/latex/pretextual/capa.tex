@@ -1,37 +1,38 @@
-% Capa -- editada à mão (nova em 2026-11-05, specs/2026-11-05_versao_final_site D6).
-% Foto do banner do site no alto (mesma identidade do site; pretextual/capa_foto.jpg, gerada por
-% website/build/gera_banner.py), faixa azul institucional, título serifado e a faixa de 11 cores no pé.
-% Foto: Compagnons (@sigmund) na Unsplash, Licença da Unsplash -- crédito sob a foto e na folha de rosto.
-% Logo da Prefeitura/IPP: só depois da autorização de uso (ROADMAP.md) -- espaço reservado acima do título.
+% Capa -- editada à mão (refeita em 2026-11-05, specs/2026-11-05_versao_final_site D6).
+% Estilo do projeto (foto do banner do site no alto, título serifado em azul, faixa de 11 cores) com os elementos
+% principais dos relatórios técnicos do IPP no Data.Rio (referência: "Panorama da Indústria da Transformação na Economia
+% Carioca", mar/2026): bloco institucional, edição "IPP · mês | ano" e logo Prefeitura RIO | Instituto Pereira Passos.
+% Imagens: relatorio/latex/build/gera_capa_imagens.py. Foto: Compagnons (@sigmund) na Unsplash, Licença da Unsplash.
 \begin{capa}
   \thispagestyle{empty}
   \begin{tikzpicture}[remember picture, overlay]
-    % foto em toda a largura, recortada numa faixa de 11,5 cm no alto da página
     \begin{scope}
       \clip (current page.north west) rectangle ([yshift=-11.5cm]current page.north east);
       \node[anchor=north west, inner sep=0] at (current page.north west)
         {\includegraphics[width=\paperwidth]{pretextual/capa_foto.jpg}};
     \end{scope}
-    % filete azul sob a foto e crédito discreto
     \fill[ippnavy] ([yshift=-11.5cm]current page.north west) rectangle ([yshift=-11.85cm]current page.north east);
-    \node[anchor=north east, inner sep=0, font=\scriptsize\color{tinta3}]
+    \node[anchor=north east, inner sep=0, font=\scriptsize, text=tinta3]
       at ([xshift=-1.5cm, yshift=-12.05cm]current page.north east) {Foto: Compagnons / Unsplash};
-    % faixa de 11 cores no pé
-    \node[anchor=south west, inner sep=0] at ([xshift=3cm, yshift=2cm]current page.south west)
+    \node[anchor=south west, inner sep=0] at ([xshift=3cm, yshift=1.6cm]current page.south west)
       {\faixaespectro[5pt]{\dimexpr\paperwidth-5cm\relax}};
-  \end{tikzpicture}\par   % \par: sem ele o \vspace* abaixo era ignorado (ainda no parágrafo do tikz)
-  \vspace*{9.6cm}
-  \noindent{\ttfamily\small\color{acento}\addfontfeature{LetterSpace=8}RELATÓRIO TÉCNICO \textperiodcentered{} INSTITUTO PEREIRA PASSOS}
-  \par\vspace{0.7cm}
+  \end{tikzpicture}\par
+  \vspace*{9.4cm}
+  \noindent{\ttfamily\small\color{acento}\addfontfeature{LetterSpace=8}IPP \textperiodcentered{} NOVEMBRO | 2026}\par
+  \vspace{0.6cm}
   \noindent{\frauncesdisplay\bfseries\color{ippnavy}\fontsize{38}{44}\selectfont Diagnóstico da\\Primeira Infância Carioca\par}
-  \vspace{0.7cm}
+  \vspace{0.6cm}
   \noindent\begin{minipage}{0.86\textwidth}\raggedright\large\color{tinta2}\SingleSpacing
     Indicadores da primeira infância (até 72 meses, 0 a 5 anos) no município do Rio de Janeiro,
     por eixo da Política Integrada da Primeira Infância\end{minipage}\par
   \vfill
-  \noindent{\small\color{tinta2}\SingleSpacing\setlength{\parindent}{0pt}%
-    Prefeitura da Cidade do Rio de Janeiro\\
-    Instituto Pereira Passos \textperiodcentered{} Coordenadoria de Pesquisa, Avaliação e Política Pública\\[0.4cm]
-    {\color{tinta}\bfseries Rio de Janeiro \textperiodcentered{} \imprimirdata}\par}
-  \vspace*{1.2cm}
+  \noindent\begin{minipage}[b]{0.62\textwidth}\SingleSpacing\raggedright
+    {\small\bfseries\color{tinta}PREFEITURA DA CIDADE DO RIO DE JANEIRO}\par\vspace{3pt}
+    {\footnotesize\color{tinta2}Instituto Municipal de Urbanismo Pereira Passos\par
+     Coordenadoria de Pesquisa, Avaliação e Políticas Públicas\par}
+  \end{minipage}\hfill
+  \begin{minipage}[b]{0.34\textwidth}\raggedleft
+    \includegraphics[height=1.15cm]{pretextual/logo_ipp_escura.png}
+  \end{minipage}\par
+  \vspace*{1.0cm}
 \end{capa}
