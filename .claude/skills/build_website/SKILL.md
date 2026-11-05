@@ -39,8 +39,10 @@ python website/build/build_site.py
 - If the user edited `specs/estrutura_eixos.md` to move an indicator between eixos, the generator
   does NOT read that file — relocate the h2/h3 block in `build_site.py` by hand (see the
   `export_pdf_report` skill's caveat, same rule for both generators).
-- Text curated in the DOCX reaches the site through
-  `relatorio/curadoria/sincroniza_docx.py`, which also reruns this generator.
+- Curated text lives in `relatorio/textos_curados.json` (the **site's** text only since 2026-11-05; no DOCX any more —
+  `specs/2026-11-05_versao_final_site` R6). Edit the JSON (or, for the eixos' findings/opening/synthesis,
+  `relatorio/textos_eixos.md` + `python relatorio/curadoria/importa_textos_eixos.py`), then rebuild the site; check every
+  number against `tabelas_finais/` first. `website/build/confere_textos.py` compares the built site with the JSON.
 
 ## Edit
 
@@ -57,7 +59,8 @@ python website/build/build_site.py
 - Small multiples (7+ series) show only the panels ("Painéis"); the "Linhas" toggle was removed on 2026-09-28
   (`specs/2026-09-28_melhorias_site` U4).
 - Each eixo tab opens with "Principais achados" (`achados_<eixo>`) and, right below it, the eixo's opening text
-  (`introducao_<eixo>`, ≤ 100 words) — both report blocks shared with the PDF and the DOCX.
+  (`introducao_<eixo>`, ≤ 100 words); the eixo closes with `sintese_<eixo>`. Indicators without data are not shown
+  (no "em desenvolvimento" box since 2026-11-05).
 - **Mobile** (`specs/2026-09-28_website_mobile`): every narrow-screen rule lives in `css/mobile.css` (loaded last;
   desktop ≥ 1100 px / tablet 720-1099 / phone < 720). The desktop must not change: before committing, compare
   full-page screenshots of all tabs at 1400 and 1280 px against the previous build (channel difference ≤ 3 is basemap

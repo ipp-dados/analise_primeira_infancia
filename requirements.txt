@@ -34,6 +34,6 @@ jupyterlab==4.6.2
 ipykernel==7.3.0
 
 # --- relatório (relatorio/latex/build/, relatorio/curadoria/) ---
-python-docx==1.2.0           # DOCX de curadoria
+python-docx==1.2.0           # DOCX da especificação (docs/build/gera_docx_especificacao.py)
 pymupdf==1.28.2              # conferência do PDF
 svgelements==1.9.6           # ícones do site -> TikZ (relatorio/latex/build/gera_icones.py)

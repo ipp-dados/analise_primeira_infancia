@@ -64,12 +64,11 @@ compartilhado, acesso restrito — solicitar a leonardoaucar@prefeitura.rio.*
     gera `index.html` e `data/`; CSS e JS são editados à mão. Detalhes em
     [`website/README.md`](website/README.md) (inclusive a versão mobile), pendências em
     [`ROADMAP.md`](ROADMAP.md).
-*   `relatorio/`: relatório em PDF (`analise_primeira_infancia.pdf`), DOCX de curadoria de textos (PDF e DOCX só
-    locais, fora do git desde 2026-10-26 — publicados como anexos da Release do GitHub),
-    `controle_revisao.json` (status de revisão de cada texto), `textos_updates_antigos/` (rodadas de
-    curadoria devolvidas pelo Google Docs, `curadoria_textos_update_<N>.docx`) e `textos_curados.json`
-    (texto curado lido pelo site e pelo PDF); `latex/` (fonte do relatório ABNT e gerador) e `curadoria/`
-    (estrutura dos eixos, exportação/sincronização do DOCX, validação dos textos publicados). O antigo
+*   `relatorio/`: relatório em PDF (`analise_primeira_infancia.pdf`, só local, fora do git — publicado como anexo da
+    Release do GitHub), `textos_curados.json` (texto curado **do site**), `textos_eixos.md` (achados, introdução e
+    síntese dos eixos, escritos à mão e importados para o JSON), `controle_revisao.json` (histórico de revisão);
+    `latex/` (relatório ABNT: capítulos editados à mão em `latex/capitulos/`, dados gerados) e `curadoria/` (estrutura
+    dos eixos e importação dos textos de eixo). A curadoria em DOCX acabou em 2026-11-05 (tag `rodada/curadoria_docx`). O antigo
     `relatorio/index.html` foi substituído por `website/` (`specs/2026-09-24_website_refactor`).
 *   `ROADMAP.md`: o que está em andamento, a fila priorizada, o backlog por tema e o histórico resumido.
 *   `specs/`: Constituição do projeto (`constitution.md`), stack técnica (`tech-stack.md`),

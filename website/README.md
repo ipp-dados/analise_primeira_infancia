@@ -14,8 +14,8 @@ python website/build/build_site.py <pasta>    # escreve em outra pasta (copia cs
 ```
 
 Lê `tabelas_finais/*.csv`, `dados_locais/geo/*.geojson` e `relatorio/textos_curados.json`
-(texto curado do DOCX, via `relatorio/curadoria/sincroniza_docx.py`, que
-também roda este gerador). Imprime o tamanho de cada arquivo publicado e **avisa** se passar do
+(texto curado do site; desde 2026-11-05 sem DOCX — os textos de eixo vêm de `relatorio/textos_eixos.md`, importados
+por `relatorio/curadoria/importa_textos_eixos.py`). Imprime o tamanho de cada arquivo publicado e **avisa** se passar do
 orçamento (`index.html` ≤ 1 MB, site ≤ 2 MB — spec §4.9). Gerar não precisa de rede: o fundo
 cartográfico só é baixado se `assets/images/basemap-<hash>.jpg` ainda não existir.
 
@@ -91,7 +91,7 @@ estilo, texto preso na 1ª pill, gráficos sem renderizar — `specs/2026-09-28_
 
 `python website/build/confere_textos.py` (Playwright, só desenvolvimento) gera
 `specs/2026-09-28_website_bugfix/conferencia_textos_site.csv`: um bloco de texto por linha (aba, seção, modo, pill,
-figura exibida, chave, texto do DOCX / do JSON / do site, status OK · PENDENTE (lorem) · ERRO · NÃO PUBLICADO).
+figura exibida, chave, texto do JSON / do site, status OK · PENDENTE (lorem) · ERRO · NÃO PUBLICADO).
 Também gera `textos_para_revisao.csv` (uma linha por chave, faltantes primeiro, blocos do relatório incluídos,
 colunas em branco "Conferido"/"Comentário" para a revisão manual). Os blocos de texto levam `data-seed` = chave em `relatorio/textos_curados.json`.
 

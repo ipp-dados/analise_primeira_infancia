@@ -68,7 +68,7 @@ def main():
     atual = json.loads(JSON_TEXTOS.read_text(encoding="utf-8"))
     mudou = {k: v for k, v in textos.items() if atual.get(k) != v}
     atual.update(textos)
-    # mesmo formato de sincroniza_docx.atualiza_textos_curados (chaves ordenadas, sem quebra no fim)
+    # mesmo formato que o JSON sempre teve (chaves ordenadas, sem quebra no fim)
     JSON_TEXTOS.write_text(json.dumps(atual, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
     c = json.loads(CONTROLE.read_text(encoding="utf-8"))
     for k in mudou:

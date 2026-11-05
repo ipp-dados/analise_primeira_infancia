@@ -42,9 +42,9 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - [x] T5.5 Capa, folha de rosto e expediente novos: estilo do projeto com os elementos dos relatórios técnicos do IPP no Data.Rio (bloco institucional, "IPP · NOVEMBRO | 2026", logo; expediente com direção e equipe -- prefeito Eduardo Cavaliere); imagens por `relatorio/latex/build/gera_capa_imagens.py`
 
 ## Bloco 6 — Curadoria só do site, sem DOCX
-- [ ] T6.1 Tag `rodada/curadoria_docx`; apagar os scripts DOCX
-- [ ] T6.2 `confere_textos.py` sem DOCX
-- [ ] T6.3 Skills, `CLAUDE.md`, especificação do projeto
+- [x] T6.1 Tag `rodada/curadoria_docx`; apagar os scripts DOCX (+ `valida_textos_publicados.py`, que dependia do fluxo DOCX)
+- [x] T6.2 `confere_textos.py` sem DOCX
+- [x] T6.3 Skills, `CLAUDE.md`, especificação do projeto
 
 ## Bloco 7 — Release e Actions
 - [ ] T7.1 Instalar o `gh`; o usuário faz `gh auth login`

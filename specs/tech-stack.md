@@ -131,23 +131,13 @@ arquivos órfãos removidos, um bug real de dado congelado que motivou isto).
   quase vazio sem erro nenhum (achado registrado no `SKILL.md`).
 - Verificação do PDF gerado usa **pypdf** (contagem de páginas) e **PyMuPDF**
   (`fitz`, rasterizar páginas de amostra para inspeção visual).
-- **DOCX de curadoria** (`specs/2026-09-22_ajuste_eixos/` Bloco 5): `python-docx`
-  (`requirements.txt`) gera `relatorio/curadoria_textos.docx` — 1 heading
-  por eixo/subseção, imagens reais redimensionadas (Pillow, JPEG em
-  memória — nunca embute o PNG original de `mapas/`, ~6MB cada), 1
-  parágrafo de texto de análise por visualização/mapa, cada um com um
-  bookmark OOXML (`w:bookmarkStart`/`w:bookmarkEnd`, via `docx.oxml` —
-  `python-docx` não tem API de alto nível pra isso) nomeado por um ID
-  estável (nome de arquivo sem extensão). Sumário do DOCX usa um **campo
-  `TOC` nativo do Word** (não uma lista estática) — o usuário atualiza
-  clicando "Atualizar campo"/F9 conforme edita o documento.
-- **Sincronização de texto curado** (`specs/2026-09-22_ajuste_eixos/` Bloco 7,
-  `sincroniza_docx.py`): texto editado à mão no DOCX vira a fonte de
-  `relatorio/textos_curados.json` (`{seed: texto}`, seed = mesmo nome de
-  arquivo), lido por `website/build/build_site.py` (ex-`build_html_report.py`)/`build_notebook_report.py` via
-  um pequeno helper (`_texto_analise(seed)`) antes de cair no lorem ipsum
-  determinístico — por isso os seeds de texto do HTML/PDF foram alinhados
-  a nomes de arquivo reais (não ao rótulo legível da opção) nessa rodada.
+- **DOCX de curadoria — removido em 2026-11-05** (`specs/2026-11-05_versao_final_site` R6; scripts na tag
+  `rodada/curadoria_docx`). De 2026-09-22 a 2026-11-05, `python-docx` gerava `relatorio/curadoria_textos.docx` (um
+  bookmark OOXML por texto) e `sincroniza_docx.py` levava o texto editado para `relatorio/textos_curados.json`; o
+  round-trip pelo Google Docs (que apaga bookmarks) exigia casamento por título e posição e acumulou retrabalho.
+  Hoje: o JSON é editado direto (só o site o lê; textos de eixo via `relatorio/textos_eixos.md` +
+  `importa_textos_eixos.py`) e o PDF tem capítulos `.tex` editados à mão. `python-docx` segue no `requirements.txt`
+  só para `docs/build/gera_docx_especificacao.py`.
 
 ## Apresentação (`apresentacao/`, `specs/2026-09-28_apresentacao`)
 

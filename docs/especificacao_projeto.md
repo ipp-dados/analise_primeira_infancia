@@ -41,7 +41,7 @@ textos e mantém o pipeline; e quem quiser reproduzir os números (código e dad
 | Site interativo | GitHub Pages (`website/`) | leitura na tela: abas por eixo, gráficos e mapas com tooltip, tabela alternativa e CSV de cada figura |
 | Relatório técnico em PDF | `relatorio/analise_primeira_infancia.pdf` (local; publicado como anexo da Release do GitHub; 157 páginas, ABNT NBR 10719) | leitura, impressão e citação; todas as tabelas no apêndice |
 | Tabelas finais | `tabelas_finais/*.csv` (87) | os números por trás de cada figura |
-| DOCX de curadoria | `relatorio/curadoria_textos.docx` (local; anexo da Release) | a equipe escreve e revisa os textos que acompanham as figuras |
+| Textos do site | `relatorio/textos_curados.json` e `relatorio/textos_eixos.md` | textos que acompanham as figuras do site (a curadoria em DOCX acabou em 2026-11-05) |
 | Apresentação | `apresentacao/apresentacao_primeira_infancia.pptx` e `.pdf` (local; anexos da Release; 33 slides) | apresentar o diagnóstico a gestores das secretarias; gerada de um único Markdown, com variantes por público |
 | Código | `analise.py` + `primeira_infancia/` | reprodução completa, da fonte bruta à figura |
 
@@ -55,8 +55,8 @@ d'água, controladas juntas por `relatorio/publicacao.json` (seção 9.4).
 A estrutura publicada abre com um **panorama** (Introdução: população e nascimentos) e segue os **7 eixos da política
 municipal de primeira infância** (`specs/2026-09-28_nova_estrutura`; até então, 6 eixos, sem panorama). O crosswalk entre o catálogo
 de indicadores da Prefeitura (`dados_locais/painel_primeira_infancia_cesta_indicadores.xlsx`) e os arquivos reais
-(gráficos, mapas, tabelas) é `specs/estrutura_eixos.md`, **editado à mão**: é ele que define o que entra no PDF e no
-DOCX, em que ordem e com que título.
+(gráficos, mapas, tabelas) é `specs/estrutura_eixos.md`, **editado à mão**: foi ele que definiu a estrutura do PDF e do site, em que ordem e com que título; desde 2026-11-05 os capítulos do
+PDF são editados à mão e o crosswalk segue definindo as tabelas do apêndice.
 
 | Eixo | Foco da política | Indicadores | Pendentes | Gráficos | Mapas | Tabelas |
 |---|---|---:|---:|---:|---:|---:|
@@ -158,12 +158,17 @@ Google Drive de acesso restrito do IPP.
 
 ### 4.4 Curadoria de textos (`relatorio/curadoria/`)
 
-- **RF16** Exportar um DOCX com todas as figuras e um bloco de texto por figura (bookmark = chave), mais os blocos do
-  relatório (resumo, achados, abertura e síntese de cada eixo, considerações finais) e a tabela "Controle de revisão".
-- **RF17** Sincronizar o texto editado no DOCX de volta para `textos_curados.json`, o site, o PDF e as notas de
-  curadoria em `analise.py`, sem nunca perder texto (o que sai da estrutura vai para "Textos órfãos").
-- **RF18** Incorporar rodadas de revisão feitas no Google Docs (que apaga bookmarks), casando os textos por título e
-  posição, e registrar o status de cada texto (revisado, atualizado, a escrever) em `relatorio/controle_revisao.json`.
+> **Mudança de 2026-11-05** (`specs/2026-11-05_versao_final_site` R5-R6): a curadoria em DOCX (exportação, volta do
+> Google Docs, sincronização) saiu do projeto (tag `rodada/curadoria_docx`). Os textos do **site** ficam em
+> `relatorio/textos_curados.json`; os do **PDF**, nos capítulos `.tex` editados à mão (`relatorio/latex/capitulos/`).
+
+- **RF16** Textos do site em `relatorio/textos_curados.json` (chave = nome da figura ou bloco); os achados, a abertura
+  e a síntese de cada eixo são escritos em `relatorio/textos_eixos.md` e importados por
+  `relatorio/curadoria/importa_textos_eixos.py`. Todo número citado é conferido em `tabelas_finais/` antes de entrar.
+- **RF17** Texto do PDF escrito diretamente nos capítulos `.tex`; figuras, tabelas no corpo e tabelas do apêndice
+  continuam geradas, e o `gera_latex.py` confere a cada execução se tudo o que os capítulos citam existe.
+- **RF18** `website/build/confere_textos.py` compara o texto exibido no site com o JSON (lorem, divergência, texto sem
+  figura); `relatorio/controle_revisao.json` guarda o histórico de revisão.
 - **RF19** Validar que todo texto curado está publicado no site e no PDF, frase a frase.
 
 ### 4.5 Apresentação (`apresentacao/`, `specs/2026-09-28_apresentacao`)
@@ -219,7 +224,7 @@ flowchart LR
     end
     E[specs/estrutura_eixos.md<br>crosswalk]
     J[relatorio/textos_curados.json]
-    D[relatorio/curadoria_textos.docx]
+    C[relatorio/latex/capitulos/*.tex<br>texto do PDF, editado à mão]
     S[website/build/build_site.py]
     L[relatorio/latex/build/gera_latex.py]
     A1 --> P
@@ -230,19 +235,17 @@ flowchart LR
     J --> S
     S --> W[website/<br>GitHub Pages]
     E --> L
-    J --> L
+    C --> L
     V4 --> L
     T --> L
     L --> PDF[analise_primeira_infancia.pdf]
-    E --> D
-    V --> D
-    D <-->|curadoria/sincroniza_docx.py| J
 ```
 
 Pontos importantes do desenho:
 
-- **Uma fonte da verdade por coisa.** Números: `tabelas_finais/` (geradas por `analise.py`). Estrutura do PDF/DOCX:
-  `specs/estrutura_eixos.md`. Textos: `relatorio/textos_curados.json`. Estado de publicação:
+- **Uma fonte da verdade por coisa.** Números: `tabelas_finais/` (geradas por `analise.py`). Estrutura (tabelas do
+  apêndice do PDF): `specs/estrutura_eixos.md`. Textos: `relatorio/textos_curados.json` (site) e
+  `relatorio/latex/capitulos/*.tex` (PDF). Estado de publicação:
   `relatorio/publicacao.json`. Fontes: `relatorio/latex/fontes.bib`.
 - **Site e PDF têm pipelines e identidades visuais separados**: o site desenha seus próprios SVGs a partir das
   tabelas; o PDF usa as figuras do próprio notebook na variante de impressão. Não misturar convenções.
@@ -269,7 +272,7 @@ Pontos importantes do desenho:
 | `relatorio/latex/relatorio.tex`, `estilo.sty`, `pretextual/`, `textual/`, `fontes.bib` | documento ABNT | à mão |
 | `relatorio/latex/build/` | `gera_latex.py` (capítulos, apêndice, compilação), `tabelas.py`, `inventario_fontes.py`, `gera_icones.py` | à mão |
 | `relatorio/latex/gerado/` | saída do gerador (versionada, legível em diff) | **nunca à mão** |
-| `relatorio/curadoria/` | `gera_estrutura_eixos.py` (lê o crosswalk; usado por site, PDF e DOCX), `gera_docx_curadoria.py`, `sincroniza_docx.py`, `incorpora_update_docx.py`, `compara_updates.py`, `valida_textos_publicados.py` | à mão |
+| `relatorio/curadoria/` | `gera_estrutura_eixos.py` (lê o crosswalk; usado pelo site e pelo PDF), `importa_textos_eixos.py` (textos de eixo -> JSON) | à mão |
 | `.claude/skills/` | instruções operacionais para o assistente: `generate_map`, `build_website`, `export_pdf_report` | à mão |
 
 ### 7.2 Dados e saídas
@@ -279,7 +282,7 @@ Pontos importantes do desenho:
 | `dados_locais/<fonte>/` | dados brutos, uma pasta por fonte (`censo`, `mortalidade`, `nascidos_vivos`, `sisvan`, `ibge_sidra`, `vacinacao`, `educacao`, `populacao`, `protecao`, `geo`); `tratados/` = intermediários |
 | `tabelas_finais/` | CSVs finais, `{tema}_{indicador}[_{corte}]_{granularidade_ou_ano}.csv`; `tabela_mapa_*.csv` = insumo de cada mapa |
 | `visualizacoes/`, `mapas/` | PNG de tela com o mesmo nome do CSV correspondente; `a4/` = variantes de impressão |
-| `relatorio/` | PDF publicado, DOCX de curadoria, `textos_curados.json`, `controle_revisao.json`, `publicacao.json`, inventário de fontes, `textos_updates_antigos/` |
+| `relatorio/` | PDF publicado, `textos_curados.json` (site), `textos_eixos.md`, `controle_revisao.json`, `publicacao.json`, inventário de fontes |
 
 ### 7.3 Documentação
 
@@ -343,27 +346,28 @@ apagada, com o ponto final guardado na tag `rodada/<nome>`. Refatorações segue
 
 ### 9.2 Ciclo de curadoria de textos
 
-1. `relatorio/curadoria/gera_docx_curadoria.py` exporta o DOCX (texto curado + lorem nos blocos a escrever).
-2. A equipe edita no Word (bookmarks preservados) ou no Google Docs (devolvido como
-   `relatorio/curadoria_textos_update.docx`).
-3. No Google Docs: `compara_updates.py` isola o que mudou em relação ao update-base; `incorpora_update_docx.py`
-   calcula o status de revisão de cada texto; o casamento revisado entra no DOCX.
-4. `sincroniza_docx.py` leva os textos para `textos_curados.json`, o site, o PDF e as notas de `analise.py`.
-5. `valida_textos_publicados.py` confere cada frase publicada; o update vai para `relatorio/textos_updates_antigos/`.
+Desde 2026-11-05 (sem DOCX):
+
+1. **Site**: o texto de uma figura entra em `relatorio/textos_curados.json`; os textos de eixo, em
+   `relatorio/textos_eixos.md`, importados por `python relatorio/curadoria/importa_textos_eixos.py`. Cada número citado
+   é conferido em `tabelas_finais/`; depois, regerar o site e rodar `website/build/confere_textos.py`.
+2. **PDF**: o texto é editado nos capítulos `relatorio/latex/capitulos/*.tex`; `gera_latex.py` confere figuras,
+   tabelas e rótulos citados. Um número digitado no texto não se atualiza sozinho quando os dados mudam.
 
 Alertas (número que não confere com a tabela, frase ambígua) ficam em `controle_revisao.json` para a equipe decidir.
 
 ### 9.3 Mudança de estrutura
 
-Mover, renomear ou marcar um indicador como pendente: editar `specs/estrutura_eixos.md`. O PDF e o DOCX leem o
-arquivo na geração; o site ainda tem o agrupamento no gerador e precisa do mesmo ajuste em `build_site.py`.
+Mover, renomear ou marcar um indicador como pendente: editar `specs/estrutura_eixos.md` (o PDF lê o arquivo para as
+tabelas do apêndice); depois ajustar à mão o capítulo `.tex` e o agrupamento do site em `build_site.py`. Indicadores
+sem dado não aparecem no site nem no PDF (decisão do usuário, 2026-11-05).
 
 ### 9.4 Publicação
 
 - **Site**: deploy manual (`workflow_dispatch` de `.github/workflows/deploy-relatorio.yml`), que só copia `website/`
   (saída versionada); nunca automático.
 - **PDF**: `gera_latex.py --publicar` copia o PDF compilado para `relatorio/analise_primeira_infancia.pdf` (fora do
-  git); a publicação é uma nova Release do GitHub com o PDF, os decks e os DOCX anexados — o site baixa o PDF de
+  git); a publicação é uma nova Release do GitHub com o PDF anexado — o site baixa o PDF de
   `releases/latest/download/analise_primeira_infancia.pdf` (`specs/2026-10-26_limpeza_historico`).
 - **Versão final**: `relatorio/publicacao.json` → `em_desenvolvimento: false`, e regerar site e PDF (tira a faixa e a
   marca d'água juntas).
@@ -390,10 +394,9 @@ python relatorio/latex/build/gera_latex.py --publicar
 # 4. apresentação (Node + marp-cli: cd apresentacao && npm ci)
 python apresentacao/build/gera_apresentacao.py --publicar
 
-# 5. curadoria
-python relatorio/curadoria/gera_docx_curadoria.py relatorio/curadoria_textos.docx
-python relatorio/curadoria/sincroniza_docx.py relatorio/curadoria_textos.docx
-python relatorio/curadoria/valida_textos_publicados.py
+# 5. textos do site
+python relatorio/curadoria/importa_textos_eixos.py     # textos de eixo (relatorio/textos_eixos.md) -> JSON
+python website/build/confere_textos.py                 # site x JSON (Playwright)
 ```
 
 - A seção do CadÚnico precisa do driver `psycopg` 3 e do `.env`; no computador de desenvolvimento, o conda env
@@ -415,8 +418,8 @@ componente (6-7), uma regra (8) ou um processo (9-10). A data no topo diz a que 
 ## 12. Limitações conhecidas e pendências
 
 - **CadÚnico** só vem do banco ao vivo: os números são os da última execução do notebook com acesso ao CTPE.
-- **Site com agrupamento fixo no gerador**: mudanças em `specs/estrutura_eixos.md` chegam ao PDF e ao DOCX
-  automaticamente, ao site só à mão.
+- **Site com agrupamento fixo no gerador**: mudanças em `specs/estrutura_eixos.md` chegam às tabelas do apêndice
+  do PDF automaticamente; aos capítulos do PDF e ao site, só à mão.
 - **Textos**: blocos ainda em lorem ipsum (resumo, achados, aberturas e sínteses dos eixos, parte das figuras); a
   lista sai no build do PDF. Alertas abertos em `relatorio/controle_revisao.json`.
 - **Dados pontuais** (`specs/2026-09-29_dados_adhoc`): mecanismo para extrações fora da rotina, com aviso público

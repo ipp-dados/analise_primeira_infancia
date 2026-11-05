@@ -108,7 +108,7 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   **Atualização 2026-10-26 (`specs/2026-10-26_limpeza_historico`):** as saídas rastreadas antes de `b8b4318` saíram do git
   (`git rm --cached`, ficam no disco): `tabelas_finais/`, `visualizacoes/` e `mapas/` não têm mais nada versionado
   além do `.gitkeep`. Não force (`git add -f`) saída nessas pastas. O mesmo vale para o PDF do relatório, os decks
-  (PPTX/PDF) e os DOCX de curadoria: ficam no disco e são publicados como anexos de uma **Release do GitHub**
+  (PPTX/PDF) e os antigos DOCX de curadoria: ficam no disco e são publicados como anexos de uma **Release do GitHub**
   (`specs/2026-10-26_limpeza_historico` Parte B); o histórico foi reescrito para tirá-los, e voltar a versioná-los refaria o problema.
 
 ## 4. Não editar artefatos gerados à mão
