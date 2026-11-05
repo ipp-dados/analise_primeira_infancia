@@ -12,3 +12,12 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
       1º parágrafo atual) no início da aba e, no fim da aba, a seção **"Notas sobre o projeto e metodologia"** com até
       2 parágrafos (resumo dos parágrafos 2 a 4). Chaves: `introducao` (abertura) e `notas_projeto_metodologia`
       (fechamento). Conferir também o capítulo de Introdução do PDF, que lê a mesma chave `introducao`.
+
+## Bloco 2 — Dados faltantes e plano para gestores
+- [x] T2.1 Lista de todos os dados faltantes (pedido do usuário, 2026-11-05): `docs/dados_faltantes.csv` — 12 itens: os
+      3 `status: pendente` do crosswalk (o aviso de pendência em Prioridade e os dois de Proteção) e 9 lacunas do
+      ROADMAP e de `specs/exclusoes.md`
+- [x] T2.2 Documento para gestores (Claude Docs, "Diagnóstico da Primeira Infância — dados faltantes e plano de
+      entrega"): situação das entregas, tabela dos 12 itens com situação e prioridade editáveis, plano em 3 fases e
+      2 portas (sem datas: a definir pelos gestores), pedidos e decisões
+- [ ] T2.3 Manter a lista e o documento em dia quando um item mudar (pedido feito, dado recebido)
