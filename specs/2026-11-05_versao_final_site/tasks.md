@@ -62,6 +62,11 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - [ ] T9.2 `staging_main` → `main`; deploy conferido
 - [ ] T9.3 Release do PDF
 - [ ] T9.4 Constituição §7 e `CLAUDE.md`
+- [ ] T9.5 Trocar a fonte do GitHub Pages da `staging_main` para a `main` (decisão do usuário, 2026-11-05: **por ora o
+  site publica pela `staging_main`**, deploy manual -- `gh workflow run deploy-relatorio.yml --ref staging_main`).
+  Na hora: incluir `main` nas branches permitidas do ambiente `github-pages` (Settings → Environments), passar
+  Settings → Pages → Source para "GitHub Actions" (hoje `legacy` com fonte `demo`), tirar `demo` e `staging_main` das
+  permitidas, e conferir o primeiro deploy automático por push na `main`
 
 ## Estado em 2026-11-05 (fim da sessão) -- retomar daqui
 
