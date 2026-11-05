@@ -47,13 +47,13 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - [x] T6.3 Skills, `CLAUDE.md`, especificação do projeto
 
 ## Bloco 7 — Release e Actions
-- [~] T7.1 Instalar o `gh` (feito, v2.103.3); falta o usuário fazer `gh auth login`
+- [x] T7.1 Instalar o `gh` (v2.103.3, `C:\Program Files\GitHub CLI\gh.exe`; o terminal antigo não tem no PATH) e `gh auth login` (conta leoaucar)
 - [x] T7.2 Passo de publicação da Release (`relatorio/latex/build/publica_release.py`: ensaio por padrão, `--gerar`, `--confirmar`)
 - [x] T7.3 Deploy automático na `main`; workflow de checagem em `staging_main` (`confere-site.yml`; checagens em `website/build/confere_publicacao.py`)
 - [x] T7.4 (D13) `publicacao.json` separado em site/PDF; faixa do site desligada; botão do PDF escondido
 
 ## Bloco 8 — Versão final, revisão e teste
-- [ ] T8.1 `publicacao.json` → `false`; regerar site e PDF
+- [x] T8.1 `publicacao.json`: site `false`, PDF segue `true`, botão do PDF escondido (D13) -- feito em 031dddc
 - [ ] T8.2 Revisão de pipelines e documentação; títulos "até 72 meses"
 - [ ] T8.3 Teste completo desktop e celular
 
@@ -62,3 +62,23 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - [ ] T9.2 `staging_main` → `main`; deploy conferido
 - [ ] T9.3 Release do PDF
 - [ ] T9.4 Constituição §7 e `CLAUDE.md`
+
+## Estado em 2026-11-05 (fim da sessão) -- retomar daqui
+
+- Branch `spec/versao_final_site` no `origin`; `staging_main` avançada (fast-forward) até 031dddc; tag
+  `rodada/curadoria_docx` no `origin`. `main` intocada (ainda no commit antigo `e6d2a16`).
+- **Site publicado** a partir da `staging_main` (decisão do usuário: deploy pela `staging_main` antes do bloco 8) --
+  run 42105224110 ok; deployment de 031dddc às 20:38 UTC. github.io não abre da rede do IPP (HTTP 000): conferir de
+  outro lugar.
+- GitHub Pages: `build_type: legacy` com fonte `demo` + deploys por Actions; o ambiente `github-pages` só aceita
+  `demo` e `staging_main` -- no bloco 9, incluir `main` (Settings → Environments) e passar o Pages para "GitHub
+  Actions"; a `demo` deixa de ser publicada.
+- Actions: avisos de Node 20 em `configure-pages@v5`/`deploy-pages@v4`/`upload-artifact` (ainda funcionam) --
+  atualizar quando houver versão nova.
+- Capas A e D seguem juntas em `pretextual/capa.tex` (usuário escolhe depois); nomes completos da equipe técnica
+  (só Leonardo Nogueira Aucar está completo) ainda pendentes.
+- `basemap-*.jpg`: o gerador regrava o fundo do mapa com hash novo a cada build (dois arquivos versionados, um
+  sem uso) -- tornar determinístico e apagar o órfão no bloco 8.
+- **Próximo: bloco 8** (T8.2 revisão de pipelines/documentação e títulos "até 72 meses"; T8.3 teste completo desktop
+  1366 e celular 390 com Playwright/Edge), depois **bloco 9** só com OK (merge, `main`, Release com
+  `relatorio/latex/build/publica_release.py vX.Y.Z --gerar` e depois `--confirmar`, constituição §7).
