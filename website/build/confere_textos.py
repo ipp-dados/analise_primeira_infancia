@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Tabela de conferência: texto da curadoria (DOCX / textos_curados.json) x figura publicada no site.
+"""Tabela de conferência: texto curado (relatorio/textos_curados.json) x figura publicada no site.
 
 specs/2026-09-28_website_bugfix. Abre website/index.html num Chromium (Playwright, só ambiente de
 desenvolvimento -- não está no requirements.txt), percorre cada bloco de texto com `data-seed`
 (emitido por build_site.py) e registra a figura que aparece junto dele (aba, seção, modo Taxa|Óbitos,
-pill, tipo, título renderizado). Cruza com o texto do DOCX de curadoria (mesma leitura de
-sincroniza_docx.coleta_edicoes) e com relatorio/textos_curados.json.
+pill, tipo, título renderizado) e cruza com relatorio/textos_curados.json. Desde 2026-11-05 a curadoria não passa
+mais por DOCX (specs/2026-11-05_versao_final_site R6): os textos ficam só no JSON (e os de eixo em
+relatorio/textos_eixos.md, importados por relatorio/curadoria/importa_textos_eixos.py).
 
     python website/build/confere_textos.py [saida.csv]
 
@@ -81,15 +82,12 @@ def extrai_site():
 
 
 def main():
-    from sincroniza_docx import coleta_edicoes   # noqa: E402 (caminho acrescentado acima)
-    from gera_docx_curadoria import _LOREM_WORDS
-    # vocabulário do lorem do site (build_site.py executa tudo no import, por isso lido via ast) + o do DOCX
+    # vocabulário do lorem do site (build_site.py executa tudo no import, por isso lido via ast)
     import ast
     arvore = ast.parse((ROOT / "website" / "build" / "build_site.py").read_text(encoding="utf-8"))
     no = next(n for n in arvore.body if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "_LOREM_WORDS")
-    vocab = set(_LOREM_WORDS) | set(ast.literal_eval(no.value.func.value).split())   # _LOREM_WORDS = ("...").split()
+    vocab = set(ast.literal_eval(no.value.func.value).split())   # _LOREM_WORDS = ("...").split()
     eh_lorem = lambda t: bool(t.strip()) and all(w in vocab for w in re.findall(r"[a-zà-ú]+", t.lower()))
-    docx, _avisos = coleta_edicoes(ROOT / "relatorio" / "curadoria_textos.docx")
     curados = json.loads((ROOT / "relatorio" / "textos_curados.json").read_text(encoding="utf-8"))
     site = extrai_site()
 
@@ -98,21 +96,16 @@ def main():
     for r in site:
         chaves = r["seed"].split("+")
         usados.update(chaves)
-        t_docx = "\n\n".join(docx[k] for k in chaves if k in docx)
         t_json = "\n\n".join(curados[k] for k in chaves if curados.get(k))
         t_site = r["texto"]
         lorem = eh_lorem(t_site)
-        if lorem and t_docx:
-            status, obs = "ERRO", "texto curado no DOCX não chegou ao site (rodar sincroniza_docx.py)"
-        elif lorem:
+        if lorem:
             status, obs = "PENDENTE", "sem texto na curadoria -- site mostra lorem ipsum"
         elif _norm(t_site) != _norm(t_json):
             status, obs = "ERRO", "texto do site difere de textos_curados.json"
-        elif t_docx and _norm(t_docx) != _norm(t_json):
-            status, obs = "ATENÇÃO", "DOCX difere do JSON (DOCX editado depois da última sincronização?)"
         else:
             status, obs = "OK", ""
-        saida.append({**r, "texto_docx": t_docx, "texto_json": t_json, "texto_site": t_site, "status": status, "observacao": obs,
+        saida.append({**r, "texto_json": t_json, "texto_site": t_site, "status": status, "observacao": obs,
                       "origem_texto_site": "lorem ipsum" if lorem else "curadoria"})
 
     # textos curados que não aparecem em nenhum bloco do site, com o motivo conhecido
@@ -127,19 +120,18 @@ def main():
               "percentual_mortalidade_causas_evitaveis_raca_ano", "percentual_mortalidade_causas_evitaveis_raca_sem_nao_informado_ano"):
         motivo[k] = "gráficos de causas evitáveis por raça/cor removidos em 2026-09-25 (specs/2026-09-25_relatorio_latex D6; estrutura_eixos: pendente)"
     blocos_relatorio = ("introducao", "consideracoes_finais", "resumo")
-    for k in sorted(set(curados) | set(docx)):
+    for k in sorted(curados):
         if k in usados or k.startswith(("achados_", "sintese_", "conclusao-")) or k in blocos_relatorio:
             continue
         saida.append({"eixo": "", "secao": "", "subsecao": "", "modo": "", "pill": "", "tipo": "", "titulo": "", "seed": k,
-                      "texto_docx": docx.get(k, ""), "texto_json": curados.get(k, ""), "texto_site": "",
+                      "texto_json": curados.get(k, ""), "texto_site": "",
                       "origem_texto_site": "", "status": "NÃO PUBLICADO",
                       "observacao": motivo.get(k, "texto curado sem figura no site -- investigar")})
 
     colunas = [("eixo", "Eixo (aba)"), ("secao", "Seção"), ("subsecao", "Subseção"), ("modo", "Modo (Taxa|Óbitos)"),
                ("pill", "Opção (pill)"), ("tipo", "Tipo de figura"), ("titulo", "Título/unidade da figura no site"),
                ("seed", "Chave do texto (arquivo)"), ("status", "Status"), ("observacao", "Observação"),
-               ("origem_texto_site", "Origem do texto no site"), ("texto_docx", "Texto na curadoria (DOCX)"),
-               ("texto_json", "Texto em textos_curados.json"), ("texto_site", "Texto exibido no site")]
+               ("origem_texto_site", "Origem do texto no site"), ("texto_json", "Texto em textos_curados.json"), ("texto_site", "Texto exibido no site")]
     SAIDA.parent.mkdir(parents=True, exist_ok=True)
     with open(SAIDA, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f, delimiter=";")
@@ -148,18 +140,18 @@ def main():
             w.writerow([r.get(c[0], "") for c in colunas])
     from collections import Counter
     print(f"{SAIDA}: {len(saida)} linhas", dict(Counter(r['status'] for r in saida)))
-    exporta_revisao(saida, docx, curados)
+    exporta_revisao(saida, curados)
 
 
 REVISAO = SAIDA.with_name("textos_para_revisao.csv")
 _ORDEM = {"PENDENTE": 0, "ERRO": 1, "ATENÇÃO": 2, "NÃO PUBLICADO": 3, "OK": 4}
 
 
-def exporta_revisao(saida, docx, curados):
+def exporta_revisao(saida, curados):
     """Uma linha por chave de texto (não por pill): textos que faltam primeiro, depois os curados, com colunas em
     branco para a conferência manual. Inclui os blocos do relatório fora das figuras (introdução, resumo, achados e
     síntese por eixo, considerações finais), que o site também mostra."""
-    from sincroniza_docx import blocos_relatorio, parse_estrutura_eixos
+    from gera_estrutura_eixos import blocos_relatorio, parse_estrutura_eixos
     por_chave = {}
     for r in saida:
         for k in r["seed"].split("+"):
@@ -174,17 +166,17 @@ def exporta_revisao(saida, docx, curados):
     for k in ["introducao"] + list(blocos_relatorio(parse_estrutura_eixos())):
         if k in por_chave:
             continue
-        tem = bool(curados.get(k) or docx.get(k))
+        tem = bool(curados.get(k))
         por_chave[k] = {"status": "OK" if tem else "PENDENTE", "locais": ["bloco do relatório (fora das figuras)"],
                         "figuras": [], "tipos": ["texto"], "observacao": "" if tem else "sem texto na curadoria"}
     linhas = sorted(por_chave.items(), key=lambda kv: (_ORDEM[kv[1]["status"]], kv[1]["locais"][0] if kv[1]["locais"] else "", kv[0]))
     with open(REVISAO, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f, delimiter=";")
         w.writerow(["Status", "Chave do texto (arquivo)", "Onde aparece no site", "Tipo", "Figura(s) no site",
-                    "Observação", "Texto curado (DOCX)", "Texto em textos_curados.json", "Conferido (sim/não)", "Comentário"])
+                    "Observação", "Texto em textos_curados.json", "Conferido (sim/não)", "Comentário"])
         for k, e in linhas:
             w.writerow([e["status"], k, " | ".join(e["locais"]), " | ".join(e["tipos"]), " | ".join(e["figuras"]),
-                        e["observacao"], docx.get(k, ""), curados.get(k, ""), "", ""])
+                        e["observacao"], curados.get(k, ""), "", ""])
     from collections import Counter
     print(f"{REVISAO}: {len(linhas)} chaves", dict(Counter(e["status"] for _, e in linhas)))
 
