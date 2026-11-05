@@ -200,6 +200,13 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 13 a 15 d
    nutrição da SMS tem os dados por AP e vai fornecê-los — falta fazer o contato.
 
 ### Educação
+- **Oferta de educação infantil por bairro × crianças e nascimentos** (pedido do usuário, 2026-11-05; amplia o item
+  abaixo e o item 10 de `docs/dados_faltantes.csv`): por bairro, **matrículas** (creche 0-3 e pré-escola 4-5) e
+  **número de creches e pré-escolas** (estabelecimentos do Censo Escolar com essas etapas) comparados ao **número de
+  crianças** (Censo 2022 ou a estimativa anual por bairro, Próximas features item 3) e aos **nascimentos** (SINASC,
+  nascidos vivos por bairro de residência da mãe — indica a demanda dos próximos anos). Saídas: mapas e tabela de
+  matrículas e de creches por mil crianças e por mil nascidos vivos, com a mesma regra de taxa (somar numerador e
+  denominador antes de agregar por AP/RP/RA). Depende da geocodificação das escolas (abaixo); eixo Família e Cuidados.
 - Mapa de matrículas por bairro, com as escolas geocodificadas (o arquivo do INEP não traz `codbairro`; ver
   `specs/2026-09-24_populacao-referencia/matriculas/specification.md` §4.4).
 - Validar 1 ou 2 anos contra a Sinopse Estatística do INEP (pendência P5 da mesma rodada).
