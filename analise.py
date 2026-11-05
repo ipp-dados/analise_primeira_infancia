@@ -413,9 +413,17 @@ df_pop_infantil[['ano', 'populacao_0_a_5', 'populacao_total', 'percentual_0_a_5'
 serie_temporal(df_pop_infantil, 'ano', 'populacao_0_a_5', 'População de 0 a 5 anos por ano (estimativas Ripsa/MS)',
                nome_arquivo='populacao_ripsa_0_a_6_por_ano', fonte_dados=fonte_ripsa)
 
+# %% [markdown]
+# <!-- nota-curadoria:populacao_ripsa_0_a_6_por_ano -->
+# **Nota de curadoria:** As estimativas Ripsa/MS permitem estimar a evolução anual da população de 0 a 5 anos no município do Rio de Janeiro entre 2000 e 2025. Aqui vale uma nota metodológica, pois devido a diversos problemas o Censo 2022 apresentou significativa subnotificação de crianças, o que já é comum em censo demográficos, mas foi amplificado no caso citado. Dessa forma, o próprio IBGE alterou em 2024 sua metodologia de estimativa populacional para utilizar também estimativas do Ripsa/MS. Nessa estimativa, o grupo passou de 598.322 crianças em 2000 para 393.073 em 2025, redução de aproximadamente 34% e condizente com a queda de nascidos vivos.
+
 # %%
 serie_temporal(df_pop_infantil, 'ano', 'percentual_0_a_5', 'Participação de 0 a 5 anos na população total (%, estimativas Ripsa/MS)',
                nome_arquivo='populacao_ripsa_0_a_6_percentual_por_ano', fonte_dados=fonte_ripsa)
+
+# %% [markdown]
+# <!-- nota-curadoria:populacao_ripsa_0_a_6_percentual_por_ano -->
+# **Nota de curadoria:** Proporcionalmente, a participação das crianças de 0 a 5 anos na população carioca caiu de 9,5% em 2000 para 5,8% em 2025. Ao longo da série, o percentual apresentou períodos de menor variação antes de retomar a queda nos anos mais recentes. O indicador permite comparar a presença relativa da primeira infância na população em diferentes momentos, complementando a análise do número absoluto de crianças e oferecendo uma referência para interpretar mudanças na composição etária do município.
 
 # %% [markdown]
 # ##### Pendente: Censo 2022 por idade e raça/cor (0 a 6 anos, cidade toda)
@@ -519,6 +527,10 @@ grafico_barra(df_renda_grafico,categoria='faixa de renda',valor='Crianças',
               nome_arquivo='cadunico_criancas_por_faixa_renda', fonte_dados=fonte_cadunico_particao)
 
 # %% [markdown]
+# <!-- nota-curadoria:cadunico_criancas_por_faixa_renda -->
+# **Nota de curadoria:** Entre as crianças de 0 a 5 anos registradas no CadÚnico, há forte concentração nas menores faixas de renda. Das 200.784 crianças cadastradas, cerca de 76,5% estão em famílias com renda per capita de até R$218, enquanto outros 17,4% estão na faixa de R$218 a R$810. As faixas de renda mais altas possuem participação bem menor: aproximadamente 5% estão entre meio e um salário mínimo per capita, e menos de 1% estão acima de um salário mínimo. Os dados mostram, portanto, que a população infantil registrada no CadÚnico está fortemente concentrada entre as famílias de menor renda.
+
+# %% [markdown]
 # #### Análise por idade
 #
 # **Leitura (recortes_cadunico A6):** a coluna `Famílias` conta, em cada idade, as famílias com ao menos
@@ -582,6 +594,10 @@ df_cadunico_razao = pd.DataFrame([{
 }])
 df_cadunico_razao.to_csv('tabelas_finais/cadunico_razao_populacao_0_a_5_2026.csv', index=False)
 df_cadunico_razao
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_razao_populacao_0_a_5_2026 -->
+# **Nota de curadoria:** Em julho de 2026, havia 200.784 crianças de 0 a 5 anos registradas no CadÚnico, distribuídas em 178.838 famílias. Esse número corresponde a aproximadamente 51,1 crianças cadastradas para cada 100 crianças da população estimada de 0 a 5 anos do município em 2025, de 393.073 crianças. Esse resultado mostra a forte presença do CadÚnico entre as crianças da primeira infância no município. Entretanto, o percentual deve ser interpretado com cautela, pois compara um cadastro de 2026 com uma estimativa populacional de 2025, não representando uma medida exata de cobertura cadastral.
 
 # %% [markdown]
 # #### Análise por bairros
@@ -687,6 +703,10 @@ mapa_coropletico_bairros(
 )
 
 # %% [markdown]
+# <!-- nota-curadoria:mapa_cadunico_criancas_bairro_2026 -->
+# **Nota de curadoria:** A distribuição das crianças de 0 a 5 anos no CadÚnico apresenta forte concentração territorial. Os maiores números aparecem em Santa Cruz (11.711 crianças), Campo Grande (10.780), Bangu (7.986), Guaratiba (7.230) e Realengo (5.696), com destaque para bairros da Zona Oeste. Em contraste, diversos bairros apresentam quantitativos bem menores. Como os dados são números absolutos, essa concentração também é influenciada pelo tamanho da população infantil de cada território. Portanto, os valores não representam, isoladamente, maior ou menor vulnerabilidade social.
+
+# %% [markdown]
 # **Nota (reescrita em `specs/2026-09-23_recortes_cadunico`, A2):** o percentual abaixo passa de 100% em 8 bairros
 # (Camorim ~510%, Bonsucesso ~341%, Gávea ~313%, Jacaré ~242%, Anil, Ramos, Gardênia Azul, Cidade de
 # Deus). A **causa principal é a atribuição de bairro pelo CEP** (nota da seção de bairros acima): o
@@ -779,11 +799,19 @@ grafico_barra(df_sexo_criancas.drop(index='Total (famílias não somam)').rename
               titulo='CADÚNICO: Crianças de 0 a 5 anos, por sexo',
               nome_arquivo='cadunico_criancas_por_sexo', fonte_dados=fonte_cadunico_particao)
 
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_criancas_por_sexo -->
+# **Nota de curadoria:** Entre as crianças de 0 a 5 anos registradas no CadÚnico, a distribuição por sexo é bastante equilibrada. Em julho de 2026, havia 102.703 meninos e 98.081 meninas, correspondendo a aproximadamente 51,2% e 48,8% do total, respectivamente. Assim, observa-se uma leve predominância de meninos, mas sem diferença expressiva entre os dois grupos.
+
 # %%
 grafico_barra(df_sexo_familias.drop(index='Total').rename_axis('sexo das crianças da família').reset_index(),
               categoria='sexo das crianças da família', valor='Famílias',
               titulo='CADÚNICO: Famílias com crianças de 0 a 5 anos, por sexo das crianças',
               nome_arquivo='cadunico_familias_por_sexo_criancas', fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_familias_por_sexo_criancas -->
+# **Nota de curadoria:** Entre as famílias do CadÚnico com crianças de 0 a 5 anos, 86.466 possuem apenas meninos, enquanto 82.189 possuem apenas meninas. Outras 10.183 famílias têm crianças de ambos os sexos. Assim, observa-se uma distribuição relativamente equilibrada, com leve predominância das famílias compostas somente por meninos.
 
 # %% [markdown]
 # ##### Por raça/cor
@@ -810,10 +838,18 @@ grafico_barra(df_raca_grafico, categoria='raça/cor da criança', valor='Crianç
               titulo='CADÚNICO: Crianças de 0 a 5 anos, por raça/cor',
               nome_arquivo='cadunico_criancas_por_raca_cor', fonte_dados=fonte_cadunico_particao)
 
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_criancas_por_raca_cor -->
+# **Nota de curadoria:** Entre as crianças de 0 a 5 anos registradas no CadÚnico, há predominância de crianças pardas, com 107.519 registros, correspondendo a cerca de 53,5% do total. Em seguida aparecem as crianças brancas, com 70.525 (35,1%), e pretas, com 21.425 (10,7%). Somadas, crianças pretas e pardas representam aproximadamente 64,2% das 200.784 crianças cadastradas. As categorias amarela e indígena apresentam participação bem menor, com 1.240 e 75 registros, respectivamente.
+
 # %%
 grafico_barra(df_raca_grafico, categoria='raça/cor da criança', valor='Famílias com ao menos uma',
               titulo='CADÚNICO: Famílias com ao menos uma criança de 0 a 5 anos de cada raça/cor',
               nome_arquivo='cadunico_familias_por_raca_cor', fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_familias_por_raca_cor -->
+# **Nota de curadoria:** Entre as famílias do CadÚnico com crianças de 0 a 5 anos, predominam aquelas com ao menos uma criança parda, totalizando 98.948 famílias. Em seguida aparecem as famílias com ao menos uma criança branca, com 65.853 registros, e preta, com 20.119. As categorias amarela e indígena apresentam quantitativos bem menores, com 1.224 e 69 famílias, respectivamente. Como uma mesma família pode ter crianças de diferentes raças ou cores, essas categorias não são necessariamente excludentes e não devem ser somadas para obter o total de famílias.
 
 # %% [markdown]
 # ##### Por arranjo familiar e renda
@@ -867,6 +903,10 @@ grafico_barra(df_arranjo.drop(index='Total').rename(index=_rotulo_arranjo).reset
               titulo='CADÚNICO: Famílias com crianças de 0 a 5 anos, por arranjo familiar',
               nome_arquivo='cadunico_familias_por_arranjo', fonte_dados=fonte_cadunico_particao)
 
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_familias_por_arranjo -->
+# **Nota de curadoria:** Entre as famílias do CadÚnico com crianças de 0 a 5 anos, há forte predominância do arranjo com uma única adulta mulher, que reúne 145.643 famílias, cerca de 81,4% do total. Em seguida aparecem as famílias com dois adultos, homem e mulher, com 18.489 registros, enquanto os demais arranjos possuem participação bem menor. O resultado evidencia uma concentração expressiva de crianças cadastradas em famílias compostas por apenas uma mulher adulta. Entretanto, essa categoria não deve ser interpretada diretamente como família monoparental, pois o dado considera apenas a composição de adultos registrada no CadÚnico e não informa o parentesco entre os membros da família.
+
 # %%
 _graf_arranjo_renda = df_arranjo_renda_pub.assign(arranjo=df_arranjo_renda_pub['arranjo'].astype(str).map(_rotulo_arranjo))
 grafico_barra_agrupado(_graf_arranjo_renda, categoria='arranjo', valor='% no arranjo', agrupador='faixa de renda per capita',
@@ -874,6 +914,10 @@ grafico_barra_agrupado(_graf_arranjo_renda, categoria='arranjo', valor='% no arr
                        nome_arquivo='cadunico_familias_arranjo_renda', ylabel='% das famílias do arranjo',
                        legend_title='Renda per capita', ordem_categoria=list(_rotulo_arranjo.values()), rotacao_x=0,
                        fonte_dados=fonte_cadunico_particao)
+
+# %% [markdown]
+# <!-- nota-curadoria:cadunico_familias_arranjo_renda -->
+# **Nota de curadoria:** A renda per capita varia bastante conforme o arranjo familiar. Entre as famílias com uma única mulher adulta, 79,2% estão na faixa de pobreza, enquanto apenas 5,2% possuem renda acima de meio salário mínimo. Entre aquelas com dois adultos, homem e mulher, a proporção em situação de pobreza é menor, de 53,4%, e 15,9% estão acima de meio salário mínimo. Também se destaca o grupo com um único homem adulto, no qual 72,8% das famílias estão na faixa de pobreza. Já as famílias com três ou mais adultos apresentam distribuição menos concentrada, com 48,9% em situação de pobreza e 37,8% na faixa de baixa renda. De forma geral, os dados mostram maior concentração de pobreza nos arranjos com apenas um adulto.
 
 # %% [markdown]
 # ##### 🗺️ Mapas por bairro: % de crianças negras e de famílias com uma só adulta
@@ -922,6 +966,18 @@ for _coluna, _titulo, _arquivo, _legenda in [
         nome_arquivo=_arquivo, chave='codbairro',
         cmap=_CORES_TEMA_MAPA['cadunico'], legenda_titulo=_legenda, fonte_dados=fonte_mapa_cadunico + '. Bairros com menos de 20 casos (no grupo, no complemento ou no total) mostram a taxa do conjunto dos bairros pequenos da sua Região Administrativa',
     )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_percentual_cadunico_criancas_negras_bairro_2026 -->
+# **Nota de curadoria:** Entre as crianças de 0 a 5 anos registradas no CadÚnico, a participação de crianças negras (pretas e pardas) varia de forma importante entre os bairros do Rio de Janeiro. Entre os 161 bairros com informação disponível, a mediana é de 62,1%.
+#
+# Os maiores percentuais aparecem na Cidade de Deus (77,3%), Senador Vasconcelos (73,0%), Vila Militar (72,7%), Mangueira (72,4%), Costa Barros e Jacarezinho (72,1% cada). Já os menores valores foram registrados no Catete (36,8%), Laranjeiras (42,2%) e Glória (44,5%). Os dados mostram, portanto, diferenças territoriais relevantes na composição racial das crianças cadastradas no CadÚnico.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_percentual_cadunico_familias_uma_adulta_bairro_2026 -->
+# **Nota de curadoria:** Entre as famílias do CadÚnico com crianças de 0 a 5 anos, a presença de uma única adulta mulher é predominante em praticamente todo o município. A mediana entre os bairros é de aproximadamente 80%, com valores que variam de 62,9% em Vista Alegre a 88,1% na Gamboa.
+#
+# Os maiores percentuais aparecem também em bairros como Jacarezinho, Acari, Maré, Costa Barros e Manguinhos, todos acima de 85%. O mapa mostra, portanto, que esse tipo de arranjo familiar não está restrito a poucos territórios, mas apresenta elevada participação em grande parte da cidade.
 
 # %% [markdown]
 # #### ♿🏠 Inclusão e Moradia (silvers de pessoas e famílias, jul/2026)
@@ -2661,6 +2717,10 @@ grafico_barra(df_sidra_freq_total, categoria='idade', valor='Crianças',
               titulo='Crianças de 0 a 5 anos que frequentam escola/creche, por idade - Rio de Janeiro (Censo 2022)',
               nome_arquivo='sidra_frequencia_escola_0_5_total_2022', fonte_dados=fonte_sidra_educacao)
 
+# %% [markdown]
+# <!-- nota-curadoria:sidra_frequencia_escola_0_5_total_2022 -->
+# **Nota de curadoria:** Em 2022, 233.509 crianças de 0 a 5 anos frequentavam escola ou creche no município. As crianças de 4 e 5 anos somavam 127.369, enquanto as de 0 a 3 anos totalizavam 106.140. A diferença entre os grupos etários permite analisar como a frequência escolar se distribui ao longo da primeira infância e estabelecer comparações com os dados de matrículas. O indicador também pode ser relacionado à população de cada faixa etária, permitindo observar a participação escolar em relação ao contingente infantil.
+
 # %%
 # D15: amarela e indígena (89 a 125 crianças por idade, somadas) fora das barras por idade; o agregado de 0 a 5 anos
 # vai na nota da fonte e na tabela
@@ -2753,6 +2813,10 @@ df_matriculas
 serie_temporal(df_matriculas, 'ano', 'matriculas', 'Matrículas de crianças de 0 a 5 anos por ano',
                nome_arquivo='matriculas_0_a_5_por_ano', fonte_dados=fonte_matriculas)
 
+# %% [markdown]
+# <!-- nota-curadoria:matriculas_0_a_5_por_ano -->
+# **Nota de curadoria:** O número de matrículas de crianças de 0 a 5 anos passou de 170.650 em 2007 para 258.868 em 2019, crescimento de aproximadamente 52%. A partir de 2020, observa-se uma redução, com 230.260 matrículas em 2021, seguida de recuperação parcial em 2022. Em 2025, foram registradas 230.284 matrículas, cerca de 11% abaixo do pico de 2019. A série permite relacionar a evolução das matrículas às mudanças na população de 0 a 5 anos e comparar períodos de expansão e redução da participação escolar.
+
 # %%
 serie_temporal_multipla(
     df_matriculas, tempo='ano', colunas={'0 a 3 anos (creche)': 'matriculas_0_a_3', '4 a 5 anos (pré-escola)': 'matriculas_4_a_5'},
@@ -2760,12 +2824,20 @@ serie_temporal_multipla(
     ylabel='Matrículas', legend_title='Faixa de idade', fonte_dados=fonte_matriculas,
 )
 
+# %% [markdown]
+# <!-- nota-curadoria:matriculas_0_a_5_creche_pre_por_ano -->
+# **Nota de curadoria:** As matrículas de crianças de 0 a 3 anos passaram de 60.997 em 2007 para 115.723 em 2019, enquanto as de 4 a 5 anos aumentaram de 109.653 para 143.145 no mesmo período. Após 2019, os dois grupos apresentam redução, chegando em 2025 a 110.097 matrículas de 0 a 3 anos e 120.187 de 4 a 5 anos. A série permite comparar a evolução das matrículas entre os dois recortes etários e observar diferenças na trajetória de cada grupo ao longo do período analisado.
+
 # %%
 serie_temporal_multipla(
     df_matriculas, tempo='ano', colunas={'Rede pública': 'matriculas_publica', 'Rede privada': 'matriculas_privada'},
     titulo='Matrículas de crianças de 0 a 5 anos, por rede', nome_arquivo='matriculas_0_a_5_rede_por_ano',
     ylabel='Matrículas', legend_title='Rede', fonte_dados=fonte_matriculas,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:matriculas_0_a_5_rede_por_ano -->
+# **Nota de curadoria:** As matrículas na rede pública passaram de 107.599 em 2007 para 144.314 em 2019, enquanto na rede privada aumentaram de 63.051 para 114.554 no mesmo período. Após 2019, a rede pública apresentou redução contínua, chegando a 122.236 matrículas em 2025. Na rede privada, houve queda até 2021, seguida de recuperação parcial, com 108.048 matrículas em 2025. A evolução dos dois segmentos permite acompanhar mudanças na participação de cada rede no atendimento às crianças de 0 a 5 anos ao longo da série.
 
 # %% [markdown]
 # **Nota metodológica da taxa de atendimento** (decisão D7 de `matriculas/`; a nota geral de população de
@@ -2796,6 +2868,10 @@ serie_temporal_multipla(
     ylabel='Matrículas por 100 crianças residentes', legend_title='Faixa de idade', fonte_dados=fonte_taxa_atendimento,
     linhas_referencia=[(50, 'Meta PNE creche: 50%'), (100, 'Meta PNE pré-escola: 100%')],
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:taxa_atendimento_0_a_5_por_ano -->
+# **Nota de curadoria:** A taxa bruta de atendimento escolar de crianças de 0 a 5 anos passou de 34,4% em 2007 para 58,6% em 2025. No mesmo período, a taxa entre crianças de 0 a 3 anos aumentou de 18,9% para 43,7%, enquanto entre 4 e 5 anos passou de 63,4% para 85,2%. A diferença entre os grupos etários permanece ao longo da série, permitindo comparar os níveis de atendimento e sua evolução segundo a idade. O indicador pode ser relacionado às matrículas e à população de cada faixa etária para analisar a cobertura do atendimento escolar.
 
 # %% [markdown]
 # #### Juncao de tabelas por bairro
@@ -2888,6 +2964,10 @@ serie_temporal_multipla_marcos(
 )
 
 # %% [markdown]
+# <!-- nota-curadoria:violencia_familiar_serie_vinculos -->
+# **Nota de curadoria:** As notificações de violência familiar apresentaram oscilações ao longo da série, com aumento acentuado em 2017 e redução nos anos seguintes. Entre 2011 e 2025, os registros envolvendo o vínculo materno passaram de 324 para 1.756 notificações, enquanto os relacionados ao vínculo paterno passaram de 135 para 1.404. Em 2025, foram registradas 110 notificações classificadas em outros vínculos. A mudança observada em 2017 é indicada no gráfico como possível quebra de série, hipótese que requer confirmação junto à fonte. Os diferentes vínculos permitem acompanhar a composição das notificações ao longo do período.
+
+# %% [markdown]
 # ##### A3 · Taxa municipal por 1.000 crianças de 0 a 5 anos, por vínculo (2011-2025)
 #
 # > Notificações de cada vínculo ÷ população de **0 a 5 anos** do mesmo ano (estimativas Ripsa/MS) × 1.000
@@ -2917,6 +2997,10 @@ serie_temporal_multipla_marcos(
 df_vf_taxa_municipio.round(2)
 
 # %% [markdown]
+# <!-- nota-curadoria:violencia_familiar_taxa_municipio_ano -->
+# **Nota de curadoria:** A taxa de notificações de violência familiar apresentou oscilações ao longo da série, com aumento acentuado em 2017 e nova elevação a partir de 2022. Em 2025, foram registradas 4,47 notificações por 1.000 crianças de 0 a 5 anos para o vínculo materno e 3,57 para o paterno, enquanto outros vínculos apresentaram 0,28. A mudança observada em 2017 é indicada no gráfico como possível quebra de série, hipótese que requer confirmação junto à fonte. A utilização da taxa permite comparar as notificações ao longo do período considerando a variação da população de 0 a 5 anos.
+
+# %% [markdown]
 # ##### T4 e G2 · Composição de "outros"
 
 # %%
@@ -2932,6 +3016,10 @@ serie_temporal_multipla(
     titulo='Vínculos agrupados em "outros" (2011-2025)', nome_arquivo='violencia_familiar_outros_serie',
     ylabel='Notificações', legend_title='Vínculo', fonte_dados=fonte_sinan,
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:violencia_familiar_outros_serie -->
+# **Nota de curadoria:** Entre 2011 e 2025, as notificações classificadas como “outros vínculos” passaram de 22 para 110 registros. Em 2025, o padrasto representou a maior parcela desse agrupamento, com 73 notificações, seguido pelo irmão, com 26. Cônjuge, ex-cônjuge e filho somaram os 11 registros restantes. A composição desse agrupamento permite identificar quais vínculos concentram as notificações classificadas como “outros” e acompanhar sua participação ao longo da série.
 
 # %% [markdown]
 # ##### T2 · Por bairro (mãe, pai, outros) x ano
@@ -2981,6 +3069,18 @@ mapa_coropletico_bairros(
 )
 
 # %% [markdown]
+# <!-- nota-curadoria:mapa_violencia_familiar_outros_bairro_2021_2025 -->
+# **Nota de curadoria:** O acumulado de 2021 a 2025 permite analisar a distribuição territorial das notificações de violência familiar classificadas como “outros vínculos”, considerando um período mais amplo do que um único ano. Nos 166 bairros, foram registrados 448 casos, sendo 102 concentrados em Guaratiba, Inhoaíba e Santíssimo, enquanto 64 bairros não apresentaram registros no período. Esse recorte permite observar como as notificações associadas a outros vínculos se distribuem entre os territórios e relacioná-las aos registros dos vínculos materno e paterno e à população infantil de cada bairro. A análise conjunta desses dados pode contribuir para compreender diferenças na composição das notificações de violência familiar entre os territórios.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_violencia_familiar_pai_bairro_2025 -->
+# **Nota de curadoria:** O recorte por bairro permite relacionar as notificações de violência familiar envolvendo o vínculo paterno às características demográficas de cada território. Em 2025, foram registradas 1.404 notificações nos 166 bairros, sendo 353 concentradas em Santíssimo, Bangu e Guaratiba. Ao mesmo tempo, 37 bairros não apresentaram registros e a mediana foi de 3 notificações por bairro, indicando uma distribuição bastante desigual dos registros. Esses dados podem ser analisados em conjunto com a população infantil de cada bairro e com as notificações dos demais vínculos familiares, permitindo comparar os registros absolutos com sua ocorrência proporcional e identificar diferenças entre os recortes territoriais.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_violencia_familiar_mae_bairro_2025 -->
+# **Nota de curadoria:** Em 2025, as notificações de violência familiar envolvendo o vínculo materno foram distribuídas entre os 166 bairros do município, com registros que variaram de 0 a 165 casos. Santíssimo apresentou o maior número, com 165 notificações, seguido por Bangu, com 127, e Guaratiba, com 116. Inhoaíba registrou 81 casos e Senador Camará, 60. O recorte por bairro permite identificar como os registros se distribuem territorialmente e comparar diferentes áreas do município. A informação complementa os recortes por Região Administrativa e por taxa, permitindo analisar as notificações tanto em números absolutos quanto em relação à população infantil.
+
+# %% [markdown]
 # ##### G3 · Dez bairros com mais notificações (mãe e pai, 2025)
 #
 # > Ordenado pelo vínculo mãe; mãe e pai aparecem lado a lado, **sem soma**. Contagem absoluta — bairros populosos lideram.
@@ -3001,6 +3101,10 @@ grafico_barra_agrupado(
 )
 
 # %% [markdown]
+# <!-- nota-curadoria:violencia_familiar_top_bairros_2025 -->
+# **Nota de curadoria:** Em 2025, Santíssimo concentrou o maior número de notificações entre os dez bairros selecionados, com 165 registros envolvendo o vínculo materno e 132 o paterno. Bangu e Guaratiba também apresentaram volumes elevados, com 127 e 116 notificações maternas, respectivamente, e 121 e 100 paternas. A comparação entre os dois vínculos permite observar como as notificações se distribuem entre os bairros selecionados. A seleção considera os dez bairros com maior número de notificações envolvendo o vínculo materno, portanto o conjunto apresentado não corresponde necessariamente aos dez bairros com maiores registros para o vínculo paterno.
+
+# %% [markdown]
 # ##### T3 · Por Região Administrativa e por CAP (casos somados; taxa recalculada depois de somar)
 
 # %%
@@ -3017,6 +3121,10 @@ for _df in (df_vf_ra, df_vf_cap):
 df_vf_ra.to_csv('tabelas_finais/violencia_familiar_por_ra.csv', index=False)
 df_vf_cap.to_csv('tabelas_finais/violencia_familiar_por_cap.csv', index=False)
 df_vf_cap[df_vf_cap['ano'] == 2025]
+
+# %% [markdown]
+# <!-- nota-curadoria:violencia_familiar_por_cap -->
+# **Nota de curadoria:** Em 2025, as notificações de violência familiar apresentaram diferentes volumes entre as dez CAPs do município. A CAP 5.2 concentrou o maior número para todos os vínculos: 531 notificações envolvendo a mãe e 472 o pai, com taxas de 12,07 e 10,73 por mil crianças de 0 a 4 anos, as mais altas do município. Foram registrados 110 casos classificados como “outros vínculos”, também com maior concentração na CAP 5.2, que contabilizou 36 notificações. Quando os registros são relacionados à população de 0 a 4 anos, as taxas também evidenciam diferenças entre os territórios, variando de 0,09 a 0,82 notificações por mil crianças. Esse recorte permite analisar a ocorrência de “outros vínculos” considerando o tamanho da população infantil de cada CAP, além de possibilitar sua comparação com os registros dos vínculos materno e paterno e com os diferentes recortes territoriais.
 
 # %% [markdown]
 # ### Notificações de lesão autoprovocada (0 a 5 anos)
@@ -3044,6 +3152,10 @@ grafico_barra(df_autoprov_periodos, 'período', 'notificações',
               fonte_dados='Sinan NET/Tabnet (SMS-Rio). 2026 parcial; possível mudança de registro (hipótese)')
 
 # %% [markdown]
+# <!-- nota-curadoria:notif_autoprovocada_antes_2026_vs_2026 -->
+# **Nota de curadoria:** A série de notificações de lesão autoprovocada entre crianças de 0 a 5 anos apresenta baixa ocorrência nos anos anteriores a 2026, com 7 registros acumulados entre 2018 e 2025, distribuídos em apenas quatro anos. Em 2026, foram contabilizadas 33 notificações, ainda em período parcial, indicando uma diferença que requer cautela na comparação entre os períodos. Os registros de 2026 estão distribuídos em 21 bairros, permitindo observar também a dimensão territorial desse fenômeno. O recorte pode servir de base para acompanhar a evolução dos registros e analisar sua distribuição entre os bairros, considerando a incompletude de 2026.
+
+# %% [markdown]
 # ##### 🗺️ Mapa por bairro (M7 · 2026, ano de referência desta série)
 
 # %%
@@ -3055,6 +3167,10 @@ mapa_coropletico_bairros(
     nome_arquivo='mapa_notif_autoprovocada_bairro_2026', cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base', zero_branco=True,
     legenda_titulo='Notificações\n(2026, parcial)', fonte_dados='Sinan NET/Tabnet (SMS-Rio), 0 a 5 anos',
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_notif_autoprovocada_bairro_2026 -->
+# **Nota de curadoria:** Em 2026, as 33 notificações de lesão autoprovocada entre crianças de 0 a 5 anos foram registradas em 21 dos 166 bairros do município, enquanto 145 não apresentaram registros no período. Parque Colúmbia concentrou cinco notificações, seguido por Vista Alegre e Santíssimo, com três cada. A distribuição territorial permite identificar onde os registros estão presentes e observar sua concentração em determinados bairros, mas a ausência de notificações não deve ser interpretada isoladamente como ausência do fenômeno. O recorte pode ser relacionado à população infantil e às informações de anos anteriores, contribuindo para acompanhar a distribuição territorial dos registros e suas variações ao longo do tempo.
 
 # %% [markdown]
 # ### Violência territorial por Região Administrativa (ISP-RJ via Data.Rio, 2024)
@@ -3085,6 +3201,24 @@ for coluna, (rotulo, sufixo) in indicadores_territoriais.items():
         cmap=_CORES_TEMA_MAPA['protecao'], fundo='mapa_oceano_base',
         legenda_titulo='Taxa (ISP)\ntodas as idades,\nnão só crianças', fonte_dados=fonte_isp,
     )
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_violencia_territorial_homicidios_ra_2024 -->
+# **Nota de curadoria:** Em 2024, a taxa de homicídios apresentou forte desigualdade entre as Regiões Administrativas do Rio de Janeiro, variando de 2,8 (Rocinha) a 76,3 homicídios por 100 mil habitantes (Centro); sem o Centro, o maior valor é o de Madureira (33,5). As maiores taxas aparecem concentradas em algumas áreas da porção central e norte do município, enquanto diversas regiões do litoral e da Zona Sul apresentam valores mais baixos. O indicador evidencia diferenças importantes no nível de violência territorial dentro da cidade.
+#
+# Como o dado considera a população geral, de todas as idades, ele deve ser utilizado como medida do contexto de violência do território, e não como indicador direto de homicídios na primeira infância. No relatório, esse mapa integra o eixo de Direito ao Brincar, na seção de violência territorial.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_violencia_territorial_homicidios_acao_policial_ra_2024 -->
+# **Nota de curadoria:** Em 2024, a taxa de homicídios por ação policial apresentou forte variação entre as Regiões Administrativas do Rio de Janeiro. Os maiores valores foram registrados na Cidade de Deus (19,62 por 100 mil habitantes), Penha (14,97) e Irajá (12,93). Em contraste, algumas regiões apresentaram taxa igual a zero, como Copacabana, Rocinha, Complexo do Alemão e Santa Teresa.
+#
+# O mapa evidencia, portanto, uma distribuição territorial bastante desigual desse tipo de violência. Assim como no indicador anterior, os dados se referem à população geral, de todas as idades, devendo ser interpretados como medida do contexto de violência territorial, e não como indicador específico da primeira infância.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_violencia_territorial_homicidios_jovens_negros_ra_2024 -->
+# **Nota de curadoria:** Em 2024, a taxa de homicídios de jovens negros apresentou diferenças importantes entre as Regiões Administrativas do Rio de Janeiro. Os maiores valores foram registrados em Madureira (9,18 por 100 mil habitantes), Pavuna (6,77), Cidade de Deus (6,54) e Centro (6,11). Em contraste, Tijuca e Santa Teresa apresentaram taxa igual a zero.
+#
+# O mapa evidencia uma distribuição territorial desigual desse indicador, com maiores taxas concentradas principalmente em algumas áreas das Zonas Norte e Oeste. Assim como nos mapas anteriores, o dado deve ser interpretado como um indicador do contexto de violência territorial, e não como medida específica da violência sofrida por crianças na primeira infância.
 
 # %% [markdown]
 # ### Taxa de notificações de violência familiar por 1.000 crianças
@@ -3164,6 +3298,18 @@ for _nome, _rotulo, _periodo in [('mae_2025', 'mãe', '2025'), ('pai_2025', 'pai
     )
 
 # %% [markdown]
+# <!-- nota-curadoria:mapa_violencia_familiar_mae_taxa_ra_2025 -->
+# **Nota de curadoria:** Em 2025, a taxa de notificações de violência familiar envolvendo o vínculo materno variou entre as Regiões Administrativas, de 0,00 a 18,65 notificações por 1.000 crianças de 0 a 4 anos. As maiores taxas foram registradas em Guaratiba (18,65), Penha (9,86) e Campo Grande (9,82), enquanto Paquetá (0,00) e Vila Isabel (0,52) apresentaram as menores. O recorte por RA permite comparar a distribuição territorial das notificações considerando o tamanho da população infantil de cada região. A taxa utiliza como denominador a população de 0 a 4 anos do Censo 2022.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_violencia_familiar_pai_taxa_ra_2025 -->
+# **Nota de curadoria:** Em 2025, a taxa de notificações de violência familiar envolvendo o vínculo paterno variou entre as Regiões Administrativas, de 0,00 a 15,26 notificações por 1.000 crianças de 0 a 4 anos. As maiores taxas foram registradas em Guaratiba (15,26), Campo Grande (9,18) e Bangu (8,54), enquanto Paquetá (0,00), Complexo da Maré (0,58) e Rocinha (0,95) apresentaram as menores. O recorte por RA permite comparar a distribuição territorial das notificações considerando a população infantil de cada região. A taxa utiliza como denominador a população de 0 a 4 anos do Censo 2022.
+
+# %% [markdown]
+# <!-- nota-curadoria:mapa_violencia_familiar_outros_taxa_ra_2021_2025 -->
+# **Nota de curadoria:** No período de 2021 a 2025, a taxa de notificações de violência familiar classificadas como “outros vínculos” variou entre as Regiões Administrativas, de 0,00 a 7,68 notificações por 1.000 crianças de 0 a 4 anos. As maiores taxas foram registradas em Guaratiba (7,68), Centro (3,62) e São Cristóvão (2,57), enquanto Paquetá (0,00), Complexo da Maré (0,12) e Botafogo (0,14) apresentaram as menores. O recorte territorial permite comparar a ocorrência das notificações entre as regiões considerando a população infantil de cada uma.
+
+# %% [markdown]
 # ##### G8 · Dez maiores taxas (mãe e pai, 2025)
 #
 # > Só bairros com 100 ou mais crianças de 0 a 4 anos (taxa estável); mãe e pai lado a lado, sem soma.
@@ -3182,6 +3328,10 @@ grafico_barra_agrupado(
     legend_title='Vínculo', ordem_categoria=list(top10_taxa['bairro']), ordem_agrupador=['Mãe', 'Pai'],
     fonte_dados=fonte_sinan_censo + '; bairros com 100+ crianças',
 )
+
+# %% [markdown]
+# <!-- nota-curadoria:violencia_familiar_taxa_top_bairros_2025 -->
+# **Nota de curadoria:** Em 2025, entre os bairros com pelo menos 100 crianças de 0 a 4 anos, Barra de Guaratiba apresentou a maior taxa de notificações para os dois vínculos, com 206,73 por 1.000 crianças para mãe e 163,46 para pai. Pedra de Guaratiba e Santíssimo também apresentaram taxas elevadas para ambos os vínculos. A comparação entre os bairros considera a população infantil como denominador, permitindo analisar as notificações de forma proporcional ao número de crianças. A seleção contempla apenas bairros com 100 ou mais crianças de 0 a 4 anos, conforme o critério utilizado na construção do indicador.
 
 # %% [markdown]
 # ---

@@ -1283,7 +1283,7 @@ top10 = df_censo_bairro.sort_values("0 a 4 anos", ascending=False).head(10)[["ba
 top10 = top10.rename(columns={"bairro": "Bairro", "0 a 4 anos": "Crianças 0-4", "Percentual 0 a 4": "% do bairro"})
 top10["% do bairro"] = top10["% do bairro"].map(lambda v: f"{v:.1f}%".replace(".", ","))
 FONTE_CENSO = "Censo Demográfico 2022 (IBGE/Data.Rio)"
-tabela_com_texto(lambda: plain_table(top10, fonte=FONTE_CENSO), "Top 10 bairros por população 0-4 anos")
+tabela_com_texto(lambda: plain_table(top10, fonte=FONTE_CENSO), "censo_top10_bairros_0_4")
 
 h3('Crianças de 0 a 4 anos por bairro e região (Censo 2022)', antigo='mapas')
 
@@ -1322,12 +1322,12 @@ for _nivel, _info in NIVEIS_PLANEJAMENTO.items():
     _entries_mapas_censo_abs.append((_l1, lambda df=df_censo_nivel, nivel=_nivel, info=_info: mapa_svg(
         df, _NIVEL_COL[nivel], "0 a 4 anos", "censo",
         f"Crianças de 0 a 4 anos, por {info['nome']} (Censo 2022)", "Crianças de 0 a 4 anos",
-        FONTE_CENSO, bins=info['bins'], nivel=nivel), f"{_l1} · Absoluto"))
+        FONTE_CENSO, bins=info['bins'], nivel=nivel), f"mapa_censo_0_4_absoluto_{_nivel}"))
     _l2 = _info['nome']
     _entries_mapas_censo_pct.append((_l2, lambda df=df_censo_nivel, nivel=_nivel, info=_info: mapa_svg(
         df, _NIVEL_COL[nivel], "Percentual 0 a 4", "censo",
         f"Crianças de 0 a 4 anos, % da população, por {info['nome']} (Censo 2022)", "% da população da região",
-        FONTE_CENSO, fmt='pct1', nivel=nivel), f"{_l2} · %"))
+        FONTE_CENSO, fmt='pct1', nivel=nivel), f"mapa_censo_0_4_percentual_{_nivel}"))
 # 6 mapas era demais numa unica fileira de pills -- dividido em 2 grupos
 # (Absoluto / %), specification.md §9 revisao
 h5('Número de crianças')
@@ -1576,6 +1576,10 @@ _SLUG_SUBGRUPO = {
     '1.3. Red por ações de diag e trat adequado': 'Diagnóstico e tratamento',
     '1.4. Red por ações promoção vinc a atenção': 'Promoção da saúde',
 }
+# chave do texto de cada aba (specs/2026-11-05_versao_final_site): antes era o rótulo da aba
+_CHAVE_FAIXA = {'menores de 1 ano': 'menores_1', 'de 1 a 4 anos': '1_a_4', 'menores de 5 anos': 'menores_5'}
+_CHAVE_SUBGRUPO = {'Gestação': 'gestacao', 'Parto': 'parto', 'Recém-nascido': 'recem_nascido',
+                   'Diagnóstico e tratamento': 'diagnostico', 'Promoção da saúde': 'promocao', 'Imunização': 'imunizacao'}
 _entries_cap_faixa = []
 for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 anos', 'De 1 a 4 anos'), ('menores de 5 anos', 'Menores de 5 anos')]:
     for subgrupo_full, subgrupo_lbl in _SLUG_SUBGRUPO.items():
@@ -1594,7 +1598,7 @@ for faixa, faixa_lbl in [('menores de 1 ano', 'Menores de 1 ano'), ('de 1 a 4 an
         _entries_cap_faixa.append((
             _label,
             lambda anos=anos, series=series, f=_fonte_evitaveis_faixa(faixa): line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=f, unidade=UN_OBITOS_ANO),
-            _label,
+            f"evitaveis_cap_{_CHAVE_FAIXA[faixa]}_{_CHAVE_SUBGRUPO[subgrupo_lbl]}",
         ))
 option_card(_entries_cap_faixa, 'grafico')
 
@@ -1644,7 +1648,7 @@ for subgrupo_full, subgrupo_lbl in [
     _entries_grupo_cap.append((
         _label,
         lambda anos=anos, series=series: line_chart(anos, series, opts={'height': 240, 'maxXLabels': 6, 'table': True}, fonte=FONTE_EVITAVEIS, unidade=UN_OBITOS_ANO),
-        _label,
+        f"evitaveis_cap_menores_1_{_CHAVE_SUBGRUPO[subgrupo_lbl]}",   # mesmo gráfico da aba "Menores de 1 ano · ..."
     ))
 option_card(_entries_grupo_cap, 'grafico')
 
