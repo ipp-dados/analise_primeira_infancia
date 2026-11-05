@@ -47,9 +47,10 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - [x] T6.3 Skills, `CLAUDE.md`, especificação do projeto
 
 ## Bloco 7 — Release e Actions
-- [ ] T7.1 Instalar o `gh`; o usuário faz `gh auth login`
-- [ ] T7.2 Passo de publicação da Release
-- [ ] T7.3 Deploy automático na `main`; workflow de checagem em `staging_main`
+- [~] T7.1 Instalar o `gh` (feito, v2.103.3); falta o usuário fazer `gh auth login`
+- [x] T7.2 Passo de publicação da Release (`relatorio/latex/build/publica_release.py`: ensaio por padrão, `--gerar`, `--confirmar`)
+- [x] T7.3 Deploy automático na `main`; workflow de checagem em `staging_main` (`confere-site.yml`; checagens em `website/build/confere_publicacao.py`)
+- [x] T7.4 (D13) `publicacao.json` separado em site/PDF; faixa do site desligada; botão do PDF escondido
 
 ## Bloco 8 — Versão final, revisão e teste
 - [ ] T8.1 `publicacao.json` → `false`; regerar site e PDF

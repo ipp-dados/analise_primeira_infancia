@@ -98,8 +98,9 @@ Run everything from the project root.
 - **Figures**: sizes/labels/palette of the print versions are fixed in `primeira_infancia/impressao.py`
   (`_rc_impressao`, `ROTULOS_EIXO`, `_PALETA_IMPRESSAO`, 95th-percentile colour cap on bairro rate maps). Change them
   there, never by editing PDFs. No map paints land blue (blue is water only).
-- **"EM DESENVOLVIMENTO" watermark**: `relatorio/publicacao.json` (`em_desenvolvimento`, `marca_dagua_pdf`) — the same
-  switch as the site's yellow strip; the two leave together. `gerado/aviso.tex` uses `draftwatermark` 3.3 with a TikZ
+- **"EM DESENVOLVIMENTO" watermark**: `relatorio/publicacao.json` (`pdf_em_desenvolvimento`, `marca_dagua_pdf`) — separate
+  from the site's strip (`site_em_desenvolvimento`) since 2026-11-05: the site left the test phase first. When the final
+  PDF is released, also set `link_pdf_no_site: true` and rebuild the site (the banner button is hidden until then). `gerado/aviso.tex` uses `draftwatermark` 3.3 with a TikZ
   node for transparency (MiKTeX has no `alpha` key; `transparent` is pdfTeX-only) and an `\AtBeginDocument` TikZ node
   with the same opacity (without it the first page gets an opaque mark).
 - **LaTeX gotchas already hit**: abnTeX2 already defines `\fonte` and `\nota`; `\nocite{*}` pulls abnTeX2's internal

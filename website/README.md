@@ -118,8 +118,9 @@ Testar em 390×844, 360×740, 768×1024 e 1024×768 (Chromium, Firefox, WebKit) 
 
 ## Faixa "EM DESENVOLVIMENTO"
 
-A faixa amarela do topo sai de `relatorio/publicacao.json` (`em_desenvolvimento`), a mesma chave da marca d'água do
-PDF (`relatorio/latex/build/gera_latex.py`). Na versão final: `false` e regerar o site e o PDF — as duas saem juntas.
+A faixa amarela do topo sai de `relatorio/publicacao.json` (`site_em_desenvolvimento`; desde 2026-11-05 separada da
+marca d'água do PDF, `pdf_em_desenvolvimento`). O botão "Relatório final em PDF" do banner só aparece com
+`link_pdf_no_site: true` — desligado até a Release do relatório final.
 
 ## Testar localmente
 

@@ -1,5 +1,7 @@
 {
-  "_nota": "Chave única do estado de publicação (specs/2026-09-28_website_mobile). Com em_desenvolvimento = true, o site mostra a faixa 'EM DESENVOLVIMENTO / TEMPORÁRIO' (website/build/build_site.py) e o PDF sai com a marca d'água (relatorio/latex/build/gera_latex.py -> gerado/aviso.tex). Para a versão final: false, e regerar os dois (python website/build/build_site.py; python relatorio/latex/build/gera_latex.py --publicar).",
-  "em_desenvolvimento": true,
+  "_nota": "Estado de publicação (specs/2026-09-28_website_mobile; separado em site/PDF em specs/2026-11-05_versao_final_site D11). site_em_desenvolvimento: faixa 'EM DESENVOLVIMENTO / TEMPORÁRIO' do site (website/build/build_site.py); com false, o site não pode ter dado pontual. pdf_em_desenvolvimento: marca d'água e selo da capa do PDF (relatorio/latex/build/gera_latex.py -> gerado/aviso.tex). link_pdf_no_site: botão 'Relatório final em PDF' do banner do site (aponta para a última Release) -- ligar junto com a Release do relatório final. Depois de mudar, regerar o que mudou (python website/build/build_site.py; python relatorio/latex/build/gera_latex.py --publicar).",
+  "site_em_desenvolvimento": false,
+  "pdf_em_desenvolvimento": true,
+  "link_pdf_no_site": false,
   "marca_dagua_pdf": "EM DESENVOLVIMENTO"
 }

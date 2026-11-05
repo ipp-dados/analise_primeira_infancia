@@ -2530,15 +2530,18 @@ navs_outline.insert(0, '<nav class="outline-nav" data-panel="visao-geral" aria-l
                     + ('<a href="#visao-geral/notas-projeto-metodologia" data-alvo="notas-projeto-metodologia">'
                        'Notas sobre o projeto e metodologia</a>' if NOTAS_HTML else '') + '</nav>')
 
-# faixa de aviso: controlada por relatorio/publicacao.json (em_desenvolvimento), a mesma chave da marca d'água do PDF
-# (relatorio/latex/build/gera_latex.py) -- as duas saem juntas na versão final (specs/2026-09-28_website_mobile)
-_EM_DESENVOLVIMENTO = json.loads(Path("relatorio/publicacao.json").read_text(encoding="utf-8")).get("em_desenvolvimento", False)
+# faixa de aviso e botão do PDF: relatorio/publicacao.json. Desde specs/2026-11-05_versao_final_site D11 o site e o PDF
+# têm chaves separadas (o site sai da fase de teste antes do PDF): site_em_desenvolvimento liga a faixa;
+# link_pdf_no_site mostra o botão "Relatório final em PDF" (desligado até a Release do relatório final)
+_PUBLICACAO = json.loads(Path("relatorio/publicacao.json").read_text(encoding="utf-8"))
+_EM_DESENVOLVIMENTO = _PUBLICACAO.get("site_em_desenvolvimento", False)
+_LINK_PDF = _PUBLICACAO.get("link_pdf_no_site", False)
 # regra do usuário (2026-09-29, constituição §3; specs/2026-09-29_dados_adhoc D7): dado pontual só existe no site EM
 # DESENVOLVIMENTO. A versão final (sem a faixa) não é gerada enquanto houver bloco ou item `- dado_pontual:`.
 _PONTUAIS_MD = tem_dados_pontuais(parse_estrutura_eixos("specs/estrutura_eixos.md"))
 if not _EM_DESENVOLVIMENTO and (_DADOS_PONTUAIS or _PONTUAIS_MD):
     raise SystemExit(
-        "BLOQUEADO: relatorio/publicacao.json diz em_desenvolvimento = false, mas o site ainda tem dado pontual "
+        "BLOQUEADO: relatorio/publicacao.json diz site_em_desenvolvimento = false, mas o site ainda tem dado pontual "
         f"(blocos: {_DADOS_PONTUAIS or '-'}; itens do crosswalk: {_PONTUAIS_MD or '-'}). Dado pontual não vai para a "
         "versão final: substitua pela extração automatizada ou retire os blocos `dados_adhoc` (ROADMAP) antes de publicar.")
 banner = (
@@ -2564,8 +2567,9 @@ banner = (
     # o texto completo fica no aria-label/title
     f'<li><a href="{URL_GITHUB}" target="_blank" rel="noopener" title="Código e dados no GitHub" aria-label="Código e dados no GitHub">{icone("github")}'
     '<span class="rotulo-longo">Código e dados no GitHub</span><span class="rotulo-curto">GitHub</span></a></li>'
-    f'<li><a href="{URL_PDF}" target="_blank" rel="noopener" title="Relatório final em PDF" aria-label="Relatório final em PDF">{icone("file-text")}'
-    '<span class="rotulo-longo">Relatório final em PDF</span><span class="rotulo-curto">Relatório PDF</span></a></li>'
+    + (f'<li><a href="{URL_PDF}" target="_blank" rel="noopener" title="Relatório final em PDF" aria-label="Relatório final em PDF">{icone("file-text")}'
+       '<span class="rotulo-longo">Relatório final em PDF</span><span class="rotulo-curto">Relatório PDF</span></a></li>'
+       if _LINK_PDF else '') +
     f'<li class="banner-date">{icone("calendar")}<span>Atualizado em {gen_date}</span></li>'
     '</ul>'
     '</div>'

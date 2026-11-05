@@ -369,8 +369,9 @@ sem dado não aparecem no site nem no PDF (decisão do usuário, 2026-11-05).
 - **PDF**: `gera_latex.py --publicar` copia o PDF compilado para `relatorio/analise_primeira_infancia.pdf` (fora do
   git); a publicação é uma nova Release do GitHub com o PDF anexado — o site baixa o PDF de
   `releases/latest/download/analise_primeira_infancia.pdf` (`specs/2026-10-26_limpeza_historico`).
-- **Versão final**: `relatorio/publicacao.json` → `em_desenvolvimento: false`, e regerar site e PDF (tira a faixa e a
-  marca d'água juntas).
+- **Versão final**: `relatorio/publicacao.json` tem chaves separadas desde 2026-11-05 — `site_em_desenvolvimento`
+  (faixa do site; já `false`), `pdf_em_desenvolvimento` (marca d'água e selo da capa) e `link_pdf_no_site` (botão do
+  PDF no banner, desligado até a Release do relatório final). Mudou uma chave, regerar o que ela controla.
 
 ---
 

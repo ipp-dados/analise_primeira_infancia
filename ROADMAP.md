@@ -243,9 +243,10 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 5 e 6 de 
 - **Página "Fale Conosco"** (pedido do usuário, 2026-09-24): rota por hash (`#fale-conosco`) como uma aba,
   acessível pela barra de navegação. Formulário exige backend, que o GitHub Pages não tem — `mailto:` + texto
   (estático) ou serviço externo (exige decisão sobre dados pessoais/LGPD).
-- **Tirar a faixa "EM DESENVOLVIMENTO / TEMPORÁRIO" do site e a marca d'água do PDF** quando deixarem de ser versão
-  de teste — decisão do usuário. Uma chave só: `relatorio/publicacao.json` → `"em_desenvolvimento": false`, depois
-  regerar o site e o PDF (`gera_latex.py --publicar`).
+- **Tirar a marca d'água do PDF e religar o botão do PDF no site** com a Release do relatório final — decisão do
+  usuário (2026-11-05: o site saiu da fase de teste antes do PDF). `relatorio/publicacao.json` →
+  `"pdf_em_desenvolvimento": false` e `"link_pdf_no_site": true`, `gera_latex.py --publicar`, Release
+  (`publica_release.py`), regerar o site.
 - **Confirmar as URLs reais do rodapé** (Transparência Rio, LGPD) — `specs/2026-09-14_relatorio-interativo/tasks.md` T6.2.
   O e-mail de contato (placeholder) saiu do rodapé em 2026-11-05 (decisão do usuário).
 - **Logo**: confirmar autorização de uso do logo oficial da Prefeitura/IPP antes do deploy público (T0.4) e pedir

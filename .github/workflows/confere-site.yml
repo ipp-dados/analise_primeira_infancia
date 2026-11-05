@@ -1,0 +1,28 @@
+name: Confere site
+
+# Checagem do site gerado em PR e push para `staging_main` (a branch de teste) -- specs/2026-11-05_versao_final_site
+# R8. Não gera nem publica nada: só roda website/build/confere_publicacao.py sobre website/ como está versionado.
+on:
+  pull_request:
+    branches: [staging_main, main]
+  push:
+    branches: [staging_main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  confere:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Confere o site (tipos, tamanho, lorem, fetch, dado pontual)
+        run: python website/build/confere_publicacao.py
+      - name: Confere a estrutura dos eixos (todo arquivo citado em specs/estrutura_eixos.md)
+        run: |
+          # só a parte que não depende de tabelas_finais/ (gitignorado): o crosswalk tem de ser legível
+          python -c "import sys; sys.path.insert(0, 'relatorio/curadoria'); from gera_estrutura_eixos import parse_estrutura_eixos; e = parse_estrutura_eixos(); print(len(e), 'eixos lidos')"

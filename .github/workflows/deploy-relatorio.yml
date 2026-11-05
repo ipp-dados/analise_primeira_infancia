@@ -1,10 +1,13 @@
 name: Deploy relatório
 
-# Publica o site estático website/ no GitHub Pages -- specs/2026-09-24_website_refactor §4.10
-# (antes: só relatorio/index.html, specs/2026-09-14_relatorio-interativo/plan.md §8).
-# Gatilho manual (workflow_dispatch). O CI NÃO gera nada: website/ já vem gerado e
-# versionado (o gerador precisa de tabelas_finais/, que é gitignorado).
+# Publica o site estático website/ no GitHub Pages -- specs/2026-09-24_website_refactor §4.10.
+# Desde specs/2026-11-05_versao_final_site (R8): automático a cada push na `main` (a branch publicada; `staging_main`
+# é a de teste -- constituição §7), mais o gatilho manual. O CI NÃO gera nada: website/ já vem gerado e versionado
+# (o gerador precisa de tabelas_finais/, que é gitignorado). O PDF não passa por aqui: vai como anexo de uma Release.
 on:
+  push:
+    branches: [main]
+    paths: ["website/**", ".github/workflows/deploy-relatorio.yml"]
   workflow_dispatch: {}
 
 permissions:
@@ -25,38 +28,27 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      # Lista de INCLUSÃO (não de exclusão): só o que o site usa. build/ (gerador Python,
-      # protótipo), README.md e ROADMAP.md ficam de fora sem depender de ninguém lembrar.
+      # Lista de INCLUSÃO (não de exclusão): só o que o site usa. build/ (gerador Python),
+      # README.md e ROADMAP.md ficam de fora sem depender de ninguém lembrar.
+      # A mesma lista está em website/build/confere_publicacao.py (INCLUI).
       - name: Prepara o site
         run: |
           mkdir -p _site
           cp website/index.html website/404.html website/.nojekyll website/favicon.ico _site/
           cp -r website/css website/js website/data website/assets _site/
 
-      # Site estático de verdade (spec §4.10): falha se aparecer qualquer tipo de arquivo
-      # fora da lista (ex. um .py ou .md copiado por engano).
+      # Tipos de arquivo permitidos, orçamento de tamanho, sem lorem, sem fetch(), e dado pontual só com a faixa
+      # EM DESENVOLVIMENTO (constituição §3) -- falha e bloqueia o deploy.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
       - name: Confere o conteúdo publicado
-        run: |
-          fora=$(find _site -type f ! -name '.nojekyll' ! -regex '.*\.\(html\|css\|js\|svg\|png\|jpg\|ico\|woff2\)$')
-          if [ -n "$fora" ]; then echo "Arquivos fora do permitido:"; echo "$fora"; exit 1; fi
-          echo "Conteúdo OK: $(find _site -type f | wc -l) arquivos, $(du -sh _site | cut -f1)"
-
-      # Regra do usuário (2026-09-29, specs/constitution.md §3; specs/2026-09-29_dados_adhoc D7): dado pontual
-      # (blocos marcados data-dado-pontual) só pode ir ao ar com a faixa "EM DESENVOLVIMENTO". Versão final com
-      # dado pontual = deploy bloqueado.
-      - name: Bloqueia dado pontual na versão final
-        run: |
-          if grep -q 'data-dado-pontual' _site/index.html && ! grep -q 'class="dev-banner"' _site/index.html; then
-            echo "BLOQUEADO: versão final (sem a faixa EM DESENVOLVIMENTO) com dado pontual. Retire os blocos dados_adhoc"
-            echo "ou substitua pela extração automatizada antes de publicar (ROADMAP.md)."
-            exit 1
-          fi
-          echo "Dado pontual: OK"
+        run: python website/build/confere_publicacao.py _site
 
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 

@@ -67,8 +67,9 @@ python website/build/build_site.py
   decode noise). Charts in containers < 640 px on narrow screens are redrawn at their real width by `js/charts.js`
   (`desenhaLinha`/`desenhaBarras` with a `ctx`; `ctx = null` is the untouched desktop path) — keep new chart options
   working in both paths. Details and component table: `website/README.md` → "Mobile".
-- The yellow "EM DESENVOLVIMENTO" strip is driven by `relatorio/publicacao.json` (`em_desenvolvimento`), the same
-  switch as the PDF watermark — flip it there, never by editing the banner markup.
+- The yellow "EM DESENVOLVIMENTO" strip is driven by `relatorio/publicacao.json` (`site_em_desenvolvimento`; the PDF
+  has its own `pdf_em_desenvolvimento` since 2026-11-05) and the banner's "Relatório final em PDF" button by
+  `link_pdf_no_site` (off until the final report's Release) — flip them there, never by editing the banner markup.
 - Asset URLs carry `?v=<md5>` (`_v()` in the generator) so browsers never mix a new `index.html` with cached CSS/JS;
   a new file in `css/`/`js/` must be added to the `<head>` with `_v()`.
 

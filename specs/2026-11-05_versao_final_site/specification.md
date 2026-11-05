@@ -28,6 +28,7 @@ gestores (Claude Docs).
 | D10 | **Automatizar o GitHub Actions**: deploy do site automático a partir da `main`; corrigir erros e dependências |
 | D11 | **Publicação**: `staging_main` → `main`, e a constituição passa a dizer que a `main` é o site publicado |
 | D12 | **Revisão final** dos pipelines e da documentação; **teste completo** do site no desktop e no celular |
+| D13 | (usuário, 2026-11-05) **Só o site sai da fase de teste** nesta rodada: `relatorio/publicacao.json` ganha chaves separadas -- `site_em_desenvolvimento` (`false`), `pdf_em_desenvolvimento` (segue `true`: marca d'água e selo da capa) e `link_pdf_no_site` (`false`: botão "Relatório final em PDF" escondido até a Release do relatório final) |
 
 ## 3. Requisitos
 

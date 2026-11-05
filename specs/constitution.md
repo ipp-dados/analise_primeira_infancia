@@ -76,7 +76,7 @@ de cada rodada, não aqui; isto aqui é o que vale para *qualquer* mudança.
   `specs/2026-09-29_dados_adhoc` D7). Item com `- dado_pontual:` no crosswalk (extração fora da rotina, ex. CadÚnico
   ago/2026) aparece **só no site em desenvolvimento**: o gerador do PDF o descarta (`sem_dados_pontuais`), a fonte
   dele não entra na lista Fontes (`so_site = {sim}` no `fontes.bib`), e ele é um **bloqueio** da versão final do
-  site — com `em_desenvolvimento = false` em `relatorio/publicacao.json`, `build_site.py` para, e o deploy falha se o
+  site — com `site_em_desenvolvimento = false` em `relatorio/publicacao.json`, `build_site.py` para, e o deploy falha se o
   HTML tiver `data-dado-pontual` sem a faixa. Para tirar a faixa, antes substitua o dado pontual pela extração
   automatizada ou retire os blocos (`ROADMAP.md`). Não contornar sem decisão do usuário.
 - `dados_locais/` **não é gitignorado** — arquivos colocados ali (inclusive

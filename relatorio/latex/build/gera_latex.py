@@ -392,14 +392,15 @@ def compila(publicar=False):
 
 
 def aviso_em_desenvolvimento():
-    """Marca d'água do PDF enquanto relatorio/publicacao.json diz em_desenvolvimento = true -- a mesma chave da faixa
-    "EM DESENVOLVIMENTO" do site (website/build/build_site.py); as duas saem juntas (specs/2026-09-28_website_mobile).
+    """Marca d'água do PDF enquanto relatorio/publicacao.json diz pdf_em_desenvolvimento = true (chave própria do PDF
+    desde specs/2026-11-05_versao_final_site D11: o site sai da fase de teste antes; a faixa do site é
+    site_em_desenvolvimento).
     Vai para o preâmbulo (relatorio.tex: \\input{gerado/aviso}); com false, o arquivo fica só com o comentário."""
     pub = json.loads((RAIZ / "relatorio/publicacao.json").read_text(encoding="utf-8"))
     # \ifemdesenvolvimento: a capa mostra o selo "EM DESENVOLVIMENTO" (a marca d'água fica por baixo da foto da capa)
     cab = ("% Gerado por gera_latex.py a partir de relatorio/publicacao.json -- não editar à mão.\n"
            "\\newif\\ifemdesenvolvimento\n")
-    if not pub.get("em_desenvolvimento"):
+    if not pub.get("pdf_em_desenvolvimento"):
         return cab
     cab += "\\emdesenvolvimentotrue\n"
     texto = pub.get("marca_dagua_pdf", "EM DESENVOLVIMENTO")
