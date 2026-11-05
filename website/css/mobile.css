@@ -111,10 +111,11 @@
   /* GitHub e PDF lado a lado, com rótulo curto (pedido do usuário); a data na linha de baixo */
   .banner-links{display:grid; grid-template-columns:repeat(2, max-content); gap:6px 8px; align-items:center;}
   .banner-links .banner-date{grid-column:1 / -1;}
-  .banner-links a{padding:0 14px; font-size:.7rem; gap:7px;}
+  /* botões GitHub e PDF menores no celular (pedido do usuário, 2026-11-05): 32 px, ainda acima do mínimo de 24 px do WCAG 2.5.8 (AA) */
+  .banner-links a{min-height:32px; padding:0 11px; font-size:.64rem; gap:6px;}
   .rotulo-longo{display:none;}
   .rotulo-curto{display:inline;}
-  .banner-links .icon{width:15px; height:15px;}
+  .banner-links .icon{width:13px; height:13px;}
   .banner-date{width:100%; padding:0 2px; font-size:.58rem;}
 
   /* abas e barra fixa */
