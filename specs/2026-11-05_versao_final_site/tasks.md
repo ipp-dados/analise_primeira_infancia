@@ -93,7 +93,7 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `initial_prompt.md` (nesta p
 - [x] T9.2 `staging_main` → `main` (fast-forward até 5ce5a4f); deploy conferido pela API (2026-11-06): as 4 primeiras tentativas falharam do lado do GitHub (`deployment_queued` → `deployment_failed`, também pela `staging_main` e com as versões antigas das actions); a 5ª, ~20 min depois, publicou
 - [x] T9.3 Release do PDF `v0.35.0` (Latest, PDF ainda EM DESENVOLVIMENTO; botão do site segue desligado); link `releases/latest/download/...` conferido (200, 16,6 MB)
 - [x] T9.4 Constituição §7 e `CLAUDE.md` (2026-11-06: `main` = site publicado, `staging_main` = teste, `main` só com merge de `staging_main` e OK; `demo` não é mais publicada; skill `build_website`, especificação §9.4, README/CHANGELOG 0.35.0)
-- [x] T9.5 (2026-11-06, ajustes manuais feitos pelo usuário: `main` permitida no ambiente, Pages por "GitHub Actions"; falta só tirar `demo` e `staging_main` das branches permitidas) Trocar a fonte do GitHub Pages da `staging_main` para a `main` (decisão do usuário, 2026-11-05: **por ora o
+- [x] T9.5 (2026-11-06, ajustes manuais feitos pelo usuário: `main` permitida no ambiente, Pages por "GitHub Actions"; `demo` e `staging_main` retiradas das branches permitidas -- só a `main` publica) Trocar a fonte do GitHub Pages da `staging_main` para a `main` (decisão do usuário, 2026-11-05: **por ora o
   site publica pela `staging_main`**, deploy manual -- `gh workflow run deploy-relatorio.yml --ref staging_main`).
   Na hora: incluir `main` nas branches permitidas do ambiente `github-pages` (Settings → Environments), passar
   Settings → Pages → Source para "GitHub Actions" (hoje `legacy` com fonte `demo`), tirar `demo` e `staging_main` das
@@ -136,3 +136,5 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `initial_prompt.md` (nesta p
 - A tag `rodada/versao_final_site` marca d7b9aa5 (fim do T9.4); os commits seguintes são do diagnóstico do deploy.
 - Pendente do usuário: tirar `demo` e `staging_main` das branches permitidas do ambiente `github-pages`; conferir o
   site de fora da rede do IPP (github.io bloqueado aqui); clicar os links do SIDRA e do Unsplash.
+- 2026-11-06, conferido pelo usuário: site no ar atualizado (visto de outro aparelho), só a `main` no ambiente
+  `github-pages`, links do SIDRA e do Unsplash funcionando. **Rodada concluída.**
