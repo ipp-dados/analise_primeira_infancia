@@ -77,9 +77,14 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
   - [x] Pipelines: sem rodar (dados congelados, pedido do usuário em 2026-11-06); `confere_publicacao.py` e
     `confere_textos.py` passam sobre o `website/` versionado. O PDF não foi recompilado: as tabelas do apêndice pegam
     os 4 títulos novos do crosswalk no próximo build
-  - [ ] Textos do site com erro achados na revisão (aguardam OK): `consideracoes_finais` ("deve atuar de forma
-    isolada"), `mapa_taxa_mortalidade_infantil_bairro_2025` (números antigos; o PDF está certo) e
-    `mapa_mortalidade_infantil_bairro_2025` ("37 dos 167 bairros" conta as 2 linhas de ignorado)
+  - [x] 2026-11-06: conferência de todos os números dos 163 textos do site contra `tabelas_finais/` (somente leitura;
+    somas por AP/RP/CAP, faixas e taxas recalculadas). Corrigido com OK do usuário: `consideracoes_finais` e cap. 08
+    ("não deve atuar de forma isolada"); `mapa_taxa_mortalidade_infantil_bairro_2025` (números antigos → texto do
+    PDF); "167 bairros" → 165 (as linhas 998/999 são IGNORADO) em `mapa_mortalidade_infantil_bairro_2025`,
+    `mapa_obitos_raca_total_bairro_2025` (37 → 35 sem óbito) e `mapa_obitos_pos_neonatal_bairro_2025` (75 → 73);
+    baixo peso por bairro (site e cap. 06: "entre 6,7% e 28,6%" era P10-máximo → quartis 8,7-11,7%, mediana 10,2%,
+    4 bairros acima de 20%); `evitaveis_cap_menores_1_gestacao` "total da cidade" → "soma das CAPs". Três dessas
+    chaves não aparecem no site (só JSON/PDF). Site regerado uma vez: diferença só nesses textos e na data
 - [ ] T8.3 Teste completo desktop e celular
 
 ## Bloco 9 — Publicação (com OK)
