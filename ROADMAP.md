@@ -220,6 +220,12 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 5 e 6 de 
 - **Camada própria de água/costa** nos mapas: hoje o mar vem só do tile (Esri Ocean); necessária apenas se um
   dia for preciso colorir o mar por conta própria (`relatorio/specs.md` v6.4-v6.6).
 
+- **Outro host estático para o site** (pedido do usuário, 2026-11-06): a VPN/rede do IPP às vezes bloqueia
+  `github.io` (HTTP 000 de dentro da rede). Avaliar um host alternativo ou espelho — domínio próprio da Prefeitura/IPP
+  apontado para o Pages, servidor estático do IPP, Cloudflare Pages, Netlify — mantendo as regras de
+  `website/README.md` (só arquivos estáticos, caminhos relativos, sem requisição a terceiros) e o deploy a partir da
+  `main`.
+
 ### Repositório (git)
 - *Dado do CadÚnico abaixo de 20 no histórico* e *tamanho do histórico*: resolvidos em 2026-10-26 pela reescrita do
   histórico (`specs/2026-10-26_limpeza_historico`, Parte B); PDF, decks e DOCX de curadoria agora vão para a Release do GitHub.
