@@ -89,11 +89,11 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `initial_prompt.md` (nesta p
   crédito da foto pouco legível sobre a imagem no desktop; SIDRA e Unsplash só conferíveis à mão (bloqueiam robôs)
 
 ## Bloco 9 — Publicação (com OK)
-- [ ] T9.1 Merge em `staging_main`; tag `rodada/versao_final_site`
-- [ ] T9.2 `staging_main` → `main`; deploy conferido
-- [ ] T9.3 Release do PDF
+- [x] T9.1 Merge em `staging_main` (5ce5a4f); tag `rodada/versao_final_site` (2026-11-06)
+- [x] T9.2 `staging_main` → `main` (fast-forward até 5ce5a4f); deploy conferido pela API (2026-11-06): as 4 primeiras tentativas falharam do lado do GitHub (`deployment_queued` → `deployment_failed`, também pela `staging_main` e com as versões antigas das actions); a 5ª, ~20 min depois, publicou
+- [x] T9.3 Release do PDF `v0.35.0` (Latest, PDF ainda EM DESENVOLVIMENTO; botão do site segue desligado); link `releases/latest/download/...` conferido (200, 16,6 MB)
 - [x] T9.4 Constituição §7 e `CLAUDE.md` (2026-11-06: `main` = site publicado, `staging_main` = teste, `main` só com merge de `staging_main` e OK; `demo` não é mais publicada; skill `build_website`, especificação §9.4, README/CHANGELOG 0.35.0)
-- [ ] T9.5 Trocar a fonte do GitHub Pages da `staging_main` para a `main` (decisão do usuário, 2026-11-05: **por ora o
+- [x] T9.5 (2026-11-06, ajustes manuais feitos pelo usuário: `main` permitida no ambiente, Pages por "GitHub Actions"; falta só tirar `demo` e `staging_main` das branches permitidas) Trocar a fonte do GitHub Pages da `staging_main` para a `main` (decisão do usuário, 2026-11-05: **por ora o
   site publica pela `staging_main`**, deploy manual -- `gh workflow run deploy-relatorio.yml --ref staging_main`).
   Na hora: incluir `main` nas branches permitidas do ambiente `github-pages` (Settings → Environments), passar
   Settings → Pages → Source para "GitHub Actions" (hoje `legacy` com fonte `demo`), tirar `demo` e `staging_main` das
@@ -127,3 +127,12 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `initial_prompt.md` (nesta p
   `rodada/versao_final_site`; T9.2 `staging_main` → `main`; T9.3 Release do PDF; T9.4 constituição §7; T9.5 Pages
   pela `main`, com os ajustes manuais nas configurações do GitHub).
 - Conferir à mão os links do SIDRA e do Unsplash (bloqueiam robôs) e, se quiser, o contraste do crédito da foto.
+
+## Estado em 2026-11-06 (fim do bloco 9)
+
+- Site publicado pela `main` (5ce5a4f) e PDF na Release `v0.35.0`. A `staging_main` está à frente da `main` só com
+  o item do ROADMAP (outro host estático) e duas trocas de versão das actions do Pages (idas e voltas do diagnóstico,
+  workflow igual ao da `main`); vão para a `main` na próxima publicação.
+- A tag `rodada/versao_final_site` marca d7b9aa5 (fim do T9.4); os commits seguintes são do diagnóstico do deploy.
+- Pendente do usuário: tirar `demo` e `staging_main` das branches permitidas do ambiente `github-pages`; conferir o
+  site de fora da rede do IPP (github.io bloqueado aqui); clicar os links do SIDRA e do Unsplash.
