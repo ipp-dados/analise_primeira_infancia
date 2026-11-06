@@ -55,6 +55,21 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 ## Bloco 8 — Versão final, revisão e teste
 - [x] T8.1 `publicacao.json`: site `false`, PDF segue `true`, botão do PDF escondido (D13) -- feito em 031dddc
 - [ ] T8.2 Revisão de pipelines e documentação; títulos "até 72 meses"
+  - [x] 2026-11-06: 4 títulos fora do catálogo "0 a 5 anos" → "até 72 meses" (CadÚnico ÷ população, matrículas,
+    taxa de atendimento, violência familiar) no crosswalk, nos `\section` dos capítulos 01/03/04 e em
+    `textos_eixos.md` (o site já usava "até 72 meses"); faixa conferida nos dados: CadÚnico com `assert` 0-5,
+    INEP `QT_MAT_BAS_0_3`+`_4_5`, Sinan exportado com "menor de 01 ano ... 05 anos", populações Ripsa 0-5.
+    Corpo e legendas seguem "0 a 5 anos"; o título da mortalidade (menores de 1, 1-4, 0-5) fica, é recorte etário
+  - [x] 2026-11-06: `basemap-f5a7b7b6.jpg` (órfão, idêntico ao usado; bbox antiga do mapa por CAP) removido;
+    `build_site.py` apaga `basemap-*.jpg` não usados no build
+  - [x] 2026-11-06: Actions nos majors atuais (Node 24): checkout v7, setup-python v7, configure-pages v6,
+    upload-pages-artifact v5, deploy-pages v5 -- conferir no próximo run
+  - [x] 2026-11-06: `staging_main` local alinhada (fast-forward) com `origin/staging_main`
+  - [x] 2026-11-06: números do CadÚnico da partição de junho nas notas internas → partição 2026-07-10 (crosswalk:
+    fonte jul/2026 e razão 200.784 ÷ 393.073 ≈ 51,1%; `analise.py`: 16.378 sem bairro, 8,2%). Site e PDF já estavam
+    certos; as notas históricas de jun/2026 (grupo `'0-6'`, 713 famílias sem adulto) ficam como registro datado
+  - [ ] Conferir documentação (`CLAUDE.md`, `docs/especificacao_projeto.md`, skills, `README.md`, `ROADMAP.md`)
+    contra o que existe
 - [ ] T8.3 Teste completo desktop e celular
 
 ## Bloco 9 — Publicação (com OK)

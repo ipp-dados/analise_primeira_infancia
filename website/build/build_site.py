@@ -2708,6 +2708,10 @@ for rel, conteudo in _gerados.items():
 (OUT_DIR / "assets" / "images").mkdir(parents=True, exist_ok=True)
 for nome, conteudo in _BASEMAP_FILES.items():
     (OUT_DIR / "assets" / "images" / nome).write_bytes(conteudo)
+# fundos de mapa que este build não usou (bbox antiga) saem -- evita órfãos versionados
+for _orf in (OUT_DIR / "assets" / "images").glob("basemap-*.jpg"):
+    if _orf.name not in _BASEMAP_FILES:
+        _orf.unlink()
 for _f in sorted(_FONTES_SEM_BIB):
     print(f"AVISO: fonte sem entrada em relatorio/latex/fontes.bib (caixa de fontes mostra o texto curto): {_f}", file=sys.stderr)
 print(f"wrote {OUT_DIR}: {len(scripts)} charts, {sum(1 for l,t,s in toc if l==2)} h2 / {sum(1 for l,t,s in toc if l==3)} h3 sections")
