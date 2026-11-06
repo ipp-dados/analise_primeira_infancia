@@ -14,58 +14,23 @@ Organização em duas partes:
 
 # A fazer
 
-## 000. Rodada atual — Fechamento de pendências (`specs/2026-11-05_fechamento_pendencias`)
+## 1. Rodada atual — Versão final do site (`specs/2026-11-05_versao_final_site`, branch `spec/versao_final_site`)
 
-Aberta e implementada em 2026-11-05, antes da versão final do site (`website_release.md`). Feito: % do SISVAN recalculado
-das contagens; mapas de número em Moradia (PNG, A4, site, PDF); tabelas do CadÚnico de Inclusão e Moradia no PDF; "IPS"
-→ ISP-RJ nas citações da violência territorial; mapas sem azul (`censo` → `Purples`, `natalidade` → `Greens`); 11 textos
-novos de Inclusão e Moradia (aprovados pelo usuário). Decidido: CadÚnico fica na silver de jul/2026 (a diferença com o
-dado pontual de ago/2026 deixa de bloquear); **decks congelados** (não são mais mantidos). Falta: merge em
-`staging_main` com OK. **Não** vai para a `demo` nem para deploy.
+Aberta em 2026-11-05 (pedido em `website_release.md`, fora do git). **Dados e pipeline congelados** nesta rodada: só
+textos, documentação e configuração. Feito (blocos 1-7): textos do site e do PDF conferidos contra os dados, sem lorem
+(curadoria de 05/11 incorporada); banner com foto (crédito Unsplash) e rodapé com links conferidos; mapa de referência
+da cidade (vizinhos, RA/AP) na Introdução; PDF com um `.tex` editável por capítulo, capa e folha de rosto novas;
+curadoria só do site, em JSON (fim do DOCX, tag `rodada/curadoria_docx`); `publica_release.py` e Actions (deploy na
+`main`, conferência na `staging_main`); site sem a faixa EM DESENVOLVIMENTO, publicado por ora pela `staging_main`.
 
-Ficou para a **rodada da versão final** (achados de 2026-11-05):
-1. **DOCX de curadoria de hoje** (`relatorio/curadoria_textos_05_11_26.docx`, volta do Google Docs, sem bookmarks):
-   `incorpora_update_docx.py` casa 92 textos (31 de blocos ainda sem texto, 28 editados pela equipe) e deixa 54
-   parágrafos com texto real sem casar (CadÚnico por sexo/raça/arranjo, violência territorial, mapas de mortalidade,
-   muitos marcados "✏️ aguardando correção"). Vários números estão desatualizados (ex.: 194.138 crianças de jun/2026
-   contra 200.784 de jul/2026; 773 óbitos infantis contra 724 nos dados) — conferir cada número antes de incorporar.
-2. ~~**Lorem que sobra**~~ — **resolvido em 2026-11-05** (`specs/2026-11-05_versao_final_site` T1.1-T1.4): textos da
-   curadoria de 05/11 conferidos, abas sem arquivo com chave e texto próprios, 21 textos de eixo; site e PDF sem lorem.
-3. Textos curados com "0 a 5 anos" → "até 72 meses" (D10 de `2026-10-06_cadunico_inclusao_moradia`) e títulos das PNG.
+Em andamento — bloco 8: revisão de pipelines e documentação, títulos "até 72 meses" (feito em 2026-11-06), teste
+completo desktop 1366 px e celular 390 px. Falta com OK — bloco 9: merge em `staging_main` e `main`, Release do PDF,
+constituição §7, Pages pela `main` (ajustes manuais nas configurações do GitHub).
 
-## 0a. Filtro de residência nos exports por bairro do Tabnet (`specs/2026-09-30_filtro_residencia_tabnet`)
-
-Aberta e implementada em 2026-09-30: os 20 exports por bairro do SIM/SINASC (Tabnet SMS-Rio) vinham sem o filtro de
-município de residência (entravam não residentes). Reextraídos com `extrai_tabnet.py`; tabelas, site, PDF, deck e 22
-textos curados atualizados (mortalidade infantil 2025: 13,1 → 12,3‰; nascidos vivos 65.507 → 58.700). Falta: revisão
-dos textos pela equipe (status "atualizado").
-
-## 0b. Desempenho do site (`specs/2026-09-30_desempenho_site`) — concluída em 2026-09-30
-
-Desenho por aba (gráficos e mapas de abas fechadas nascem ao abrir ou no tempo ocioso), tooltip de mapa por delegação,
-fontes servidas pelo próprio site. DOM no carregamento 63,9 mil → 10,4 mil nós; primeira pintura ~430 → ~275 ms.
-Pendente (achado): deep link de Alimentação/SISVAN termina sob a barra fixa (já acontecia antes).
-
-## 0. Rodada em planejamento — versão de demonstração (`specs/2026-09-29_demo`, branch `spec/demo` → `demo`)
-
-Planejada em 2026-09-29 (D1-D11). É uma branch `demo`, exclusiva e só de ida, com texto provisório no lugar do lorem,
-pendentes ocultos, faixa maior com a V.1 prevista para **6/10/2026**, PDF até a página impressa 18 mais o aviso, e o
-Pages publicando a partir dela. Falta o OK do usuário para implementar. A troca da branch do ambiente `github-pages` é
-manual.
-
-## 1. Rodada atual — pendências (`specs/2026-09-29_pendencias`, branch `spec/pendencias`)
-
-**Implementada em 2026-09-29** (decisões D1-D18, validação V1-V14 em `validation.md`): mapa duplicado fora (E13),
-"Não informada" fora da taxa (E14), baixo peso com eixo cortado (única exceção à base zero), **faixa padrão 0 a 5 anos**
-(Censo, Ripsa, taxas de frequência do IBGE agregadas por taxa × população; títulos "até 72 meses"; deck com 393 mil),
-amarela e indígena só no total (E12), gráfico "PNAD" que era o Censo 2022 substituído (E15), tablet com alvos de 44 px e
-gráficos na largura real, unidade do IPS confirmada, Centro como outlier só no deck, rodadas anteriores fechadas.
-
-Falta só o que depende do **OK do usuário**:
-1. Publicar o PDF (`gera_latex.py --publicar`; o publicado ainda é o de `specs/2026-09-28_melhorias_site`), fazer o
-   deploy do site (`deploy-relatorio.yml`) e publicar o deck (`gera_apresentacao.py --publicar`), ainda com a marca
-   "em desenvolvimento".
-2. ~~Tags e branches mescladas~~ — feito em 2026-10-26 (`specs/2026-10-26_limpeza_historico`).
+Fica para depois da rodada (exige rodar o pipeline):
+- títulos das figuras PNG ainda com "0 a 5 anos" (D10 de `specs/2026-10-06_cadunico_inclusao_moradia`);
+- deep link de Alimentação/SISVAN termina sob a barra fixa (achado de `specs/2026-09-30_desempenho_site`) — conferir
+  no teste do bloco 8.
 
 ## 2. Aguardando equipe/usuário
 
@@ -79,12 +44,10 @@ Não dependem de código; entram no projeto quando chegarem.
 - **Deck Família e Cuidados** — feito em `spec/deck_familia_moradia` (2026-10-07) e nunca mesclado; arquivado na tag
   `rodada/deck_familia_moradia`. Retomar numa rodada própria se a equipe quiser o deck (conflita com o build atual).
 
-- **Curadoria de textos** (contínuo; DOCX `relatorio/curadoria_textos.docx`, controle em
-  `relatorio/controle_revisao.json`; updates antigos em `relatorio/textos_updates_antigos/`). Última rodada:
-  update 5 (2026-09-28). Próximo update: baixar a partir do `relatorio/curadoria_textos.docx` atual (o update 5
-  partiu do update 4 e por isso ainda trazia textos já corrigidos depois).
-  - ainda em lorem ipsum: resumo, principais achados e síntese de cada eixo, abertura de cada eixo
-    (`introducao_<eixo>`) e textos de figura (a lista sai no build: `gera_latex.py` imprime "textos em lorem");
+- **Curadoria de textos** (contínuo; sem DOCX desde 2026-11-05, tag `rodada/curadoria_docx`): textos do site em
+  `relatorio/textos_curados.json` (eixos em `relatorio/textos_eixos.md`, importados por
+  `relatorio/curadoria/importa_textos_eixos.py`), texto do PDF editado à mão em `relatorio/latex/capitulos/*.tex`;
+  controle em `relatorio/controle_revisao.json`. Sem lorem desde 2026-11-05. Alertas antigos ainda abertos:
   - alertas para a equipe decidir (não corrigidos no texto): mapa de taxa de mortalidade infantil cita os números da
     taxa pós-neonatal; frase das Considerações finais possivelmente sem "não" ("deve atuar de forma isolada"); texto
     da cobertura vacinal anual pronto, mas a figura está fora do relatório (E1); subgrupos < 5 anos cita 198 óbitos
@@ -94,9 +57,6 @@ Não dependem de código; entram no projeto quando chegarem.
     2026-09-29 (faixa 0 a 5, "Não informada", texto herdado do gráfico "PNAD") — lista em
     `specs/2026-09-29_pendencias/validation.md` V13;
   - nota editorial no subgrupo 28-364 dias: "opção de texto que junte tudo por conta da repetição".
-  - **tabelas no corpo sem bloco no DOCX** (achado de `specs/2026-09-29_dados_adhoc`): os textos das tabelas
-    `tabela_no_texto` (`cadunico_razao_populacao_0_a_5_2026` e as 4 `cadunico_adhoc_*`) saem em lorem no site e no PDF,
-    mas `gera_docx_curadoria.py` só cria bloco de texto para figuras — a equipe não tem onde escrevê-los.
 - **Apresentação**: os 6 trechos propostos pelo IPP marcados `<!-- revisar -->` em `apresentacao/apresentacao.md`
   (lista em `specs/2026-09-28_apresentacao/validation.md`).
 - **Teste do site num iPhone e num Android** (usuário; roteiro em `specs/2026-09-28_website_mobile/validation.md` V7).
@@ -239,7 +199,8 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 5 e 6 de 
 ### Site (`website/`)
 - **"Até 72 meses" e paleta sem azul no site e no PDF** (`specs/2026-09-29_slide_revision` D1, fora daquela rodada):
   ~~paleta~~ feita em 2026-11-05 (`specs/2026-11-05_fechamento_pendencias` R6: `censo` → `Purples`, `natalidade` →
-  `Greens`, no site e no PDF); falta só conferir os títulos que ainda dizem "0 a 5 anos".
+  `Greens`, no site e no PDF); títulos das seções conferidos em 2026-11-06 (`specs/2026-11-05_versao_final_site`
+  T8.2); faltam só os títulos dentro das figuras PNG (exige rodar o pipeline).
 - **Página "Fale Conosco"** (pedido do usuário, 2026-09-24): rota por hash (`#fale-conosco`) como uma aba,
   acessível pela barra de navegação. Formulário exige backend, que o GitHub Pages não tem — `mailto:` + texto
   (estático) ou serviço externo (exige decisão sobre dados pessoais/LGPD).
@@ -247,8 +208,6 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 5 e 6 de 
   usuário (2026-11-05: o site saiu da fase de teste antes do PDF). `relatorio/publicacao.json` →
   `"pdf_em_desenvolvimento": false` e `"link_pdf_no_site": true`, `gera_latex.py --publicar`, Release
   (`publica_release.py`), regerar o site.
-- **Confirmar as URLs reais do rodapé** (Transparência Rio, LGPD) — `specs/2026-09-14_relatorio-interativo/tasks.md` T6.2.
-  O e-mail de contato (placeholder) saiu do rodapé em 2026-11-05 (decisão do usuário).
 - **Logo**: confirmar autorização de uso do logo oficial da Prefeitura/IPP antes do deploy público (T0.4) e pedir
   o SVG oficial à Ascom do IPP (hoje PNG em `srcset`, `specs/2026-09-24_website_refactor` D6).
 - **Fontes quase repetidas** na caixa "Fontes desta seção": unificar as constantes `FONTE_*` do gerador.
@@ -264,9 +223,8 @@ Retorno da reunião do eixo Alimentação com a SMS (2026-11-05; itens 5 e 6 de 
 ### Repositório (git)
 - *Dado do CadÚnico abaixo de 20 no histórico* e *tamanho do histórico*: resolvidos em 2026-10-26 pela reescrita do
   histórico (`specs/2026-10-26_limpeza_historico`, Parte B); PDF, decks e DOCX de curadoria agora vão para a Release do GitHub.
-- **Papel da `main`** — muito atrás de `staging_main` (a branch padrão) e nunca recebeu as rodadas. Proposta: usá-la
-  como branch de versão e mesclar `staging_main` nela quando `relatorio/publicacao.json` passar para a versão final;
-  alternativa: aposentá-la.
+- **Papel da `main`** — decidido em `specs/2026-11-05_versao_final_site` (R8): `main` é o site publicado e
+  `staging_main` o ambiente de teste; a `main` só recebe merge de `staging_main` com OK (bloco 9, constituição §7).
 
 ### Ideias (sem decisão)
 - Substituir a visualização HTML por um painel Streamlit.
@@ -282,6 +240,11 @@ Resumo; detalhes na pasta da rodada.
 | 2026-11-05 | Fechamento de pendências: SISVAN recalculado das contagens, mapas de número em Moradia, tabelas do CadÚnico no PDF, IPS → ISP, mapas sem azul, 11 textos de Inclusão e Moradia, decks congelados | `specs/2026-11-05_fechamento_pendencias` |
 | 2026-10-26 | Histórico do git reescrito (`git filter-repo`): sem o dado do CadÚnico abaixo de 20, `revisao_casa_civil/`, saídas e binários gerados (~740 MB → ~12 MB); hashes citados atualizados; PDF, decks e DOCX na Release do GitHub; link do PDF no site para a última Release | `specs/2026-10-26_limpeza_historico` |
 | 2026-10-26 | Limpeza do repositório: 17 branches arquivadas em tags `rodada/*` e apagadas (inclusive `deck_familia_moradia` e a da Waleska, não mescláveis); 131 saídas e `revisao_casa_civil/` fora do git; Excel de `mapas/tabelas_bairros/` em `tabelas_finais/`; `git gc`; reescrita do histórico planejada | `specs/2026-10-26_limpeza_historico` |
+| 2026-10-08 | Decks breves de Inclusão, Alimentação e Direito ao Brincar e Moradia (congelados desde 2026-11-05) | tags `rodada/deck_inclusao`, `rodada/deck_alimentacao_brincar`, `rodada/deck_moradia` |
+| 2026-10-06 | CadÚnico de Inclusão e Moradia pelas silvers de pessoas/famílias; dados pontuais de ago/2026 fora do site | `specs/2026-10-06_cadunico_inclusao_moradia` |
+| 2026-09-30 | Filtro de residência nos 20 exports por bairro do Tabnet (mortalidade infantil 2025: 13,1 → 12,3‰; nascidos vivos 65.507 → 58.700); textos revistos na versão final | `specs/2026-09-30_filtro_residencia_tabnet` |
+| 2026-09-30 | Desempenho do site: desenho por aba, tooltip por delegação, fontes próprias (DOM 63,9 mil → 10,4 mil nós; primeira pintura ~430 → ~275 ms) | `specs/2026-09-30_desempenho_site` |
+| 2026-09-29 | Versão de demonstração (branch `demo`, só de ida; Pages publicou dela até 2026-11-05) | `specs/2026-09-29_demo` |
 | 2026-09-29 | Revisão do deck: 30 → 33 slides, "até 72 meses", 393 mil, mapas sem azul (terracota) e com teto de Tukey, violência familiar por vínculo (sem soma), eixos incompletos/ausentes; faixas de renda do CadÚnico corrigidas para "Pobreza"/"Baixa renda" em todo o projeto | `specs/2026-09-29_slide_revision` |
 | 2026-09-29 | PDF alinhado ao site (ordem de Prioridade, vacinação de volta, tabelas no corpo com `tabela_no_texto:`, seção vazia fora — E16); quadros de pendente formais com `motivo:` | `specs/2026-09-29_alinhamento_pdf_site` |
 | 2026-09-29 | Pendências: faixa padrão 0 a 5 anos (até 72 meses), exclusões E12-E15, eixo cortado no baixo peso, tablet com as metas do celular, decisões registradas; correção do esquema do banco do CadÚnico | `specs/2026-09-29_pendencias` |

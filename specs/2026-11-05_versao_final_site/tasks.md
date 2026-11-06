@@ -68,8 +68,18 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
   - [x] 2026-11-06: números do CadÚnico da partição de junho nas notas internas → partição 2026-07-10 (crosswalk:
     fonte jul/2026 e razão 200.784 ÷ 393.073 ≈ 51,1%; `analise.py`: 16.378 sem bairro, 8,2%). Site e PDF já estavam
     certos; as notas históricas de jun/2026 (grupo `'0-6'`, 713 famílias sem adulto) ficam como registro datado
-  - [ ] Conferir documentação (`CLAUDE.md`, `docs/especificacao_projeto.md`, skills, `README.md`, `ROADMAP.md`)
-    contra o que existe
+  - [x] 2026-11-06: documentação conferida contra o que existe (caminhos citados checados um a um). Corrigido: deploy
+    descrito como "só manual" (`CLAUDE.md`, `docs/especificacao_projeto.md` §9.4, skill `build_website`) → automático
+    na `main` + manual, conferência na `staging_main`, deploy pela `staging_main` até o T9.5; nota da skill
+    `generate_map` que citava `relatorio/index.html`/`build_html_report.py`; §12 da especificação (lorem) e data do
+    topo; `ROADMAP.md` com esta rodada como atual, rodadas de 09-30 a 10-08 no Concluído, curadoria sem DOCX, papel
+    da `main` decidido. `README.md` e `website/README.md` sem pendência (citações antigas são histórico)
+  - [x] Pipelines: sem rodar (dados congelados, pedido do usuário em 2026-11-06); `confere_publicacao.py` e
+    `confere_textos.py` passam sobre o `website/` versionado. O PDF não foi recompilado: as tabelas do apêndice pegam
+    os 4 títulos novos do crosswalk no próximo build
+  - [ ] Textos do site com erro achados na revisão (aguardam OK): `consideracoes_finais` ("deve atuar de forma
+    isolada"), `mapa_taxa_mortalidade_infantil_bairro_2025` (números antigos; o PDF está certo) e
+    `mapa_mortalidade_infantil_bairro_2025` ("37 dos 167 bairros" conta as 2 linhas de ignorado)
 - [ ] T8.3 Teste completo desktop e celular
 
 ## Bloco 9 — Publicação (com OK)

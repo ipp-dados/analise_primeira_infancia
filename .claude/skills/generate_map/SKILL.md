@@ -5,13 +5,13 @@ description: Generate a choropleth (coroplético) PNG map of Rio de Janeiro -- b
 
 **Note (v6, `specs/2026-09-14_relatorio-interativo`):** this skill's PNG pipeline is still
 the source for the notebook, the PDF export, and the geometry itself, but
-`relatorio/index.html` (the interactive HTML report) no longer embeds these
-PNGs for most indicators — `.claude/skills/export_pdf_report/scripts/build_html_report.py`
-now renders an inline interactive SVG choropleth instead (`mapa_svg()`:
-GeoJSON → SVG paths, tooltip per bairro/AP/RP/CAP, outlier toggle, CSV
+the static site in `website/` (which replaced `relatorio/index.html`) does not embed these
+PNGs — `website/build/build_site.py` (formerly the PDF skill's `build_html_report.py`)
+renders an interactive SVG choropleth instead (`mapa_svg()`:
+GeoJSON → SVG paths, tooltip per bairro/AP/RP/RA/CAP, outlier toggle, CSV
 download), reusing the same `dados_locais/geo/*.geojson` files and
-`_CORES_TEMA_MAPA` palette this skill documents. If you're asked to add a
-new map to the interactive HTML report specifically, check whether
+`_CORES_TEMA_MAPA` palette this skill documents (`_CMAP_TEMA` on the site). If you're asked to add a
+new map to the site specifically, check whether
 `mapa_svg()` already covers the needed nivel/join before reaching for this
 skill's PNG output — this skill is still the right (only) tool for the
 notebook/PDF, and for `nivel='cap'` it points at a **different** geojson
