@@ -564,3 +564,16 @@ faixas em destaque (D5, D6).
   mecânica, a única edição de entradas antigas). Quem tinha clone anterior precisa reclonar.
 - PDF, decks e DOCX de curadoria ficam fora do git (`.gitignore`) e são publicados como anexos da Release do GitHub;
   o link de download do PDF no site aponta para a última Release.
+
+## 2026-11-06 — `specs/2026-11-05_versao_final_site` (versão final do site, v0.35.0)
+
+- Site: textos do site conferidos contra `tabelas_finais/` e sem lorem (curadoria de 05/11, abas, eixos), banner com
+  foto (crédito Unsplash), mapa de referência da cidade (vizinhos, RA/AP) na Introdução, rodapé conferido, sem a faixa
+  EM DESENVOLVIMENTO; títulos "até 72 meses" nos indicadores fora do catálogo; números corrigidos em textos de
+  mortalidade e baixo peso por bairro ("167 bairros" contava as linhas IGNORADO).
+- PDF: capítulos em `relatorio/latex/capitulos/*.tex` editados à mão, capa e folha de rosto novas; segue marcado em
+  desenvolvimento e sai como Release `v0.35.0` (botão do PDF no site segue desligado).
+- Curadoria só do site, em `relatorio/textos_curados.json` (fim do DOCX, tag `rodada/curadoria_docx`).
+- GitHub: `main` passa a ser o site publicado (deploy automático por Actions a cada push), `staging_main` o ambiente
+  de teste (`confere-site.yml`); a `demo` deixa de ser publicada (constituição §7). Actions em Node 24.
+- Dados e pipeline congelados nesta rodada (`analise.py` não foi rodado).

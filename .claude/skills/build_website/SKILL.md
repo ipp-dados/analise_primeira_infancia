@@ -91,9 +91,8 @@ python website/build/build_site.py
 
 - Commit the regenerated `website/` output (CI cannot generate: `tabelas_finais/` is gitignored).
 - Deploy is `.github/workflows/deploy-relatorio.yml`: **automatic on every push to `main`** (the published branch;
-  `main` only receives a merge of `staging_main` with the user's OK) plus manual `workflow_dispatch`. Until T9.5 of
-  `specs/2026-11-05_versao_final_site` the Pages environment only accepts `demo`/`staging_main`, so the site is
-  deployed by hand from `staging_main` (`gh workflow run deploy-relatorio.yml --ref staging_main`). It copies an
+  `main` only receives a merge of `staging_main` with the user's OK) plus manual `workflow_dispatch`. Since 2026-11-06
+  Pages publishes via Actions and the `github-pages` environment accepts only `main` (constitution §7). It copies an
   explicit file list and fails if a non-static file type is present. `confere-site.yml` runs the same check
   (`confere_publicacao.py`) on pushes to `staging_main`. Publishing is external and visible — only with the user's
   explicit OK.

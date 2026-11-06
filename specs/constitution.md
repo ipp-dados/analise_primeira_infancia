@@ -190,6 +190,12 @@ histórico em 2026-10-26 (`specs/2026-10-26_limpeza_historico`, Parte B; `tabela
 
 ## 7. Git
 
+- **`main` é o site publicado; `staging_main` é o ambiente de teste** (regra do usuário, 2026-11-05/06,
+  `specs/2026-11-05_versao_final_site` R8). Um push na `main` publica o site na hora
+  (`.github/workflows/deploy-relatorio.yml`); por isso a `main` **só recebe merge de `staging_main`, com OK explícito
+  do usuário**, e nunca commit direto. A `staging_main` passa pela conferência `confere-site.yml` a cada push. O
+  GitHub Pages publica por Actions e o ambiente `github-pages` aceita só a `main`. O PDF não passa pelo deploy: sai
+  como anexo de uma Release (`relatorio/latex/build/publica_release.py`, tag `vX.Y.Z` na `main`).
 - Branch de integração: `staging_main`. Branches de trabalho seguem
   `spec/<nome-curto>` (ex.: `spec/relatorio-interativo`) para rodadas de
   spec, ou um nome descritivo curto para trabalho pontual (ex.: `planning`).
@@ -208,12 +214,12 @@ histórico em 2026-10-26 (`specs/2026-10-26_limpeza_historico`, Parte B; `tabela
   da V.1 e PDF só até a página impressa 18 com página de aviso. Tudo isso é **exclusivo da `demo`**: não entra em
   `staging_main`, em `main` nem em outra branch. O fluxo é **só de ida** (`staging_main` → `demo`, para atualizar);
   a `demo` nunca é mesclada de volta. O texto provisório nunca vai para o PDF, para `relatorio/textos_curados.json`
-  nem para o DOCX de curadoria, que seguem mostrando lorem e pendentes. Enquanto a demonstração estiver no ar, o
-  GitHub Pages publica só a partir da `demo`.
+  nem para o DOCX de curadoria, que seguem mostrando lorem e pendentes. **Desde 2026-11-06 a `demo` não é mais
+  publicada** (o Pages passou para a `main`); a branch fica como registro.
 - **Direção dos merges** (regra do usuário, 2026-09-29): o trabalho sobe das branches de rodada para a integração, e
   a integração desce para as derivadas. Nunca no sentido contrário:
   - `spec/<nome>` → `staging_main` (merge `--no-ff` ao fim da rodada);
-  - `staging_main` → `main` (publicação);
+  - `staging_main` → `main` (publicação; só com OK do usuário — o push publica o site);
   - `staging_main` → `demo` (para atualizar a demonstração). Depois do merge, regere o site e o PDF na `demo` e
     confira que o build não parou por falta de texto provisório.
   - **Proibido**: `demo` → `staging_main`/`main`/`spec/*`, e `staging_main` ← qualquer branch que tenha a `demo` na

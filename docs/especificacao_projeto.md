@@ -365,8 +365,8 @@ sem dado não aparecem no site nem no PDF (decisão do usuário, 2026-11-05).
 ### 9.4 Publicação
 
 - **Site**: `.github/workflows/deploy-relatorio.yml` só copia `website/` (saída versionada) — automático a cada push na
-  `main` (a branch publicada) e manual por `workflow_dispatch`. Até o T9.5 de `specs/2026-11-05_versao_final_site` o
-  ambiente `github-pages` só aceita `demo`/`staging_main`, e o deploy é manual pela `staging_main`. A `staging_main`
+  `main` (a branch publicada) e manual por `workflow_dispatch`. Desde 2026-11-06 o Pages publica por Actions e o
+  ambiente `github-pages` só aceita a `main` (constituição §7). A `staging_main`
   (teste) passa por `.github/workflows/confere-site.yml` (`confere_publicacao.py`, só confere, não publica).
 - **PDF**: `gera_latex.py --publicar` copia o PDF compilado para `relatorio/analise_primeira_infancia.pdf` (fora do
   git); a publicação é uma nova Release do GitHub com o PDF anexado — o site baixa o PDF de

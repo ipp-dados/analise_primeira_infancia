@@ -92,7 +92,7 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `initial_prompt.md` (nesta p
 - [ ] T9.1 Merge em `staging_main`; tag `rodada/versao_final_site`
 - [ ] T9.2 `staging_main` → `main`; deploy conferido
 - [ ] T9.3 Release do PDF
-- [ ] T9.4 Constituição §7 e `CLAUDE.md`
+- [x] T9.4 Constituição §7 e `CLAUDE.md` (2026-11-06: `main` = site publicado, `staging_main` = teste, `main` só com merge de `staging_main` e OK; `demo` não é mais publicada; skill `build_website`, especificação §9.4, README/CHANGELOG 0.35.0)
 - [ ] T9.5 Trocar a fonte do GitHub Pages da `staging_main` para a `main` (decisão do usuário, 2026-11-05: **por ora o
   site publica pela `staging_main`**, deploy manual -- `gh workflow run deploy-relatorio.yml --ref staging_main`).
   Na hora: incluir `main` nas branches permitidas do ambiente `github-pages` (Settings → Environments), passar
