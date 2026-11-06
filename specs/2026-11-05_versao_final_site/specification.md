@@ -1,7 +1,7 @@
 # SPECIFICATION — Versão final do site e do relatório (rodada de 2026-11-05)
 
 Status: **Bloco 1 (textos) e Bloco 2 (dados faltantes) feitos; Blocos 3-9 planejados, aguardando OK do usuário.**
-Branch `spec/versao_final_site`. Pedido original: `website_release.md` (raiz). O *como* está em `plan.md`, as tarefas em
+Branch `spec/versao_final_site`. Pedido original: `initial_prompt.md` (nesta pasta; era `website_release.md` na raiz). O *como* está em `plan.md`, as tarefas em
 `tasks.md`, os critérios de aceite em `validation.md`.
 
 ## 1. Contexto

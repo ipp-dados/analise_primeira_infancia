@@ -16,7 +16,7 @@ Organização em duas partes:
 
 ## 1. Rodada atual — Versão final do site (`specs/2026-11-05_versao_final_site`, branch `spec/versao_final_site`)
 
-Aberta em 2026-11-05 (pedido em `website_release.md`, fora do git). **Dados e pipeline congelados** nesta rodada: só
+Aberta em 2026-11-05 (pedido em `specs/2026-11-05_versao_final_site/initial_prompt.md`). **Dados e pipeline congelados** nesta rodada: só
 textos, documentação e configuração. Feito (blocos 1-7): textos do site e do PDF conferidos contra os dados, sem lorem
 (curadoria de 05/11 incorporada); banner com foto (crédito Unsplash) e rodapé com links conferidos; mapa de referência
 da cidade (vizinhos, RA/AP) na Introdução; PDF com um `.tex` editável por capítulo, capa e folha de rosto novas;

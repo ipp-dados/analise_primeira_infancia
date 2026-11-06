@@ -1,6 +1,6 @@
 # TASKS — Versão final do site (rodada de 2026-11-05)
 
-Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz). A especificação e o plano completos
+Legenda: [x] feito · [ ] a fazer. Pedido original: `initial_prompt.md` (nesta pasta; era `website_release.md` na raiz). A especificação e o plano completos
 (banner, mapa de referência, rodapé, faixa beta, relatório, `main`) vêm no planejamento desta rodada.
 
 ## Bloco 1 — Textos
@@ -54,7 +54,7 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 
 ## Bloco 8 — Versão final, revisão e teste
 - [x] T8.1 `publicacao.json`: site `false`, PDF segue `true`, botão do PDF escondido (D13) -- feito em 031dddc
-- [ ] T8.2 Revisão de pipelines e documentação; títulos "até 72 meses"
+- [x] T8.2 Revisão de pipelines e documentação; títulos "até 72 meses"
   - [x] 2026-11-06: 4 títulos fora do catálogo "0 a 5 anos" → "até 72 meses" (CadÚnico ÷ população, matrículas,
     taxa de atendimento, violência familiar) no crosswalk, nos `\section` dos capítulos 01/03/04 e em
     `textos_eixos.md` (o site já usava "até 72 meses"); faixa conferida nos dados: CadÚnico com `assert` 0-5,
@@ -85,7 +85,8 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
     baixo peso por bairro (site e cap. 06: "entre 6,7% e 28,6%" era P10-máximo → quartis 8,7-11,7%, mediana 10,2%,
     4 bairros acima de 20%); `evitaveis_cap_menores_1_gestacao` "total da cidade" → "soma das CAPs". Três dessas
     chaves não aparecem no site (só JSON/PDF). Site regerado uma vez: diferença só nesses textos e na data
-- [ ] T8.3 Teste completo desktop e celular
+- [x] T8.3 Teste completo desktop e celular (2026-11-06; V10, scripts e resultado em `teste_t83/`). Achados menores:
+  crédito da foto pouco legível sobre a imagem no desktop; SIDRA e Unsplash só conferíveis à mão (bloqueiam robôs)
 
 ## Bloco 9 — Publicação (com OK)
 - [ ] T9.1 Merge em `staging_main`; tag `rodada/versao_final_site`
@@ -117,3 +118,12 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - **Próximo: bloco 8** (T8.2 revisão de pipelines/documentação e títulos "até 72 meses"; T8.3 teste completo desktop
   1366 e celular 390 com Playwright/Edge), depois **bloco 9** só com OK (merge, `main`, Release com
   `relatorio/latex/build/publica_release.py vX.Y.Z --gerar` e depois `--confirmar`, constituição §7).
+
+## Estado em 2026-11-06 -- retomar daqui
+
+- Bloco 8 concluído (T8.1-T8.3) na `spec/versao_final_site`; dados e pipeline congelados (nada de `analise.py`). O
+  pedido original foi para esta pasta como `initial_prompt.md`.
+- Ainda não enviado ao `origin` nem mesclado: **próximo é o bloco 9, só com OK** (T9.1 merge em `staging_main` + tag
+  `rodada/versao_final_site`; T9.2 `staging_main` → `main`; T9.3 Release do PDF; T9.4 constituição §7; T9.5 Pages
+  pela `main`, com os ajustes manuais nas configurações do GitHub).
+- Conferir à mão os links do SIDRA e do Unsplash (bloqueiam robôs) e, se quiser, o contraste do crédito da foto.
