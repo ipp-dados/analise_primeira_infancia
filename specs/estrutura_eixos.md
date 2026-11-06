@@ -216,10 +216,10 @@
 - motivo: O recorte por sexo ainda não foi extraído do Sistema de Informações sobre Mortalidade (SIM).
 - nota: recorte por sexo ainda não extraído do SIM (antes o item sumia do relatório em silêncio, sem arquivo e sem status)
 
-### Crianças de 0 a 5 anos no CadÚnico em relação à população do município
-- fonte: Cadastro Único (extração CTPE, jun/2026); população: estimativas Ripsa/Ministério da Saúde (2025)
+### Crianças até 72 meses no CadÚnico em relação à população do município
+- fonte: Cadastro Único (extração CTPE, jul/2026); população: estimativas Ripsa/Ministério da Saúde (2025)
 - tabela: `cadunico_razao_populacao_0_a_5_2026.csv`
-- nota: razão municipal (194.138 ÷ 393.073 ≈ 49,4% na partição 2026-06-12). Cadastro de 2026 sobre estimativa de 2025; não é a cobertura exata do cadastro. Item novo da rodada `populacao-referencia` (A4), fora do catálogo original
+- nota: razão municipal (200.784 ÷ 393.073 ≈ 51,1% na partição 2026-07-10). Cadastro de 2026 sobre estimativa de 2025; não é a cobertura exata do cadastro. Item novo da rodada `populacao-referencia` (A4), fora do catálogo original
 - nota: movido de Inclusão para Prioridade (specs/2026-09-28_nova_estrutura)
 - tabela_no_texto: `cadunico_razao_populacao_0_a_5_2026.csv`
 
@@ -334,7 +334,7 @@
 - tabela: `sidra_taxa_frequencia_0_5_total_2022.csv`
 - nota: faixa real 0 a 5 anos. Até 2026-09-29 este item usava `pnad_frequencia_escolar_por_idade.png`, rotulado "PNAD Contínua", mas com exatamente a coluna Total da tabela 10056 do Censo 2022: fonte corrigida e duplicata tirada (specs/exclusoes.md E15; specs/2026-09-29_pendencias D16)
 
-### Matrículas na educação básica de crianças de 0 a 5 anos
+### Matrículas na educação básica de crianças até 72 meses
 - fonte: Censo Escolar da Educação Básica (INEP), microdados
 - visualização: `matriculas_0_a_5_por_ano.png`
 - visualização: `matriculas_0_a_5_creche_pre_por_ano.png`
@@ -342,7 +342,7 @@
 - tabela: `matriculas_0_a_5_por_ano.csv`
 - nota: 0 a 5 anos (`QT_MAT_BAS_0_3` + `QT_MAT_BAS_4_5`), idade na data de referência do Censo Escolar (última quarta-feira de maio); os dados abertos não separam 6 anos de 7-10. Série 2007-2025 refeita dos microdados (a série antiga, "até 6 anos", não batia com a fonte). Catálogo: "crianças até 6 anos" (`specs/2026-09-24_populacao-referencia/matriculas`)
 
-### Taxa bruta de atendimento escolar de 0 a 5 anos
+### Taxa bruta de atendimento escolar até 72 meses
 - fonte: Censo Escolar (INEP), microdados; população: estimativas Ripsa/Ministério da Saúde
 - visualização: `taxa_atendimento_0_a_5_por_ano.png`
 - tabela: `matriculas_0_a_5_por_ano.csv`
@@ -371,7 +371,7 @@
 
 ## 🛡️ Proteção
 
-### Violência familiar (0 a 5 anos, por vínculo do provável autor)
+### Violência familiar (até 72 meses, por vínculo do provável autor)
 - fonte: Sinan NET/Tabnet (SMS-Rio); município: população 0 a 5 anos das estimativas Ripsa/Ministério da Saúde; RA: população 0 a 4 anos do Censo Demográfico 2022
 - visualização: `violencia_familiar_serie_vinculos.png`
 - visualização: `violencia_familiar_taxa_municipio_ano.png`

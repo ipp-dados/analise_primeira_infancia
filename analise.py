@@ -628,7 +628,7 @@ assert df_bairro.loc['Total', 'Crianças'] == len(df), 'tabela por bairro não f
 # **Nota sobre a atribuição de bairro no CadÚnico** (reescrita em `specs/2026-09-23_recortes_cadunico`, A1/A2):
 # o CadÚnico não traz bairro; ele é obtido pelo CEP da família em `dados_locais/lista_bairros.csv`
 # (bairro dos **Correios**, não o bairro oficial IPP usado em `df_censo`). Três perdas/distorções:
-# 1. **15.809 crianças (8,1% de 194.138) têm CEP fora da lista** e ficam sem bairro -- antes sumiam em
+# 1. **16.378 crianças (8,2% de 200.784, partição 2026-07-10) têm CEP fora da lista** e ficam sem bairro -- antes sumiam em
 #    silêncio do groupby; agora aparecem na linha "Sem bairro identificado" de `cadunico_por_bairro_2026.csv`.
 # 2. Dos nomes que casam, 4 são variações de grafia do mesmo bairro oficial (normalizados via
 #    `_ALIAS_BAIRRO_CADUNICO`) e 6 são localidades sem bairro oficial (ex. Dendê, Tubiacanga -- Ilha do

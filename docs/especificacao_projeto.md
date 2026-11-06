@@ -1,7 +1,7 @@
 # Diagnóstico da Primeira Infância Carioca — especificação funcional e técnica
 
 > Documento de referência do projeto: o que ele entrega, para quem, com que dados, como é construído e como se
-> mantém. Estado em **2026-09-29** (`spec/pendencias`: faixa padrão 0 a 5 anos, exclusões E12-E15, eixo cortado no baixo peso, tablet; `spec/dados-adhoc`: dados pontuais do CadÚnico em Inclusão e Moradia). As decisões
+> mantém. Estado em **2026-11-06** (`spec/versao_final_site`: versão final do site, capítulos do PDF em `.tex` editados à mão, curadoria só do site em JSON, Release do PDF e deploy pela `main`). As decisões
 > de cada mudança, com o *porquê*, estão nas pastas de rodada em `specs/`; o que falta fazer está em `ROADMAP.md`.
 > Atualize este documento quando uma rodada mudar algo descrito aqui (seção 11).
 
@@ -364,8 +364,10 @@ sem dado não aparecem no site nem no PDF (decisão do usuário, 2026-11-05).
 
 ### 9.4 Publicação
 
-- **Site**: deploy manual (`workflow_dispatch` de `.github/workflows/deploy-relatorio.yml`), que só copia `website/`
-  (saída versionada); nunca automático.
+- **Site**: `.github/workflows/deploy-relatorio.yml` só copia `website/` (saída versionada) — automático a cada push na
+  `main` (a branch publicada) e manual por `workflow_dispatch`. Desde 2026-11-06 o Pages publica por Actions e o
+  ambiente `github-pages` só aceita a `main` (constituição §7). A `staging_main`
+  (teste) passa por `.github/workflows/confere-site.yml` (`confere_publicacao.py`, só confere, não publica).
 - **PDF**: `gera_latex.py --publicar` copia o PDF compilado para `relatorio/analise_primeira_infancia.pdf` (fora do
   git); a publicação é uma nova Release do GitHub com o PDF anexado — o site baixa o PDF de
   `releases/latest/download/analise_primeira_infancia.pdf` (`specs/2026-10-26_limpeza_historico`).
@@ -421,8 +423,9 @@ componente (6-7), uma regra (8) ou um processo (9-10). A data no topo diz a que 
 - **CadÚnico** só vem do banco ao vivo: os números são os da última execução do notebook com acesso ao CTPE.
 - **Site com agrupamento fixo no gerador**: mudanças em `specs/estrutura_eixos.md` chegam às tabelas do apêndice
   do PDF automaticamente; aos capítulos do PDF e ao site, só à mão.
-- **Textos**: blocos ainda em lorem ipsum (resumo, achados, aberturas e sínteses dos eixos, parte das figuras); a
-  lista sai no build do PDF. Alertas abertos em `relatorio/controle_revisao.json`.
+- **Textos**: sem lorem no site nem no PDF desde 2026-11-05 (`specs/2026-11-05_versao_final_site` T1). Os capítulos
+  `.tex` são editados à mão: uma mudança nos dados não atualiza número citado no texto do PDF (só o teste de rótulos
+  pega figura/tabela sumida). Alertas abertos em `relatorio/controle_revisao.json`.
 - **Dados pontuais** (`specs/2026-09-29_dados_adhoc`): mecanismo para extrações fora da rotina, com aviso público
   (`- dado_pontual:` no crosswalk). Os de ago/2026 de Inclusão e Moradia saíram do site em 2026-10-06 (`specs/2026-10-06_cadunico_inclusao_moradia`); o deck
   ainda os usa.

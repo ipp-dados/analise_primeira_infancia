@@ -128,6 +128,7 @@ Histórico completo em [`CHANGELOG.md`](CHANGELOG.md). Últimas mudanças:
 
 | Versão | Data | Resumo |
 | :--- | :--- | :--- |
+| 0.35.0 | 2026-11-06 | Versão final do site (`specs/2026-11-05_versao_final_site`): textos conferidos contra os dados, banner com foto, mapa de referência da cidade, sem a faixa EM DESENVOLVIMENTO; PDF com capítulos `.tex` editados à mão (segue em desenvolvimento, Release v0.35.0); curadoria só do site em JSON; `main` passa a ser o site publicado e `staging_main` o teste. |
 | 0.34.0 | 2026-10-26 | Histórico do git reescrito: sem o dado do CadÚnico abaixo de 20, sem as revisões externas e sem binários gerados (clone de ~740 MB para ~12 MB; todos reclonam). PDF, decks e DOCX de curadoria passam a ser anexos da Release do GitHub; o site baixa o PDF da última Release (`specs/2026-10-26_limpeza_historico`). |
 | 0.33.1 | 2026-10-26 | Limpeza do repositório: branches mescladas arquivadas em tags `rodada/*` e apagadas; saídas (`tabelas_finais/`, `visualizacoes/`, `mapas/`) e `revisao_casa_civil/` fora do git (ficam no disco); tabelas Excel de `mapas/tabelas_bairros/` em `tabelas_finais/`; reescrita do histórico planejada (`specs/2026-10-26_limpeza_historico`). |
 | 0.33.0 | 2026-10-06 | CadÚnico refeito (partição jul/2026): filtro 0 a 5 corrigido; Inclusão (deficiência, tipo, BPC) e Moradia (inadequação e déficit FJP, adensamento) com as silvers novas e bairro pelo código oficial, no lugar dos pendentes e do dado pontual (`specs/2026-10-06_cadunico_inclusao_moradia`). |

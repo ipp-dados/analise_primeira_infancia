@@ -22,7 +22,7 @@ Indicadores do eixo:
 - Mortalidade infantil por causas evitáveis (0 a 6, 7 a 27, 28 a 364 dias)
 - Mortalidade infantil por causas evitáveis, por tipo de causa (grupo/subgrupo CID-10)
 - Mortalidade infantil por causas evitáveis, por sexo *(pendente — sem dado)*
-- Crianças de 0 a 5 anos no CadÚnico em relação à população do município
+- Crianças até 72 meses no CadÚnico em relação à população do município
 - Crianças até 72 meses no Cadastro Único (número)
 - Famílias com crianças até 72 meses no Cadastro Único (número)
 - Famílias com crianças até 72 meses no Cadastro Único, por renda
@@ -87,8 +87,8 @@ Indicadores do eixo:
 - Crianças até 72 meses frequentando escola/creche, por raça/cor
 - Crianças até 72 meses frequentando escola/creche, por sexo
 - Taxa bruta de frequência escolar da população até 72 meses
-- Matrículas na educação básica de crianças de 0 a 5 anos
-- Taxa bruta de atendimento escolar de 0 a 5 anos
+- Matrículas na educação básica de crianças até 72 meses
+- Taxa bruta de atendimento escolar até 72 meses
 - Cobertura vacinal de rotina em crianças até 2 anos
 - Famílias no CadÚnico com crianças até 72 meses, por renda e arranjo familiar
 
@@ -116,7 +116,7 @@ Acreditamos que a demanda de pré-escola e escola será crescentemente concentra
 ## 🛡️ Proteção
 
 Indicadores do eixo:
-- Violência familiar (0 a 5 anos, por vínculo do provável autor)
+- Violência familiar (até 72 meses, por vínculo do provável autor)
 - Violência familiar — composição de "outros" vínculos
 - Violência familiar — bairros com mais notificações (2025)
 - Violência familiar — por CAP

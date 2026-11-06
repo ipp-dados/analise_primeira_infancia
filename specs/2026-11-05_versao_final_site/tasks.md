@@ -1,6 +1,6 @@
 # TASKS — Versão final do site (rodada de 2026-11-05)
 
-Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz). A especificação e o plano completos
+Legenda: [x] feito · [ ] a fazer. Pedido original: `initial_prompt.md` (nesta pasta; era `website_release.md` na raiz). A especificação e o plano completos
 (banner, mapa de referência, rodapé, faixa beta, relatório, `main`) vêm no planejamento desta rodada.
 
 ## Bloco 1 — Textos
@@ -54,14 +54,45 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 
 ## Bloco 8 — Versão final, revisão e teste
 - [x] T8.1 `publicacao.json`: site `false`, PDF segue `true`, botão do PDF escondido (D13) -- feito em 031dddc
-- [ ] T8.2 Revisão de pipelines e documentação; títulos "até 72 meses"
-- [ ] T8.3 Teste completo desktop e celular
+- [x] T8.2 Revisão de pipelines e documentação; títulos "até 72 meses"
+  - [x] 2026-11-06: 4 títulos fora do catálogo "0 a 5 anos" → "até 72 meses" (CadÚnico ÷ população, matrículas,
+    taxa de atendimento, violência familiar) no crosswalk, nos `\section` dos capítulos 01/03/04 e em
+    `textos_eixos.md` (o site já usava "até 72 meses"); faixa conferida nos dados: CadÚnico com `assert` 0-5,
+    INEP `QT_MAT_BAS_0_3`+`_4_5`, Sinan exportado com "menor de 01 ano ... 05 anos", populações Ripsa 0-5.
+    Corpo e legendas seguem "0 a 5 anos"; o título da mortalidade (menores de 1, 1-4, 0-5) fica, é recorte etário
+  - [x] 2026-11-06: `basemap-f5a7b7b6.jpg` (órfão, idêntico ao usado; bbox antiga do mapa por CAP) removido;
+    `build_site.py` apaga `basemap-*.jpg` não usados no build
+  - [x] 2026-11-06: Actions nos majors atuais (Node 24): checkout v7, setup-python v7, configure-pages v6,
+    upload-pages-artifact v5, deploy-pages v5 -- conferir no próximo run
+  - [x] 2026-11-06: `staging_main` local alinhada (fast-forward) com `origin/staging_main`
+  - [x] 2026-11-06: números do CadÚnico da partição de junho nas notas internas → partição 2026-07-10 (crosswalk:
+    fonte jul/2026 e razão 200.784 ÷ 393.073 ≈ 51,1%; `analise.py`: 16.378 sem bairro, 8,2%). Site e PDF já estavam
+    certos; as notas históricas de jun/2026 (grupo `'0-6'`, 713 famílias sem adulto) ficam como registro datado
+  - [x] 2026-11-06: documentação conferida contra o que existe (caminhos citados checados um a um). Corrigido: deploy
+    descrito como "só manual" (`CLAUDE.md`, `docs/especificacao_projeto.md` §9.4, skill `build_website`) → automático
+    na `main` + manual, conferência na `staging_main`, deploy pela `staging_main` até o T9.5; nota da skill
+    `generate_map` que citava `relatorio/index.html`/`build_html_report.py`; §12 da especificação (lorem) e data do
+    topo; `ROADMAP.md` com esta rodada como atual, rodadas de 09-30 a 10-08 no Concluído, curadoria sem DOCX, papel
+    da `main` decidido. `README.md` e `website/README.md` sem pendência (citações antigas são histórico)
+  - [x] Pipelines: sem rodar (dados congelados, pedido do usuário em 2026-11-06); `confere_publicacao.py` e
+    `confere_textos.py` passam sobre o `website/` versionado. O PDF não foi recompilado: as tabelas do apêndice pegam
+    os 4 títulos novos do crosswalk no próximo build
+  - [x] 2026-11-06: conferência de todos os números dos 163 textos do site contra `tabelas_finais/` (somente leitura;
+    somas por AP/RP/CAP, faixas e taxas recalculadas). Corrigido com OK do usuário: `consideracoes_finais` e cap. 08
+    ("não deve atuar de forma isolada"); `mapa_taxa_mortalidade_infantil_bairro_2025` (números antigos → texto do
+    PDF); "167 bairros" → 165 (as linhas 998/999 são IGNORADO) em `mapa_mortalidade_infantil_bairro_2025`,
+    `mapa_obitos_raca_total_bairro_2025` (37 → 35 sem óbito) e `mapa_obitos_pos_neonatal_bairro_2025` (75 → 73);
+    baixo peso por bairro (site e cap. 06: "entre 6,7% e 28,6%" era P10-máximo → quartis 8,7-11,7%, mediana 10,2%,
+    4 bairros acima de 20%); `evitaveis_cap_menores_1_gestacao` "total da cidade" → "soma das CAPs". Três dessas
+    chaves não aparecem no site (só JSON/PDF). Site regerado uma vez: diferença só nesses textos e na data
+- [x] T8.3 Teste completo desktop e celular (2026-11-06; V10, scripts e resultado em `teste_t83/`). Achados menores:
+  crédito da foto pouco legível sobre a imagem no desktop; SIDRA e Unsplash só conferíveis à mão (bloqueiam robôs)
 
 ## Bloco 9 — Publicação (com OK)
 - [ ] T9.1 Merge em `staging_main`; tag `rodada/versao_final_site`
 - [ ] T9.2 `staging_main` → `main`; deploy conferido
 - [ ] T9.3 Release do PDF
-- [ ] T9.4 Constituição §7 e `CLAUDE.md`
+- [x] T9.4 Constituição §7 e `CLAUDE.md` (2026-11-06: `main` = site publicado, `staging_main` = teste, `main` só com merge de `staging_main` e OK; `demo` não é mais publicada; skill `build_website`, especificação §9.4, README/CHANGELOG 0.35.0)
 - [ ] T9.5 Trocar a fonte do GitHub Pages da `staging_main` para a `main` (decisão do usuário, 2026-11-05: **por ora o
   site publica pela `staging_main`**, deploy manual -- `gh workflow run deploy-relatorio.yml --ref staging_main`).
   Na hora: incluir `main` nas branches permitidas do ambiente `github-pages` (Settings → Environments), passar
@@ -87,3 +118,12 @@ Legenda: [x] feito · [ ] a fazer. Pedido original: `website_release.md` (raiz).
 - **Próximo: bloco 8** (T8.2 revisão de pipelines/documentação e títulos "até 72 meses"; T8.3 teste completo desktop
   1366 e celular 390 com Playwright/Edge), depois **bloco 9** só com OK (merge, `main`, Release com
   `relatorio/latex/build/publica_release.py vX.Y.Z --gerar` e depois `--confirmar`, constituição §7).
+
+## Estado em 2026-11-06 -- retomar daqui
+
+- Bloco 8 concluído (T8.1-T8.3) na `spec/versao_final_site`; dados e pipeline congelados (nada de `analise.py`). O
+  pedido original foi para esta pasta como `initial_prompt.md`.
+- Ainda não enviado ao `origin` nem mesclado: **próximo é o bloco 9, só com OK** (T9.1 merge em `staging_main` + tag
+  `rodada/versao_final_site`; T9.2 `staging_main` → `main`; T9.3 Release do PDF; T9.4 constituição §7; T9.5 Pages
+  pela `main`, com os ajustes manuais nas configurações do GitHub).
+- Conferir à mão os links do SIDRA e do Unsplash (bloqueiam robôs) e, se quiser, o contraste do crédito da foto.

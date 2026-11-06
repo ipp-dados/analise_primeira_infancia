@@ -90,7 +90,9 @@ python website/build/build_site.py
 ## Publish
 
 - Commit the regenerated `website/` output (CI cannot generate: `tabelas_finais/` is gitignored).
-- Deploy is `.github/workflows/deploy-relatorio.yml`, **manual** (`workflow_dispatch`, Actions tab →
-  "Deploy relatório" → Run workflow, on the default branch `staging_main`). It copies an explicit file
-  list and fails if a non-static file type is present. Publishing is external and visible — only
-  with the user's explicit OK.
+- Deploy is `.github/workflows/deploy-relatorio.yml`: **automatic on every push to `main`** (the published branch;
+  `main` only receives a merge of `staging_main` with the user's OK) plus manual `workflow_dispatch`. Since 2026-11-06
+  Pages publishes via Actions and the `github-pages` environment accepts only `main` (constitution §7). It copies an
+  explicit file list and fails if a non-static file type is present. `confere-site.yml` runs the same check
+  (`confere_publicacao.py`) on pushes to `staging_main`. Publishing is external and visible — only with the user's
+  explicit OK.

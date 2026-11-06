@@ -43,7 +43,7 @@ gitignored.
 Three project skills wrap multi-step regeneration pipelines — prefer them over
 reimplementing this logic:
 - `generate_map` — produces a choropleth PNG via `mapa_coropletico_bairros` (in `primeira_infancia/mapas.py`).
-- `build_website` — regenerates/checks the static site in `website/` (`website/build/build_site.py`) and describes its manual GitHub Pages deploy.
+- `build_website` — regenerates/checks the static site in `website/` (`website/build/build_site.py`) and describes its GitHub Pages deploy.
 - `export_pdf_report` — builds the final report: an ABNT technical report in LaTeX (`relatorio/latex/`, abnTeX2 + xelatex; `specs/2026-09-25_relatorio_latex`). **Since 2026-11-05 its chapters are hand-edited `.tex` files** (`relatorio/latex/capitulos/`, `specs/2026-11-05_versao_final_site` R5) while the data they cite is still generated: print versions of `analise.py`'s own figures (`visualizacoes/a4/`, `mapas/a4/`), in-body and appendix tables from `tabelas_finais/` (labels from `specs/estrutura_eixos.md`), checked on every build. Distinct from and NOT related to the `website/` static site's SVG charts — see below.
 
 ## Architecture
@@ -163,7 +163,7 @@ Key conventions enforced throughout, worth checking before adding a new call sit
 - `ROADMAP.md` (root) — the single roadmap (in progress → prioritized queue → backlog by theme → done); `specs/roadmap.md` and `website/ROADMAP.md` were merged into it on 2026-09-25. Update it when a round opens or closes.
 - `revisao_casa_civil/` — local-only, gitignored: external reviews of the PMPIA plan (with people's names); never commit it. It, the old CadÚnico counts below 20 and all generated binaries were removed from the whole git history on 2026-10-26 (`specs/2026-10-26_limpeza_historico`; every commit hash changed — anyone with an older clone must re-clone, never push from it).
 - `specs/exclusoes.md` — hand-edited list of what the team excluded from the PDF/site/figures, why, and how to restore it. Check it before re-adding an indicator.
-- `.github/workflows/deploy-relatorio.yml` — manual (`workflow_dispatch`) GitHub Pages deploy of `website/` (explicit include list, excludes `build/`; fails if a non-static file type slips in). Not the PDF.
+- `.github/workflows/deploy-relatorio.yml` — GitHub Pages deploy of `website/`: automatic on push to `main` plus manual `workflow_dispatch` (explicit include list, excludes `build/`; fails if a non-static file type slips in). Not the PDF. **`main` is the published site and `staging_main` the test environment** (constitution §7, since 2026-11-06): `main` only receives a merge of `staging_main` with the user's explicit OK; Pages publishes via Actions and the `github-pages` environment accepts only `main`; `demo` is no longer published. `.github/workflows/confere-site.yml` runs `website/build/confere_publicacao.py` on PRs to `staging_main`/`main` and pushes to `staging_main` (checks only, publishes nothing).
 - `specs/` — the project's spec-driven workflow. `specs/constitution.md` (non-negotiable
   project-wide rules), `specs/tech-stack.md` (what's used and why, including rejected
   alternatives), and one directory per

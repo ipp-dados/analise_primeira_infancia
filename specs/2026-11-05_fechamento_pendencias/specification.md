@@ -5,7 +5,7 @@ em `tasks.md`, os critérios de aceite em `validation.md`. Só se implementa dep
 
 ## 1. Contexto
 
-O usuário pediu a versão final do site (`website_release.md`, na raiz, ainda não versionado). Primeiro passo do
+O usuário pediu a versão final do site (`website_release.md`, na raiz; desde 2026-11-06 em `specs/2026-11-05_versao_final_site/initial_prompt.md`). Primeiro passo do
 pedido: "conferir as branches; se houver trabalho em andamento, terminar antes". Branches: nenhuma além de
 `staging_main`, `main` (ancestral de `staging_main`) e `demo`; sem stash. O `ROADMAP.md`, porém, tinha itens abertos
 das rodadas `2026-10-06_cadunico_inclusao_moradia`, `2026-10-06_deck_alimentacao_brincar` e `2026-10-08_deck_moradia`.
