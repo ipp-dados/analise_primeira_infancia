@@ -23,14 +23,14 @@ Google Docs; since then **the text is written directly in the `.tex` chapters** 
 | :--- | :--- | :--- |
 | `relatorio/latex/relatorio.tex` | master: class, metadata (`\autor`, `\preambulo`), order of parts, `\input` of each chapter | hand |
 | `relatorio/latex/capitulos/NN_<eixo>.tex` | **the 9 chapters** (Introdução, 7 eixos, Considerações finais): text, sections, `\figura{…}`, `\input{gerado/tabelas_corpo/…}`, `\vertabelas{\ref{tab:…}}` | **hand** |
-| `relatorio/latex/pretextual/` | `capa.tex` (two options A/D under evaluation), `folha_rosto.tex`, `expediente.tex` (direção + equipe técnica), `resumo.tex` (one page), `siglas.tex`; images by `build/gera_capa_imagens.py` | hand |
+| `relatorio/latex/pretextual/` | `capa.tex` (navy cover, option D chosen 2026-11-10), `contracapa.tex` (navy back cover, `\input` at the end of `relatorio.tex`), `folha_rosto.tex`, `expediente.tex` (direção + equipe técnica), `resumo.tex` (one page), `siglas.tex`; images by `build/gera_capa_imagens.py` | hand |
 | `relatorio/latex/textual/como_ler.tex` | "Como ler este relatório" (facts, not analysis) | hand |
 | `relatorio/latex/estilo.sty` | fonts, colours, ABNT captions, chapter openers, callout boxes, `\figura` | hand |
 | `relatorio/latex/fontes.bib` | **Fontes** list (NBR 6023) + `padroes` regex linking each `fonte_dados` text to an entry | hand |
 | `relatorio/latex/fontes/` | Fraunces + IBM Plex Sans (OFL), used by LaTeX **and** by the print figures | vendored |
 | `relatorio/latex/build/gera_latex.py` | builds the generated parts (appendix, in-body tables, nocite, watermark switch, icons), **checks the chapters**, compiles | code |
 | `relatorio/latex/build/tabelas.py` | CSV → ABNT table; per-table rules (`AJUSTES`), merges (`SUBSTITUI_NO_PDF`), size rules | code |
-| `relatorio/latex/build/gera_capa_imagens.py` | cover photo (faint / navy texture) and the dark/light IPP logo PNGs | code |
+| `relatorio/latex/build/gera_capa_imagens.py` | navy-textured cover photo (original, gitignored, in `build/originais/`) and the dark/light IPP logo PNGs | code |
 | `relatorio/latex/build/inventario_fontes.py` | sources inventory (`relatorio/inventario_fontes.md/.csv`) | code |
 | `relatorio/latex/gerado/` | generator output: `apendices.tex`, `tabelas_corpo/*.tex`, `nocite.tex`, `aviso.tex`, `icones.tex` | **never by hand** |
 | `relatorio/latex/_build/` | latexmk aux, image cache, `relatorio.pdf` | gitignored |
@@ -82,9 +82,12 @@ Run everything from the project root.
   line with `\citeonline`, label) and the `\vertabelas{Tabela~\ref{tab:…}}` line to the chapter.
 - **Indicators without data are not published** (user's decision, 2026-11-05): no "em desenvolvimento" box in the PDF
   or the site; they stay `status: pendente` in the crosswalk and in `docs/dados_faltantes.csv` / ROADMAP.
-- **Cover**: two options (A light, D navy) are both in `capa.tex` until the user chooses; delete the other then. Both
-  show an "EM DESENVOLVIMENTO" label while `relatorio/publicacao.json` says so (`\ifemdesenvolvimento`, written by
-  `gera_latex.py` into `gerado/aviso.tex`) — the page watermark is hidden under the cover photo.
+- **Cover**: option D (navy, photo as texture) chosen on 2026-11-10; option A (light) was deleted. Photo: children with
+  a globe, EDI Aníbal Machado, by Marcos de Paula / Prefeitura do Rio (use authorized by the Prefeitura; credit on the
+  staff page). The 14 MB original is in `relatorio/latex/build/originais/` (gitignored); `gera_capa_imagens.py` crops
+  it (bottom 15% cut: another child's hair) and writes `pretextual/capa_foto_azul.jpg`, which is committed. The cover
+  shows an "EM DESENVOLVIMENTO" label while `relatorio/publicacao.json` says so (`\ifemdesenvolvimento`, written by
+  `gera_latex.py` into `gerado/aviso.tex`) — the page watermark is hidden under the cover photo and the back cover.
 - **Staff page** (`expediente.tex`): names and positions given by the user; the mayor since 2026-03-20 is Eduardo
   Cavaliere. Keep `\autor` in `relatorio.tex` in sync with the technical team.
 

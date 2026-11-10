@@ -1,13 +1,14 @@
 % Capa -- editada à mão (2026-11-05; specs/2026-11-05_versao_final_site D6).
-% EM AVALIAÇÃO: duas opções seguidas, A (clara) e D (azul), a pedido do usuário; depois da escolha, apagar a outra.
+% Opção D (azul) escolhida pelo usuário em 2026-11-10; a opção A (clara, foto esmaecida) foi apagada.
 % Estrutura dos relatórios técnicos do IPP no Data.Rio (referência: "Panorama da Indústria da Transformação na
 % Economia Carioca", mar/2026, 1a página): aba de edição na borda esquerda, bloco institucional no alto, título grande
-% no meio, logo sozinha no pé. Estilo do projeto (azul institucional, título serifado). Foto do banner do site,
-% esmaecida (A) ou como textura no azul (D) -- imagens de relatorio/latex/build/gera_capa_imagens.py; crédito no
-% expediente. Selo "EM DESENVOLVIMENTO" só enquanto relatorio/publicacao.json disser pdf_em_desenvolvimento
-% (\ifemdesenvolvimento vem de gerado/aviso.tex): a marca d'água das outras páginas fica por baixo da foto da capa.
+% no meio, logo sozinha no pé. Estilo do projeto (azul institucional, título serifado). Foto (crianças com um globo,
+% Marcos de Paula / Prefeitura do Rio) como textura no azul -- imagem de relatorio/latex/build/gera_capa_imagens.py;
+% crédito no expediente. Contracapa
+% (mesmo azul) em pretextual/contracapa.tex. Selo "EM DESENVOLVIMENTO" só enquanto relatorio/publicacao.json disser
+% pdf_em_desenvolvimento (\ifemdesenvolvimento vem de gerado/aviso.tex): a marca d'água das outras páginas fica por baixo da foto da capa.
 
-% ---- partes comuns às duas opções ---------------------------------------------------------------------------------
+% ---- partes da capa (\capalogo também na contracapa) --------------------------------------------------------------
 \newcommand{\capaaba}[1]{% aba de edição: cor de fundo
   \fill[#1] (current page.north west) rectangle ([xshift=1.0cm, yshift=-7.6cm]current page.north west);
   \node[rotate=90, anchor=east, inner sep=0, text=white, font=\ttfamily\footnotesize]
@@ -33,20 +34,7 @@
 \newcommand{\capalogo}[1]{\node[anchor=south, inner sep=0] at ([yshift=2.0cm]current page.south)
   {\includegraphics[height=1.2cm]{pretextual/#1}};}
 
-% ---- opção A: clara, foto sutil na página inteira ------------------------------------------------------------------
-\begin{capa}
-  \thispagestyle{empty}
-  \begin{tikzpicture}[remember picture, overlay]
-    \node[anchor=north west, inner sep=0] at (current page.north west)
-      {\includegraphics[width=\paperwidth, height=\paperheight]{pretextual/capa_foto_sutil.jpg}};
-    \capaaba{ippnavy}
-    \capatexto{tinta2}{ippnavy}{ippnavy}{tinta}
-    \capalogo{logo_ipp_escura.png}
-    \capaselo
-  \end{tikzpicture}
-\end{capa}
-
-% ---- opção D: azul institucional, foto como textura ----------------------------------------------------------------
+% ---- capa: azul institucional, foto como textura (opção D, escolhida em 2026-11-10) ----------------------------------
 \begin{capa}
   \thispagestyle{empty}
   \begin{tikzpicture}[remember picture, overlay]

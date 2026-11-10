@@ -51,3 +51,7 @@ docs/*.pdf
 
 # imagens da capa/folha de rosto do PDF (relatorio/latex/build/gera_capa_imagens.py) -- logos em PNG
 !/relatorio/latex/pretextual/*.png
+
+# foto original da capa do PDF (~14 MB, Marcos de Paula / Prefeitura do Rio) -- só a imagem tratada
+# (relatorio/latex/pretextual/capa_foto_azul.jpg) é versionada
+/relatorio/latex/build/originais/
