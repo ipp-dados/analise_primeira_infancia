@@ -1,0 +1,22 @@
+% Contracapa -- editada à mão (pedido do usuário, 2026-11-10): página inteira no azul institucional da capa (opção D),
+% com dados básicos da publicação e a logo Prefeitura Rio | IPP clara no pé, na mesma posição da capa (\capalogo,
+% de pretextual/capa.tex). Sem foto, sem número de página. Entra no fim de relatorio.tex, depois dos apêndices.
+% A marca d'água "EM DESENVOLVIMENTO" das outras páginas fica por baixo do azul, como na capa.
+\clearpage
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture, overlay]
+  \fill[ippnavy!82!black] (current page.south west) rectangle (current page.north east);
+  % fio dourado curto e bloco de dados, alinhados à margem do texto da capa (2,4 cm)
+  \fill[c4] ([xshift=2.4cm, yshift=-17.6cm]current page.north west) rectangle ([xshift=3.6cm, yshift=-17.7cm]current page.north west);
+  \node[anchor=north west, inner sep=0, align=left, text=white, font={\frauncesdisplay\fontsize{24}{29}\selectfont}]
+    at ([xshift=2.4cm, yshift=-18.3cm]current page.north west)
+    {Diagnóstico da Primeira Infância Carioca};
+  \node[anchor=north west, inner sep=0, align=left, text=white!80!ippnavy, font=\small]
+    at ([xshift=2.4cm, yshift=-19.8cm]current page.north west)
+    {Relatório técnico \textperiodcentered{} Rio de Janeiro, novembro de 2026\\[0.35cm]
+     Instituto Municipal de Urbanismo Pereira Passos (IPP)\\
+     Coordenadoria de Pesquisa, Avaliação e Políticas Públicas\\
+     Em parceria com a Casa Civil da Prefeitura da Cidade do Rio de Janeiro\\[0.35cm]
+     Versão interativa: ipp-dados.github.io/analise\_primeira\_infancia};
+  \capalogo{logo_ipp_clara.png}
+\end{tikzpicture}
